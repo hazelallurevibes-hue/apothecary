@@ -53,3 +53,4 @@ frontend/.agents/
 frontend/skills-lock.json
 supabase/.temp/
 .vercel
+.infra/

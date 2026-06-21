@@ -91,20 +91,19 @@ CREATE INDEX IF NOT EXISTS idx_course_lessons_course ON public.vendor_course_les
 CREATE INDEX IF NOT EXISTS idx_course_enrollments_email ON public.vendor_course_enrollments(user_email);
 
 -- ── Platform identity (Hazel Allure LLC) ────────────────────────────────
+-- Prefixed keys: shared Supabase with Bpicius — never overwrite site_url
 INSERT INTO public.platform_settings (key, value)
 VALUES
-  ('site_url', 'https://apothecary.hazelallure.com'),
-  ('site_name', 'Hazel Allure Apothecary'),
-  ('legal_entity', 'Hazel Allure LLC'),
-  ('owner_email', 'hazelallurevibes@gmail.com'),
-  ('email_contact', 'hazelallurevibes@gmail.com'),
-  ('email_support', 'hazelallurevibes@gmail.com'),
-  ('email_vendors', 'hazelallurevibes@gmail.com'),
-  ('email_orders', 'hazelallurevibes@gmail.com'),
-  ('blog_url', 'https://www.hazelallure.com'),
-  ('platform_fee_percent', '8'),
-  ('teaching_platform_enabled', 'true'),
-  ('vendor_discounts_enabled', 'true')
+  ('hazelallure_site_url', 'https://apothecary.hazelallure.com'),
+  ('hazelallure_site_name', 'Hazel Allure Apothecary'),
+  ('hazelallure_legal_entity', 'Hazel Allure LLC'),
+  ('hazelallure_owner_email', 'abeytamonico@yahoo.com'),
+  ('hazelallure_business_email', 'hazelallurevibes@gmail.com'),
+  ('hazelallure_infra_owner', 'garrettpistool-lab'),
+  ('hazelallure_blog_url', 'https://www.hazelallure.com'),
+  ('hazelallure_platform_fee_percent', '8'),
+  ('hazelallure_teaching_enabled', 'true'),
+  ('hazelallure_discounts_enabled', 'true')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- ── RLS ─────────────────────────────────────────────────────────────────
