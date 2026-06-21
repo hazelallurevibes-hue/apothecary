@@ -1,0 +1,56 @@
+You are getting:
+error: pathspec 'CURRENT_EDITOR_FIX.txt' did not match any file(s) known to git
+
+This is OK. That file (and similar new helper files) is not part of the merge conflict. Git only knows about files that were changed on both sides or were in the original repo.
+
+DO THIS (open PowerShell and paste these lines one at a time):
+
+cd "C:\Users\abeyt\bpicius-fullstack"
+
+git status
+
+# Now only do checkout --ours for files that actually exist and were part of the original project.
+# If any of these gives "pathspec did not match", just skip it and go to the next.
+
+git checkout --ours README.md 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped README.md (not in conflict)" }
+
+git checkout --ours backend/package.json 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped backend/package.json (not in conflict)" }
+
+git checkout --ours GIT_PUSH_REJECTED_FIX.txt 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped GIT_PUSH_REJECTED_FIX.txt (not in conflict)" }
+
+git checkout --ours PUSH_TO_GITHUB_INSTRUCTIONS.txt 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped PUSH_TO_GITHUB_INSTRUCTIONS.txt (not in conflict)" }
+
+git checkout --ours RENDER_DEPLOY_STEPS.txt 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped RENDER_DEPLOY_STEPS.txt (not in conflict)" }
+
+git checkout --ours FIX_RENDER_STATIC_ERROR.txt 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped FIX_RENDER_STATIC_ERROR.txt (not in conflict)" }
+
+git checkout --ours render.yaml 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Skipped render.yaml (not in conflict)" }
+
+# Now add all the files we resolved above + all the new helper files we created for you.
+# The new helpers are not conflicted, so we add them the normal way.
+
+git add README.md backend/package.json GIT_PUSH_REJECTED_FIX.txt PUSH_TO_GITHUB_INSTRUCTIONS.txt RENDER_DEPLOY_STEPS.txt FIX_RENDER_STATIC_ERROR.txt render.yaml
+
+git add CURRENT_EDITOR_FIX.txt OPEN_POWERSHELL_ONLY.txt RECOVERY_FROM_CHECKOUT_OURS_ERROR.txt RUN_THESE_RIGHT_NOW.txt fix-git-push.ps1 2>$null
+if ($LASTEXITCODE -ne 0) { echo "Added what was available for new helpers" }
+
+# Commit the merge resolution (this finishes the merge)
+
+git commit -m "Resolve merge conflicts - keep local deployment fixes and Node 20 pin"
+
+# Push to GitHub
+
+git push origin main
+
+After the push succeeds, go to Render and set the bpicius-backend Web Service to Node Version 20.x, then redeploy with clear cache.
+
+If you get any error on the commands above, copy the full error and paste it here.
+
+Run "git status" now if you want to see the current state before running the rest.

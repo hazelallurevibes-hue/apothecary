@@ -1,0 +1,100 @@
+FIX FOR RENDER ERROR: "unknown type static" + "Empty build command" + "Publish directory build does not exist"
+
+The problem: You are using (or Render is auto-detecting) a render.yaml that contains "type: static". Render's Blueprint parser is rejecting "static" in your current setup, or you created a Static Site manually with wrong settings for this Vite monorepo.
+
+SOLUTION: Do NOT use Blueprint / render.yaml for the static part right now. Create the services MANUALLY with the correct Root Directory and Publish Directory.
+
+STEP-BY-STEP (do exactly in this order):
+
+1. On Render dashboard, DELETE the current failing service.
+
+2. Create the BACKEND first (Web Service):
+   - Click New + > Web Service
+   - Select your GitHub repo (the bpicius2 one)
+   - In the form:
+     Name: bpicius-backend
+     Environment: Node
+     Region: oregon
+     Branch: main
+     Root Directory: backend     <--- THIS IS THE FIX FOR "no package.json"
+     Build Command: npm install
+     Start Command: npm start
+     Plan: free
+   - Click "Advanced"
+   - Add Environment Variable:
+     Key: NODE_ENV
+     Value: production
+   - Create Web Service.
+   - Wait until it shows a live URL like https://bpicius-backend-xxxx.onrender.com
+   - COPY that URL.
+
+3. Create the FRONTEND (Static Site):
+   - Click New + > Static Site
+   - Select the SAME GitHub repo
+   - In the form:
+     Name: bpicius-frontend
+     Environment: Static Site
+     Region: oregon
+     Branch: main
+     Root Directory: frontend     <--- CRITICAL
+     Build Command: npm install && npm run build     <--- Must start with full "npm install" (Render will fail with "install: missing file operand" if you omit "npm")
+     Publish Directory: dist     <--- CRITICAL (must be "dist" for Vite, not "build")
+     Plan: free
+   - Click "Advanced"
+   - Add Environment Variable (IMPORTANT: Key and Value are in SEPARATE boxes):
+     In the Key box type exactly: VITE_API_URL
+     In the Value box paste: https://bpicius-backend-xxxx.onrender.com/api     <--- IMPORTANT: must end with /api (so calls like /vendors become backend/api/vendors)
+   See the file ADD_ENV_VARS_RENDER.txt for screenshots-style instructions if you get the "keys must consist of..." error.
+   - Create Static Site.
+   - Wait for it to finish building and get a live URL (e.g. https://bpicius-frontend-yyyy.onrender.com)
+
+4. Connect them (CORS fix):
+   - Go back to the bpicius-backend Web Service
+   - Go to its "Environment" tab
+   - Add this Environment Variable:
+     Key: FRONTEND_URL
+     Value: https://bpicius-frontend-yyyy.onrender.com     <--- the URL from step 3
+   - Save. This will automatically redeploy the backend with the correct CORS setting.
+
+5. Test:
+   - Open the frontend URL.
+   - The frontend should now call the live backend using the VITE_API_URL that was set at build time.
+   - Try logging in or loading data.
+
+If you still see "unknown type static":
+- Delete/rename any render.yaml that contains a "type: static" line (the one in this repo root is now backend-only and safe).
+- git add -u ; git commit -m "remove bad static render.yaml" ; git push
+- Then repeat the manual creation above (never use Blueprint for this repo until static support is confirmed).
+
+The render.yaml in this repo currently only contains the backend web service definition (no static type). It is provided as reference only.
+
+After successful deploy you can later set up a custom domain, add the Stripe keys, etc.
+
+This configuration matches exactly how the frontend code expects to talk to the backend (via the VITE_API_URL env var at build time).
+
+---
+
+## Extra error you may hit: better-sqlite3 native build failure (C++20 / node-gyp errors)
+
+If you see:
+  npm error path .../better-sqlite3
+  ... #error "C++20 or later required."
+  ... 'requires' does not name a type
+  ... hundreds of v8 / cppgc / concept errors
+  gyp ERR! build error
+
+Cause: The backend service is using Node 24 (very new). better-sqlite3 ^9 does not ship prebuilts for Node 24 + linux, and the compile fails in Render's image.
+
+**Fix (do this in the Render dashboard for bpicius-backend):**
+1. Open the bpicius-backend Web Service.
+2. Go to its **Settings** (gear icon).
+3. Find **Node Version** (or Runtime version).
+4. Change it to `20.x` (recommended) or any 20.x specific version.
+5. Click "Save Changes".
+6. On the service page, click "Manual Deploy" → "Clear build cache & deploy".
+
+The `backend/package.json` now also pins `"engines": { "node": "20.x" }`.
+
+After this the build should use a prebuilt binary for better-sqlite3 instead of trying (and failing) to compile from source.
+
+If it still complains after changing to 20, delete the service and recreate it with Node Version = 20.x from the very first creation screen.

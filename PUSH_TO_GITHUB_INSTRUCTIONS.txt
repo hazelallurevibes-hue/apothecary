@@ -1,0 +1,47 @@
+To push the latest fixes (README cleanup + backend-only render.yaml + deployment docs + Node 20 pin for better-sqlite3):
+
+1. Make sure git is installed on your machine (download from git-scm.com if 'git' command not found).
+   During install choose "Git from the command line and also from 3rd-party software".
+   Close and reopen PowerShell after installing.
+
+2. If you get the error "Updates were rejected because the remote contains work that you do not have locally",
+   The EASIEST thing is to run this helper script:
+      Double-click "fix-git-push.bat"   (it bypasses the script restriction automatically)
+
+   Or in PowerShell:
+      cd "C:\Users\abeyt\bpicius-fullstack"
+      powershell -ExecutionPolicy Bypass -File .\fix-git-push.ps1
+
+   If it asks questions, answer Y where it makes sense.
+
+   Or open GIT_PUSH_REJECTED_FIX.txt (has the full manual steps + new "still error" section at bottom).
+
+3. Normal push commands (only if you did not get the rejection error above):
+
+cd "C:\Users\abeyt\bpicius-fullstack"
+
+git add .
+
+git commit -m "Fix better-sqlite3 build on Render (Node 20 pin + docs) + README cleanup for previous static/Blueprint errors"
+
+git push origin main
+
+After pushing:
+- On Render, for the bpicius-backend Web Service:
+  Settings → set Node Version to 20.x → Save Changes → Manual Deploy → Clear build cache & deploy.
+- Then create the frontend as Static Site (Root Directory=frontend, Publish Directory=dist).
+- Set VITE_API_URL on frontend service:
+  Key box: VITE_API_URL
+  Value box: your bpicius-backend URL
+  (Open ADD_ENV_VARS_RENDER.txt if you see the "Environment variable keys must consist..." error)
+- After frontend is live, set FRONTEND_URL on the backend (for CORS):
+  Key: FRONTEND_URL
+  Value: your bpicius-frontend URL.
+
+See:
+- GIT_PUSH_REJECTED_FIX.txt (for the exact push rejection error you just got)
+- README.md (top Recommended Deployment section)
+- RENDER_DEPLOY_STEPS.txt
+- FIX_RENDER_STATIC_ERROR.txt
+
+The render.yaml is now backend-only reference and should not be used with Blueprint.

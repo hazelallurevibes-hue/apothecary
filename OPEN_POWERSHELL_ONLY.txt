@@ -1,0 +1,94 @@
+OPEN POWERSHELL AND RUN THESE COMMANDS (copy one line at a time)
+
+1. Easiest: Double-click the file "fix-git-push.bat" in the bpicius-fullstack folder (it automatically bypasses the "running scripts is disabled" error).
+
+   Alternative: Open a new PowerShell window (search "PowerShell" in Windows start menu).
+
+2. If using PowerShell manually, copy and paste these lines ONE BY ONE. Press Enter after each block.
+
+---
+
+cd "C:\Users\abeyt\bpicius-fullstack"
+
+git status
+
+---
+
+# Abort anything stuck from before (safe to run even if nothing is stuck)
+git rebase --abort
+
+# If you were in the middle of a merge editor, this next line will finish it without asking for a message
+git commit --no-edit
+
+---
+
+# Now make sure our local fixes are committed
+git add .
+git commit -m "Fix better-sqlite3 build on Render (Node 20 pin + docs)" --no-edit 2>$null
+if ($LASTEXITCODE -ne 0) { echo "No new commit needed or already committed" }
+
+---
+
+# Get the remote changes cleanly (no editor prompt)
+git fetch origin
+
+# Use --no-edit and clean any merge state first
+git merge --abort 2>$null
+git rebase --abort 2>$null
+git pull --no-edit origin main
+
+---
+
+# Keep our version ONLY for files that are actually in conflict.
+# If you get an error like "does not have our version" (especially on CURRENT_EDITOR_FIX.txt or OPEN_POWERSHELL_ONLY.txt), just skip that line.
+# Those are brand new helper files we created locally — they are not part of the merge conflict.
+
+git checkout --ours README.md
+git checkout --ours backend/package.json
+git checkout --ours GIT_PUSH_REJECTED_FIX.txt
+git checkout --ours PUSH_TO_GITHUB_INSTRUCTIONS.txt
+git checkout --ours RENDER_DEPLOY_STEPS.txt
+git checkout --ours FIX_RENDER_STATIC_ERROR.txt
+git checkout --ours render.yaml
+
+# Do NOT run checkout --ours on the new helper files (CURRENT_EDITOR_FIX.txt, OPEN_POWERSHELL_ONLY.txt, fix-git-push.ps1).
+# They only exist locally.
+
+---
+
+# Stage everything that was resolved + the new helper files
+git add README.md backend/package.json GIT_PUSH_REJECTED_FIX.txt PUSH_TO_GITHUB_INSTRUCTIONS.txt RENDER_DEPLOY_STEPS.txt FIX_RENDER_STATIC_ERROR.txt render.yaml
+
+# Add the new helper files we created for you (these are safe)
+git add CURRENT_EDITOR_FIX.txt OPEN_POWERSHELL_ONLY.txt fix-git-push.ps1 2>$null || echo "Some helpers may not exist - continuing"
+
+---
+
+# Commit the resolution
+git commit -m "Resolve merge - keep our local Render fixes (Node 20 + deployment docs)"
+
+---
+
+# Finally push to GitHub
+git push origin main
+
+---
+
+After the last command, you should see something like "To https://github.com/... " and "main -> main" if it succeeded.
+
+Then go to Render:
+- Open your bpicius-backend service
+- Go to Settings
+- Set Node Version to 20.x
+- Save
+- Click "Manual Deploy" > "Clear build cache & deploy"
+
+If any command says "nothing to commit" or "already up to date", just continue to the next one.
+
+If you get an error (especially "pathspec ... did not match" on a helper file like CURRENT_EDITOR_FIX.txt), just skip that specific line and continue.
+
+For the current error you are seeing, open this file instead and follow it:
+
+notepad RUN_THESE_RIGHT_NOW.txt
+
+This sequence starts from opening PowerShell and does everything needed to get your changes pushed.

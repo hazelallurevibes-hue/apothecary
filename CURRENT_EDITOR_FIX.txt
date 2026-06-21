@@ -1,0 +1,68 @@
+YOU ARE CURRENTLY STUCK IN THE GIT MERGE COMMIT MESSAGE EDITOR
+(The screen that says "# Please enter a commit message to explain why this merge is necessary...")
+
+This happened because `git pull origin main` needs to create a merge commit and git opened its editor.
+
+DO THIS TO CONTINUE:
+
+=== If a separate window popped up (Notepad or similar) ===
+- In that window, you can add a message at the top like:
+  Merge remote changes from GitHub
+- Or just leave the default text (the lines starting with # are comments and are ignored).
+- Press Ctrl + S to save.
+- Close the window (X button or File > Exit).
+
+Git will finish the pull automatically.
+
+Then go back to your PowerShell and run the next commands from the list:
+
+git checkout --ours README.md
+git checkout --ours backend/package.json
+... (the rest of the --ours lines)
+git add ...
+git commit -m "..."
+git push origin main
+
+=== If the text is INSIDE the PowerShell window (looks like vim, no separate window) ===
+
+1. Press the `i` key once (lowercase i). 
+   You should see -- INSERT -- or something similar at the bottom.
+
+2. Type a short message, for example:
+   Merge changes from origin/main
+
+   (Optional - you can skip typing and just proceed to step 3)
+
+3. Press the `Esc` (Escape) key on your keyboard.
+
+4. Type these four characters exactly:   :wq
+
+5. Press the Enter key.
+
+The editor will close, git will complete the merge, and you will be back at the PowerShell prompt.
+
+Then immediately run these commands (copy one by one):
+
+git checkout --ours README.md
+git checkout --ours backend/package.json
+git checkout --ours GIT_PUSH_REJECTED_FIX.txt
+git checkout --ours PUSH_TO_GITHUB_INSTRUCTIONS.txt
+git checkout --ours RENDER_DEPLOY_STEPS.txt
+git checkout --ours FIX_RENDER_STATIC_ERROR.txt
+git checkout --ours render.yaml
+
+git add README.md backend/package.json GIT_PUSH_REJECTED_FIX.txt PUSH_TO_GITHUB_INSTRUCTIONS.txt RENDER_DEPLOY_STEPS.txt FIX_RENDER_STATIC_ERROR.txt render.yaml
+
+git commit -m "Resolve merge conflicts - keep local Render deployment fixes (Node 20 etc.)"
+
+git push origin main
+
+If any "nothing to commit", just continue.
+
+After the push succeeds, go fix the Node Version to 20.x on Render as before.
+
+If this doesn't work or you see a different error, type the command:
+git status
+and paste the full output here.
+
+To avoid this editor in the future, we now use `git pull --no-edit` in the updated instructions.

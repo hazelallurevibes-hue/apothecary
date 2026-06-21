@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+:root {
+  --ha-primary: #4a1942;
+  --ha-primary-dark: #2d1230;
+  --ha-accent: #c9a227;
+  --ha-sage: #6b7f6a;
+  --ha-cream: #f5f0e8;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
+  background-color: var(--ha-cream);
+}
+
+/* Prevent flex/grid children from forcing horizontal scroll on narrow Android viewports */
+input,
+textarea,
+select,
+button {
+  max-width: 100%;
+}
+
+.heading-font {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.text-ha-primary { color: var(--ha-primary); }
+.bg-ha-primary { background-color: var(--ha-primary); }
+.border-ha-primary { border-color: var(--ha-primary); }
+.hover\:text-ha-primary:hover { color: var(--ha-primary); }
+.hover\:border-ha-primary:hover { border-color: var(--ha-primary); }

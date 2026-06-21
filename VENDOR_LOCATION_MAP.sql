@@ -1,0 +1,7 @@
+-- Vendor addresses for customer map search (Google Maps)
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS street_address TEXT;
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS zip TEXT;
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS latitude DOUBLE PRECISION;
+ALTER TABLE public.vendors ADD COLUMN IF NOT EXISTS longitude DOUBLE PRECISION;

@@ -1,0 +1,52 @@
+HOW TO ADD ENVIRONMENT VARIABLES ON RENDER (fix for the error you got)
+
+The error:
+"Environment variable keys must consist of alphabetic characters, digits, '_', '-', or '.', and must not start with a digit."
+
+This almost always happens because you copied something like:
+VITE_API_URL = https://...
+
+and pasted the entire line into the **Key** box.
+
+Render has TWO separate input boxes:
+- Key   ← only the name goes here
+- Value ← only the value/URL goes here
+
+=== RIGHT NOW - For your frontend Static Site ===
+
+1. On Render, open your "bpicius-frontend" Static Site.
+2. Go to the "Environment" tab (or "Advanced" when creating).
+3. Click "Add Environment Variable".
+4. **Key** box → type exactly this (copy this line):
+   VITE_API_URL
+5. **Value** box → paste your backend URL (example):
+   https://bpicius-backend-xxxx.onrender.com
+   (use the real URL from your running backend service, no trailing slash needed)
+6. Save.
+
+This is the most important one. The frontend needs this at build time so it knows where to call the API.
+
+=== After frontend is live - For the backend ===
+
+1. Open your "bpicius-backend" Web Service.
+2. Environment tab → Add Environment Variable.
+3. **Key** box:
+   FRONTEND_URL
+4. **Value** box:
+   the full URL of your bpicius-frontend (example: https://bpicius-frontend-yyyy.onrender.com)
+5. Save. This fixes CORS so the frontend can talk to the backend.
+
+You can also add on the backend:
+Key: NODE_ENV
+Value: production
+
+After saving env vars, the service will usually redeploy automatically.
+
+If you still get the key error after following the above:
+- Make sure there are no spaces, no = sign, no quotes, no extra text in the Key box.
+- Only letters, numbers, underscore, dash, or dot are allowed in keys.
+- VITE_API_URL and FRONTEND_URL are both valid.
+
+Open this file anytime: ADD_ENV_VARS_RENDER.txt
+
+Once both env vars are set correctly your app should work end-to-end.

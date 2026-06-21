@@ -1,0 +1,182 @@
+GIT PUSH REJECTED - "Updates were rejected because the remote contains work that you do not have locally"
+
+This is a normal Git situation: GitHub (the remote) has commits that your local folder does not know about yet.
+It usually happens when:
+- You (or a previous push) already pushed something from another computer / GitHub web / another terminal.
+- Or Render / another tool made a commit.
+- Or you cloned earlier and the repo has moved forward.
+
+DO NOT just force push (git push --force). That can delete remote history.
+
+EASIEST WAY: Run the helper script I created for you.
+
+In PowerShell:
+   cd "C:\Users\abeyt\bpicius-fullstack"
+
+   # Best ways to run the script (avoids policy issues):
+   # Option 1 (recommended):
+   .\fix-git-push.bat
+
+   # Option 2 (if .bat doesn't work):
+   powershell -ExecutionPolicy Bypass -File .\fix-git-push.ps1
+
+It will show your git status, ask if you want it to auto-fix (abort rebase + pull + keep your local good versions + push).
+
+If the script works, great. Otherwise fall back to the manual steps below.
+
+------------------------------------------------------------------
+NEW ERROR YOU JUST GOT: "running scripts is disabled on this system"
+------------------------------------------------------------------
+This is PowerShell's security policy blocking .ps1 files by default (very common on Windows).
+
+IMMEDIATE FIX - Run this command (no need to change policy globally):
+
+   cd "C:\Users\abeyt\bpicius-fullstack"
+   powershell -ExecutionPolicy Bypass -File .\fix-git-push.ps1
+
+This launches PowerShell with Bypass just for this script run.
+
+Alternative (if the above still complains):
+   Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process
+   .\fix-git-push.ps1
+
+The Bypass is temporary for the current window.
+
+Easiest way to run without policy errors:
+- Double-click the file "fix-git-push.bat" in File Explorer (it launches the script with Bypass automatically).
+
+In PowerShell:
+   cd "C:\Users\abeyt\bpicius-fullstack"
+   powershell -ExecutionPolicy Bypass -File .\fix-git-push.ps1
+
+Once the script runs, it should handle everything (status, pull, conflict resolution with our fixes, push).
+
+If you want the policy relaxed permanently for your user account (so double-clicking .ps1 works):
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+(You can change it back later with Restricted if you want.)
+
+MANUAL STEPS - COPY AND PASTE THESE COMMANDS ONE BY ONE (if script doesn't work):
+
+Run these lines in order in PowerShell:
+
+cd "C:\Users\abeyt\bpicius-fullstack"
+
+# Commit any local changes we made (docs + Node 20 pin)
+git add .
+git commit -m "Fix better-sqlite3 build on Render (Node 20 pin + docs) + README cleanup for previous static/Blueprint errors"
+
+# Clean up any stuck rebase
+git rebase --abort
+
+# Get the latest from GitHub
+git fetch origin
+
+# Pull (this is what was missing before - will likely show conflicts)
+git pull origin main
+
+# If the pull says CONFLICT or shows "Unmerged paths", run these to keep OUR local fixes:
+git checkout --ours README.md
+git checkout --ours backend/package.json
+git checkout --ours GIT_PUSH_REJECTED_FIX.txt
+git checkout --ours PUSH_TO_GITHUB_INSTRUCTIONS.txt
+git checkout --ours RENDER_DEPLOY_STEPS.txt
+git checkout --ours FIX_RENDER_STATIC_ERROR.txt
+git checkout --ours render.yaml
+
+# Stage the resolved files
+git add README.md backend/package.json GIT_PUSH_REJECTED_FIX.txt PUSH_TO_GITHUB_INSTRUCTIONS.txt RENDER_DEPLOY_STEPS.txt FIX_RENDER_STATIC_ERROR.txt render.yaml
+
+# Commit the resolution
+git commit -m "Resolve merge conflicts - keep local Render deployment fixes (Node 20 etc.)"
+
+# Now push (this should work)
+git push origin main
+
+If any command says "nothing to commit" or "already up to date", just continue to the next one.
+
+After successful push, go to Render and set the backend service Node Version to 20.x + clear cache.
+
+TROUBLESHOOTING
+- Still "'git' not recognized" after install? Restart your computer, or run the install again and make sure the PATH option was selected.
+- Want to see what the remote has? (after git is working)
+  git fetch origin
+  git log --oneline main..origin/main
+- If you want to throw away local changes and just match GitHub exactly (DANGEROUS - you will lose the doc fixes we did):
+  git fetch origin
+  git reset --hard origin/main
+  git push origin main   # (only if you really want to discard local work)
+
+The correct and safe way is almost always: commit local work → pull the remote changes → resolve conflicts (keep local fixes) → push.
+
+Once pushed, the latest README and the Node 20 recommendation will be on GitHub for the next Render deploy.
+
+If you get any new error after running these steps, copy the full output and paste it here.
+
+================================================================================
+IF YOU STILL GET THE SAME "failed to push some refs" ERROR AFTER FOLLOWING ABOVE
+================================================================================
+
+This means the pull/rebase step was not completed successfully (probably hit CONFLICTs and the rebase is still "in progress" or was skipped).
+
+Run these commands ONE BY ONE. Copy-paste exactly, including the cd.
+
+1. Make sure you are in the right folder:
+   cd "C:\Users\abeyt\bpicius-fullstack"
+
+2. Check what state you are in (very important - paste the output here if you need more help):
+   git status
+
+   (Look for lines like "You are currently rebasing" or "Unmerged paths" or "both modified")
+
+3. If it says you are in the middle of a rebase, abort it first (clean start):
+   git rebase --abort
+
+4. Now fetch what is on GitHub:
+   git fetch origin
+
+5. Use a simple merge pull instead of rebase (easier for most people):
+   git pull origin main
+
+   - If it says "Already up to date." then go to step 7.
+   - If it opens an editor for merge message, just save & close it (or type :wq and Enter if vim).
+
+6. If you now see conflict messages or "Unmerged paths", resolve them the EASY way (no need to edit markers by hand):
+
+   Run these to automatically keep your local version (the one with all our Node 20 + better-sqlite3 + deployment fix improvements) for the conflicted files:
+
+      git checkout --ours README.md
+      git checkout --ours backend/package.json
+      git checkout --ours GIT_PUSH_REJECTED_FIX.txt
+      git checkout --ours PUSH_TO_GITHUB_INSTRUCTIONS.txt
+      git checkout --ours RENDER_DEPLOY_STEPS.txt
+      git checkout --ours FIX_RENDER_STATIC_ERROR.txt
+      # Add any other files that git status shows as conflicted, e.g.:
+      # git checkout --ours render.yaml
+
+   Then stage them:
+
+      git add README.md
+      git add backend/package.json
+      git add GIT_PUSH_REJECTED_FIX.txt
+      git add PUSH_TO_GITHUB_INSTRUCTIONS.txt
+      git add RENDER_DEPLOY_STEPS.txt
+      git add FIX_RENDER_STATIC_ERROR.txt
+      git add render.yaml   # if it was conflicted
+
+   Finish the merge:
+
+      git commit -m "Resolve merge conflicts - keep our local Render fixes (Node 20 etc.)"
+
+7. Finally push:
+   git push origin main
+
+If step 7 still fails with the same rejection message, run "git status" and "git log --oneline -3" and paste the full output here so I can give the exact next command.
+
+Alternative nuclear option (only if above fails and you are okay losing any remote-only changes):
+   git fetch origin
+   git reset --hard origin/main
+   git push --force-with-lease origin main
+   (Then you will need to re-apply the local doc changes - not recommended right now)
+
+After successful push, remember to go to Render and set Node Version to 20.x on the bpicius-backend service, then redeploy with clear cache.

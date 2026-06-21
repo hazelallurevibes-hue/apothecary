@@ -1,0 +1,74 @@
+RENDER DEPLOY STEPS FOR BPICIUS (to avoid "unknown type static" and "publish directory build does not exist")
+
+The project is a monorepo. You must deploy BACKEND and FRONTEND as TWO SEPARATE SERVICES.
+
+Do NOT use a single service for the whole repo.
+
+Do NOT use Blueprint right now if it complains about "static" (use the manual steps below).
+
+STEP 1: Make sure your GitHub has the latest code (including this file and render.yaml for reference only).
+
+STEP 2: Delete any previous failing services on Render.
+
+STEP 3: Deploy the BACKEND as a WEB SERVICE
+- Click "New +" > "Web Service"
+- Connect your GitHub repo (bpicius2 or whatever)
+- Name: bpicius-backend
+- Environment: Node
+- Region: oregon (recommended)
+- Branch: main
+- **Node Version**: 20.x     <--- CRITICAL for better-sqlite3 (Node 24 on Render currently fails to compile the native module)
+- Root Directory: backend     <--- VERY IMPORTANT - this makes Render look inside the backend folder for package.json
+- Build Command: npm install
+- Start Command: npm start
+- Plan: free
+- Click "Advanced" and add these Environment Variables:
+  - NODE_ENV = production
+  - FRONTEND_URL = (leave blank for now)
+- Create the service.
+- Wait for it to build and deploy.
+- Copy the live URL (it will be something like https://bpicius-backend.onrender.com )
+
+STEP 4: Deploy the FRONTEND as a STATIC SITE
+- Click "New +" > "Static Site"
+- Connect the same GitHub repo
+- Name: bpicius-frontend
+- Environment: Static Site
+- Region: oregon
+- Branch: main
+- Root Directory: frontend     <--- VERY IMPORTANT
+- Build Command: npm install && npm run build     <--- MUST start with "npm install" (not just "install")
+- Publish Directory: dist     <--- VERY IMPORTANT (Vite builds to "dist", not "build")
+- Plan: free
+- Click "Advanced" and add this Environment Variable (Key and Value go in separate boxes):
+  - Key box: VITE_API_URL
+  - Value box: https://bpicius-backend.onrender.com/api   <--- IMPORTANT: append /api so frontend calls match backend routes (/api/vendors, /api/login etc.)
+  (If you get a validation error about keys, open ADD_ENV_VARS_RENDER.txt)
+- Create the service.
+- Wait for it to build and deploy.
+- Copy the live URL (e.g. https://bpicius-frontend-xxx.onrender.com or your custom domain)
+
+STEP 5: Connect the two (CORS)
+- Go back to the "bpicius-backend" Web Service
+- Go to its "Environment" tab
+- Edit the FRONTEND_URL variable and set it to the live frontend URL from Step 4 (e.g. https://bpicius-frontend-xxx.onrender.com)
+- Save. This will trigger a redeploy of the backend.
+
+Now your frontend should be able to talk to the backend without CORS errors, and the VITE_API_URL is baked into the frontend build.
+
+If you get "unknown type static" it means you are still trying to use a render.yaml that contains a "type: static" line. Delete or rename render.yaml in your repo, push again, and stick to the manual steps above.
+
+The render.yaml in the repo is now ONLY for the backend web service (no static type).
+
+After everything is live, update any other env vars if needed and test the app.
+
+Common issues:
+- Wrong Root Directory → leads to "no package.json"
+- Wrong Publish Directory → "publish directory build does not exist"
+- Forgetting to set VITE_API_URL on the static site → frontend calls localhost or wrong backend
+- Forgetting to set FRONTEND_URL on backend after frontend is live → CORS errors
+- **npm error code 1 + better-sqlite3 build failure + "#error C++20 or later required." + hundreds of v8 / requires / concept errors**:
+  This happens when the backend Web Service is set to Node 24 (Render's current default for new services sometimes). better-sqlite3 9.x has no prebuilt binaries for Node 24 on linux, and the fallback node-gyp compile fails because of C++ standard mismatch with Node 24's V8 headers.
+  **Fix**: Edit the bpicius-backend service → Settings → set **Node Version** to `20.x` (or 20.19.x). Save. Redeploy (optionally "Clear build cache & deploy"). The package.json also declares "engines": { "node": "20.x" } to help.
+
+This manual two-service approach is the most reliable for this monorepo.
