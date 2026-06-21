@@ -22,7 +22,11 @@ export const VENDOR_PERMISSIONS = {
   highlight_photo: { label: 'Highlight photo', description: 'Hero image on storefront (paid)' },
   checkout_upsells: { label: 'Checkout upsells', description: 'Offer drinks & sides at checkout (paid)' },
   international_storefront: { label: 'International storefronts', description: 'Amazon, eBay, WooCommerce links & shipping rules (paid)' },
-  customer_insights: { label: 'Customer likes & dislikes', description: 'Anonymous regional diet and preference trends (paid)' },
+  customer_insights: { label: 'Customer likes & dislikes', description: 'Anonymous regional preference trends (paid)' },
+  member_discounts: { label: 'Member discounts', description: 'Auto discounts for Pro & free seekers at checkout (paid)' },
+  teaching_platform: { label: 'Teaching Sanctum', description: 'Monetized courses with YouTube/Vimeo lessons (paid)' },
+  service_video: { label: 'Service video previews', description: 'Embed YouTube/Vimeo on every service listing (paid)' },
+  ad_credits: { label: 'Ad reinvestment tools', description: 'Revenue dashboard & campaign ROI for advertising (paid)' },
 };
 
 /** Free: core selling with limits; paid: full platform */
@@ -33,6 +37,7 @@ export const FREE_VENDOR_PERMISSIONS = [
   'ratings',
   'orders',
   'employees',
+  'service_video',
 ];
 
 export const PAID_VENDOR_PERMISSIONS = Object.keys(VENDOR_PERMISSIONS);
@@ -173,15 +178,14 @@ export function planBadgeLabel(plan, type = 'vendor') {
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = [
-  'Unlimited menu & produce listings',
-  'Food labels on prepared items',
-  'Pickup hours & in-person market posts',
-  'Checkout upsells (drinks & sides)',
+  'Unlimited healing services & apothecary listings',
+  'YouTube & Vimeo video on every service — photo + video previews',
+  'Member discounts — reward Pro seekers, incentivize upgrades',
+  'Teaching Sanctum — sell courses & monetize your content',
+  'Pro Member pricing on courses (dual price tiers)',
   'Customer likes & dislikes insights in your area',
-  'International storefront links (Amazon, eBay, WooCommerce)',
-  'Shipping restrictions & regional sell rules',
-  'Permit verification badge',
-  'Pickup QR handoff',
-  'Email campaigns, banners & theme',
-  'Full analytics & team tools',
+  'International storefront links & shipping rules',
+  'Email campaigns, banners & elegant theme',
+  'Revenue analytics — reinvest into advertising',
+  'Checkout upsells & full team tools',
 ];

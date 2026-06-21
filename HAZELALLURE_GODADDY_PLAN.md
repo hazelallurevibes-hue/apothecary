@@ -7,7 +7,7 @@
 | URL | Host | What lives there |
 |-----|------|------------------|
 | `www.hazelallure.com` | GoDaddy | Home, Alluring News, Essential Oils guide, FAQ — **unchanged**, GoDaddy editor |
-| `shop.hazelallure.com` | Vercel | Hazel Allure app (services + apothecary, bookings, vendors) |
+| `apothecary.hazelallure.com` | Vercel | Hazel Allure app (services + apothecary, courses, bookings) |
 
 ### Why this works
 
@@ -19,13 +19,13 @@
 
 1. GoDaddy → DNS → Add record:
    - Type: `CNAME`
-   - Name: `shop`
+   - Name: `apothecary`
    - Value: `cname.vercel-dns.com` (Vercel will show exact value when you add the domain)
-2. Vercel project → Domains → add `shop.hazelallure.com`
+2. Vercel project → Domains → add `apothecary.hazelallure.com`
 
 ### Cross-linking
 
-- GoDaddy nav: add **Shop / Book** → `https://shop.hazelallure.com`
+- GoDaddy nav: add **Shop & Book** → `https://apothecary.hazelallure.com`
 - App nav: **Alluring News** → `https://www.hazelallure.com/alluring-news` (already wired in `vertical.js`)
 
 ---

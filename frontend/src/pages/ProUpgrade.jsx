@@ -12,10 +12,11 @@ import { createProCheckout, getProPricing } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 
 const CUSTOMER_PRO_FEATURES = [
+  'Exclusive practitioner discounts at checkout',
+  'Lower course prices in Teaching Sanctum',
   'Ratings, favorites & loyalty rewards',
   'Priority support tickets',
   'Premium express checkout',
-  'New menu alerts from favorite vendors',
 ];
 
 export default function ProUpgrade({ user }) {

@@ -197,7 +197,7 @@ function CustomerHome({ liveStats }) {
       </div>
 
       <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 bg-white border border-[#c9a227]/20 rounded-3xl">
-        <img src={LOGO_IMG} alt="Hazel Allure" className="w-24 h-24 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shrink-0" />
+        <img src={LOGO_IMG} alt="hazelallure" className="w-24 h-24 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shrink-0" />
         <div>
           <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">About {VERTICAL.name}</h2>
           <p className="text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
@@ -246,6 +246,10 @@ function CustomerHome({ liveStats }) {
           <h3 className="font-semibold text-xl">Essential Oils Guide</h3>
           <p className="text-sm text-gray-600 mt-2">Her timeless guide — on the blog (SEO preserved).</p>
         </a>
+        <Link to="/courses" className="bg-white border border-[#c9a227]/30 rounded-3xl p-6 hover:shadow-sm transition block">
+          <h3 className="font-semibold text-xl">Teaching Sanctum</h3>
+          <p className="text-sm text-gray-600 mt-2">Courses from Pro practitioners — herbalism, tarot, ritual craft.</p>
+        </Link>
         <Link to="/contact" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Contact &amp; Support</h3>
           <p className="text-sm text-gray-600 mt-2">{VERTICAL.contactPhone} • {VERTICAL.contactEmail}</p>

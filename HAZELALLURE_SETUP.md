@@ -7,7 +7,7 @@ Fork of Bpicius at `C:\Users\abeyt\hazelallure-fullstack`. **Use separate Supaba
 | URL | Host | Purpose |
 |-----|------|---------|
 | `www.hazelallure.com` | GoDaddy | Blog, Essential Oils guide, FAQ (unchanged) |
-| `shop.hazelallure.com` | Vercel | Marketplace app (this repo) |
+| `apothecary.hazelallure.com` | Vercel | Marketplace app (this repo) |
 
 See `HAZELALLURE_GODADDY_PLAN.md` for DNS and cross-linking.
 
@@ -59,8 +59,8 @@ npx vercel --prod
 ```
 
 - Root directory: `frontend`
-- Domain: `shop.hazelallure.com`
-- GoDaddy DNS: CNAME `shop` → `cname.vercel-dns.com`
+- Domain: `apothecary.hazelallure.com`
+- GoDaddy DNS: CNAME `apothecary` → `cname.vercel-dns.com`
 
 ---
 

@@ -9,7 +9,7 @@ export default function ListingFulfillmentActions({
   accent = '#4a1942',
   label,
 }) {
-  const mode = item?.fulfillment_mode || 'Hazel Allure';
+  const mode = item?.fulfillment_mode || 'hazelallure';
 
   if (mode === 'pickup_only') {
     return (

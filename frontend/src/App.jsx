@@ -44,6 +44,9 @@ import VendorTaxCenter from './pages/VendorTaxCenter';
 import PickupConfirmPage from './pages/PickupConfirmPage';
 import ProUpgrade from './pages/ProUpgrade';
 import { ProSuccess, ProCancel } from './pages/ProCheckoutResult';
+import CourseCatalog from './pages/CourseCatalog';
+import CourseDetailPage from './pages/CourseDetailPage';
+import VendorTeaching from './pages/VendorTeaching';
 
 // Utility pages
 import ForgotPassword from './pages/ForgotPassword';
@@ -260,6 +263,11 @@ function AppCore({ auth0 = null }) {
                   </ProtectedRoute>
                 } />
                 <Route path="/top-vendors" element={<TopVendors user={user} />} />
+                <Route path="/courses" element={<CourseCatalog user={user} />} />
+                <Route path="/courses/:id" element={<CourseDetailPage user={user} />} />
+                <Route path="/vendor-teaching" element={
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorTeaching user={user} /></ProtectedRoute>
+                } />
                 
                 {/* Customer Routes */}
                 <Route path="/customer-portal" element={

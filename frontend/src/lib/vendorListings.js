@@ -2,6 +2,7 @@ import { parseAllergenIds } from './allergens';
 import { parseFoodLabelFromItem } from './foodLabels';
 import { parseItemOptions } from './itemOptions';
 import { DEFAULT_LISTING_PHOTO, resolveListingPhoto } from './listingPhotos';
+import { parseGalleryPhotos } from './videoEmbed';
 import { compressImage } from './imageCompress';
 import { uploadListingThumbnail } from './storageApi';
 
@@ -21,7 +22,12 @@ export function menuItemToFormState(item) {
       description: item.description || '',
       category: item.category || 'Other',
       time_made: item.time_made || '15 min',
-      fulfillment_mode: item.fulfillment_mode || 'Hazel Allure',
+      fulfillment_mode: item.fulfillment_mode || 'hazelallure',
+    },
+    media: {
+      videoUrl: item.service_video_url || '',
+      mediaType: item.media_type || 'photo',
+      galleryPhotos: parseGalleryPhotos(item.gallery_photos),
     },
     allergens: parseAllergenIds(item.allergens),
     safety: {
@@ -55,7 +61,12 @@ export function produceItemToFormState(item) {
       farm_story: item.farm_story || item.description || '',
       organic: Number(item.organic) || 0,
       category: item.category || (section === 'plants_trees' ? 'Plants' : 'Produce'),
-      fulfillment_mode: item.fulfillment_mode || 'Hazel Allure',
+      fulfillment_mode: item.fulfillment_mode || 'hazelallure',
+    },
+    media: {
+      videoUrl: item.service_video_url || '',
+      mediaType: item.media_type || 'photo',
+      galleryPhotos: parseGalleryPhotos(item.gallery_photos),
     },
     allergens: parseAllergenIds(item.allergens),
     safety: {

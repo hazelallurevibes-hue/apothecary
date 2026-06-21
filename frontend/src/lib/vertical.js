@@ -1,11 +1,12 @@
 /**
- * Hazel Allure vertical — metaphysical & holistic marketplace
- * Forked from Hazel Allure template; same vendor/customer mechanics, different brand & categories.
+ * Hazel Allure LLC — metaphysical & holistic marketplace
+ * apothecary.hazelallure.com (separate from Bpicius and all other projects)
  */
 
 export const VERTICAL = {
   id: 'hazelallure',
-  name: 'Hazel Allure',
+  name: 'hazelallure',
+  legalEntity: 'Hazel Allure LLC',
   tagline: 'Heal with intention. Shop with spirit.',
   heroTitle: ['Ancient wisdom.', 'Modern healing.', 'Your path.'],
   heroSubtitle:
@@ -13,7 +14,9 @@ export const VERTICAL = {
   heroBadge: 'ORGANIC • VEGAN • NATURAL • WORLDWIDE',
   contactEmail: 'hazelallurevibes@gmail.com',
   contactPhone: '(505) 479-7475',
+  ownerEmail: 'hazelallurevibes@gmail.com',
   siteUrl: 'https://www.hazelallure.com',
+  appUrl: 'https://apothecary.hazelallure.com',
   blogBaseUrl: 'https://www.hazelallure.com',
 
   colors: {
@@ -29,6 +32,8 @@ export const VERTICAL = {
     servicesMarket: '/services',
     productsMarket: '/products',
     topPractitioners: '/top-vendors',
+    courses: '/courses',
+    teaching: '/vendor-teaching',
   },
 
   labels: {
@@ -41,9 +46,17 @@ export const VERTICAL = {
     marketplace: 'Healing Services',
     shopHero: 'Book a Session',
     exploreHero: 'Browse Apothecary →',
+    courses: 'Teaching Sanctum',
   },
 
-  /** GoDaddy blog pages — keep URLs for SEO; link out until migrated */
+  /** Revenue features — Pro practitioners maximize reinvestment into ads */
+  revenue: {
+    platformFeePercent: 8,
+    proVendorDiscounts: true,
+    proTeachingPlatform: true,
+    proMemberPricing: true,
+  },
+
   blogLinks: [
     { label: 'Alluring News', path: '/alluring-news' },
     { label: 'Essential Oils Guide', path: '/guide-to-essential-oils' },
@@ -55,6 +68,8 @@ export const VERTICAL = {
     tiktok: 'https://www.tiktok.com/@hazel.alure',
     youtube: 'https://www.youtube.com/hazelallure',
   },
+
+  videoHosts: ['youtube', 'vimeo'],
 };
 
 export function blogUrl(path) {

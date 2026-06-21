@@ -3,7 +3,7 @@ import { DEFAULT_APP_URL } from './appUrl';
 /** Default platform email addresses — admin overrides via platform_settings. */
 export const EMAIL_SETTING_KEYS = [
   { key: 'site_url', label: 'Site URL', placeholder: 'https://www.Hazel Allure.com', type: 'url', hint: 'Used in all email links and Auth0 fallbacks.' },
-  { key: 'email_from_name', label: 'From display name', placeholder: 'Hazel Allure', type: 'text', hint: 'Name shown on outgoing system emails.' },
+  { key: 'email_from_name', label: 'From display name', placeholder: 'hazelallure', type: 'text', hint: 'Name shown on outgoing system emails.' },
   { key: 'email_from_address', label: 'From address (sender)', placeholder: 'noreply@Hazel Allure.com', type: 'email', hint: 'Must be verified in Resend for your domain.' },
   { key: 'email_reply_to', label: 'Reply-to address', placeholder: 'support@Hazel Allure.com', type: 'email', hint: 'Where customer replies to transactional mail go.' },
   { key: 'email_contact', label: 'Public contact email', placeholder: 'hello@Hazel Allure.com', type: 'email', hint: 'Main contact shown in site footer and Contact page.' },
@@ -16,7 +16,7 @@ export const EMAIL_SETTING_KEYS = [
 
 export const EMAIL_SETTING_DEFAULTS = {
   site_url: DEFAULT_APP_URL,
-  email_from_name: 'Hazel Allure',
+  email_from_name: 'hazelallure',
   email_from_address: 'noreply@Hazel Allure.com',
   email_reply_to: 'support@Hazel Allure.com',
   email_contact: 'hello@Hazel Allure.com',

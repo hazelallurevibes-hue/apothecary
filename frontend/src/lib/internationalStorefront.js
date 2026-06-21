@@ -56,7 +56,7 @@ export function recommendsExternalForInternational(vendor) {
 }
 
 export const FULFILLMENT_MODES = [
-  { id: 'Hazel Allure', label: 'Hazel Allure checkout', description: 'Add to cart on Hazel Allure' },
+  { id: 'hazelallure', label: 'Hazel Allure checkout', description: 'Add to cart on Hazel Allure' },
   { id: 'pickup_only', label: 'Local pickup only', description: 'No shipping — customer picks up in person' },
   { id: 'external_only', label: 'External store only', description: 'Buy on Amazon, eBay, WooCommerce, etc.' },
 ];

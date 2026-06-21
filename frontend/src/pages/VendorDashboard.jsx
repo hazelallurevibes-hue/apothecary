@@ -38,7 +38,10 @@ import ItemOptionsEditor from '../components/ItemOptionsEditor';
 import { normalizeOptionsForSave } from '../lib/itemOptions';
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 import ListingThumbnailField from '../components/ListingThumbnailField';
+import ServiceMediaField from '../components/ServiceMediaField';
+import VendorDiscountsPanel from '../components/VendorDiscountsPanel';
 import VendorListingRow from '../components/VendorListingRow';
+import { buildServiceMediaPayload } from '../lib/videoEmbed';
 import {
   EMPTY_THUMBNAIL,
   menuItemToFormState,
@@ -59,13 +62,17 @@ export default function VendorDashboard({ user }) {
   const [myTasks, setMyTasks] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'Other', time_made: '15 min', fulfillment_mode: 'Hazel Allure' });
+  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'hazelallure' });
+  const [serviceVideoUrl, setServiceVideoUrl] = useState('');
+  const [serviceMediaType, setServiceMediaType] = useState('both');
+  const [produceVideoUrl, setProduceVideoUrl] = useState('');
+  const [produceMediaType, setProduceMediaType] = useState('photo');
   const [newItemAllergens, setNewItemAllergens] = useState([]);
   const [newItemSafety, setNewItemSafety] = useState({ ...EMPTY_MENU_SAFETY });
   const [newItemPreorder, setNewItemPreorder] = useState({ ...EMPTY_PREORDER });
   const [newItemFoodLabel, setNewItemFoodLabel] = useState({});
   const [produceSection, setProduceSection] = useState('produce');
-  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: 'Produce', fulfillment_mode: 'Hazel Allure' });
+  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: 'Produce', fulfillment_mode: 'hazelallure' });
   const [newProduceAllergens, setNewProduceAllergens] = useState([]);
   const [newProduceSafety, setNewProduceSafety] = useState({ ...EMPTY_PRODUCE_SAFETY });
   const [medicinalLegalAck, setMedicinalLegalAck] = useState(false);
@@ -190,13 +197,15 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetMenuForm = () => {
-    setNewItem({ name: '', price: '', description: '', category: 'Other', time_made: '15 min', fulfillment_mode: 'Hazel Allure' });
+    setNewItem({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'hazelallure' });
     setNewItemAllergens([]);
     setNewItemSafety({ ...EMPTY_MENU_SAFETY });
     setNewItemPreorder({ ...EMPTY_PREORDER });
     setNewItemFoodLabel({});
     setNewItemOptions([]);
     setMenuThumbnail({ ...EMPTY_THUMBNAIL });
+    setServiceVideoUrl('');
+    setServiceMediaType('both');
     setEditMenuId(null);
   };
 
@@ -211,6 +220,8 @@ export default function VendorDashboard({ user }) {
     setNewItemFoodLabel(form.foodLabel);
     setNewItemOptions(form.options);
     setMenuThumbnail(form.thumbnail);
+    setServiceVideoUrl(form.media?.videoUrl || '');
+    setServiceMediaType(form.media?.mediaType || 'both');
     document.getElementById('add-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
@@ -233,6 +244,11 @@ export default function VendorDashboard({ user }) {
     setAdding(true);
     try {
       const photo = await resolveListingPhotoUrl(menuThumbnail, user, myVendorId, 'menu');
+      const media = buildServiceMediaPayload({
+        photo,
+        videoUrl: vendorCan(user, 'service_video') ? serviceVideoUrl : '',
+        mediaType: serviceMediaType,
+      });
       const payload = {
         vendor_id: myVendorId,
         name: newItem.name,
@@ -240,7 +256,7 @@ export default function VendorDashboard({ user }) {
         description: newItem.description,
         category: newItem.category,
         time_made: newItem.time_made,
-        photo,
+        ...media,
         available: 1,
         allergens: serializeAllergenIds(newItemAllergens),
         ...buildSafetyPayload(newItemSafety),
@@ -248,7 +264,7 @@ export default function VendorDashboard({ user }) {
         ...(vendorCan(user, 'food_labels') ? buildFoodLabelPayload(newItemFoodLabel) : {}),
         item_options: normalizeOptionsForSave(newItemOptions),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newItem.fulfillment_mode || 'Hazel Allure' } : {}),
+        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newItem.fulfillment_mode || 'hazelallure' } : {}),
       };
 
       if (editMenuId) {
@@ -386,7 +402,7 @@ export default function VendorDashboard({ user }) {
         ...buildPreorderPayload(newProducePreorder),
         item_options: normalizeOptionsForSave(newProduceOptions),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newProduce.fulfillment_mode || 'Hazel Allure' } : {}),
+        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newProduce.fulfillment_mode || 'hazelallure' } : {}),
       };
 
       if (editProduceId) {
@@ -469,7 +485,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetProduceForm = () => {
-    setNewProduce({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: produceSection === 'plants_trees' ? 'Plants' : 'Produce', fulfillment_mode: 'Hazel Allure' });
+    setNewProduce({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: produceSection === 'plants_trees' ? 'Plants' : 'Produce', fulfillment_mode: 'hazelallure' });
     setNewProduceAllergens([]);
     setNewProduceSafety({ ...EMPTY_PRODUCE_SAFETY });
     setMedicinalLegalAck(false);
@@ -666,6 +682,17 @@ export default function VendorDashboard({ user }) {
 
       {vendorCan(user, 'ratings') && <VendorNotificationsPanel vendorId={myVendorId} />}
       {vendorCan(user, 'ratings') && <RatingAlertsPanel vendorId={myVendorId} />}
+      <div className="mb-6 flex flex-wrap gap-3">
+        {vendorCan(user, 'teaching_platform') && (
+          <Link to="/vendor-teaching" className="px-5 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold">
+            📚 Teaching Sanctum
+          </Link>
+        )}
+        <Link to="/courses" className="px-5 py-2.5 border border-[#4a1942] text-[#4a1942] rounded-2xl text-sm font-medium">
+          Preview course catalog
+        </Link>
+      </div>
+      <VendorDiscountsPanel user={user} vendorId={myVendorId} />
       <div className="mb-8">
         <VendorCustomerInsights user={user} vendorId={myVendorId} />
       </div>
@@ -697,28 +724,41 @@ export default function VendorDashboard({ user }) {
       <div id="add-menu" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-3 sm:p-8 min-w-0 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="text-3xl shrink-0">🍽️</div>
+            <div className="text-3xl shrink-0">🔮</div>
             <div className="min-w-0">
-              <h3 className="font-bold text-xl sm:text-2xl">Marketplace Menu</h3>
-              <p className="text-sm text-gray-600">Prepared food listings for your storefront and Marketplace.</p>
+              <h3 className="font-bold text-xl sm:text-2xl heading-font text-[#4a1942]">Healing Services</h3>
+              <p className="text-sm text-gray-600">Bookable sessions — add a photo and YouTube/Vimeo preview so seekers trust your craft.</p>
             </div>
           </div>
-          <Link to="/marketplace" className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-blue-50 shrink-0 self-start">
-            Preview Marketplace
+          <Link to="/services" className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8] shrink-0 self-start">
+            Preview Services
           </Link>
         </div>
 
         <div className="bg-white rounded-2xl p-3 sm:p-6 border min-w-0 overflow-hidden">
-          <div className="font-semibold mb-3">{editMenuId ? 'Edit menu item' : 'Add new menu item'}</div>
-          <ListingThumbnailField
-            value={menuThumbnail}
-            onChange={setMenuThumbnail}
-            disabled={adding}
-            label="Menu item thumbnail (optional)"
-          />
+          <div className="font-semibold mb-3">{editMenuId ? 'Edit service' : 'Add healing service'}</div>
+          {vendorCan(user, 'service_video') ? (
+            <ServiceMediaField
+              thumbnail={menuThumbnail}
+              onThumbnailChange={setMenuThumbnail}
+              videoUrl={serviceVideoUrl}
+              onVideoUrlChange={setServiceVideoUrl}
+              mediaType={serviceMediaType}
+              onMediaTypeChange={setServiceMediaType}
+              disabled={adding}
+              label="Service photo & video (YouTube / Vimeo)"
+            />
+          ) : (
+            <ListingThumbnailField
+              value={menuThumbnail}
+              onChange={setMenuThumbnail}
+              disabled={adding}
+              label="Service photo"
+            />
+          )}
           <div className="grid grid-cols-1 gap-3 mt-3">
             <input
-              placeholder="Item name (e.g. Fresh Tacos)"
+              placeholder="Service name (e.g. 60-min Reiki Session)"
               value={newItem.name}
               onChange={(e) => setNewItem({ ...newItem, name: e.target.value })}
               className="border p-3 rounded-2xl w-full min-w-0"
@@ -737,7 +777,7 @@ export default function VendorDashboard({ user }) {
               className="border p-3 rounded-2xl w-full min-w-0 box-border"
             />
             <input
-              placeholder="Prep time (e.g. 15 min)"
+              placeholder="Session length (e.g. 60 min)"
               value={newItem.time_made}
               onChange={(e) => setNewItem({ ...newItem, time_made: e.target.value })}
               className="border p-3 rounded-2xl w-full min-w-0"
@@ -775,7 +815,7 @@ export default function VendorDashboard({ user }) {
               <div>
                 <label className="text-sm font-medium">How customers order this item</label>
                 <select
-                  value={newItem.fulfillment_mode || 'Hazel Allure'}
+                  value={newItem.fulfillment_mode || 'hazelallure'}
                   onChange={(e) => setNewItem({ ...newItem, fulfillment_mode: e.target.value })}
                   className="w-full border p-3 rounded-2xl mt-1 text-sm"
                   disabled={adding}
@@ -983,7 +1023,7 @@ export default function VendorDashboard({ user }) {
               <div>
                 <label className="text-sm font-medium">How customers order this item</label>
                 <select
-                  value={newProduce.fulfillment_mode || 'Hazel Allure'}
+                  value={newProduce.fulfillment_mode || 'hazelallure'}
                   onChange={(e) => setNewProduce({ ...newProduce, fulfillment_mode: e.target.value })}
                   className="w-full border p-3 rounded-2xl mt-1 text-sm"
                   disabled={addingProduce}

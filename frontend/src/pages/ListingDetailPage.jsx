@@ -16,6 +16,8 @@ import { getFoodCategoryLabel } from '../lib/foodCategories';
 import { getFarmersMarketCategoryLabel, isMedicinalCategory } from '../lib/farmersMarketCategories';
 import { getMarketplaceCategoryLabel } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
+import VideoEmbed from '../components/VideoEmbed';
+import { VERTICAL } from '../lib/vertical';
 
 export default function ListingDetailPage({ user }) {
   const { type, id } = useParams();
@@ -43,15 +45,23 @@ export default function ListingDetailPage({ user }) {
 
   const pickupSummary = formatPickupHoursSummary(vendor?.pickup_hours);
   const events = upcomingEvents(vendor?.in_person_events);
-  const backTo = itemType === 'menu' ? '/marketplace' : '/farmers-market';
+  const backTo = itemType === 'menu' ? VERTICAL.routes.servicesMarket : VERTICAL.routes.productsMarket;
+  const backLabel = itemType === 'menu' ? VERTICAL.labels.marketplace : VERTICAL.labels.farmersMarket;
   const itemOptions = parseItemOptions(item.item_options);
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link to={backTo} className="text-sm text-[#4a1942] mb-4 inline-block">← Back to {itemType === 'menu' ? 'Marketplace' : 'Farmers Market'}</Link>
+      <Link to={backTo} className="text-sm text-[#4a1942] mb-4 inline-block">← Back to {backLabel}</Link>
 
       <div className="bg-white border rounded-3xl overflow-hidden">
-        <img src={item.photo} alt="" className="w-full h-56 md:h-72 object-cover" />
+        {item.service_video_url && (item.media_type === 'video' || item.media_type === 'both') ? (
+          <VideoEmbed url={item.service_video_url} title={item.name} />
+        ) : (
+          <img src={item.photo} alt="" className="w-full h-56 md:h-72 object-cover" />
+        )}
+        {item.service_video_url && item.media_type === 'both' && item.photo && (
+          <img src={item.photo} alt="" className="w-full h-32 object-cover border-t" />
+        )}
         <div className="p-6 md:p-8 space-y-4">
           <div className="flex flex-wrap justify-between gap-3">
             <div>

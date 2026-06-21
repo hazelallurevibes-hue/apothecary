@@ -5,6 +5,8 @@ import CheckoutUpsellPanel from './CheckoutUpsellPanel';
 import PreorderModificationPanel from './PreorderModificationPanel';
 import { fetchVendorTaxSettings } from '../lib/vendorTaxApi';
 import { calculateCheckoutTotals } from '../lib/vendorTax';
+import { getCustomerContext } from '../lib/plans';
+import { bestCartDiscount, applyDiscountToSubtotal, fetchVendorDiscounts } from '../lib/vendorDiscounts';
 
 export default function CartCheckoutPanel({
   user,
@@ -26,14 +28,23 @@ export default function CartCheckoutPanel({
     0,
   );
   const [vendorTax, setVendorTax] = useState(null);
+  const [vendorDiscounts, setVendorDiscounts] = useState([]);
   const [modPanel, setModPanel] = useState({ modification_request: '', modification_acknowledged: false });
 
   useEffect(() => {
     if (!vendorId) return;
     fetchVendorTaxSettings(vendorId).then(setVendorTax).catch(() => setVendorTax(null));
+    fetchVendorDiscounts(vendorId).then(setVendorDiscounts).catch(() => setVendorDiscounts([]));
   }, [vendorId]);
 
-  const totals = calculateCheckoutTotals(subtotal, vendorTax || {});
+  const customerPlan = getCustomerContext(user)?.plan;
+  const discountResult = bestCartDiscount(vendorDiscounts, {
+    customerPlan,
+    subtotal,
+    cartLines: lines,
+  });
+  const discounted = applyDiscountToSubtotal(subtotal, discountResult);
+  const totals = calculateCheckoutTotals(discounted.subtotal, vendorTax || {});
   const panelTotal = totals.total;
 
   return (
@@ -78,8 +89,14 @@ export default function CartCheckoutPanel({
       <div className="border-t pt-3 space-y-1 text-sm">
         <div className="flex justify-between text-gray-600">
           <span>Subtotal</span>
-          <span>${totals.subtotal.toFixed(2)}</span>
+          <span>${subtotal.toFixed(2)}</span>
         </div>
+        {discounted.discount > 0 && (
+          <div className="flex justify-between text-emerald-700">
+            <span>Discount{discounted.discountName ? ` (${discounted.discountName})` : ''}</span>
+            <span>-${discounted.discount.toFixed(2)}</span>
+          </div>
+        )}
         {totals.salesTax > 0 && (
           <div className="flex justify-between text-gray-600">
             <span>Sales tax ({totals.taxRate}%)</span>

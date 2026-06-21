@@ -258,6 +258,11 @@ export default function Marketplace({ user }) {
                   className="h-44 w-full object-cover group-hover:scale-105 transition"
                   alt=""
                 />
+                {item.service_video_url && (
+                  <div className="absolute top-2 right-2 bg-[#2d1230]/80 text-[#c9a227] text-[10px] px-2 py-0.5 rounded-full font-mono">
+                    ▶ VIDEO
+                  </div>
+                )}
                 {item.is_preorder && (
                   <div className="absolute top-2 left-2">
                     <PreorderBadge item={item} />
