@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { cartLineKey, computeLinePrice, formatOptionsSummary, parseItemOptions } from '../lib/itemOptions';
+import { STORAGE_KEYS } from '../lib/storageKeys';
 
 const CartContext = createContext();
 
@@ -7,7 +8,7 @@ export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('Hazel Allure_cart');
+    const saved = localStorage.getItem(STORAGE_KEYS.cart);
     if (saved) {
       try {
         setCart(JSON.parse(saved));
@@ -18,7 +19,7 @@ export function CartProvider({ children }) {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('Hazel Allure_cart', JSON.stringify(cart));
+    localStorage.setItem(STORAGE_KEYS.cart, JSON.stringify(cart));
   }, [cart]);
 
   const addToCart = (item) => {

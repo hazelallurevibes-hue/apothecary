@@ -1,4 +1,5 @@
 /** Auth0 config — reads VITE_* or AUTH0_* (Vercel marketplace integration) */
+import { VERTICAL } from './vertical';
 import { DEFAULT_APP_URL, getAppUrl } from './appUrl';
 
 export function getAuth0Domain() {
@@ -16,7 +17,7 @@ export function isAuth0Configured() {
 
 /**
  * SPA redirect URI — must match Auth0 Application → Allowed Callback URLs exactly.
- * Default: origin only (e.g. https://www.Hazel Allure.com). Override with VITE_AUTH0_CALLBACK_PATH=/login if needed.
+ * Default: origin only (e.g. https://apothecary.hazelallure.com).
  */
 export function getAuth0CallbackPath() {
   const raw = (import.meta.env.VITE_AUTH0_CALLBACK_PATH || '').trim();
@@ -52,8 +53,8 @@ export function getAuth0DashboardUrls() {
   const production = getAppUrl();
   const origins = [
     production,
-    'https://Hazel Allure.com',
-    'https://Hazel Allure2.vercel.app',
+    VERTICAL.siteUrl,
+    'https://hazelallure-apothecary.vercel.app',
     'http://localhost:5173',
     'http://localhost:4173',
   ];
@@ -64,7 +65,7 @@ export function getAuth0DashboardUrls() {
     allowedCallbackUrls: [
       ...callbacks,
       `${production}/api/auth/callback`,
-      'https://Hazel Allure2.vercel.app/api/auth/callback',
+      'https://hazelallure-apothecary.vercel.app/api/auth/callback',
       'http://localhost:5173/api/auth/callback',
     ],
     allowedLogoutUrls: uniqueOrigins.map((o) => `${o}/login`),

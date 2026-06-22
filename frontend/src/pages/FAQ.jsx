@@ -148,7 +148,7 @@ const sections = [
   },
   {
     title: 'Auth0 login not working / Callback URL mismatch?',
-    body: 'Your Auth0 tenant domain is dev-h4lv4mbm0rw7335o.us.auth0.com. Open Applications in the Auth0 Dashboard, select your Hazel Allure app (type: Single Page Application), and add Allowed Callback URLs: https://www.Hazel Allure.com, https://Hazel Allure.com, https://Hazel Allure2.vercel.app, and http://localhost:5173. Add Allowed Logout URLs: https://www.Hazel Allure.com/login, https://Hazel Allure.com/login, and http://localhost:5173/login. Add Allowed Web Origins: https://www.Hazel Allure.com, https://Hazel Allure.com, https://Hazel Allure2.vercel.app, and http://localhost:5173. Set VITE_APP_URL=https://www.Hazel Allure.com in Vercel env vars, then redeploy. Email/password login via Supabase still works as a fallback.',
+    body: 'Create a dedicated Auth0 tenant for Hazel Allure (hazelallurevibes@gmail.com). Open Applications → your Hazel Allure SPA → add Allowed Callback URLs: https://apothecary.hazelallure.com, https://www.hazelallure.com, https://hazelallure-apothecary.vercel.app, and http://localhost:5173. Add matching Logout URLs with /login. Add the same origins under Allowed Web Origins. Set VITE_APP_URL=https://apothecary.hazelallure.com in Vercel, then redeploy. Supabase email/password login works without Auth0.',
   },
 ];
 

@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 import { emailSettingsFromPlatform, pickPublicContact } from '../lib/siteEmail';
+import { VERTICAL } from '../lib/vertical';
 
 export default function SiteEmailFooter() {
-  const [contact, setContact] = useState('hello@Hazel Allure.com');
+  const [contact, setContact] = useState(VERTICAL.contactEmail);
 
   useEffect(() => {
     fetchPlatformSettings()

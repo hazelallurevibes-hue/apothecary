@@ -1,6 +1,8 @@
 import { supabase } from './supabaseClient';
 import { fetchEmployeeRecord } from './employeesApi';
 import { getAppUrl } from './appUrl';
+import { VERTICAL } from './vertical';
+import { STORAGE_KEYS } from './storageKeys';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -203,7 +205,7 @@ export async function signIn(email, password, { captchaToken } = {}) {
   if (authMode === 'backend') {
     const profile = await fetchBackendProfile(normalizedEmail);
     if (!profile || profile.role === 'guest') {
-      throw new Error('No account found. Start the backend (npm start in /backend) and use MKJR21@Hazel Allure.com for admin testing.');
+      throw new Error(`No account found. Start the backend (npm start in /backend) or sign in with ${VERTICAL.adminEmail}.`);
     }
     return profile;
   }
@@ -234,7 +236,7 @@ export async function signIn(email, password, { captchaToken } = {}) {
 }
 
 export async function restoreSession() {
-  const cached = localStorage.getItem('Hazel Allure_user');
+  const cached = localStorage.getItem(STORAGE_KEYS.user);
   if (cached) {
     try {
       const parsed = JSON.parse(cached);
@@ -250,7 +252,7 @@ export async function restoreSession() {
 
   if (session?.user?.email) {
     const profile = await resolveProfile(session.user.email, session.user.id);
-    localStorage.setItem('Hazel Allure_user', JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
     return profile;
   }
 
@@ -267,7 +269,7 @@ export async function restoreSession() {
 }
 
 export async function signOut() {
-  localStorage.removeItem('Hazel Allure_user');
+  localStorage.removeItem(STORAGE_KEYS.user);
   await supabase.auth.signOut();
 }
 

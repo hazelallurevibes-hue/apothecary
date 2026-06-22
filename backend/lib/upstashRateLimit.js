@@ -18,7 +18,7 @@ function getLoginLimiter() {
   loginLimiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(12, '15 m'),
-    prefix: 'bpicius:login',
+    prefix: 'hazelallure:login',
   });
   return loginLimiter;
 }
@@ -30,7 +30,7 @@ function getApiLimiter() {
   apiLimiter = new Ratelimit({
     redis,
     limiter: Ratelimit.slidingWindow(60, '1 m'),
-    prefix: 'bpicius:api',
+    prefix: 'hazelallure:api',
   });
   return apiLimiter;
 }

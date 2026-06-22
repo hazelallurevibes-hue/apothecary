@@ -1,23 +1,18 @@
 import { supabase } from './supabaseClient';
 import { VERTICAL } from './vertical';
 
-const PREFIX = 'hazelallure_';
-
-/** Load Hazel-specific platform_settings (prefixed — shared Supabase with Bpicius). */
+/** Platform settings for dedicated Hazel Allure Supabase (not shared with Bpicius). */
 export async function fetchHazelPlatformSettings() {
-  const { data, error } = await supabase.from('platform_settings').select('key, value').like('key', `${PREFIX}%`);
+  const { data, error } = await supabase.from('platform_settings').select('key, value');
   if (error) throw error;
-  const map = {};
-  for (const row of data || []) {
-    map[row.key.replace(PREFIX, '')] = row.value;
-  }
+  const map = Object.fromEntries((data || []).map((r) => [r.key, r.value]));
   return {
     siteUrl: map.site_url || VERTICAL.appUrl,
     siteName: map.site_name || VERTICAL.name,
-    businessEmail: map.business_email || VERTICAL.businessEmail,
+    contactEmail: map.email_contact || VERTICAL.contactEmail,
     blogUrl: map.blog_url || VERTICAL.blogBaseUrl,
-    teachingEnabled: map.teaching_enabled === 'true',
-    discountsEnabled: map.discounts_enabled === 'true',
+    teachingEnabled: map.teaching_platform_enabled === 'true',
+    discountsEnabled: map.vendor_discounts_enabled === 'true',
     raw: map,
   };
 }

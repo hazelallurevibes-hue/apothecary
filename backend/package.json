@@ -1,7 +1,7 @@
 {
-  "name": "bpicius-backend",
+  "name": "hazelallure-backend",
   "version": "1.0.0",
-  "description": "Bpicius Vendor Portal & Marketplace - Backend",
+  "description": "Hazel Allure Apothecary — Backend API",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

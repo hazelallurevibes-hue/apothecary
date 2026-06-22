@@ -8,8 +8,9 @@ import ar from './locales/ar.json';
 import zh from './locales/zh.json';
 import ja from './locales/ja.json';
 import hi from './locales/hi.json';
+import { STORAGE_KEYS } from '../lib/storageKeys';
 
-const STORAGE_KEY = 'Hazel Allure_locale';
+const STORAGE_KEY = STORAGE_KEYS.locale;
 
 export const SUPPORTED_LOCALES = [
   { code: 'en', label: 'English', native: 'English', flag: '🇺🇸', rtl: false, region: 'US', currency: 'USD' },

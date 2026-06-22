@@ -1,13 +1,14 @@
 import { serializeAllergenIds } from './allergens';
+import { AUTH0_NAMESPACE, STORAGE_KEYS } from './storageKeys';
 
 /** Persist allergen profile to local user blob (Auth0 SPA cannot write metadata without Management API). */
 export function syncAllergenToLocalUser(allergenIds) {
   try {
-    const raw = localStorage.getItem('Hazel Allure_user');
+    const raw = localStorage.getItem(STORAGE_KEYS.user);
     if (!raw) return;
     const user = JSON.parse(raw);
     user.allergen_avoid = serializeAllergenIds(allergenIds);
-    localStorage.setItem('Hazel Allure_user', JSON.stringify(user));
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(user));
   } catch {
     /* ignore */
   }
@@ -37,7 +38,7 @@ export async function syncAllergenToAuth0({ email, allergenIds }) {
 }
 
 export function mergeAuth0AllergenMetadata(auth0User, profile) {
-  const meta = auth0User?.['https://Hazel Allure.com/allergen_avoid']
+  const meta = auth0User?.[`${AUTH0_NAMESPACE}allergen_avoid`]
     || auth0User?.user_metadata?.allergen_avoid
     || auth0User?.app_metadata?.allergen_avoid;
   if (!meta) return profile;

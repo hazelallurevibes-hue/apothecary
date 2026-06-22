@@ -498,7 +498,7 @@ export default function AdminPortal({ user }) {
         )}
 
         {!enableTestAccounts && !loading && activeTab === 'users' && (
-          <p className="text-xs text-gray-500 mt-2">Test accounts (@Hazel Allure.local) are hidden in production.</p>
+          <p className="text-xs text-gray-500 mt-2">Test accounts (@hazelallure.local) are hidden in production.</p>
         )}
 
         {!loading && activeTab === 'verification' && (

@@ -8,9 +8,9 @@ export const enableTestAccounts =
   import.meta.env.VITE_ENABLE_TEST_ACCOUNTS === 'true' || isDev;
 
 export const TEST_ACCOUNT_EMAILS = new Set([
-  'vendor@Hazel Allure.local',
-  'customer@Hazel Allure.local',
-  'guest@Hazel Allure.local',
+  'vendor@hazelallure.local',
+  'customer@hazelallure.local',
+  'guest@hazelallure.local',
 ]);
 
 export function isTestAccount(email) {
@@ -26,8 +26,8 @@ export function filterProductionUsers(users) {
 /** Dev/staging quick-login only — never enabled in production builds */
 export const LIVE_TEST_ACCOUNTS = isDev
   ? [
-      { label: 'Vendor', email: 'vendor@Hazel Allure.local', password: 'TestRole2026!', color: 'bg-purple-700' },
-      { label: 'Customer', email: 'customer@Hazel Allure.local', password: 'TestRole2026!', color: 'bg-emerald-700' },
-      { label: 'Guest', email: 'guest@Hazel Allure.local', password: 'TestRole2026!', color: 'bg-gray-600' },
+      { label: 'Vendor', email: 'vendor@hazelallure.local', password: 'TestRole2026!', color: 'bg-purple-700' },
+      { label: 'Customer', email: 'customer@hazelallure.local', password: 'TestRole2026!', color: 'bg-emerald-700' },
+      { label: 'Guest', email: 'guest@hazelallure.local', password: 'TestRole2026!', color: 'bg-gray-600' },
     ]
   : [];

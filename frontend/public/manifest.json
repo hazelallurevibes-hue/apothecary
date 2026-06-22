@@ -1,11 +1,11 @@
 {
-  "name": "Bpicius - Local Vendor Marketplace",
-  "short_name": "Bpicius",
-  "description": "Fresh food, produce, and local vendors. Order, share, and support your community.",
+  "name": "Hazel Allure — Holistic Healing & Apothecary",
+  "short_name": "Hazel Allure",
+  "description": "Book healing services and shop natural apothecary goods from practitioners worldwide.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#083a9b",
+  "background_color": "#f5f0e8",
+  "theme_color": "#4a1942",
   "icons": [
     {
       "src": "https://i.pravatar.cc/192?img=47",

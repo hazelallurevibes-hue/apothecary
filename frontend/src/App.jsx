@@ -62,6 +62,7 @@ import { supabase } from './lib/supabaseClient';
 import { customerCan, vendorCan } from './lib/plans';
 import { isAuth0Configured } from './lib/auth0Config';
 import { EasyModeProvider } from './lib/easyMode';
+import { STORAGE_KEYS } from './lib/storageKeys';
 
 function AppCore({ auth0 = null }) {
   const auth0Enabled = !!auth0;
@@ -104,7 +105,7 @@ function AppCore({ auth0 = null }) {
 
       setUser(profile);
       setMonitoringUser(profile);
-      localStorage.setItem('Hazel Allure_user', JSON.stringify(profile));
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
 
       if (event === 'SIGNED_IN' && (window.location.pathname === '/login' || window.location.hash.includes('access_token'))) {
         navigate(getPostLoginPath(profile?.role), { replace: true });
@@ -133,7 +134,7 @@ function AppCore({ auth0 = null }) {
         };
         setUser(merged);
         setMonitoringUser(merged);
-        localStorage.setItem('Hazel Allure_user', JSON.stringify(merged));
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(merged));
         auth0Synced.current = true;
 
         if (window.location.search.includes('code=') && !callbackHandled.current) {
@@ -143,7 +144,7 @@ function AppCore({ auth0 = null }) {
         }
       } else if (!auth0.isAuthenticated && auth0Synced.current) {
         setUser(null);
-        localStorage.removeItem('Hazel Allure_user');
+        localStorage.removeItem(STORAGE_KEYS.user);
         auth0Synced.current = false;
       }
       setAuth0Ready(true);
@@ -168,7 +169,7 @@ function AppCore({ auth0 = null }) {
       }
 
       setUser(userData);
-      localStorage.setItem('Hazel Allure_user', JSON.stringify(userData));
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
       navigate(getPostLoginPath(userData.role));
     } catch (e) {
       console.error('Login error:', e);

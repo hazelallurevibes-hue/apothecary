@@ -15,6 +15,7 @@ import MyLikesDislikesQuestionnaire from '../components/MyLikesDislikesQuestionn
 import { serializeAllergenIds } from '../lib/allergens';
 import { syncAllergenToAuth0, syncAllergenToLocalUser } from '../lib/auth0MetadataSync';
 import { fetchFoodPreferences, saveFoodPreferences, EMPTY_FOOD_PREFS } from '../lib/foodPreferences';
+import { STORAGE_KEYS } from '../lib/storageKeys';
 
 export default function AccountSettings({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || '');
@@ -82,9 +83,9 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       if (data.success) {
         setTwoFA({ ...twoFA, enabled: true });
         setStatus('2FA enabled for this account.');
-        const saved = JSON.parse(localStorage.getItem('Hazel Allure_user') || '{}');
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
         saved.two_factor_enabled = 1;
-        localStorage.setItem('Hazel Allure_user', JSON.stringify(saved));
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(saved));
       } else {
         setStatus('Invalid code. Try again.');
       }
@@ -136,7 +137,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       ubereats_linked: ubereats,
       allergen_avoid: allergenStr,
     };
-    localStorage.setItem('Hazel Allure_user', JSON.stringify(updated));
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
     onProfileUpdate?.(updated);
     setStatus(auth0Sync.synced ? 'Profile saved (allergens synced to Auth0).' : 'Profile saved.');
   };
@@ -156,7 +157,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         customer_region: foodPrefs.customer_region,
         allergen_avoid: serializeAllergenIds(foodPrefs.allergen_avoid),
       };
-      localStorage.setItem('Hazel Allure_user', JSON.stringify(updated));
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
       onProfileUpdate?.(updated);
       setStatus('My Likes & Dislikes saved.');
     } catch (e) {

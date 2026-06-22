@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://bpicius.com/sitemap.xml
+Sitemap: https://apothecary.hazelallure.com/sitemap.xml

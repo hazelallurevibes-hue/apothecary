@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { getLiveEmbedUrl, getStreamUrlForPlatform } from '../lib/streamUtils';
+import { VERTICAL } from '../lib/vertical';
 
 export default function LiveStreamPlayer({ vendor }) {
   const platform = vendor?.stream_platform;
   const rawUrl = getStreamUrlForPlatform(vendor, platform);
-  const parentHost = typeof window !== 'undefined' ? window.location.hostname : 'www.Hazel Allure.com';
+  const parentHost = typeof window !== 'undefined' ? window.location.hostname : new URL(VERTICAL.appUrl).hostname;
 
   const embedUrl = useMemo(
     () => getLiveEmbedUrl(platform, rawUrl, parentHost),

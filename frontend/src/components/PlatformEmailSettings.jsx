@@ -53,8 +53,8 @@ export default function PlatformEmailSettings({ settings, onSaved, user }) {
       <div>
         <h3 className="font-semibold text-lg">Site email addresses</h3>
         <p className="text-sm text-gray-600 mt-1">
-          Controls outgoing mail (Resend) and the contact addresses shown on www.Hazel Allure.com.
-          Verify <strong>Hazel Allure.com</strong> in{' '}
+          Controls outgoing mail (Resend) and the contact addresses shown on apothecary.hazelallure.com.
+          Verify <strong>hazelallure.com</strong> in{' '}
           <a href="https://resend.com/domains" target="_blank" rel="noreferrer" className="text-[#4a1942] underline">
             Resend Domains
           </a>{' '}

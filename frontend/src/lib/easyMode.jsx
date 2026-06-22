@@ -1,7 +1,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from './supabaseClient';
+import { CSS_VARS, STORAGE_KEYS } from './storageKeys';
 
-const TEXT_SCALE_KEY = 'Hazel Allure_text_scale';
+const TEXT_SCALE_KEY = STORAGE_KEYS.textScale;
 
 const EasyModeContext = createContext({
   enabled: false,
@@ -29,7 +30,7 @@ export function EasyModeProvider({ user, children }) {
   }, [user?.easy_mode_enabled, user?.email]);
 
   useEffect(() => {
-    document.documentElement.style.setProperty('--Hazel Allure-text-scale', String(textScale));
+    document.documentElement.style.setProperty(CSS_VARS.textScale, String(textScale));
     document.documentElement.style.fontSize = `${textScale * 100}%`;
     localStorage.setItem(TEXT_SCALE_KEY, String(textScale));
   }, [textScale]);
@@ -38,9 +39,9 @@ export function EasyModeProvider({ user, children }) {
     setEnabledState(next);
     if (!user?.email) return;
     await supabase.from('users').update({ easy_mode_enabled: next }).ilike('email', user.email.trim());
-    const saved = JSON.parse(localStorage.getItem('Hazel Allure_user') || '{}');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
     saved.easy_mode_enabled = next;
-    localStorage.setItem('Hazel Allure_user', JSON.stringify(saved));
+    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(saved));
   }, [user?.email]);
 
   const setTextScale = useCallback((scale) => {

@@ -1,9 +1,10 @@
 import { useLocale } from '../i18n';
 import { persistUserLocale } from '../lib/localeApi';
+import { STORAGE_KEYS } from '../lib/storageKeys';
 
 function persistLocaleForUser(code) {
   try {
-    const saved = JSON.parse(localStorage.getItem('Hazel Allure_user') || '{}');
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
     if (saved?.email) persistUserLocale(saved.email, code);
   } catch {
     /* ignore */

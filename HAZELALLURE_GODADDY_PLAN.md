@@ -44,7 +44,7 @@ GoDaddy cannot easily host a React app *and* keep the visual editor for the same
 - [x] Home, Layout, routes (`/services`, `/products`), blog links to GoDaddy
 - [x] Wellness service + apothecary category menus
 - [ ] New Supabase project (separate from Bpicius)
-- [ ] Deploy to `shop.hazelallure.com`
+- [ ] Deploy to `apothecary.hazelallure.com`
 - [ ] Stripe account (when bank links)
 
 ### Phase 2 — Content & SEO bridge
@@ -62,9 +62,10 @@ GoDaddy cannot easily host a React app *and* keep the visual editor for the same
 
 | Item | Bpicius | Hazel Allure |
 |------|---------|--------------|
-| GitHub repo | `bpicius2` | `hazelallure-fullstack` (new) |
-| Supabase | existing | **new project** |
-| Stripe | existing | **new account or Connect** |
-| Vercel | bpicius.com | shop.hazelallure.com |
+| GitHub repo | `bpicius2` | `hazelallure-fullstack` (new, wife's GitHub) |
+| Supabase | `emzpkxvxuwhfsknccoad` | **new project** (hazelallurevibes@gmail.com) |
+| Stripe | Bpicius account | **Hazel Allure LLC account** |
+| Vercel | bpicius.com | apothecary.hazelallure.com |
+| Admin | abeytamonico@yahoo.com | hazelallurevibes@gmail.com |
 
 Contact on file: hazelallurevibes@gmail.com

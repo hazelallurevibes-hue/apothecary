@@ -1,5 +1,7 @@
+import { VERTICAL } from './vertical';
+
 /** Canonical production URL — override with VITE_APP_URL in Vercel env. */
-export const DEFAULT_APP_URL = 'https://Hazel Allure.com';
+export const DEFAULT_APP_URL = VERTICAL.appUrl;
 
 export function getAppUrl() {
   const raw = (import.meta.env.VITE_APP_URL || DEFAULT_APP_URL).trim();

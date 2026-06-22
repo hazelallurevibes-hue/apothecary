@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { resolveProfile } from '../lib/auth';
+import { STORAGE_KEYS } from '../lib/storageKeys';
 
 export function ProSuccess({ user, onProfileUpdate }) {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,7 @@ export function ProSuccess({ user, onProfileUpdate }) {
       if (user?.email) {
         const profile = await resolveProfile(user.email, user.id);
         if (active && profile) {
-          localStorage.setItem('Hazel Allure_user', JSON.stringify(profile));
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
           onProfileUpdate?.(profile);
         }
       }

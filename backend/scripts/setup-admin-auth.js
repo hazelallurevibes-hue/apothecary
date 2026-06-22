@@ -14,9 +14,9 @@ if (fs.existsSync(envPath)) {
   }
 }
 
-const EMAIL = 'abeytamonico@yahoo.com';
+const EMAIL = 'hazelallurevibes@gmail.com';
 const PASSWORD = process.argv[2] || process.env.ADMIN_PASSWORD;
-const REMOVE = ['mkjr21@bpicius.com', 'MKJR21@bpicius.com'];
+const REMOVE = ['mkjr21@bpicius.com', 'MKJR21@bpicius.com', 'abeytamonico@yahoo.com'];
 
 async function main() {
   const url = process.env.SUPABASE_URL;

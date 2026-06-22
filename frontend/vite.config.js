@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => {
   const auth0Enabled =
     env.VITE_AUTH0_ENABLED === 'true' ||
     (auth0Domain && auth0ClientId && env.VITE_AUTH0_ENABLED !== 'false')
-  const appUrl = (env.VITE_APP_URL || 'https://bpicius.com').replace(/\/$/, '')
+  const appUrl = (env.VITE_APP_URL || 'https://apothecary.hazelallure.com').replace(/\/$/, '')
 
   return {
   plugins: [react()],

@@ -1,11 +1,12 @@
 /**
- * Hazel Allure LLC — metaphysical & holistic marketplace
- * apothecary.hazelallure.com (separate from Bpicius and all other projects)
+ * Hazel Allure LLC — isolated stack (NOT Bpicius)
+ * Owner: hazelallurevibes@gmail.com
+ * App: apothecary.hazelallure.com
  */
 
 export const VERTICAL = {
   id: 'hazelallure',
-  name: 'hazelallure',
+  name: 'Hazel Allure',
   legalEntity: 'Hazel Allure LLC',
   tagline: 'Heal with intention. Shop with spirit.',
   heroTitle: ['Ancient wisdom.', 'Modern healing.', 'Your path.'],
@@ -14,9 +15,8 @@ export const VERTICAL = {
   heroBadge: 'ORGANIC • VEGAN • NATURAL • WORLDWIDE',
   contactEmail: 'hazelallurevibes@gmail.com',
   contactPhone: '(505) 479-7475',
-  ownerEmail: 'abeytamonico@yahoo.com',
-  infraOwner: 'garrettpistool-lab',
-  businessEmail: 'hazelallurevibes@gmail.com',
+  ownerEmail: 'hazelallurevibes@gmail.com',
+  adminEmail: 'hazelallurevibes@gmail.com',
   siteUrl: 'https://www.hazelallure.com',
   appUrl: 'https://apothecary.hazelallure.com',
   blogBaseUrl: 'https://www.hazelallure.com',
@@ -51,7 +51,6 @@ export const VERTICAL = {
     courses: 'Teaching Sanctum',
   },
 
-  /** Revenue features — Pro practitioners maximize reinvestment into ads */
   revenue: {
     platformFeePercent: 8,
     proVendorDiscounts: true,
