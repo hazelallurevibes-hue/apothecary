@@ -36,11 +36,11 @@ Deno.serve(async (req: Request) => {
         from: cfg.notifyFrom,
         reply_to: cfg.replyTo,
         to: [vendor_email],
-        subject: `⏳ ${expiring_count || 1} listing(s) expiring soon on Bpicius`,
+        subject: `⏳ ${expiring_count || 1} listing(s) expiring soon on Hazel Allure`,
         html: `
           <div style="font-family:system-ui,sans-serif;max-width:520px">
-            <h2 style="color:#083a9b">Produce expiring within 3 days</h2>
-            <p>${expiring_count || 1} Farmers Market listing(s) for <strong>${vendor_name || "your farm"}</strong> are nearing their good-by date.</p>
+            <h2 style="color:#4a1942">Apothecary items expiring within 3 days</h2>
+            <p>${expiring_count || 1} apothecary listing(s) for <strong>${vendor_name || "your storefront"}</strong> are nearing their good-by date.</p>
             <p><a href="${cfg.siteUrl}/vendor-dashboard">Update or hide listings →</a></p>
           </div>
         `,

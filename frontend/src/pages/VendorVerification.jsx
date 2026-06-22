@@ -92,7 +92,7 @@ export default function VendorVerification({ user }) {
       </div>
 
       <div className="bg-white border rounded-3xl p-6 space-y-4">
-        <h2 className="font-semibold">Permit / cottage food license</h2>
+        <h2 className="font-semibold">Business &amp; practice permits</h2>
         {!canPermit ? (
           <p className="text-sm text-gray-600">
             Paid vendors can upload permits for a verified badge. <Link to="/account-settings" className="text-[#4a1942] underline">Upgrade</Link>

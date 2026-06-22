@@ -485,7 +485,7 @@ export default function AdminPortal({ user }) {
               ))}
             </div>
             <div className="bg-white border rounded-3xl p-6">
-              <h3 className="font-semibold mb-4">Farmers Market Produce</h3>
+              <h3 className="font-semibold mb-4">Apothecary Items</h3>
               {produceItems.map(item => (
                 <div key={item.id} className="flex justify-between py-1 border-b text-sm">
                   <span>{item.name} (${item.price}/{item.unit})</span>

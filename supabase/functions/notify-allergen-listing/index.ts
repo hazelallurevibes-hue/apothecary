@@ -50,9 +50,9 @@ Deno.serve(async (req: Request) => {
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:560px;line-height:1.5">
               <p>Hi ${escapeHtml(u.name || "there")},</p>
-              <p><strong>${escapeHtml(vendorName)}</strong> posted <strong>${escapeHtml(item_name)}</strong> — it does not include allergens on your Bpicius avoid list.</p>
-              <p><a href="${cfg.siteUrl}${listingPath}" style="display:inline-block;background:#083a9b;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Browse on Bpicius</a></p>
-              <p style="font-size:11px;color:#9ca3af">Update your allergen profile in Account Settings. Bpicius does not guarantee kitchen cross-contact.</p>
+              <p><strong>${escapeHtml(vendorName)}</strong> posted <strong>${escapeHtml(item_name)}</strong> — it does not include allergens on your Hazel Allure avoid list.</p>
+              <p><a href="${cfg.siteUrl}${listingPath}" style="display:inline-block;background:#4a1942;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Browse on Hazel Allure</a></p>
+              <p style="font-size:11px;color:#9ca3af">Update your allergen profile in Account Settings. Hazel Allure does not guarantee cross-contact in artisan preparation.</p>
             </div>
           `,
         }),

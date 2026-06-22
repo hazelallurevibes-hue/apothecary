@@ -38,12 +38,12 @@ Deno.serve(async (req: Request) => {
         from: cfg.notifyFrom,
         reply_to: cfg.replyTo,
         to: [vendor_email],
-        subject: `New order #${order_id} on Bpicius`,
+        subject: `New order #${order_id} on Hazel Allure`,
         html: `
           <div style="font-family:system-ui,sans-serif;max-width:520px">
-            <h2 style="color:#083a9b">New order for ${vendor_name || "your storefront"}</h2>
+            <h2 style="color:#4a1942">New order for ${vendor_name || "your storefront"}</h2>
             <p>Order <strong>#${order_id}</strong> — $${Number(total || 0).toFixed(2)} (${status || "placed"})</p>
-            <p><a href="${cfg.siteUrl}/vendor-dashboard">Open Vendor Dashboard →</a></p>
+            <p><a href="${cfg.siteUrl}/vendor-dashboard">Open Practitioner Dashboard →</a></p>
           </div>
         `,
       }),

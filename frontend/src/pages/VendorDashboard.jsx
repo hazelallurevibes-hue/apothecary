@@ -49,6 +49,7 @@ import {
   resolveListingPhotoUrl,
 } from '../lib/vendorListings';
 import { FULFILLMENT_MODES } from '../lib/internationalStorefront';
+import { VERTICAL } from '../lib/vertical';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const EMPTY_MENU_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'general', safety_practices_certified: false, temp_photo_url: '' };
@@ -72,7 +73,7 @@ export default function VendorDashboard({ user }) {
   const [newItemPreorder, setNewItemPreorder] = useState({ ...EMPTY_PREORDER });
   const [newItemFoodLabel, setNewItemFoodLabel] = useState({});
   const [produceSection, setProduceSection] = useState('produce');
-  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: 'Produce', fulfillment_mode: 'hazelallure' });
+  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'hazelallure' });
   const [newProduceAllergens, setNewProduceAllergens] = useState([]);
   const [newProduceSafety, setNewProduceSafety] = useState({ ...EMPTY_PRODUCE_SAFETY });
   const [medicinalLegalAck, setMedicinalLegalAck] = useState(false);
@@ -229,7 +230,7 @@ export default function VendorDashboard({ user }) {
     if (!passesLaunchGate()) return;
     if (!newItem.name || !newItem.price || !myVendorId) return;
     if (!editMenuId && listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      alert(`Free plan limit: ${listingLimits.menu} menu items. Upgrade to Paid for unlimited listings.`);
+      alert(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to Paid for unlimited listings.`);
       return;
     }
     if (!isSafetySubmissionValid(newItemSafety)) {
@@ -314,7 +315,7 @@ export default function VendorDashboard({ user }) {
 
   const deleteMenuItem = async (item) => {
     if (!item?.id) return;
-    if (!window.confirm(`Remove "${item.name}" from your menu? This cannot be undone.`)) return;
+    if (!window.confirm(`Remove "${item.name}" from your services? This cannot be undone.`)) return;
     try {
       const { error } = await supabase.from('menu_items').delete().eq('id', item.id);
       if (error) throw error;
@@ -328,7 +329,7 @@ export default function VendorDashboard({ user }) {
   const duplicateMenuItem = async (item) => {
     if (!item || !myVendorId) return;
     if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      alert(`Free plan limit: ${listingLimits.menu} menu items. Upgrade to add more.`);
+      alert(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to add more.`);
       return;
     }
     const copyName = `${item.name} (copy)`.slice(0, 120);
@@ -369,7 +370,7 @@ export default function VendorDashboard({ user }) {
     if (!passesLaunchGate()) return;
     if (!newProduce.name || !newProduce.price || !myVendorId) return;
     if (!editProduceId && listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
-      alert(`Free plan limit: ${listingLimits.produce} produce listings. Upgrade to Paid for unlimited.`);
+      alert(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Paid for unlimited.`);
       return;
     }
     if (!isSafetySubmissionValid(newProduceSafety)) {
@@ -410,7 +411,7 @@ export default function VendorDashboard({ user }) {
         if (error) throw error;
         resetProduceForm();
         await refreshVendorData();
-        alert(section === 'plants_trees' ? 'Plant listing updated!' : 'Produce listing updated!');
+        alert('Apothecary listing updated!');
         setAddingProduce(false);
         return;
       }
@@ -427,7 +428,7 @@ export default function VendorDashboard({ user }) {
         await markOnboardingStep(myVendorId, 'first_listing', true);
         resetProduceForm();
         await refreshVendorData();
-        alert(section === 'plants_trees' ? 'Plant/tree listing added!' : 'Produce added to Farmers Market!');
+        alert('Added to the Apothecary!');
         setAddingProduce(false);
         return;
       }
@@ -439,17 +440,17 @@ export default function VendorDashboard({ user }) {
       if (res.ok) {
         resetProduceForm();
         await refreshVendorData();
-        alert('Produce added to Farmers Market!');
+        alert('Added to the Apothecary!');
       }
     } catch (e) {
-      alert(editProduceId ? 'Failed to update listing.' : 'Failed to add produce.');
+      alert(editProduceId ? 'Failed to update listing.' : 'Failed to add apothecary item.');
     }
     setAddingProduce(false);
   };
 
   const deleteProduceItem = async (item) => {
     if (!item?.id) return;
-    if (!window.confirm(`Remove "${item.name}" from Farmers Market? This cannot be undone.`)) return;
+    if (!window.confirm(`Remove "${item.name}" from the Apothecary? This cannot be undone.`)) return;
     try {
       const { error } = await supabase.from('produce_items').delete().eq('id', item.id);
       if (error) throw error;
@@ -463,7 +464,7 @@ export default function VendorDashboard({ user }) {
   const duplicateProduceItem = async (item) => {
     if (!item || !myVendorId) return;
     if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
-      alert(`Free plan limit: ${listingLimits.produce} produce listings. Upgrade to add more.`);
+      alert(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to add more.`);
       return;
     }
     const copyName = `${item.name} (copy)`.slice(0, 120);
@@ -485,7 +486,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetProduceForm = () => {
-    setNewProduce({ name: '', price: '', unit: 'lb', description: '', farm_story: '', organic: 0, category: produceSection === 'plants_trees' ? 'Plants' : 'Produce', fulfillment_mode: 'hazelallure' });
+    setNewProduce({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'hazelallure' });
     setNewProduceAllergens([]);
     setNewProduceSafety({ ...EMPTY_PRODUCE_SAFETY });
     setMedicinalLegalAck(false);
@@ -513,7 +514,7 @@ export default function VendorDashboard({ user }) {
         .eq('id', item.id);
     }
     await refreshVendorData();
-    alert(`Hidden ${expiredListings.length} expired listing(s) from the Farmers Market.`);
+    alert(`Hidden ${expiredListings.length} expired listing(s) from the Apothecary.`);
   };
 
   // Pricing Calculator - unhinged interactive analytics tool
@@ -701,7 +702,7 @@ export default function VendorDashboard({ user }) {
         <Link to="#add-menu" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
           <div className="text-sm text-gray-500">Active Listings</div>
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{myMenu.length + myProduce.length}</div>
-          <div className="text-xs text-[#4a1942] mt-1">{myMenu.length} menu · {myProduce.length} produce →</div>
+          <div className="text-xs text-[#4a1942] mt-1">{myMenu.length} services · {myProduce.length} apothecary →</div>
         </Link>
         <Link to="/tasks" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
           <div className="text-sm text-gray-500">Open Tasks</div>
@@ -720,7 +721,7 @@ export default function VendorDashboard({ user }) {
         </a>
       </div>
 
-      {/* Marketplace menu listings — layout matches Farmers Market section */}
+      {/* Healing services listings */}
       <div id="add-menu" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-3 sm:p-8 min-w-0 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 min-w-0">
@@ -858,8 +859,8 @@ export default function VendorDashboard({ user }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div id="menu-listings" className="bg-white border rounded-3xl p-4 sm:p-6">
-          <h3 className="font-semibold mb-4">Your menu items · Share to social</h3>
-          {myMenu.length === 0 && <p className="text-gray-500 text-sm">No items yet. Add some above!</p>}
+          <h3 className="font-semibold mb-4">Your healing services · Share to social</h3>
+          {myMenu.length === 0 && <p className="text-gray-500 text-sm">No services yet. Add your first session above!</p>}
           {myMenu.map((item) => (
             <VendorListingRow
               key={item.id}
@@ -887,17 +888,18 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
 
-      {/* Farmers Market / Produce / Plants */}
-      <div id="add-produce" className="mb-8 bg-gradient-to-br from-green-50 to-white border border-green-200 rounded-3xl p-4 sm:p-8 scroll-mt-24">
+      {/* Apothecary & ritual goods */}
+      <div id="add-produce" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-4 sm:p-8 scroll-mt-24">
         <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="text-3xl">{produceSection === 'plants_trees' ? '🌳' : '🌾'}</div>
+            <div className="text-3xl">🌿</div>
             <div>
-              <h3 className="font-bold text-2xl">Farmers Market</h3>
-              <p className="text-green-700">Produce, flowers, fruit baskets, soap, health &amp; beauty, crafts, plants &amp; more — temperature optional for uncooked items.</p>
+              <h3 className="font-bold text-2xl heading-font text-[#4a1942]">{VERTICAL.labels.productsMarket}</h3>
+              <p className="text-gray-600">Oils, incense, crystals, herbs, ritual kits, skincare, and artisan goods — disclose ingredients and quality practices honestly.</p>
             </div>
           </div>
-          <Link to="/messages" className="text-sm px-4 py-2 border border-green-700 text-green-800 rounded-2xl font-medium hover:bg-green-50">💬 Customer messages</Link>
+          <Link to={VERTICAL.routes.productsMarket} className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8]">Preview Apothecary</Link>
+          <Link to="/messages" className="text-sm px-4 py-2 border border-[#4a1942]/40 text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8]">💬 Seeker messages</Link>
         </div>
 
         {(expiringSoon.length > 0 || expiredListings.length > 0) && (
@@ -926,38 +928,9 @@ export default function VendorDashboard({ user }) {
           </div>
         )}
 
-        <div className="flex flex-col gap-2 mb-4 min-[400px]:flex-row min-[400px]:flex-wrap">
-          {[
-            { id: 'produce', label: '🌾 Fresh produce' },
-            { id: 'plants_trees', label: '🌳 Plants, fungi & specialty' },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => {
-                setProduceSection(tab.id);
-                setNewProduceFreshness({ ...EMPTY_FRESHNESS, listing_section: tab.id });
-                setNewProduce((p) => ({
-                  ...p,
-                  category: tab.id === 'plants_trees' ? 'Plants' : 'Produce',
-                  unit: tab.id === 'plants_trees' ? 'each' : p.unit,
-                }));
-                setMedicinalLegalAck(false);
-              }}
-              className={`px-4 py-2.5 rounded-2xl text-sm font-medium border w-full min-[400px]:w-auto text-center ${produceSection === tab.id ? 'bg-green-700 text-white border-green-700' : 'bg-white hover:bg-gray-50'}`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
         <div className="bg-white rounded-2xl p-3 sm:p-6 mb-6 border min-w-0 overflow-hidden">
           <div className="font-semibold mb-3">
-            {editProduceId
-              ? 'Edit listing'
-              : produceSection === 'plants_trees'
-                ? 'List plants or trees'
-                : 'List fresh produce'}
+            {editProduceId ? 'Edit apothecary listing' : 'Add apothecary item'}
           </div>
           <ListingThumbnailField
             value={produceThumbnail}
@@ -966,38 +939,26 @@ export default function VendorDashboard({ user }) {
             label="Listing thumbnail (optional)"
           />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
-            <input placeholder={produceSection === 'plants_trees' ? 'e.g. Heritage Apple Sapling' : 'e.g. Heirloom Tomatoes'} value={newProduce.name} onChange={e=>setNewProduce({...newProduce, name:e.target.value})} className="border p-3 rounded-2xl" />
+            <input placeholder="e.g. Lavender Ritual Oil" value={newProduce.name} onChange={e=>setNewProduce({...newProduce, name:e.target.value})} className="border p-3 rounded-2xl" />
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <input placeholder="Price" type="number" value={newProduce.price} onChange={e=>setNewProduce({...newProduce, price:e.target.value})} className="border p-3 rounded-2xl flex-1 min-w-0 w-full box-border" />
               <input placeholder="Unit" value={newProduce.unit} onChange={e=>setNewProduce({...newProduce, unit:e.target.value})} className="border p-3 rounded-2xl w-full min-[400px]:w-24 box-border" />
             </div>
-            {produceSection === 'plants_trees' ? (
-              <select
-                value={newProduce.category}
-                onChange={(e) => {
-                  setNewProduce({ ...newProduce, category: e.target.value });
-                  if (!categoryRequiresLegalAck(e.target.value)) setMedicinalLegalAck(false);
-                }}
-                className="border p-3 rounded-2xl text-sm w-full min-w-0"
-              >
-                {PLANT_LISTING_CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
-            ) : (
-              <select
-                value={newProduce.category}
-                onChange={(e) => setNewProduce({ ...newProduce, category: e.target.value })}
-                className="border p-3 rounded-2xl text-sm w-full min-w-0"
-              >
-                {PRODUCE_LISTING_CATEGORIES.map((c) => (
-                  <option key={c.id} value={c.id}>{c.label}</option>
-                ))}
-              </select>
-            )}
+            <select
+              value={newProduce.category}
+              onChange={(e) => {
+                setNewProduce({ ...newProduce, category: e.target.value });
+                if (!categoryRequiresLegalAck(e.target.value)) setMedicinalLegalAck(false);
+              }}
+              className="border p-3 rounded-2xl text-sm w-full min-w-0"
+            >
+              {PRODUCE_LISTING_CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>{c.label}</option>
+              ))}
+            </select>
           </div>
-          <textarea placeholder="Description, farm story, or plant care instructions" value={newProduce.description || newProduce.farm_story} onChange={e=>setNewProduce({...newProduce, description:e.target.value, farm_story:e.target.value})} className="mt-3 w-full border p-3 rounded-2xl h-20 min-w-0" />
-          {produceSection === 'plants_trees' && categoryRequiresLegalAck(newProduce.category) && (
+          <textarea placeholder="Description, ingredients, ritual use, or artisan story" value={newProduce.description || newProduce.farm_story} onChange={e=>setNewProduce({...newProduce, description:e.target.value, farm_story:e.target.value})} className="mt-3 w-full border p-3 rounded-2xl h-20 min-w-0" />
+          {categoryRequiresLegalAck(newProduce.category) && (
             <MedicinalPlantWarning showAck acknowledged={medicinalLegalAck} onAckChange={setMedicinalLegalAck} />
           )}
           <div className="mt-3 space-y-3">
@@ -1036,14 +997,12 @@ export default function VendorDashboard({ user }) {
             ) : null}
           </div>
           <div className="flex flex-col gap-3 mt-3 sm:flex-row sm:items-center">
-            <button type="button" onClick={requestAddProduceItem} disabled={addingProduce} className="w-full sm:flex-1 py-3 bg-green-700 text-white rounded-2xl font-semibold disabled:opacity-60">
+            <button type="button" onClick={requestAddProduceItem} disabled={addingProduce} className="w-full sm:flex-1 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-60 hover:bg-[#2d1230]">
               {addingProduce
                 ? editProduceId ? 'Saving…' : 'Listing…'
                 : editProduceId
                   ? 'Save changes'
-                  : produceSection === 'plants_trees'
-                    ? 'List plant / tree'
-                    : 'List on Farmers Market'}
+                  : 'List in Apothecary'}
             </button>
             {editProduceId && (
               <button
@@ -1055,9 +1014,9 @@ export default function VendorDashboard({ user }) {
                 Cancel edit
               </button>
             )}
-            {produceSection === 'produce' && !editProduceId && (
+            {!editProduceId && (
               <label className="flex items-center justify-center gap-2 text-sm border px-4 py-3 rounded-2xl cursor-pointer shrink-0">
-                <input type="checkbox" checked={newProduce.organic} onChange={e=>setNewProduce({...newProduce, organic: e.target.checked ? 1 : 0})} /> Organic
+                <input type="checkbox" checked={newProduce.organic} onChange={e=>setNewProduce({...newProduce, organic: e.target.checked ? 1 : 0})} /> Organic / natural
               </label>
             )}
           </div>
@@ -1065,7 +1024,7 @@ export default function VendorDashboard({ user }) {
 
         {produceList.length > 0 && (
           <div className="mb-6 bg-white border rounded-2xl p-4">
-            <div className="font-semibold mb-2">Fresh produce — sorted by expiry</div>
+            <div className="font-semibold mb-2">Apothecary items — sorted by expiry</div>
             {produceList.map((item) => (
               <VendorListingRow
                 key={item.id}
@@ -1434,7 +1393,7 @@ function B2BPurchasePanel({ myVendorId, API }) {
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4 text-sm">
-        {others.length === 0 && <div className="text-gray-500 col-span-3">No peer produce found yet — encourage other vendors to list on Farmers Market.</div>}
+        {others.length === 0 && <div className="text-gray-500 col-span-3">No peer apothecary items yet — encourage other practitioners to list goods.</div>}
         {others.map(item => (
           <div key={item.id} onClick={()=>{setSelected(item); setPrice(item.price||3.5); setSellerName(item.name+' direct');}}
             className={`border p-3 rounded-2xl cursor-pointer hover:border-emerald-400 ${selected?.id===item.id ? 'ring-1 ring-emerald-700 bg-emerald-50' : ''}`}>
@@ -1469,7 +1428,7 @@ function MyTopReviews({ reviews, myVendorId }) {
           {'★'.repeat(r.rating || 5)} {r.comment} {r.image_url && '📷'}
         </div>
       )) : (
-        <div className="text-xs text-gray-500">Reviews on your menu and produce items will appear here and on your public /vendor page.</div>
+        <div className="text-xs text-gray-500">Reviews on your services and apothecary items will appear here and on your public storefront.</div>
       )}
     </div>
   );

@@ -22,14 +22,14 @@ const SLOT_KEYS: Record<Slot, string> = {
 async function bootstrapTestPrices(stripe: ReturnType<typeof stripeClient>, settings: Record<string, string>) {
   const specs = [
     {
-      productName: "Bpicius Pro Vendor",
+      productName: "Hazel Allure Pro Practitioner",
       slotMonthly: "vendor_monthly" as Slot,
       slotAnnual: "vendor_annual" as Slot,
       monthlyCents: Math.round(parseFloat(settings.stripe_vendor_pro_monthly_display || "29.99") * 100),
       annualCents: Math.round(parseFloat(settings.stripe_vendor_pro_annual_display || "299.99") * 100),
     },
     {
-      productName: "Bpicius Pro Member",
+      productName: "Hazel Allure Pro Member",
       slotMonthly: "customer_monthly" as Slot,
       slotAnnual: "customer_annual" as Slot,
       monthlyCents: Math.round(parseFloat(settings.stripe_customer_pro_monthly_display || "9.99") * 100),
@@ -42,7 +42,7 @@ async function bootstrapTestPrices(stripe: ReturnType<typeof stripeClient>, sett
   for (const spec of specs) {
     const product = await stripe.products.create({
       name: spec.productName,
-      metadata: { bpicius_plan: spec.productName.includes("Vendor") ? "vendor" : "customer" },
+      metadata: { hazelallure_plan: spec.productName.includes("Practitioner") ? "vendor" : "customer" },
     });
 
     const monthly = await stripe.prices.create({
@@ -50,7 +50,7 @@ async function bootstrapTestPrices(stripe: ReturnType<typeof stripeClient>, sett
       unit_amount: spec.monthlyCents,
       currency: "usd",
       recurring: { interval: "month" },
-      metadata: { bpicius_interval: "monthly" },
+      metadata: { hazelallure_interval: "monthly" },
     });
     created.push({ product: spec.productName, price_id: monthly.id, interval: "month", slot: spec.slotMonthly });
 
@@ -59,7 +59,7 @@ async function bootstrapTestPrices(stripe: ReturnType<typeof stripeClient>, sett
       unit_amount: spec.annualCents,
       currency: "usd",
       recurring: { interval: "year" },
-      metadata: { bpicius_interval: "annual" },
+      metadata: { hazelallure_interval: "annual" },
     });
     created.push({ product: spec.productName, price_id: annual.id, interval: "year", slot: spec.slotAnnual });
   }
@@ -69,7 +69,7 @@ async function bootstrapTestPrices(stripe: ReturnType<typeof stripeClient>, sett
 
 function classifyPrice(productName: string, interval: string): Slot | null {
   const name = productName.toLowerCase();
-  const isVendor = name.includes("vendor");
+  const isVendor = name.includes("vendor") || name.includes("practitioner");
   const isCustomer = name.includes("member") || name.includes("customer");
   if (!isVendor && !isCustomer) return null;
   if (interval === "month") return isVendor ? "vendor_monthly" : "customer_monthly";

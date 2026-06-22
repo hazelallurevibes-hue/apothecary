@@ -1,7 +1,7 @@
 /** Vendor & customer tier permissions for Hazel Allure */
 
 export const VENDOR_PERMISSIONS = {
-  sell: { label: 'Selling & listings', description: 'Add menu and produce items' },
+  sell: { label: 'Selling & listings', description: 'Add healing services and apothecary items' },
   bio_edit: { label: 'Bio editor', description: 'Edit store bio and slogan' },
   profile_editor: { label: 'Profile pictures', description: 'Logo and highlight photo' },
   ratings: { label: 'Ratings & reviews', description: 'View and respond to reviews' },
@@ -16,8 +16,8 @@ export const VENDOR_PERMISSIONS = {
   email_campaigns: { label: 'Email campaigns', description: 'Invite customers to your Hazel Allure storefront (paid)' },
   food_labels: { label: 'Food labels', description: 'Full ingredient & nutrition labels on prepared food (paid)' },
   pickup_hours: { label: 'Pickup hours', description: 'Set local pickup windows (paid)' },
-  in_person_events: { label: 'In-person events', description: 'Post farmers market & pop-up locations (paid)' },
-  permit_verify: { label: 'Permit upload', description: 'Upload cottage food / health permits (paid)' },
+  in_person_events: { label: 'In-person events', description: 'Post market, ritual fair & pop-up locations (paid)' },
+  permit_verify: { label: 'Permit upload', description: 'Upload business, wellness, or product permits (paid)' },
   pickup_qr: { label: 'Pickup QR', description: 'Scan-to-confirm pickup handoff (paid)' },
   highlight_photo: { label: 'Highlight photo', description: 'Hero image on storefront (paid)' },
   checkout_upsells: { label: 'Checkout upsells', description: 'Offer drinks & sides at checkout (paid)' },

@@ -34,10 +34,10 @@ Deno.serve(async (req: Request) => {
         from: cfg.notifyFrom,
         reply_to: cfg.replyTo,
         to: [String(to).trim()],
-        subject: "Bpicius test email — domain & settings OK",
+        subject: "Hazel Allure test email — domain & settings OK",
         html: `
           <div style="font-family:system-ui,sans-serif;max-width:520px;line-height:1.5">
-            <h2 style="color:#083a9b">Bpicius email test</h2>
+            <h2 style="color:#4a1942">Hazel Allure email test</h2>
             <p>If you received this, your site email settings and Resend domain are working.</p>
             <ul style="font-size:14px;color:#444">
               <li><strong>Site URL:</strong> ${cfg.siteUrl}</li>
@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
               <li><strong>Reply-to:</strong> ${cfg.replyTo}</li>
               <li><strong>Public contact:</strong> ${cfg.settings.email_contact || "—"}</li>
             </ul>
-            <p><a href="${cfg.siteUrl}" style="color:#083a9b">Open Bpicius →</a></p>
+            <p><a href="${cfg.siteUrl}" style="color:#4a1942">Open Hazel Allure →</a></p>
           </div>
         `,
       }),

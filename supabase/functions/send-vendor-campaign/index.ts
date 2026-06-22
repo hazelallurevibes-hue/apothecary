@@ -79,12 +79,12 @@ Deno.serve(async (req: Request) => {
         <p style="white-space:pre-wrap">${escapeHtml(campaign.body_text)}</p>
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0" />
         <p style="font-size:14px;color:#374151">
-          <strong>Shop ${escapeHtml(vendorName)} on Bpicius</strong><br/>
-          All orders and messaging stay on the Bpicius platform for your safety.
+          <strong>Shop ${escapeHtml(vendorName)} on Hazel Allure</strong><br/>
+          All orders and messaging stay on the Hazel Allure platform for your safety.
         </p>
-        <p><a href="${storefront}" style="display:inline-block;background:#083a9b;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Visit storefront on Bpicius</a></p>
+        <p><a href="${storefront}" style="display:inline-block;background:#4a1942;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Visit storefront on Hazel Allure</a></p>
         <p style="font-size:11px;color:#9ca3af;margin-top:24px">
-          Sent via Bpicius Vendor Campaigns • ${cfg.siteUrl}<br/>
+          Sent via Hazel Allure Practitioner Campaigns • ${cfg.siteUrl}<br/>
           <a href="${unsubUrl}" style="color:#6b7280">Unsubscribe from ${escapeHtml(vendorName)} emails</a>
         </p>
       </div>

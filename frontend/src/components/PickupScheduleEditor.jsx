@@ -41,7 +41,7 @@ export function InPersonEventsEditor({ events, onChange, disabled }) {
 
   return (
     <div className="space-y-3">
-      <div className="text-sm font-medium">In-person selling (farmers markets, pop-ups)</div>
+      <div className="text-sm font-medium">In-person events (markets, ritual fairs, pop-ups)</div>
       {list.map((ev, idx) => (
         <div key={idx} className="border rounded-xl p-3 space-y-2 text-sm">
           <input placeholder="Event title" value={ev.title} disabled={disabled} onChange={(e) => update(idx, { title: e.target.value })} className="w-full border p-2 rounded-lg" />

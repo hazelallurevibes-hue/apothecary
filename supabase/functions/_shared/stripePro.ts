@@ -81,7 +81,7 @@ export async function getOrCreateStripeCustomer(
   const customer = await stripe.customers.create({
     email: opts.email,
     name: opts.name || userRow?.name || undefined,
-    metadata: { bpicius_user_id: String(opts.userId) },
+    metadata: { hazelallure_user_id: String(opts.userId) },
   });
 
   await supabase

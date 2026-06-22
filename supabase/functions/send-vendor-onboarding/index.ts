@@ -9,19 +9,19 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 function templates(siteUrl: string) {
   return {
     welcome: {
-      subject: "Welcome to Bpicius — set up your storefront",
+      subject: "Welcome to Hazel Allure — set up your practitioner storefront",
       body: (name: string) =>
-        `Hi ${name},\n\nYour vendor account is approved! Next steps:\n1. Customize your storefront\n2. Post your first listing\n3. Review safety policies\n\nStart here: ${siteUrl}/storefront-settings`,
+        `Hi ${name},\n\nYour practitioner account is approved! Next steps:\n1. Customize your storefront\n2. Post your first healing service or apothecary item\n3. Review safety policies\n\nStart here: ${siteUrl}/storefront-settings`,
     },
     listing_reminder: {
-      subject: "Ready to post your first Bpicius listing?",
+      subject: "Ready to post your first Hazel Allure listing?",
       body: (name: string) =>
-        `Hi ${name},\n\nCustomers are browsing the marketplace — add your first menu item or produce listing to start selling.\n\n${siteUrl}/vendor-dashboard`,
+        `Hi ${name},\n\nSeekers are browsing the marketplace — add your first healing service or apothecary listing to start connecting.\n\n${siteUrl}/vendor-dashboard`,
     },
     first_order: {
-      subject: "🎉 Your first Bpicius order!",
+      subject: "🎉 Your first Hazel Allure order!",
       body: (name: string) =>
-        `Hi ${name},\n\nCongratulations on your first order on Bpicius! Check your dashboard to fulfill it and message your customer.\n\n${siteUrl}/orders`,
+        `Hi ${name},\n\nCongratulations on your first order on Hazel Allure! Check your dashboard to fulfill it and message your seeker.\n\n${siteUrl}/orders`,
     },
   } as const;
 }

@@ -31,7 +31,7 @@ Deno.serve(async (req: Request) => {
     let sent = 0;
     for (const row of rows || []) {
       if (!row.confirm_token) continue;
-      const vendorName = row.vendors?.name || "a Bpicius vendor";
+      const vendorName = row.vendors?.name || "a Hazel Allure practitioner";
       const confirmUrl = `${cfg.siteUrl}/campaign-confirm/${row.confirm_token}`;
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -43,12 +43,12 @@ Deno.serve(async (req: Request) => {
           from: cfg.notifyFrom,
           reply_to: cfg.replyTo,
           to: [row.email],
-          subject: `Confirm you'd like updates from ${vendorName} on Bpicius`,
+          subject: `Confirm you'd like updates from ${vendorName} on Hazel Allure`,
           html: `
             <div style="font-family:system-ui,sans-serif;max-width:560px;line-height:1.5">
-              <p>You were invited to receive occasional emails from <strong>${escapeHtml(vendorName)}</strong> about their Bpicius storefront.</p>
-              <p><a href="${confirmUrl}" style="display:inline-block;background:#083a9b;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Confirm subscription</a></p>
-              <p style="font-size:11px;color:#9ca3af">If you did not expect this, ignore this email. All purchases happen only on Bpicius.</p>
+              <p>You were invited to receive occasional emails from <strong>${escapeHtml(vendorName)}</strong> about their Hazel Allure storefront.</p>
+              <p><a href="${confirmUrl}" style="display:inline-block;background:#4a1942;color:#fff;padding:12px 20px;border-radius:12px;text-decoration:none;font-weight:600">Confirm subscription</a></p>
+              <p style="font-size:11px;color:#9ca3af">If you did not expect this, ignore this email. All purchases happen only on Hazel Allure.</p>
             </div>
           `,
         }),

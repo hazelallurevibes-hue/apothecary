@@ -59,14 +59,14 @@ Deno.serve(async (req: Request) => {
         subject: `⚠️ Low rating alert (${rating}★) — ${vendor_name || "your storefront"}`,
         html: `
           <div style="font-family:system-ui,sans-serif;max-width:520px">
-            <h2 style="color:#083a9b">Low rating on Bpicius</h2>
-            <p>A customer left a <strong>${rating}-star</strong> review on your vendor profile.</p>
+            <h2 style="color:#4a1942">Low rating on Hazel Allure</h2>
+            <p>A seeker left a <strong>${rating}-star</strong> review on your practitioner profile.</p>
             <blockquote style="border-left:4px solid #f59e0b;padding-left:12px;color:#444">
               ${escapeHtml(comment || "(no comment)")}
             </blockquote>
             <p>You have until <strong>${deadline}</strong> to make it right in your
             <a href="${cfg.siteUrl}/vendor-dashboard">Vendor Dashboard</a>. If unresolved, the review may be published publicly.</p>
-            <p style="font-size:12px;color:#888">Bpicius • Local Vendor Marketplace</p>
+            <p style="font-size:12px;color:#888">Hazel Allure • Healing Services &amp; Apothecary</p>
           </div>
         `,
       }),

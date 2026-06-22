@@ -52,11 +52,11 @@ export default function FoodSafetyFields({ value, onChange, disabled, user, vend
 
   return (
     <div className="space-y-3 border rounded-2xl p-4 bg-gray-50/80 min-w-0 w-full max-w-full overflow-hidden">
-      <div className="text-sm font-medium">Food safety</div>
+      <div className="text-sm font-medium">Product quality &amp; safety</div>
       <p className="text-xs text-gray-500">
         {context === 'produce'
-          ? 'Fresh produce, preserved goods, and specialty items: choose whether a cook-step finish temperature applies.'
-          : 'Choose the food type. Cooked items need a finish temperature; raw, preserved, and ready-to-eat types do not.'}
+          ? 'Apothecary goods (oils, herbs, teas, elixirs): disclose ingredients and whether cook-step temperatures apply for edible items.'
+          : 'For services with consumables, choose the product type. Cooked edible items need a finish temperature; raw, preserved, and ready-to-eat types do not.'}
       </p>
 
       <label className="flex items-start gap-2 text-sm cursor-pointer border border-emerald-200 bg-emerald-50/80 rounded-xl p-3 min-w-0">
@@ -73,7 +73,7 @@ export default function FoodSafetyFields({ value, onChange, disabled, user, vend
           className="mt-0.5 shrink-0"
         />
         <span className="min-w-0 break-words">
-          <strong>Vendor-certified safe practices</strong> — I follow acceptable food safety standards for this item
+          <strong>Practitioner-certified quality</strong> — I follow acceptable safety and labeling standards for this item
           (hygiene, storage, allergens{needsTemp ? ', temperatures' : ''}). Hazel Allure does not verify this; I accept full
           liability.
           <Link to="/policies-procedures" className="block text-xs text-[#4a1942] underline mt-1">

@@ -47,7 +47,7 @@ export default function VendorListingConfirmModal({ open, itemName, onConfirm, o
         </div>
 
         <p className="text-[11px] text-red-800 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">
-          <strong>Warning:</strong> Vendors who fail to uphold food safety standards, sell prohibited items, or mislead customers may be banned permanently without refund. Customers must also exercise their own due diligence before purchasing.
+          <strong>Warning:</strong> Practitioners who fail to uphold quality standards, sell prohibited items, or mislead seekers may be banned permanently without refund. Seekers must also exercise their own due diligence before booking or purchasing.
         </p>
 
         <p className="text-[11px] text-gray-500 mb-4">
