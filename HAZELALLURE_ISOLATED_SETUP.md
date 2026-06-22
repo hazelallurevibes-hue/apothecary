@@ -8,7 +8,7 @@
 | Supabase | **New project** | `emzpkxvxuwhfsknccoad` |
 | Vercel | **New project** | `bpicius2` |
 | Stripe | **New account** (Hazel Allure LLC) | Bpicius Stripe |
-| GitHub | **New repo** under wife's or shared org | `bpicius2` |
+| GitHub | `hazelallurevibes-hue/apothecary` | `bpicius2` |
 | Domain | `apothecary.hazelallure.com` | `bpicius.com` |
 | Blog | `www.hazelallure.com` (GoDaddy) | — |
 
@@ -87,16 +87,17 @@ GoDaddy nav link: **Shop & Book** → `https://apothecary.hazelallure.com`
 
 **Create the repo first** (push fails until it exists):
 
-1. GitHub → New repo `hazelallure-fullstack` (empty, no README) under wife's account or `garrettpistool-lab`
+1. GitHub (signed in as **hazelallurevibes@gmail.com** or org `hazelallurevibes-hue`) → New repo **`apothecary`** — empty, no README, no .gitignore
 2. Push:
 
 ```powershell
 cd C:\Users\abeyt\hazelallure-fullstack
-git remote set-url origin https://github.com/YOUR_ORG/hazelallure-fullstack.git
+git remote set-url origin https://github.com/hazelallurevibes-hue/apothecary.git
+git branch -M main
 git push -u origin main
 ```
 
-3. Supabase (wife's account) → **your NEW hazelallure project** → Integrations → GitHub → connect this repo → enable migrations from `supabase/migrations/`
+3. Supabase (wife's account) → **your NEW hazelallure project** → Integrations → GitHub → connect `hazelallurevibes-hue/apothecary` → enable migrations from `supabase/migrations/`
 
 **Critical:** Link the GitHub repo to the **new** Hazel Supabase project — not `emzpkxvxuwhfsknccoad` (Bpicius).
 
