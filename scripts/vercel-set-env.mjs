@@ -23,14 +23,24 @@ function loadHazelProject() {
   try {
     const raw = readFileSync(join(__dirname, '..', '.infra', 'PROJECT_REGISTRY.local.json'), 'utf8');
     const j = JSON.parse(raw);
-    return j?.stacks?.hazelallure?.vercel_project || 'hazelallure-apothecary';
+    return j?.stacks?.hazelallure?.vercel_project || 'apothecary';
   } catch {
-    return 'hazelallure-apothecary';
+    return 'apothecary';
   }
 }
 
-/** Hazel Allure by default — set VERCEL_PROJECT=bpicius2 for Bpicius only. */
-const TEAM = process.env.VERCEL_TEAM || 'gp-s-projects7';
+function loadHazelTeam() {
+  try {
+    const raw = readFileSync(join(__dirname, '..', '.infra', 'PROJECT_REGISTRY.local.json'), 'utf8');
+    const j = JSON.parse(raw);
+    return j?.stacks?.hazelallure?.vercel_team || 'hazel-allure';
+  } catch {
+    return 'hazel-allure';
+  }
+}
+
+/** Hazel Allure team (wife's account). Override: VERCEL_TEAM / VERCEL_PROJECT */
+const TEAM = process.env.VERCEL_TEAM || loadHazelTeam();
 const PROJECT = process.env.VERCEL_PROJECT || loadHazelProject();
 
 function loadToken() {
@@ -107,5 +117,19 @@ try {
   console.log('Redeploy in Vercel (Deployments → Redeploy) for production to pick up new env vars.');
 } catch (e) {
   console.error(e.message);
+  if (String(e.message).includes('403')) {
+    console.error(`
+403 fix — your token is valid but the script targeted the wrong team.
+Hazel Allure uses team "hazel-allure", project "apothecary" (not gp-s-projects7).
+
+PowerShell:
+  $env:VERCEL_TOKEN="your_token"
+  $env:VERCEL_TEAM="hazel-allure"
+  $env:VERCEL_PROJECT="apothecary"
+  node scripts/vercel-set-env.mjs KEY VALUE
+
+Or create token while logged in as hazelallurevibes@gmail.com at vercel.com/account/tokens
+`);
+  }
   process.exit(1);
 }

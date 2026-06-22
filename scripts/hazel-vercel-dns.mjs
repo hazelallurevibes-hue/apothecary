@@ -36,8 +36,8 @@ function loadToken() {
 }
 
 const registry = loadRegistry();
-const PROJECT = process.env.VERCEL_PROJECT || registry.vercel_project || 'hazelallure-apothecary';
-const TEAM = process.env.VERCEL_TEAM || 'gp-s-projects7';
+const PROJECT = process.env.VERCEL_PROJECT || registry.vercel_project || 'apothecary';
+const TEAM = process.env.VERCEL_TEAM || registry.vercel_team || 'hazel-allure';
 const token = loadToken();
 
 function apiUrl(path) {
