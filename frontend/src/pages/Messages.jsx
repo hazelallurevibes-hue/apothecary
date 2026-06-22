@@ -147,7 +147,7 @@ export default function Messages({ user }) {
           <div className="max-h-80 overflow-auto">
             {loading && <p className="p-4 text-sm text-gray-500">Loading…</p>}
             {!loading && conversations.length === 0 && (
-              <p className="p-4 text-sm text-gray-500">No conversations yet. Request an item from the Farmers Market or start a chat.</p>
+              <p className="p-4 text-sm text-gray-500">No conversations yet. Request an apothecary item or message a practitioner from their storefront.</p>
             )}
             {conversations.map((c) => (
               <button

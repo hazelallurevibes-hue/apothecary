@@ -30,7 +30,7 @@ export const VENDOR_ONBOARDING_STEPS = [
   {
     id: 'first_listing',
     label: 'Post your first listing',
-    description: 'Add a menu item or Farmers Market listing — this is the final launch step.',
+    description: 'Add a healing service or apothecary listing — this is the final launch step.',
     path: '/vendor-dashboard#add-menu',
     icon: '📋',
     autoOnly: true,

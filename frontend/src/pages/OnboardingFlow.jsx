@@ -7,6 +7,7 @@ import {
   onboardingProgress,
 } from '../lib/onboardingApi';
 import { getVendorContext } from '../lib/plans';
+import { VERTICAL } from '../lib/vertical';
 
 export default function OnboardingFlow({ user }) {
   const navigate = useNavigate();
@@ -36,11 +37,11 @@ export default function OnboardingFlow({ user }) {
     return (
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-bold tracking-tight text-center">Welcome to Hazel Allure!</h1>
-        <p className="text-center text-gray-600 mt-2">Be picky, be you, live good — shop neighbors who make clean food.</p>
+        <p className="text-center text-gray-600 mt-2">{VERTICAL.copy.seekerOnboardingTagline}</p>
         <div className="mt-10 bg-white border rounded-3xl p-8 space-y-4">
-          <StepRow n={1} title="My Likes &amp; Dislikes" hint="Diet, allergies, and foods you avoid" to="/account-settings#food-prefs" />
-          <StepRow n={2} title="Browse the Farmers Market" hint="Fresh produce and pre-orders" to="/farmers-market" />
-          <StepRow n={3} title="Place your first order" hint="Request diet changes on pre-orders" to="/marketplace" />
+          <StepRow n={1} title="Wellness preferences" hint="Allergens, intentions, and what you avoid" to="/account-settings#food-prefs" />
+          <StepRow n={2} title={VERTICAL.copy.seekerStepApothecary} hint={VERTICAL.copy.seekerStepApothecaryHint} to="/products" />
+          <StepRow n={3} title={VERTICAL.copy.seekerStepServices} hint={VERTICAL.copy.seekerStepServicesHint} to="/services" />
           <button
             type="button"
             onClick={() => navigate('/account-settings#food-prefs')}
@@ -55,9 +56,9 @@ export default function OnboardingFlow({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <h1 className="text-4xl font-bold tracking-tight text-center">Vendor launch checklist</h1>
+      <h1 className="text-4xl font-bold tracking-tight text-center">Practitioner launch checklist</h1>
       <p className="text-center text-gray-600 mt-2">
-        Complete these steps before customers see your storefront at full strength.
+        Complete these steps before seekers see your storefront at full strength.
       </p>
 
       <div className="mt-8 bg-white border rounded-3xl p-8">

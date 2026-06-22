@@ -210,7 +210,7 @@ export default function Login({ onLogin, loading }) {
                       required 
                     />
                     <span>
-                      I agree to the <Link to="/agreements" className="underline">Terms</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I understand Hazel Allure does not verify food safety; vendors and customers bear sole responsibility and liability.
+                      I agree to the <Link to="/agreements" className="underline">Terms</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I understand Hazel Allure does not verify practitioner credentials or product outcomes; practitioners and seekers bear sole responsibility and liability.
                     </span>
                   </label>
                 )}

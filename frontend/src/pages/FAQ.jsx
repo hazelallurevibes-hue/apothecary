@@ -1,13 +1,14 @@
 import { Link } from 'react-router-dom';
+import { VERTICAL } from '../lib/vertical';
 
 const sections = [
   {
     title: 'What is Hazel Allure?',
-    body: 'Hazel Allure is a technology platform that connects local vendors, farmers, and customers for food, produce, plants, crafts, health & beauty goods, and related marketplace items. We provide listings, ordering, messaging, tax tools, and discovery features. We are not a party to your transactions, not your employer, and not your tax agent.',
+    body: VERTICAL.copy.platformDescription,
   },
   {
-    title: 'Is Hazel Allure responsible for food safety or product quality?',
-    body: 'No. Hazel Allure does not inspect kitchens, test food, verify temperatures, certify vendors, or guarantee any product. Safety badges reflect vendor self-certification only. Customers and vendors each bear full responsibility for due diligence, compliance, and liability.',
+    title: 'Is Hazel Allure responsible for healing outcomes or product quality?',
+    body: 'No. Hazel Allure does not verify practitioner credentials, test apothecary goods, guarantee spiritual or health outcomes, or endorse any listing. Badges and attestations reflect practitioner self-certification only. Seekers and practitioners each bear full responsibility for due diligence, compliance, and liability.',
     link: '/policies-procedures',
   },
   {
@@ -16,36 +17,37 @@ const sections = [
     link: '/onboarding',
   },
   {
-    title: 'What does "Vendor-certified safe" mean?',
-    body: 'The vendor checked a box attesting they follow acceptable food safety practices before posting. Hazel Allure did not verify this. Temperature records and thermometer photos, when provided, are also vendor-supplied. Listings marked "Not verified as safe" mean the vendor opted out or did not certify.',
+    title: 'What does "Practitioner-certified" mean?',
+    body: 'The practitioner checked a box attesting they follow acceptable practices for their offerings (services, apothecary goods, or courses) before posting. Hazel Allure did not independently verify credentials, ingredients, or outcomes. Listings without certification mean the practitioner opted out or did not attest.',
   },
   {
-    title: 'What must vendors accept before posting?',
-    body: 'Vendors must complete one-time safety policy acceptance during onboarding, then confirm per-listing attestations before each publish: acceptable food safety practices, the Vendor Operating Agreement, full liability for products sold, no prohibited items, and understanding that bans apply for violations. Acceptance is logged.',
+    title: 'What must practitioners accept before posting?',
+    body: 'Practitioners must complete policy acceptance during onboarding, then confirm per-listing attestations before each publish: lawful offerings, the Vendor Operating Agreement, full liability for services and goods sold, no prohibited items, and understanding that bans apply for violations. Acceptance is logged.',
     link: '/vendor-safety-acceptance',
   },
   {
-    title: 'What happens if a vendor violates food safety rules?',
-    body: 'Hazel Allure may remove listings, hide storefronts, and permanently ban vendors who fail to uphold safety standards, sell prohibited items, mislead customers, upload false photos, or receive credible complaints. Bans may occur without prior notice and without refund.',
+    title: 'What happens if a practitioner violates platform rules?',
+    body: 'Hazel Allure may remove listings, hide storefronts, and permanently ban practitioners who mislead seekers, sell prohibited items, upload false photos, or receive credible complaints. Bans may occur without prior notice and without refund.',
   },
   {
     title: 'What items are prohibited?',
-    body: 'Illegal drugs, unlicensed alcohol, illicit substances, weapons, stolen goods, adulterated food, counterfeit goods, and anything unlawful in your jurisdiction. Medicinal plants sold in violation of law are prohibited. Full list is in the Terms and Policies & Procedures.',
+    body: 'Illegal drugs, unlicensed alcohol, illicit substances, weapons, stolen goods, adulterated products, counterfeit goods, fraudulent healing claims, and anything unlawful in your jurisdiction. Restricted botanicals sold in violation of law are prohibited. Full list is in the Terms and Policies & Procedures.',
     link: '/agreements',
   },
   {
-    title: 'Can I list medicinal or therapeutic plants?',
-    body: 'Only if sale is legal in every applicable jurisdiction (local, state, and federal). Hazel Allure does not verify licenses, permits, or legality. Vendors must confirm compliance before posting; listings display a legal warning. Buyers are responsible for lawful possession and use.',
+    title: 'Can I list medicinal herbs or ritual botanicals?',
+    body: 'Only if sale is legal in every applicable jurisdiction (local, state, and federal). Hazel Allure does not verify licenses, permits, or legality. Practitioners must confirm compliance before posting; listings may display legal warnings. Seekers are responsible for lawful possession and use.',
     link: '/policies-procedures',
   },
   {
-    title: 'What can vendors sell on the Farmers Market?',
-    body: 'Fresh produce, fruit, eggs, dairy, honey, baked goods, flowers, fruit baskets, health & beauty supplies, soap, candles, crafts, textiles, pet products, garden supplies, plants, fungi, microgreens, and more — each in an appropriate category. Vendors must accurately categorize listings and comply with all laws for non-food goods (cosmetics, labeling, etc.).',
-    link: '/farmers-market',
+    title: 'What can practitioners sell in the Apothecary?',
+    body: 'Essential oils, incense, candles, crystals, herbs, potions, skincare, ritual kits, teas, soaps, and related holistic goods — each in an appropriate category. Practitioners must accurately categorize listings and comply with cosmetics, labeling, and consumer protection laws in every region they sell.',
+    link: '/products',
   },
   {
-    title: 'Do all food listings need a cook temperature?',
-    body: 'No. Vendors choose a food type. Cooked items (general, poultry, seafood cooked) should record finish temperature. Raw, preserved, and ready-to-eat types — jerky, sushi where legal, canned goods, cured meats, dehydrated, fermented, microgreens, and similar — do not require a finish temperature; vendors still certify safe handling and storage.',
+    title: 'What healing services can practitioners offer?',
+    body: 'Psychic readings, tarot, reiki, curandera sessions, yoga, meditation, energy work, and related bookable services — worldwide categories are available in the vendor dashboard. Practitioners may add photos and YouTube/Vimeo session previews. Hazel Allure does not verify credentials or outcomes.',
+    link: '/services',
   },
   {
     title: 'Are listing photos guaranteed accurate?',
@@ -53,15 +55,15 @@ const sections = [
   },
   {
     title: 'Can vendors edit or delete their listings?',
-    body: 'Yes. Vendors can edit details, change photos, hide/show listings, duplicate, or permanently remove their own menu and Farmers Market items from the vendor dashboard. Vendors remain responsible for accuracy of all changes. Edits do not erase prior attestations already logged.',
+    body: 'Yes. Practitioners can edit details, change photos, hide/show listings, duplicate, or permanently remove their own service and apothecary items from the practitioner dashboard. They remain responsible for accuracy of all changes. Edits do not erase prior attestations already logged.',
   },
   {
-    title: 'Who is liable if someone gets sick?',
-    body: 'The vendor who prepared and sold the food bears primary liability. The customer assumes risk when purchasing from home kitchens or uninspected sources. Hazel Allure is not liable for illness, injury, allergic reaction, or damages arising from user transactions.',
+    title: 'Who is liable for adverse reactions or dissatisfaction?',
+    body: 'The practitioner who provided the service or sold the product bears primary liability. The seeker assumes risk when booking sessions or purchasing apothecary goods from independent practitioners. Hazel Allure is not liable for illness, injury, allergic reaction, or damages arising from user transactions.',
   },
   {
-    title: 'Do vendors need licenses and tax registrations?',
-    body: 'Yes, when required by law. Cottage food laws, business licenses, sales tax permits, health department rules, and cosmetics/soap labeling rules vary by location. Hazel Allure does not verify permits — vendors warrant they comply. Vendors are solely responsible for collecting, reporting, and remitting taxes.',
+    title: 'Do practitioners need licenses and tax registrations?',
+    body: 'Yes, when required by law. Business licenses, sales tax permits, professional certifications, and cosmetics/soap labeling rules vary by location. Hazel Allure does not verify permits — practitioners warrant they comply. Practitioners are solely responsible for collecting, reporting, and remitting taxes.',
     link: '/vendor-taxes',
   },
   {
@@ -80,12 +82,13 @@ const sections = [
     link: '/vendor-taxes',
   },
   {
-    title: 'Can I sell homemade food?',
-    body: 'Only if permitted under all applicable cottage food, zoning, and health regulations in your area. You must disclose allergens and follow our Policies & Procedures. Customers should confirm legality in their jurisdiction before buying.',
+    title: 'What is the Teaching Sanctum?',
+    body: 'Pro practitioners can publish monetized courses with video lessons, free previews, and Pro member pricing. Seekers enroll through the platform. Hazel Allure provides hosting tools only — practitioners are responsible for course content, accuracy, and refunds.',
+    link: '/courses',
   },
   {
-    title: 'Can I sell soap, cosmetics, or health & beauty items?',
-    body: 'Only if lawful in your jurisdiction, properly labeled, and safe for intended use. FDA, state cosmetic, and consumer protection rules may apply. Hazel Allure does not verify formulations or registrations. You assume full liability for non-food products.',
+    title: 'Can I sell soaps, cosmetics, or skincare?',
+    body: 'Only if lawful in your jurisdiction, properly labeled, and safe for intended use. FDA, state cosmetic, and consumer protection rules may apply. Hazel Allure does not verify formulations or registrations. You assume full liability for apothecary products.',
     link: '/policies-procedures',
   },
   {
@@ -113,11 +116,11 @@ const sections = [
   },
   {
     title: 'Does Hazel Allure work worldwide?',
-    body: 'Yes. Hazel Allure supports multiple languages (English, Spanish, French, German, Portuguese, Arabic, Chinese, Japanese, Hindi) via the language selector in the header and footer. Locale preferences sync to your account when signed in. Vendors and customers are responsible for complying with local laws, food regulations, taxes, and currency rules in their jurisdiction. Listings, checkout tax, and legal documents may vary by region.',
+    body: 'Yes. Hazel Allure supports multiple languages via the language selector in the header and footer. Locale preferences sync to your account when signed in. Practitioners and seekers are responsible for complying with local laws, professional regulations, taxes, and currency rules in their jurisdiction.',
   },
   {
     title: 'What is Hazel Allure Pro?',
-    body: 'Pro is our paid tier for vendors and customers. Pro Vendor unlocks unlimited listings, food labels, pickup hours, market posts, international storefront links (Amazon, eBay, WooCommerce, Shopify), shipping rules, email campaigns, analytics, and more. Pro Member unlocks ratings, favorites, loyalty, priority support, and express checkout. Subscriptions are billed monthly or annually through Stripe.',
+    body: 'Pro is our paid tier for practitioners and seekers. Pro Practitioner unlocks unlimited listings, service video embeds, member discounts, Teaching Sanctum courses, international storefront links, email campaigns, analytics, and more. Pro Member unlocks ratings, favorites, loyalty, priority support, and member pricing on eligible listings. Subscriptions are billed monthly or annually through Stripe.',
     link: '/pro-upgrade',
   },
   {
@@ -144,7 +147,7 @@ const sections = [
   },
   {
     title: 'How do I report a problem?',
-    body: 'Use in-app Support or report a listing. For urgent health threats (food poisoning, contamination), contact your local health department immediately. Hazel Allure may remove content at its discretion but has no duty to mediate private disputes.',
+    body: 'Use in-app Support or report a listing. For urgent health or safety emergencies, contact local authorities immediately. Hazel Allure may remove content at its discretion but has no duty to mediate private disputes.',
   },
   {
     title: 'Auth0 login not working / Callback URL mismatch?',
@@ -156,7 +159,7 @@ export default function FAQ() {
   return (
     <div className="max-w-4xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight mb-2">Frequently Asked Questions</h1>
-      <p className="text-sm text-gray-500 mb-6">Legal &amp; safety overview. Not legal advice. Last updated June 2026.</p>
+      <p className="text-sm text-gray-500 mb-6">Holistic marketplace overview for seekers and practitioners. Not legal advice. Last updated June 2026.</p>
 
       <div className="flex flex-wrap gap-2 mb-8 text-sm">
         <Link to="/agreements" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Terms &amp; Agreements</Link>
@@ -165,7 +168,7 @@ export default function FAQ() {
       </div>
 
       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-8 text-sm text-red-900">
-        <strong>Core principle:</strong> Hazel Allure connects people — it does not guarantee safety, legality, tax compliance, or quality. Vendors and customers each accept full responsibility for their own diligence, licenses, taxes, and compliance with law.
+        <strong>Core principle:</strong> Hazel Allure connects seekers and practitioners — it does not guarantee outcomes, legality, tax compliance, or product quality. Everyone accepts full responsibility for their own diligence, licenses, taxes, and compliance with law.
       </div>
 
       <div className="space-y-8">

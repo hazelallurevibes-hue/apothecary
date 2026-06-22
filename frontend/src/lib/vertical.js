@@ -71,6 +71,24 @@ export const VERTICAL = {
   },
 
   videoHosts: ['youtube', 'vimeo'],
+
+  /** User-facing copy — keeps UI off Bpicius food-marketplace language */
+  copy: {
+    platformDescription:
+      'Hazel Allure is a technology platform connecting seekers with independent practitioners and artisans worldwide — book healing services, shop apothecary goods, and explore the Teaching Sanctum. We provide listings, ordering, messaging, and discovery tools. We are not a party to your transactions.',
+    seekerOnboardingTagline: 'Heal with intention. Discover practitioners, ritual goods, and courses made with care.',
+    seekerStepApothecary: 'Browse the Apothecary',
+    seekerStepApothecaryHint: 'Oils, incense, crystals, herbs, and ritual kits',
+    seekerStepServices: 'Book a healing session',
+    seekerStepServicesHint: 'Psychic, tarot, reiki, curandera, and more',
+    productSafetyNote:
+      'Practitioners self-certify product quality and lawful sale. Hazel Allure does not inspect items, verify credentials, or guarantee outcomes.',
+    apothecaryCartTitle: 'Your Apothecary Cart',
+    apothecaryEmptyFilters: 'No apothecary items match your filters. Try broadening your search.',
+    apothecaryReviewPrompt: 'Leave a photo review for the Apothecary',
+    artisanStoryLabel: 'Read the artisan story →',
+    practitionerFallback: 'Practitioner',
+  },
 };
 
 export function blogUrl(path) {

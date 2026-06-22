@@ -5,22 +5,22 @@ export default function PoliciesProcedures() {
   return (
     <div className="max-w-4xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight mb-2">Policies &amp; Procedures</h1>
-      <p className="text-sm text-gray-500 mb-8">Food, beverage, marketplace, tax, and vendor standards for all Hazel Allure users. Effective June 2026. Subject to change without notice.</p>
+      <p className="text-sm text-gray-500 mb-8">Healing services, apothecary goods, courses, tax, and practitioner standards for all Hazel Allure users. Effective June 2026. Subject to change without notice.</p>
 
       <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8 text-sm text-red-900">
-        <strong>Important:</strong> Hazel Allure does not inspect kitchens, certify food safety, verify tax filings, or guarantee any listing. Vendors self-certify; customers must exercise independent due diligence. Violations may result in immediate removal and permanent ban.
+        <strong>Important:</strong> Hazel Allure does not verify credentials, certify products, verify tax filings, or guarantee any listing or outcome. Practitioners self-certify; seekers must exercise independent due diligence. Violations may result in immediate removal and permanent ban.
       </div>
 
       <section className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">1. Purpose &amp; scope</h2>
         <p className="text-gray-700 leading-relaxed">
-          These Policies &amp; Procedures describe minimum expectations for vendors who sell food, beverages, produce, plants, crafts, health &amp; beauty goods, and related items on Hazel Allure. They supplement the <Link to="/agreements" className="underline text-[#4a1942]">Terms of Service</Link> and <Link to="/faq" className="underline text-[#4a1942]">FAQ</Link>. Compliance with local, state, and federal law always takes precedence. When law imposes a higher standard, you must follow the law.
+          These Policies &amp; Procedures describe minimum expectations for practitioners who offer healing services, apothecary goods, courses, and related items on Hazel Allure. They supplement the <Link to="/agreements" className="underline text-[#4a1942]">Terms of Service</Link> and <Link to="/faq" className="underline text-[#4a1942]">FAQ</Link>. Compliance with local, state, and federal law always takes precedence. When law imposes a higher standard, you must follow the law.
         </p>
       </section>
 
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">2. Vendor launch checklist (required order)</h2>
-        <p className="text-gray-700 text-sm mb-4">New vendors must complete these steps before their first public listing:</p>
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">2. Practitioner launch checklist (required order)</h2>
+        <p className="text-gray-700 text-sm mb-4">New practitioners must complete these steps before their first public listing:</p>
         <ol className="list-decimal pl-6 space-y-2 text-gray-700 text-sm">
           <li><strong>Verify email</strong> — Confirm the account email address used for orders, compliance notices, and security alerts.</li>
           <li><strong>Review &amp; accept safety policies</strong> — One-time acceptance of vendor attestations, Terms, FAQ, and this document via the safety acceptance flow.</li>

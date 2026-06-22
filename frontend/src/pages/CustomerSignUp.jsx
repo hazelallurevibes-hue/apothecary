@@ -204,7 +204,7 @@ export default function CustomerSignUp({ onLogin }) {
               required
             />
             <span>
-              I agree to the <Link to="/agreements" className="underline">Terms</Link>, <Link to="/customer-use-agreement" className="underline">Customer Use Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I will perform my own due diligence on vendors and food safety and assume all purchase risks.
+              I agree to the <Link to="/agreements" className="underline">Terms</Link>, <Link to="/customer-use-agreement" className="underline">Customer Use Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I will perform my own due diligence on practitioners and apothecary goods and assume all booking and purchase risks.
             </span>
           </label>
           <button

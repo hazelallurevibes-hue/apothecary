@@ -194,7 +194,7 @@ export default function FarmersMarket({ user }) {
             placeholder="Search apothecary..." 
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="border px-5 py-3 rounded-3xl w-64 text-sm focus:ring-2 focus:ring-green-200"
+            className="border px-5 py-3 rounded-3xl w-64 text-sm focus:ring-2 focus:ring-[#4a1942]/20"
           />
           <select 
             value={categoryFilter} 
@@ -211,9 +211,9 @@ export default function FarmersMarket({ user }) {
               type="checkbox" 
               checked={organicOnly} 
               onChange={e => setOrganicOnly(e.target.checked)} 
-              className="accent-green-600"
+              className="accent-[#4a1942]"
             />
-            Organic Only
+            Organic / natural only
           </label>
           <select value={dietaryFilter} onChange={e => setDietaryFilter(e.target.value)} className="border px-3 py-2 rounded-2xl text-sm">
             <option value="">Any Diet</option>
@@ -221,7 +221,7 @@ export default function FarmersMarket({ user }) {
             <option value="gluten-free">Gluten-Free</option>
           </select>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={seasonalOnly} onChange={e => setSeasonalOnly(e.target.checked)} className="accent-green-600" /> Seasonal Only
+            <input type="checkbox" checked={seasonalOnly} onChange={e => setSeasonalOnly(e.target.checked)} className="accent-[#4a1942]" /> Seasonal only
           </label>
         </div>
       </div>
@@ -247,11 +247,11 @@ export default function FarmersMarket({ user }) {
       <div className="mb-6 p-4 bg-white border rounded-3xl flex flex-wrap gap-4 items-center">
         <span className="font-medium text-sm">Fulfillment:</span>
         {[
-          { value: 'pickup', label: 'Local Pickup (Free tomorrow 8am-12pm)', icon: '🚜' },
-          { value: 'doordash', label: 'DoorDash (Est. $6.99 • 45 min)', icon: '🛵' },
-          { value: 'ubereats', label: 'Uber Eats (Est. $7.49 • 35 min)', icon: '🚗' }
+          { value: 'pickup', label: 'Local pickup', icon: '🌿' },
+          { value: 'shipping', label: 'Shipped (practitioner rates)', icon: '📦' },
+          { value: 'digital', label: 'Digital / ritual guide PDF', icon: '✨' },
         ].map(opt => (
-          <label key={opt.value} className={`flex items-center gap-2 px-4 py-2 rounded-2xl border cursor-pointer text-sm transition ${deliveryMethod === opt.value ? 'border-green-600 bg-green-50' : 'hover:bg-gray-50'}`}>
+          <label key={opt.value} className={`flex items-center gap-2 px-4 py-2 rounded-2xl border cursor-pointer text-sm transition ${deliveryMethod === opt.value ? 'border-[#4a1942] bg-[#f5f0e8]' : 'hover:bg-gray-50'}`}>
             <input 
               type="radio" 
               name="delivery" 
@@ -263,7 +263,7 @@ export default function FarmersMarket({ user }) {
             <span>{opt.icon}</span> {opt.label}
           </label>
         ))}
-        <p className="text-xs text-gray-500 ml-auto">Real DoorDash/Uber Eats via Supabase Edge + partner APIs coming soon. Estimates use live data where connected.</p>
+        <p className="text-xs text-gray-500 ml-auto">Fulfillment is arranged between seeker and practitioner. Shipping integrations coming soon.</p>
       </div>
 
       {!loading && filtered.length === 0 && (
@@ -300,11 +300,11 @@ export default function FarmersMarket({ user }) {
             <div className="p-5">
               <div className="flex justify-between items-start">
                 <div>
-                  <Link to={listingDetailPath('produce', item.id)} className="font-semibold text-lg leading-tight hover:text-green-700">
+                  <Link to={listingDetailPath('produce', item.id)} className="font-semibold text-lg leading-tight hover:text-[#4a1942]">
                     {item.name}
                   </Link>
-                  <div className="text-xs text-green-600 font-medium mt-0.5">
-                    {vendorNames[item.vendor_id] || (item.farm_story ? 'Local Farm' : 'Vendor')}
+                  <div className="text-xs text-[#6b7f6a] font-medium mt-0.5">
+                    {vendorNames[item.vendor_id] || VERTICAL.copy.practitionerFallback}
                   </div>
                 </div>
                 <div className="text-right">
@@ -338,15 +338,15 @@ export default function FarmersMarket({ user }) {
                 <button
                   type="button"
                   onClick={() => setSelectedItem(item)}
-                  className="text-xs text-green-700 hover:underline mt-1 font-medium"
+                  className="text-xs text-[#4a1942] hover:underline mt-1 font-medium"
                 >
-                  Read the farm story →
+                  {VERTICAL.copy.artisanStoryLabel}
                 </button>
               )}
 
               <div className="mt-4 flex items-center gap-2 text-xs">
                 <div className="bg-gray-100 px-2 py-0.5 rounded">Qty: {item.quantity_available} {item.unit}s avail.</div>
-                <div className="text-emerald-600">Fresh today</div>
+                <div className="text-[#6b7f6a]">In stock</div>
               </div>
 
               <div className="mt-3 flex gap-2 items-center flex-wrap">
@@ -361,8 +361,8 @@ export default function FarmersMarket({ user }) {
                 <AddToCartButton
                   item={{ ...item, vendor_id: item.vendor_id }}
                   itemType="produce"
-                  accent="#15803d"
-                  className="w-full py-3 bg-green-700 hover:bg-green-800 transition text-white rounded-2xl text-sm font-semibold"
+                  accent="#4a1942"
+                  className="w-full py-3 bg-[#4a1942] hover:bg-[#2d1230] transition text-white rounded-2xl text-sm font-semibold"
                   label={item.is_preorder ? 'Pre-order' : `Add to Cart • $${item.price}/${item.unit}`}
                 />
               </div>
@@ -372,7 +372,7 @@ export default function FarmersMarket({ user }) {
       </div>
 
       {filtered.length === 0 && !loading && (
-        <div className="text-center py-12 text-gray-500">No produce matches your filters. Try broadening your search!</div>
+        <div className="text-center py-12 text-gray-500">{VERTICAL.copy.apothecaryEmptyFilters}</div>
       )}
 
       <CartCheckoutPanel
@@ -380,14 +380,14 @@ export default function FarmersMarket({ user }) {
         placing={placing}
         onPlaceOrder={placeProduceOrder}
         cartFilter={produceCartFilter}
-        title="Your Produce Cart"
-        accentClass="bg-green-700"
+        title={VERTICAL.copy.apothecaryCartTitle}
+        accentClass="bg-[#4a1942]"
       />
 
       {/* Quick review with picture for the market - lets reviewers add photo comments */}
       <div className="mt-12 border-t pt-8">
-        <div className="font-semibold mb-2">Leave a Photo Review for Farmers Market</div>
-        <div className="text-xs text-gray-500">Use the "Read the farm story" on any item → scroll to the review prompts in the modal (supports photo URL). Reviews + images are saved and shown on vendor pages.</div>
+        <div className="font-semibold mb-2">{VERTICAL.copy.apothecaryReviewPrompt}</div>
+        <div className="text-xs text-gray-500">Open an artisan story on any item to leave a photo review. Reviews are saved and shown on practitioner storefronts.</div>
       </div>
 
       {/* Farm Story Modal - Rich polish */}

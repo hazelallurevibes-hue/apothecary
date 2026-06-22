@@ -526,7 +526,7 @@ export default function StorefrontSettings({ user }) {
         {vendorCan(user, 'in_person_events') ? (
           <InPersonEventsEditor events={inPersonEvents} onChange={setInPersonEvents} disabled={saving} />
         ) : (
-          <p className="text-sm text-gray-600">Paid vendors can post farmers market dates and pop-up locations.</p>
+          <p className="text-sm text-gray-600">Pro practitioners can post pop-up market dates, ritual circles, and in-person event locations.</p>
         )}
       </div>
 
