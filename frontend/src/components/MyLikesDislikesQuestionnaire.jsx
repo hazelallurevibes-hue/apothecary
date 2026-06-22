@@ -42,7 +42,7 @@ export default function MyLikesDislikesQuestionnaire({
             </HelpTip>
           </div>
           <p className="text-sm text-gray-600">
-            Our mission: empower local farmers, restaurants, vendors, and everyone in the pursuit of good, clean products made by your neighbors.
+            Our mission: connect seekers with trusted practitioners and artisans — healing services, ritual goods, and courses made with intention worldwide.
           </p>
         </div>
       )}

@@ -87,7 +87,7 @@ export default function AdminProPayments({ users, vendors, onMessage }) {
     <div className="space-y-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white border rounded-3xl p-4">
-          <div className="text-sm text-gray-500">Pro Vendors</div>
+          <div className="text-sm text-gray-500">Pro Practitioners</div>
           <div className="text-2xl font-semibold text-emerald-600">{proVendors}</div>
         </div>
         <div className="bg-white border rounded-3xl p-4">

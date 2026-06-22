@@ -15,13 +15,19 @@
 - **GoDaddy editor** — wife keeps editing blog/guides without touching code
 - **Bpicius mechanics** — full vendor/customer stack on Vercel + Supabase (separate project from Bpicius)
 
-### DNS (GoDaddy)
+### DNS (GoDaddy) — run checklist
 
-1. GoDaddy → DNS → Add record:
+```powershell
+cd C:\Users\abeyt\hazelallure-fullstack
+node scripts/hazel-vercel-dns.mjs
+```
+
+1. **Vercel** (wife's account) → project `hazelallure-apothecary` → Domains → add `apothecary.hazelallure.com`
+2. **GoDaddy** → hazelallure.com → DNS → Add record:
    - Type: `CNAME`
    - Name: `apothecary`
-   - Value: `cname.vercel-dns.com` (Vercel will show exact value when you add the domain)
-2. Vercel project → Domains → add `apothecary.hazelallure.com`
+   - Value: `cname.vercel-dns.com` (or exact value Vercel shows)
+3. Wait 5–60 min → verify https://apothecary.hazelallure.com loads
 
 ### Cross-linking
 
@@ -44,8 +50,8 @@ GoDaddy cannot easily host a React app *and* keep the visual editor for the same
 - [x] Home, Layout, routes (`/services`, `/products`), blog links to GoDaddy
 - [x] Wellness service + apothecary category menus
 - [ ] New Supabase project (separate from Bpicius)
-- [ ] Deploy to `apothecary.hazelallure.com`
-- [ ] Stripe account (when bank links)
+- [ ] DNS: GoDaddy CNAME `apothecary` → Vercel (`node scripts/hazel-vercel-dns.mjs`)
+- [ ] Stripe: new Hazel Allure LLC account (`node scripts/hazel-stripe-setup.mjs`)
 
 ### Phase 2 — Content & SEO bridge
 - Import Essential Oils guide text into app (optional mirror at `/guide-to-essential-oils` with 301 from GoDaddy later)

@@ -13,7 +13,7 @@ import { hasFoodLabel } from '../lib/foodLabels';
 import { formatPickupHoursSummary, upcomingEvents } from '../lib/pickupSchedule';
 import { parseItemOptions } from '../lib/itemOptions';
 import { getFoodCategoryLabel } from '../lib/foodCategories';
-import { getFarmersMarketCategoryLabel, isMedicinalCategory } from '../lib/farmersMarketCategories';
+import { getApothecaryCategoryLabel, isMedicinalCategory } from '../lib/apothecaryCategories';
 import { getMarketplaceCategoryLabel } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VideoEmbed from '../components/VideoEmbed';
@@ -46,7 +46,7 @@ export default function ListingDetailPage({ user }) {
   const pickupSummary = formatPickupHoursSummary(vendor?.pickup_hours);
   const events = upcomingEvents(vendor?.in_person_events);
   const backTo = itemType === 'menu' ? VERTICAL.routes.servicesMarket : VERTICAL.routes.productsMarket;
-  const backLabel = itemType === 'menu' ? VERTICAL.labels.marketplace : VERTICAL.labels.farmersMarket;
+  const backLabel = itemType === 'menu' ? VERTICAL.labels.marketplace : VERTICAL.labels.apothecary;
   const itemOptions = parseItemOptions(item.item_options);
 
   return (
@@ -91,7 +91,7 @@ export default function ListingDetailPage({ user }) {
             )}
             {item.category && itemType === 'produce' && (
               <span className="text-[10px] bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-full">
-                {getFarmersMarketCategoryLabel(item.category)}
+                {getApothecaryCategoryLabel(item.category)}
               </span>
             )}
             {item.category && itemType === 'menu' && (

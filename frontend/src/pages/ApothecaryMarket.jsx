@@ -17,21 +17,21 @@ import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
-import { allFarmersMarketCategories, getCategoryDisplay, isMedicinalCategory } from '../lib/farmersMarketCategories';
+import { allApothecaryCategories, getCategoryDisplay, isMedicinalCategory } from '../lib/apothecaryCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import { VERTICAL } from '../lib/vertical';
 
-export default function FarmersMarket({ user }) {
-  const [produce, setProduce] = useState([]);
+export default function ApothecaryMarket({ user }) {
+  const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [organicOnly, setOrganicOnly] = useState(false);
   const [dietaryFilter, setDietaryFilter] = useState('');
   const [seasonalOnly, setSeasonalOnly] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null); // for farm story modal
+  const [selectedItem, setSelectedItem] = useState(null);
   const [deliveryMethod, setDeliveryMethod] = useState('pickup');
   const { cart, addToCart, clearCart } = useCart();
-  const produceCartFilter = (i) => i.type === 'produce' || i.itemType === 'produce';
+  const apothecaryCartFilter = (i) => i.type === 'produce' || i.itemType === 'produce';
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [marketTab, setMarketTab] = useState('all');
@@ -55,7 +55,7 @@ export default function FarmersMarket({ user }) {
   }, [user?.email]);
 
   useEffect(() => {
-    const loadProduce = async () => {
+    const loadItems = async () => {
       setLoading(true);
       const { data, error } = await supabase
         .from('produce_items')
@@ -64,10 +64,10 @@ export default function FarmersMarket({ user }) {
         .order('featured', { ascending: false })
         .order('id', { ascending: true });
       if (error) {
-        console.error('Supabase error loading produce:', error);
-        setProduce([]);
+        console.error('Supabase error loading apothecary items:', error);
+        setItems([]);
       } else {
-        setProduce(data || []);
+        setItems(data || []);
         const ids = [...new Set((data || []).map((p) => p.vendor_id).filter(Boolean))];
         if (ids.length) {
           const { data: vendors } = await supabase.from('vendors').select('id, name').in('id', ids);
@@ -76,22 +76,20 @@ export default function FarmersMarket({ user }) {
       }
       setLoading(false);
     };
-    loadProduce();
+    loadItems();
   }, []);
 
   const filtered = filterItemsByAllergenAvoid(
-    filterActiveListings(produce).filter((item) => {
+    filterActiveListings(items).filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
                            (item.description && item.description.toLowerCase().includes(search.toLowerCase()));
       const matchesCategory = !categoryFilter || item.category === categoryFilter;
       const matchesOrganic = !organicOnly || item.organic;
       const matchesDietary = !dietaryFilter || (item.dietary_tags && item.dietary_tags.includes(dietaryFilter));
       const matchesSeasonal = !seasonalOnly || item.is_seasonal;
-      const section = item.listing_section || 'produce';
       const matchesTab =
         marketTab === 'all' ||
-        (marketTab === 'produce' && section === 'produce' && !item.is_preorder) ||
-        (marketTab === 'plants_trees' && section === 'plants_trees') ||
+        (marketTab === 'goods' && !item.is_preorder) ||
         (marketTab === 'preorders' && item.is_preorder);
       return matchesSearch && matchesCategory && matchesOrganic && matchesDietary && matchesSeasonal && matchesTab;
     }),
@@ -112,38 +110,38 @@ export default function FarmersMarket({ user }) {
       });
       navigate('/messages');
     } catch (e) {
-      alert(e.message || 'Messaging unavailable — run FARMERS_MARKET_EXTENDED.sql in Supabase.');
+      alert(e.message || 'Messaging unavailable — check Supabase messaging tables.');
     }
   };
 
-  const placeProduceOrder = async (modPanel = {}) => {
-    const produceLines = cart.filter(produceCartFilter);
-    if (produceLines.length === 0 || !user) return;
+  const placeApothecaryOrder = async (modPanel = {}) => {
+    const cartLines = cart.filter(apothecaryCartFilter);
+    if (cartLines.length === 0 || !user) return;
     setPlacing(true);
 
     let modFields;
     try {
-      modFields = modificationPayloadFromCart(modPanel, produceLines);
+      modFields = modificationPayloadFromCart(modPanel, cartLines);
     } catch (e) {
       alert(e.message);
       setPlacing(false);
       return;
     }
 
-    const orderTotal = produceLines.reduce(
+    const orderTotal = cartLines.reduce(
       (sum, i) => sum + (i.linePrice ?? i.price) * (i.qty || 1),
       0,
     );
 
     const orderData = await buildTaxedOrderPayload({
       user_id: user.id,
-      vendor_id: produceLines[0].vendor_id,
+      vendor_id: cartLines[0].vendor_id,
       items: JSON.stringify(
-        produceLines.map((i) => ({
+        cartLines.map((i) => ({
           name: i.name,
           qty: i.qty || 1,
           price: i.linePrice ?? i.price,
-          unit: i.unit || 'lb',
+          unit: i.unit || 'each',
           options: i.selectedOptions || null,
           optionsSummary: i.optionsSummary || null,
           isUpsell: !!i.isUpsell,
@@ -154,27 +152,27 @@ export default function FarmersMarket({ user }) {
       status: 'placed',
       date: new Date().toISOString().split('T')[0],
       delivery_method: deliveryMethod,
-    }, produceLines[0].vendor_id);
+    }, cartLines[0].vendor_id);
 
     try {
       const { error } = await supabase.from('orders').insert({ ...orderData, ...modFields });
       if (error) throw error;
 
-      let msg = `Produce order placed! Total: $${orderData.total.toFixed(2)}`;
-      if (deliveryMethod === 'pickup') msg += ' - Ready for local pickup tomorrow!';
-      else if (deliveryMethod === 'doordash') msg += ' - DoorDash will pick up shortly.';
-      else msg += ' - Uber Eats delivery en route.';
-      
+      let msg = `Apothecary order placed! Total: $${orderData.total.toFixed(2)}`;
+      if (deliveryMethod === 'pickup') msg += ' — your practitioner will confirm pickup details.';
+      else if (deliveryMethod === 'shipping') msg += ' — shipping arranged with the practitioner.';
+      else msg += ' — digital delivery details sent via messaging.';
+
       alert(msg);
       clearCart();
     } catch (e) {
-      console.error('Produce order error:', e);
+      console.error('Apothecary order error:', e);
       alert('Failed to place order. Make sure Supabase orders table allows inserts.');
     }
     setPlacing(false);
   };
 
-  const categoryOptions = allFarmersMarketCategories();
+  const categoryOptions = allApothecaryCategories();
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -187,18 +185,18 @@ export default function FarmersMarket({ user }) {
           <p className="text-gray-600 mt-2 text-lg">Essential oils, incense, potions, crystals, apothecary herbs, skincare &amp; ritual kits from artisans worldwide</p>
           {user && <Link to="/messages" className="text-sm text-[#4a1942] font-medium mt-1 inline-block">💬 Your messages with practitioners</Link>}
         </div>
-        
+
         <div className="flex gap-3 items-center flex-wrap">
-          <input 
-            type="text" 
-            placeholder="Search apothecary..." 
+          <input
+            type="text"
+            placeholder="Search apothecary..."
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             className="border px-5 py-3 rounded-3xl w-64 text-sm focus:ring-2 focus:ring-[#4a1942]/20"
           />
-          <select 
-            value={categoryFilter} 
-            onChange={e => setCategoryFilter(e.target.value)}
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
             className="border px-4 py-3 rounded-3xl text-sm"
           >
             <option value="">All Categories</option>
@@ -207,21 +205,21 @@ export default function FarmersMarket({ user }) {
             ))}
           </select>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input 
-              type="checkbox" 
-              checked={organicOnly} 
-              onChange={e => setOrganicOnly(e.target.checked)} 
+            <input
+              type="checkbox"
+              checked={organicOnly}
+              onChange={(e) => setOrganicOnly(e.target.checked)}
               className="accent-[#4a1942]"
             />
             Organic / natural only
           </label>
-          <select value={dietaryFilter} onChange={e => setDietaryFilter(e.target.value)} className="border px-3 py-2 rounded-2xl text-sm">
+          <select value={dietaryFilter} onChange={(e) => setDietaryFilter(e.target.value)} className="border px-3 py-2 rounded-2xl text-sm">
             <option value="">Any Diet</option>
             <option value="vegan">Vegan</option>
             <option value="gluten-free">Gluten-Free</option>
           </select>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
-            <input type="checkbox" checked={seasonalOnly} onChange={e => setSeasonalOnly(e.target.checked)} className="accent-[#4a1942]" /> Seasonal only
+            <input type="checkbox" checked={seasonalOnly} onChange={(e) => setSeasonalOnly(e.target.checked)} className="accent-[#4a1942]" /> Seasonal only
           </label>
         </div>
       </div>
@@ -229,7 +227,7 @@ export default function FarmersMarket({ user }) {
       <div className="flex flex-wrap gap-2 mb-6">
         {[
           { id: 'all', label: 'All' },
-          { id: 'produce', label: '✨ Ritual goods' },
+          { id: 'goods', label: '✨ Ritual goods' },
           { id: 'preorders', label: '📅 Pre-orders' },
         ].map((tab) => (
           <button
@@ -243,22 +241,21 @@ export default function FarmersMarket({ user }) {
         ))}
       </div>
 
-      {/* Delivery / Pickup Options - New for integrations */}
       <div className="mb-6 p-4 bg-white border rounded-3xl flex flex-wrap gap-4 items-center">
         <span className="font-medium text-sm">Fulfillment:</span>
         {[
           { value: 'pickup', label: 'Local pickup', icon: '🌿' },
           { value: 'shipping', label: 'Shipped (practitioner rates)', icon: '📦' },
           { value: 'digital', label: 'Digital / ritual guide PDF', icon: '✨' },
-        ].map(opt => (
+        ].map((opt) => (
           <label key={opt.value} className={`flex items-center gap-2 px-4 py-2 rounded-2xl border cursor-pointer text-sm transition ${deliveryMethod === opt.value ? 'border-[#4a1942] bg-[#f5f0e8]' : 'hover:bg-gray-50'}`}>
-            <input 
-              type="radio" 
-              name="delivery" 
-              value={opt.value} 
-              checked={deliveryMethod === opt.value} 
-              onChange={() => setDeliveryMethod(opt.value)} 
-              className="hidden" 
+            <input
+              type="radio"
+              name="delivery"
+              value={opt.value}
+              checked={deliveryMethod === opt.value}
+              onChange={() => setDeliveryMethod(opt.value)}
+              className="hidden"
             />
             <span>{opt.icon}</span> {opt.label}
           </label>
@@ -282,15 +279,15 @@ export default function FarmersMarket({ user }) {
             <Link to={listingDetailPath('produce', item.id)} className="block relative">
               <img src={item.photo} className="h-48 w-full object-cover group-hover:scale-105 transition" alt={item.name} />
               {item.organic === 1 && (
-                <div className="absolute top-3 right-3 bg-green-600 text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold tracking-wider">ORGANIC</div>
+                <div className="absolute top-3 right-3 bg-[#4a1942] text-white text-[10px] px-2.5 py-0.5 rounded-full font-bold tracking-wider">NATURAL</div>
               )}
               {item.is_preorder && (
                 <div className="absolute top-3 left-3"><PreorderBadge item={item} /></div>
               )}
               {item.category && (
-                <div className="absolute bottom-3 left-3 bg-emerald-800/90 text-white text-[10px] px-2 py-0.5 rounded-full max-w-[85%] truncate">
+                <div className="absolute bottom-3 left-3 bg-[#4a1942]/90 text-white text-[10px] px-2 py-0.5 rounded-full max-w-[85%] truncate">
                   {(() => {
-                    const { emoji, label } = getCategoryDisplay(item.category, item.listing_section);
+                    const { emoji, label } = getCategoryDisplay(item.category);
                     return `${emoji} ${label}`;
                   })()}
                 </div>
@@ -320,19 +317,14 @@ export default function FarmersMarket({ user }) {
               )}
 
               <div className="flex gap-1 mt-2 flex-wrap items-center">
-                {item.organic === 1 && <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">🌱 Organic</span>}
+                {item.organic === 1 && <span className="text-[10px] bg-[#f5f0e8] text-[#4a1942] px-1.5 py-0.5 rounded">🌱 Natural</span>}
                 {item.dietary_tags && item.dietary_tags.split(',').map((tag) => (
                   <span key={tag} className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">{tag}</span>
                 ))}
                 {item.is_seasonal === 1 && <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded">🍂 {item.season || 'Seasonal'}</span>}
-                {item.sustainability_score && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">🌍 {item.sustainability_score} sustainable</span>}
                 <AllergenBadges allergens={item.allergens} compact />
                 <SafetyStatusBadge item={item} />
               </div>
-
-              {item.wholesale_price && (
-                <div className="text-[10px] text-amber-600 mt-1">Wholesale: ${item.wholesale_price}/{item.unit} (min {item.min_wholesale_qty})</div>
-              )}
 
               {item.farm_story && (
                 <button
@@ -343,11 +335,6 @@ export default function FarmersMarket({ user }) {
                   {VERTICAL.copy.artisanStoryLabel}
                 </button>
               )}
-
-              <div className="mt-4 flex items-center gap-2 text-xs">
-                <div className="bg-gray-100 px-2 py-0.5 rounded">Qty: {item.quantity_available} {item.unit}s avail.</div>
-                <div className="text-[#6b7f6a]">In stock</div>
-              </div>
 
               <div className="mt-3 flex gap-2 items-center flex-wrap">
                 <button type="button" onClick={() => openVendorChat(item.vendor_id)} className="px-3 py-2 border rounded-xl text-xs font-medium">
@@ -378,33 +365,31 @@ export default function FarmersMarket({ user }) {
       <CartCheckoutPanel
         user={user}
         placing={placing}
-        onPlaceOrder={placeProduceOrder}
-        cartFilter={produceCartFilter}
+        onPlaceOrder={placeApothecaryOrder}
+        cartFilter={apothecaryCartFilter}
         title={VERTICAL.copy.apothecaryCartTitle}
         accentClass="bg-[#4a1942]"
       />
 
-      {/* Quick review with picture for the market - lets reviewers add photo comments */}
       <div className="mt-12 border-t pt-8">
         <div className="font-semibold mb-2">{VERTICAL.copy.apothecaryReviewPrompt}</div>
         <div className="text-xs text-gray-500">Open an artisan story on any item to leave a photo review. Reviews are saved and shown on practitioner storefronts.</div>
       </div>
 
-      {/* Farm Story Modal - Rich polish */}
       {selectedItem && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-[100]" onClick={() => setSelectedItem(null)}>
-          <div className="bg-white rounded-3xl max-w-lg w-full mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
-            <img src={selectedItem.photo} className="w-full h-64 object-cover" />
+          <div className="bg-white rounded-3xl max-w-lg w-full mx-4 overflow-hidden" onClick={(e) => e.stopPropagation()}>
+            <img src={selectedItem.photo} className="w-full h-64 object-cover" alt={selectedItem.name} />
             <div className="p-8">
-              <div className="uppercase text-xs tracking-[2px] text-green-600 mb-1">From the Farm</div>
-              <h3 className="text-3xl font-semibold">{selectedItem.name}</h3>
-              <p className="mt-4 text-gray-700 leading-relaxed">{selectedItem.farm_story}</p>
-              
+              <div className="uppercase text-xs tracking-[2px] text-[#c9a227] mb-1">Artisan story</div>
+              <h3 className="text-3xl font-semibold heading-font text-[#4a1942]">{selectedItem.name}</h3>
+              <p className="mt-4 text-gray-700 leading-relaxed">{selectedItem.farm_story || selectedItem.description}</p>
+
               <FreshnessBadge item={selectedItem} />
 
               <div className="mt-6 pt-6 border-t grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-gray-500">Price</span><br/><span className="font-semibold">${selectedItem.price}/{selectedItem.unit}</span></div>
-                <div><span className="text-gray-500">Available</span><br/><span className="font-semibold">{selectedItem.quantity_available} {selectedItem.unit}s</span></div>
+                <div><span className="text-gray-500">Price</span><br /><span className="font-semibold">${selectedItem.price}/{selectedItem.unit}</span></div>
+                <div><span className="text-gray-500">Available</span><br /><span className="font-semibold">{selectedItem.quantity_available} {selectedItem.unit}s</span></div>
               </div>
 
               <button
@@ -412,7 +397,7 @@ export default function FarmersMarket({ user }) {
                 onClick={() => openVendorChat(selectedItem.vendor_id)}
                 className="mt-4 w-full py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
               >
-                💬 Message {vendorNames[selectedItem.vendor_id] || 'the farmer'}
+                💬 Message {vendorNames[selectedItem.vendor_id] || VERTICAL.copy.practitionerFallback}
               </button>
 
               <div className="mt-4">
@@ -422,21 +407,6 @@ export default function FarmersMarket({ user }) {
                   user={user}
                   onMessageVendor={() => openVendorChat(selectedItem.vendor_id)}
                 />
-              </div>
-
-              <div className="mt-4 text-sm">
-                <button 
-                  type="button"
-                  onClick={() => {
-                    const bundleQty = selectedItem.min_wholesale_qty || 10;
-                    addToCart({ ...selectedItem, qty: bundleQty, name: `${selectedItem.name} Bulk Box (${bundleQty} ${selectedItem.unit}s)`, type: 'produce' });
-                    alert(`Added bulk box of ${selectedItem.name}!`);
-                    setSelectedItem(null);
-                  }}
-                  className="text-green-700 underline text-xs"
-                >
-                  Add &quot;Whole Box&quot; Bundle ({selectedItem.min_wholesale_qty || 10} units)
-                </button>
               </div>
 
               <button type="button" onClick={() => setSelectedItem(null)} className="mt-6 w-full py-3 border rounded-2xl">Close</button>

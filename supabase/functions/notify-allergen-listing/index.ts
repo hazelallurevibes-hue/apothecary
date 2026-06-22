@@ -27,7 +27,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: vendor } = await supabase.from("vendors").select("name").eq("id", vendor_id).maybeSingle();
     const vendorName = vendor?.name || "A local vendor";
-    const listingPath = item_type === "menu" ? "/marketplace" : "/farmers-market";
+    const listingPath = item_type === "menu" ? "/services" : "/products";
 
     let sent = 0;
     for (const u of users || []) {

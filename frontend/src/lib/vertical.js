@@ -44,6 +44,8 @@ export const VERTICAL = {
     customer: 'Seeker',
     servicesMarket: 'Services',
     productsMarket: 'Apothecary & Goods',
+    apothecary: 'Apothecary',
+    /** @deprecated use labels.apothecary */
     farmersMarket: 'Apothecary',
     marketplace: 'Healing Services',
     shopHero: 'Book a Session',

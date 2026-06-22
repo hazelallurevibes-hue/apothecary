@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import Layout from './components/Layout';
 import { CartProvider } from './components/CartContext';
@@ -32,7 +32,7 @@ import About from './pages/About';
 import Agreements from './pages/Agreements';
 import PoliciesProcedures from './pages/PoliciesProcedures';
 import CustomerUseAgreement from './pages/CustomerUseAgreement';
-import FarmersMarket from './pages/FarmersMarket';
+import ApothecaryMarket from './pages/ApothecaryMarket';
 import Messages from './pages/Messages';
 import VendorEmailCampaigns from './pages/VendorEmailCampaigns';
 import { CampaignConfirmPage, EmailUnsubscribePage } from './pages/CampaignOptIn';
@@ -256,8 +256,8 @@ function AppCore({ auth0 = null }) {
                 <Route path="/marketplace" element={<Marketplace user={user} />} />
                 <Route path="/services" element={<Marketplace user={user} />} />
                 <Route path="/listing/:type/:id" element={<ListingDetailPage user={user} />} />
-                <Route path="/farmers-market" element={<FarmersMarket user={user} />} />
-                <Route path="/products" element={<FarmersMarket user={user} />} />
+                <Route path="/farmers-market" element={<Navigate to="/products" replace />} />
+                <Route path="/products" element={<ApothecaryMarket user={user} />} />
                 <Route path="/messages" element={
                   <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
                     <Messages user={user} />

@@ -65,7 +65,7 @@ export default function Layout({ user, onLogout, children }) {
     <>
       <NavLink to="/" onNavigate={closeMobile}>{t('nav.home')}</NavLink>
       <NavLink to={VERTICAL.routes.servicesMarket} onNavigate={closeMobile}>{t('nav.marketplace')}</NavLink>
-      <NavLink to={VERTICAL.routes.productsMarket} onNavigate={closeMobile}>{t('nav.farmersMarket')}</NavLink>
+      <NavLink to={VERTICAL.routes.productsMarket} onNavigate={closeMobile}>{t('nav.apothecary')}</NavLink>
       <NavLink to={VERTICAL.routes.topPractitioners} onNavigate={closeMobile}>{t('nav.topVendors')}</NavLink>
       <NavLink to={VERTICAL.routes.courses} onNavigate={closeMobile}>{VERTICAL.labels.courses}</NavLink>
       {blogMenu.map((b) => (
@@ -159,7 +159,7 @@ export default function Layout({ user, onLogout, children }) {
           <div className="hidden md:flex items-center gap-x-5 lg:gap-x-6 text-sm font-medium">
             <Link to="/" className="hover:text-[#4a1942] font-medium">{t('nav.home')}</Link>
             <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942]">{t('nav.marketplace')}</Link>
-            <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942]">{t('nav.farmersMarket')}</Link>
+            <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942]">{t('nav.apothecary')}</Link>
             <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942]">{t('nav.topVendors')}</Link>
             <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942]">{VERTICAL.labels.courses}</Link>
             <NavDropdown

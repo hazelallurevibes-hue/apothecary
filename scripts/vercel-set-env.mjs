@@ -19,9 +19,19 @@ if (!key || !value) {
   process.exit(1);
 }
 
-/** Use team + project slugs (same as fix-vercel-auth0-env.mjs) — avoids wrong prj_ id typos. */
-const TEAM = 'gp-s-projects7';
-const PROJECT = 'bpicius2';
+function loadHazelProject() {
+  try {
+    const raw = readFileSync(join(__dirname, '..', '.infra', 'PROJECT_REGISTRY.local.json'), 'utf8');
+    const j = JSON.parse(raw);
+    return j?.stacks?.hazelallure?.vercel_project || 'hazelallure-apothecary';
+  } catch {
+    return 'hazelallure-apothecary';
+  }
+}
+
+/** Hazel Allure by default — set VERCEL_PROJECT=bpicius2 for Bpicius only. */
+const TEAM = process.env.VERCEL_TEAM || 'gp-s-projects7';
+const PROJECT = process.env.VERCEL_PROJECT || loadHazelProject();
 
 function loadToken() {
   if (process.env.VERCEL_TOKEN) return process.env.VERCEL_TOKEN;

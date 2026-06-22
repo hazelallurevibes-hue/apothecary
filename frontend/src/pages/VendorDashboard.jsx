@@ -13,10 +13,9 @@ import ExpiryCountdown from '../components/ExpiryCountdown';
 import { serializeAllergenIds } from '../lib/allergens';
 import { buildSafetyPayload, isSafetySubmissionValid } from '../lib/foodSafety';
 import {
-  PLANT_LISTING_CATEGORIES,
-  PRODUCE_LISTING_CATEGORIES,
+  APOTHECARY_LISTING_CATEGORIES,
   categoryRequiresLegalAck,
-} from '../lib/farmersMarketCategories';
+} from '../lib/apothecaryCategories';
 import { MARKETPLACE_MENU_CATEGORIES } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VendorListingConfirmModal from '../components/VendorListingConfirmModal';
@@ -952,7 +951,7 @@ export default function VendorDashboard({ user }) {
               }}
               className="border p-3 rounded-2xl text-sm w-full min-w-0"
             >
-              {PRODUCE_LISTING_CATEGORIES.map((c) => (
+              {APOTHECARY_LISTING_CATEGORIES.map((c) => (
                 <option key={c.id} value={c.id}>{c.label}</option>
               ))}
             </select>
