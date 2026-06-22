@@ -1,4 +1,6 @@
-project_id = "emzpkxvxuwhfsknccoad"
+# Hazel Allure — set after creating dedicated Supabase (hazelallurevibes@gmail.com).
+# Run: npx supabase link --project-ref YOUR_HAZEL_REF
+# NEVER link emzpkxvxuwhfsknccoad (Bpicius).
 
 [functions.notify-low-rating]
 verify_jwt = false

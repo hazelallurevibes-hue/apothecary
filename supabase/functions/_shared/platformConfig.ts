@@ -1,18 +1,18 @@
 import { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 
-export const DEFAULT_SITE_URL = "https://bpicius.com";
+export const DEFAULT_SITE_URL = "https://apothecary.hazelallure.com";
 
 const EMAIL_DEFAULTS: Record<string, string> = {
   site_url: DEFAULT_SITE_URL,
-  email_from_name: "Bpicius",
-  email_from_address: "noreply@bpicius.com",
-  email_reply_to: "support@bpicius.com",
-  email_contact: "hello@bpicius.com",
-  email_support: "support@bpicius.com",
-  email_orders: "orders@bpicius.com",
-  email_admin: "admin@bpicius.com",
-  email_vendors: "vendors@bpicius.com",
-  email_info: "info@bpicius.com",
+  email_from_name: "Hazel Allure",
+  email_from_address: "noreply@hazelallure.com",
+  email_reply_to: "support@hazelallure.com",
+  email_contact: "hazelallurevibes@gmail.com",
+  email_support: "hazelallurevibes@gmail.com",
+  email_orders: "hazelallurevibes@gmail.com",
+  email_admin: "hazelallurevibes@gmail.com",
+  email_vendors: "hazelallurevibes@gmail.com",
+  email_info: "info@hazelallure.com",
 };
 
 export type PlatformEmailConfig = {

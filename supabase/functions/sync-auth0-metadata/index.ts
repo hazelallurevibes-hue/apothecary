@@ -3,6 +3,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 const DOMAIN = Deno.env.get("AUTH0_DOMAIN");
 const MGMT_CLIENT_ID = Deno.env.get("AUTH0_MGMT_CLIENT_ID");
 const MGMT_CLIENT_SECRET = Deno.env.get("AUTH0_MGMT_CLIENT_SECRET");
+const AUTH0_CLAIM_NS = (
+  Deno.env.get("APP_URL") || "https://apothecary.hazelallure.com"
+).replace(/\/$/, "");
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -44,7 +47,7 @@ Deno.serve(async (req: Request) => {
       },
       body: JSON.stringify({
         user_metadata: { allergen_avoid },
-        "https://bpicius.com/allergen_avoid": allergen_avoid,
+        [`${AUTH0_CLAIM_NS}/allergen_avoid`]: allergen_avoid,
       }),
     });
     if (!patchRes.ok) return json({ synced: false, reason: await patchRes.text() });

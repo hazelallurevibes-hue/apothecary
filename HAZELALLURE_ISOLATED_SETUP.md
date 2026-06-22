@@ -83,13 +83,24 @@ GoDaddy nav link: **Shop & Book** → `https://apothecary.hazelallure.com`
 
 ---
 
-## Phase 5 — Git push
+## Phase 5 — GitHub + Supabase Git link
+
+**Create the repo first** (push fails until it exists):
+
+1. GitHub → New repo `hazelallure-fullstack` (empty, no README) under wife's account or `garrettpistool-lab`
+2. Push:
 
 ```powershell
 cd C:\Users\abeyt\hazelallure-fullstack
 git remote set-url origin https://github.com/YOUR_ORG/hazelallure-fullstack.git
 git push -u origin main
 ```
+
+3. Supabase (wife's account) → **your NEW hazelallure project** → Integrations → GitHub → connect this repo → enable migrations from `supabase/migrations/`
+
+**Critical:** Link the GitHub repo to the **new** Hazel Supabase project — not `emzpkxvxuwhfsknccoad` (Bpicius).
+
+4. Verify: `node scripts/check-stack-isolation.js`
 
 ---
 
