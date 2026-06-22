@@ -1,6 +1,7 @@
-# Hazel Allure — set after creating dedicated Supabase (hazelallurevibes@gmail.com).
-# Run: npx supabase link --project-ref YOUR_HAZEL_REF
-# NEVER link emzpkxvxuwhfsknccoad (Bpicius).
+# Hazel Allure LLC — jihinbkeqlkgywfsxizj (hazelallurevibes@gmail.com)
+# CLI link from garrettpistool account may fail; wife's account can run: npx supabase link --project-ref jihinbkeqlkgywfsxizj
+
+project_id = "jihinbkeqlkgywfsxizj"
 
 [functions.notify-low-rating]
 verify_jwt = false

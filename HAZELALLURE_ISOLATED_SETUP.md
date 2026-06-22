@@ -5,7 +5,7 @@
 | | Hazel Allure | Bpicius (do not share) |
 |--|--------------|------------------------|
 | Owner / admin | `hazelallurevibes@gmail.com` | Your accounts |
-| Supabase | **New project** | `emzpkxvxuwhfsknccoad` |
+| Supabase | `jihinbkeqlkgywfsxizj` | `emzpkxvxuwhfsknccoad` |
 | Vercel | **New project** | `bpicius2` |
 | Stripe | **New account** (Hazel Allure LLC) | Bpicius Stripe |
 | GitHub | `hazelallurevibes-hue/apothecary` | `bpicius2` |

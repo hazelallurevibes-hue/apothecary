@@ -7,7 +7,7 @@
 ## GitHub integration (migrations on push)
 
 1. Sign in to [Supabase](https://supabase.com) as **hazelallurevibes@gmail.com**
-2. Create project `hazelallure` (new — not garrettpistool-lab's Project)
+2. Project ref: **`jihinbkeqlkgywfsxizj`** (`https://jihinbkeqlkgywfsxizj.supabase.co`)
 3. **Project Settings → Integrations → GitHub** → connect `hazelallurevibes-hue/apothecary` repo
 4. Enable **Automatic migrations** from `supabase/migrations/`
 5. After first deploy, run locally:
