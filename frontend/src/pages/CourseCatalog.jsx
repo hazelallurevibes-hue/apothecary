@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { fetchPublishedCourses, COURSE_CATEGORIES } from '../lib/teachingPlatform';
 import { VERTICAL } from '../lib/vertical';
 import VideoEmbed from '../components/VideoEmbed';
+import LearningPathPanel from '../components/LearningPathPanel';
 
 export default function CourseCatalog({ user }) {
   const [courses, setCourses] = useState([]);
@@ -29,6 +30,8 @@ export default function CourseCatalog({ user }) {
           Courses from Pro Practitioners on {VERTICAL.name} — herbalism, tarot, ritual craft, and spiritual business.
         </p>
       </div>
+
+      <LearningPathPanel user={user} />
 
       <div className="flex flex-wrap gap-3 mb-8">
         <input

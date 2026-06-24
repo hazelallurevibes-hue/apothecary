@@ -16,6 +16,8 @@ import { serializeAllergenIds } from '../lib/allergens';
 import { syncAllergenToAuth0, syncAllergenToLocalUser } from '../lib/auth0MetadataSync';
 import { fetchFoodPreferences, saveFoodPreferences, EMPTY_FOOD_PREFS } from '../lib/foodPreferences';
 import { STORAGE_KEYS } from '../lib/storageKeys';
+import LearningStyleChips from '../components/LearningStyleChips';
+import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
 
 export default function AccountSettings({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || '');
@@ -30,11 +32,16 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [subscriptions, setSubscriptions] = useState([]);
   const [billingLoading, setBillingLoading] = useState(false);
+  const [learningStyles, setLearningStyles] = useState([]);
+  const [stylesSaving, setStylesSaving] = useState(false);
   const API = import.meta.env.VITE_API_URL || '/api';
 
   useEffect(() => {
     if (!user?.email) return;
     fetchFoodPreferences(user.email).then(setFoodPrefs).catch(() => setFoodPrefs({ ...EMPTY_FOOD_PREFS }));
+    fetchUserLearningProfile(user.email)
+      .then((p) => setLearningStyles(p.styles || []))
+      .catch(() => setLearningStyles([]));
   }, [user?.email]);
 
   useEffect(() => {
@@ -166,6 +173,19 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     setPrefsSaving(false);
   };
 
+  const saveLearningStylesPrefs = async () => {
+    if (!user?.email) return;
+    setStylesSaving(true);
+    setStatus('');
+    try {
+      await savePreferredLearningStyles(user.email, learningStyles);
+      setStatus('Learning styles saved — course recommendations will match your path.');
+    } catch (e) {
+      setStatus(e.message);
+    }
+    setStylesSaving(false);
+  };
+
   const handleAvatarUpload = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -192,6 +212,28 @@ export default function AccountSettings({ user, onProfileUpdate }) {
             onSave={saveFoodPrefs}
             saving={prefsSaving}
           />
+        </div>
+      )}
+
+      {(role === 'customer' || role === 'guest' || customerCtx) && (
+        <div className="mb-6 p-6 sm:p-8 bg-white border rounded-3xl" id="learning-styles">
+          <h2 className="font-semibold text-xl mb-1">Learning path</h2>
+          <p className="text-sm text-gray-600 mb-4">
+            Tell us how you learn best — we rank courses in the Sanctum to fit visual, auditory, hands-on, social, or solitary styles.
+          </p>
+          <LearningStyleChips
+            value={learningStyles}
+            onChange={setLearningStyles}
+            label="Your learning styles (VARK+)"
+          />
+          <button
+            type="button"
+            onClick={saveLearningStylesPrefs}
+            disabled={stylesSaving}
+            className="mt-4 px-5 py-2.5 bg-[#4a1942] text-white rounded-xl text-sm min-h-[44px] disabled:opacity-60"
+          >
+            {stylesSaving ? 'Saving…' : 'Save learning styles'}
+          </button>
         </div>
       )}
 

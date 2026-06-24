@@ -80,6 +80,18 @@ async function handleCheckoutCompleted(
   session: Stripe.Checkout.Session,
 ) {
   const meta = session.metadata || {};
+  const checkoutType = meta.checkout_type || "";
+
+  if (checkoutType === "course_enrollment") {
+    await handleCourseEnrollmentCheckout(supabase, session, meta);
+    return;
+  }
+
+  if (checkoutType === "session_booking") {
+    await handleSessionBookingCheckout(supabase, session, meta);
+    return;
+  }
+
   const planType = (meta.plan_type || "customer") as PlanType;
   const userId = meta.user_id ? Number(meta.user_id) : null;
   const vendorId = meta.vendor_id ? Number(meta.vendor_id) : null;
@@ -94,6 +106,71 @@ async function handleCheckoutCompleted(
 
   if (subscriptionIsActive(mapStripeStatus(subscription.status))) {
     await grantProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
+  }
+}
+
+async function handleCourseEnrollmentCheckout(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+  meta: Record<string, string>,
+) {
+  const courseId = Number(meta.course_id);
+  const email = (meta.user_email || session.customer_email || "").toLowerCase();
+  if (!courseId || !email) return;
+
+  const amountPaid = meta.amount_paid ? Number(meta.amount_paid) : (session.amount_total || 0) / 100;
+  const paymentIntent = typeof session.payment_intent === "string"
+    ? session.payment_intent
+    : session.payment_intent?.id;
+
+  await supabase
+    .from("vendor_course_enrollments")
+    .update({
+      payment_status: "paid",
+      amount_paid: amountPaid,
+      stripe_payment_intent_id: paymentIntent || null,
+      pro_member_at_purchase: meta.pro_member === "true",
+    })
+    .eq("course_id", courseId)
+    .ilike("user_email", email);
+
+  const { data: course } = await supabase
+    .from("vendor_courses")
+    .select("enrollment_count")
+    .eq("id", courseId)
+    .maybeSingle();
+
+  await supabase.from("vendor_courses").update({
+    enrollment_count: (Number(course?.enrollment_count) || 0) + 1,
+  }).eq("id", courseId);
+}
+
+async function handleSessionBookingCheckout(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+  meta: Record<string, string>,
+) {
+  const slotId = Number(meta.slot_id);
+  const email = (meta.user_email || "").toLowerCase();
+  if (!slotId || !email) return;
+
+  const amountCents = session.amount_total || 0;
+
+  const { data: booked } = await supabase.rpc("book_practitioner_slot", {
+    p_slot_id: slotId,
+    p_seeker_email: email,
+    p_seeker_name: meta.seeker_name || null,
+    p_seeker_notes: meta.seeker_notes || null,
+    p_paid_confirmed: true,
+  });
+
+  const bookingId = (booked as { booking_id?: number })?.booking_id;
+  if (bookingId) {
+    await supabase.from("practitioner_bookings").update({
+      amount_paid_cents: amountCents,
+      stripe_checkout_session_id: session.id,
+      status: "confirmed",
+    }).eq("id", bookingId);
   }
 }
 

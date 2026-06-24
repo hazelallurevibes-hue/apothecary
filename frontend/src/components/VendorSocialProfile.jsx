@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { VERTICAL } from '../lib/vertical';
 import ListingFulfillmentActions from './ListingFulfillmentActions';
@@ -17,6 +17,8 @@ import { fetchPublishedCourses } from '../lib/teachingPlatform';
 import { getStreamUrlForPlatform } from '../lib/streamUtils';
 import { formatPickupHoursSummary, upcomingEvents } from '../lib/pickupSchedule';
 import { listingDetailPath } from '../lib/listingDisplay';
+import SessionBookingPanel from './SessionBookingPanel';
+import { fetchOpenSlots } from '../lib/sessionBookingApi';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -121,6 +123,7 @@ function CourseCard({ course }) {
 }
 
 export default function VendorSocialProfile({ vendorId, user }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [vendor, setVendor] = useState(null);
   const [services, setServices] = useState([]);
   const [apothecary, setApothecary] = useState([]);
@@ -130,6 +133,8 @@ export default function VendorSocialProfile({ vendorId, user }) {
   const [avgRating, setAvgRating] = useState(0);
   const [reviewCount, setReviewCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [openSlotCount, setOpenSlotCount] = useState(0);
+  const [bookingToast, setBookingToast] = useState('');
   const tabRefs = useRef([]);
 
   const isPaid = (vendor?.plan || 'free') === 'paid';
@@ -151,6 +156,23 @@ export default function VendorSocialProfile({ vendorId, user }) {
     ];
     return items.slice(0, 8);
   }, [services, apothecary, courses]);
+
+  useEffect(() => {
+    if (searchParams.get('booked') === '1') {
+      setBookingToast('Session booked — check your email for details.');
+      setActiveTab('live');
+      const next = new URLSearchParams(searchParams);
+      next.delete('booked');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!vendorId) return;
+    fetchOpenSlots(vendorId, { limit: 5 })
+      .then((slots) => setOpenSlotCount(slots.length))
+      .catch(() => setOpenSlotCount(0));
+  }, [vendorId]);
 
   useEffect(() => {
     const load = async () => {
@@ -385,7 +407,27 @@ export default function VendorSocialProfile({ vendorId, user }) {
         >
           Learn
         </button>
+        {openSlotCount > 0 && (
+          <button
+            type="button"
+            onClick={() => scrollToTab('live')}
+            className="flex-1 sm:flex-none min-w-[7rem] px-6 py-3 rounded-full font-semibold text-sm bg-emerald-600 text-white hover:bg-emerald-700 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+            aria-label={`Book a session — ${openSlotCount} slots open`}
+          >
+            1:1 ({openSlotCount})
+          </button>
+        )}
       </section>
+
+      {bookingToast && (
+        <div
+          className="mt-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm text-emerald-800"
+          role="status"
+          aria-live="polite"
+        >
+          {bookingToast}
+        </div>
+      )}
 
       {/* Bio snippet + pickup */}
       {(vendor.bio || formatPickupHoursSummary(vendor.pickup_hours)) && (
@@ -550,6 +592,9 @@ export default function VendorSocialProfile({ vendorId, user }) {
               Watch live sessions, rituals, and teachings from {vendor.name}. Archived sessions appear below.
             </p>
             <LiveStreamPlayer vendor={vendor} />
+            <div className="mt-8">
+              <SessionBookingPanel vendorId={vendorId} vendorName={vendor.name} user={user} />
+            </div>
             <StreamArchiveGallery archives={vendor.stream_archives} />
           </div>
         )}

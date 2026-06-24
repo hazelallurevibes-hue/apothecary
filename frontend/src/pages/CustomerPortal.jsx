@@ -4,6 +4,8 @@ import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser } from '../lib/ordersApi';
 import { getCustomerContext, isProPlan, planBadgeLabel } from '../lib/plans';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
+import LearningPathPanel from '../components/LearningPathPanel';
+import MySessionsPanel from '../components/MySessionsPanel';
 import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
 
 let API = import.meta.env.VITE_API_URL || '/api';
@@ -67,6 +69,11 @@ export default function CustomerPortal({ user }) {
       </div>
 
       <ProBenefitsStrip user={user} variant="customer" compact />
+
+      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+        <LearningPathPanel user={user} compact />
+        <MySessionsPanel user={user} compact />
+      </div>
 
       {/* Pro Quick Cart */}
       <div className="mt-6 bg-white border rounded-3xl p-6 mb-8">

@@ -22,6 +22,8 @@ import {
   parseHaTeachMetadata,
 } from '../lib/teachingStudio';
 import { STREAM_PLATFORMS, getStreamUrlForPlatform } from '../lib/streamUtils';
+import PractitionerSlotManager from '../components/PractitionerSlotManager';
+import PractitionerBookingsPanel from '../components/PractitionerBookingsPanel';
 
 const TABS = [
   { id: 'courses', label: 'Courses', icon: '📚' },
@@ -523,13 +525,16 @@ export default function VendorTeaching({ user }) {
             </div>
           </div>
 
+          <PractitionerSlotManager vendorId={vendorId} />
+          <PractitionerBookingsPanel vendorId={vendorId} />
+
           <div className="bg-gradient-to-br from-[#f5f0e8] to-white border rounded-3xl p-6 md:p-8">
             <h3 className="font-semibold mb-2">Quick tips for live teachings</h3>
             <ul className="text-sm text-gray-600 space-y-2 list-disc list-inside">
               <li>Test your embed on mobile before announcing a live ritual.</li>
               <li>Archive past broadcasts from storefront settings — thumbnails appear publicly, URLs stay private.</li>
               <li>Pair live streams with async replay lessons so solitary learners can catch up.</li>
-              <li>For 1:1 mentorship, create a service listing with your hourly rate and booking window.</li>
+              <li>Publish open slots above — seekers book directly from your Live Studio profile tab.</li>
             </ul>
           </div>
         </div>

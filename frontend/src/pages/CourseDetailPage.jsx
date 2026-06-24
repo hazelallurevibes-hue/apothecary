@@ -1,21 +1,26 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import VideoEmbed from '../components/VideoEmbed';
 import { getCustomerContext, isProPlan } from '../lib/plans';
 import {
   coursePriceForCustomer,
-  enrollInCourse,
   fetchCourseById,
   fetchCourseLessons,
   isEnrolled,
 } from '../lib/teachingPlatform';
+import { checkoutCourseEnrollment } from '../lib/courseBillingApi';
+import { fetchUserLearningProfile, scoreCourseForLearner } from '../lib/learningPathApi';
+import { LEARNING_STYLES, formatDeliverySummary } from '../lib/teachingStudio';
 
 export default function CourseDetailPage({ user }) {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [enrolled, setEnrolled] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [matchScore, setMatchScore] = useState(0);
+  const [toast, setToast] = useState('');
 
   const customerCtx = getCustomerContext(user);
   const price = course ? coursePriceForCustomer(course, customerCtx?.plan) : 0;
@@ -24,8 +29,33 @@ export default function CourseDetailPage({ user }) {
   useEffect(() => {
     fetchCourseById(id).then(setCourse);
     fetchCourseLessons(id).then(setLessons);
-    if (user?.email) isEnrolled(id, user.email).then(setEnrolled);
+    if (user?.email) {
+      isEnrolled(id, user.email).then(setEnrolled);
+      fetchUserLearningProfile(user.email).then((profile) => {
+        fetchCourseById(id).then((c) => {
+          if (c && profile.styles?.length) {
+            setMatchScore(scoreCourseForLearner(c, profile.styles));
+          }
+        });
+      });
+    }
   }, [id, user?.email]);
+
+  useEffect(() => {
+    if (searchParams.get('enrolled') === '1') {
+      setEnrolled(true);
+      setToast('Payment confirmed — welcome to the Sanctum!');
+      const next = new URLSearchParams(searchParams);
+      next.delete('enrolled');
+      setSearchParams(next, { replace: true });
+    }
+    if (searchParams.get('checkout') === 'cancel') {
+      setToast('Checkout cancelled — your cart is clear.');
+      const next = new URLSearchParams(searchParams);
+      next.delete('checkout');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleEnroll = async () => {
     if (!user?.email) {
@@ -33,10 +63,13 @@ export default function CourseDetailPage({ user }) {
       return;
     }
     setEnrolling(true);
+    setToast('');
     try {
-      await enrollInCourse({ courseId: Number(id), user, amountPaid: price });
-      setEnrolled(true);
-      alert('Enrolled! Your lessons are now available below.');
+      const result = await checkoutCourseEnrollment({ courseId: Number(id), email: user.email });
+      if (result?.free || result?.enrolled) {
+        setEnrolled(true);
+        setToast('Enrolled! Your lessons are now available below.');
+      }
     } catch (e) {
       alert(e.message || 'Enrollment failed.');
     }
@@ -46,10 +79,21 @@ export default function CourseDetailPage({ user }) {
   if (!course) return <div className="p-8 text-gray-500">Loading course…</div>;
 
   const previewLessons = enrolled ? lessons : lessons.filter((l) => l.free_preview);
+  const matchPct = matchScore > 0 ? Math.min(100, Math.round((matchScore / 12) * 100)) : 0;
 
   return (
     <div className="max-w-3xl mx-auto">
       <Link to="/courses" className="text-sm text-[#4a1942] mb-4 inline-block">← All courses</Link>
+
+      {toast && (
+        <div
+          className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-sm text-emerald-800"
+          role="status"
+          aria-live="polite"
+        >
+          {toast}
+        </div>
+      )}
 
       <div className="bg-white border rounded-3xl overflow-hidden">
         {course.preview_video_url ? (
@@ -59,8 +103,33 @@ export default function CourseDetailPage({ user }) {
         ) : null}
 
         <div className="p-6 md:p-8 space-y-4">
-          <h1 className="text-3xl font-bold heading-font text-[#4a1942]">{course.title}</h1>
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <h1 className="text-3xl font-bold heading-font text-[#4a1942]">{course.title}</h1>
+            {matchPct >= 50 && (
+              <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#c9a227]/20 text-[#4a1942]">
+                {matchPct}% learning-style match
+              </span>
+            )}
+          </div>
           <p className="text-gray-700 leading-relaxed">{course.description}</p>
+
+          {(course.delivery_modes?.length > 0 || course.learning_styles?.length > 0) && (
+            <div className="flex flex-wrap gap-2">
+              {course.delivery_modes?.length > 0 && (
+                <span className="text-[10px] uppercase tracking-wide px-3 py-1 rounded-full bg-[#f5f0e8] text-[#4a1942]">
+                  {formatDeliverySummary(course.delivery_modes)}
+                </span>
+              )}
+              {course.learning_styles?.map((styleId) => (
+                <span
+                  key={styleId}
+                  className="text-[10px] px-2 py-1 rounded-full border border-[#c9a227]/30 text-[#4a1942]"
+                >
+                  {LEARNING_STYLES.find((s) => s.id === styleId)?.label || styleId}
+                </span>
+              ))}
+            </div>
+          )}
 
           <div className="flex flex-wrap items-center gap-4 p-4 bg-[#f5f0e8] rounded-2xl">
             <div>
@@ -79,9 +148,9 @@ export default function CourseDetailPage({ user }) {
                 type="button"
                 onClick={handleEnroll}
                 disabled={enrolling}
-                className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50"
+                className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50 min-h-[44px]"
               >
-                {price > 0 ? `Enroll — $${price.toFixed(2)}` : 'Enroll free'}
+                {enrolling ? 'Redirecting…' : price > 0 ? `Enroll — $${price.toFixed(2)}` : 'Enroll free'}
               </button>
             )}
           </div>

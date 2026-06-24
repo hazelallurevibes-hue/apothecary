@@ -3,15 +3,30 @@ import { isProPlan } from './plans';
 import { parseVideoUrl } from './videoEmbed';
 import { embedHaTeachInDescription, parseHaTeachMetadata } from './teachingStudio';
 
-/** Attach parsed HA_TEACH metadata to a course row for UI convenience. */
+function normalizeJsonArray(val) {
+  if (Array.isArray(val)) return val;
+  if (typeof val === 'string') {
+    try {
+      const p = JSON.parse(val);
+      return Array.isArray(p) ? p : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+/** Attach teaching metadata — prefers DB columns, falls back to HA_TEACH comment. */
 export function enrichCourseWithTeachMeta(course) {
   if (!course) return course;
   const { delivery, styles, body } = parseHaTeachMetadata(course.description);
+  const dbDelivery = normalizeJsonArray(course.delivery_modes);
+  const dbStyles = normalizeJsonArray(course.learning_styles);
   return {
     ...course,
     description: body,
-    delivery_modes: delivery,
-    learning_styles: styles,
+    delivery_modes: dbDelivery.length ? dbDelivery : delivery,
+    learning_styles: dbStyles.length ? dbStyles : styles,
     _description_raw: course.description,
   };
 }
@@ -36,7 +51,7 @@ export async function fetchPublishedCourses({ vendorId, category, search } = {})
       (c) => c.title?.toLowerCase().includes(s) || c.description?.toLowerCase().includes(s),
     );
   }
-  return rows;
+  return rows.map(enrichCourseWithTeachMeta);
 }
 
 export async function fetchVendorCourses(vendorId) {
@@ -74,10 +89,14 @@ export async function saveCourse(course) {
     const body = rest.description !== undefined
       ? parseHaTeachMetadata(rest.description).body
       : (existing?.description ?? '');
-    payload.description = embedHaTeachInDescription(body, {
-      delivery: delivery_modes ?? existing?.delivery_modes ?? [],
-      styles: learning_styles ?? existing?.learning_styles ?? [],
-    });
+    const delivery = delivery_modes ?? existing?.delivery_modes ?? [];
+    const styles = learning_styles ?? existing?.learning_styles ?? [];
+    payload.delivery_modes = delivery;
+    payload.learning_styles = styles;
+    payload.one_on_one_enabled = delivery.includes('one_on_one');
+    payload.description = embedHaTeachInDescription(body, { delivery, styles });
+  } else if (rest.description !== undefined) {
+    payload.description = parseHaTeachMetadata(rest.description).body;
   }
 
   if (course.preview_video_url) {
