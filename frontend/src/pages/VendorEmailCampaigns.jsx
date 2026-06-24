@@ -158,9 +158,9 @@ export default function VendorEmailCampaigns({ user }) {
       <div className="max-w-2xl">
         <h1 className="text-3xl font-bold mb-2">Email Campaigns</h1>
         <div className="bg-white border rounded-3xl p-8 mt-4">
-          <p className="text-lg font-medium mb-2">Pro vendor feature</p>
+          <p className="text-lg font-medium mb-2">Pro Practitioner feature</p>
           <p className="text-gray-600 mb-4">
-            Invite customers to your Hazel Allure storefront with admin-approved email campaigns, double opt-in, analytics, and unsubscribe compliance.
+            Invite seekers to your Hazel Allure storefront with admin-approved email campaigns, double opt-in, analytics, and unsubscribe compliance.
           </p>
           <ul className="text-sm text-gray-600 space-y-1 mb-6">
             <li>• Up to {settings?.paid_vendor_campaigns_per_month || 20} campaigns per month</li>
@@ -168,7 +168,7 @@ export default function VendorEmailCampaigns({ user }) {
             <li>• Open/click tracking via Resend webhooks</li>
           </ul>
           <p className="text-sm text-gray-500">
-            <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium underline">Be a Pro Vendor</Link> to unlock email campaigns.
+            <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium underline">Be a Pro Practitioner</Link> to unlock email campaigns.
           </p>
           <Link to="/account-settings" className="inline-block mt-4 text-[#4a1942] underline text-sm">Account Settings →</Link>
         </div>
@@ -180,7 +180,7 @@ export default function VendorEmailCampaigns({ user }) {
     <div className="max-w-3xl">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Vendor Email Campaigns</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Practitioner Email Campaigns</h1>
           <p className="text-gray-600 mt-1">
             Double opt-in audience, templates, analytics — every email links to your Hazel Allure storefront.
           </p>

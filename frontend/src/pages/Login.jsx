@@ -71,7 +71,7 @@ export default function Login({ onLogin, loading }) {
         const signup = await registerAuthUser(email, password, {
           captchaToken: captcha.captchaToken,
         });
-        const displayName = signup.email.split('@')[0] || 'Customer';
+        const displayName = signup.email.split('@')[0] || 'Seeker';
         const { error: rpcError } = await supabase.rpc('submit_customer_signup', {
           p_name: displayName,
           p_email: signup.email,

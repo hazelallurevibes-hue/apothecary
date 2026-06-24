@@ -75,7 +75,7 @@ export default function CustomerSignUp({ onLogin }) {
         };
         setSessionProfile(profileData);
         setStep('prefs');
-        setMessage('Account created! Tell us what you like and avoid (optional).');
+        setMessage('Account created! Share your wellness preferences (optional).');
       } else {
         setMessage(
           signup.needsEmailConfirmation
@@ -119,8 +119,8 @@ export default function CustomerSignUp({ onLogin }) {
   if (step === 'prefs' && sessionProfile) {
     return (
       <div className="max-w-lg mx-auto">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">My Likes &amp; Dislikes</h1>
-        <p className="text-gray-600 mb-6 text-sm">Help local vendors serve you better. You can change this anytime in Account Settings.</p>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Wellness Preferences</h1>
+        <p className="text-gray-600 mb-6 text-sm">Help practitioners and artisans tailor offerings to your intentions. You can change this anytime in Account Settings.</p>
         <MyLikesDislikesQuestionnaire
           value={foodPrefs}
           onChange={setFoodPrefs}
@@ -142,7 +142,7 @@ export default function CustomerSignUp({ onLogin }) {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Customer Sign Up</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-6">Seeker Sign Up</h1>
       <div className="bg-white border rounded-3xl p-8 relative">
         <form onSubmit={handleSignUp} className="space-y-4">
           <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
@@ -212,7 +212,7 @@ export default function CustomerSignUp({ onLogin }) {
             disabled={loading || !agreedToTerms || passwordsMismatch}
             className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold mt-2 disabled:opacity-70"
           >
-            {loading ? 'Creating...' : 'Create Customer Account'}
+            {loading ? 'Creating...' : 'Create Seeker Account'}
           </button>
           {message && (
             <div

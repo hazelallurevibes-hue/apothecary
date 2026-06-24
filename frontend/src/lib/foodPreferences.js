@@ -1,20 +1,11 @@
 import { supabase } from './supabaseClient';
 import { parseAllergenIds, serializeAllergenIds } from './allergens';
+import { WELLNESS_LIFESTYLE_OPTIONS, WELLNESS_AVOID_OPTIONS } from './wellnessPreferences';
 
-export const DIET_OPTIONS = [
-  { id: 'none', label: 'No specific diet' },
-  { id: 'vegetarian', label: 'Vegetarian' },
-  { id: 'vegan', label: 'Vegan' },
-  { id: 'pescatarian', label: 'Pescatarian' },
-  { id: 'gluten_free', label: 'Gluten-free' },
-  { id: 'dairy_free', label: 'Dairy-free' },
-  { id: 'keto', label: 'Keto / low-carb' },
-  { id: 'paleo', label: 'Paleo' },
-  { id: 'halal', label: 'Halal' },
-  { id: 'kosher', label: 'Kosher' },
-  { id: 'low_sodium', label: 'Low sodium' },
-  { id: 'other', label: 'Other (describe in notes)' },
-];
+/** @deprecated Use WELLNESS_LIFESTYLE_OPTIONS — kept for DB compat (diet_type field). */
+export const DIET_OPTIONS = WELLNESS_LIFESTYLE_OPTIONS;
+
+export { WELLNESS_LIFESTYLE_OPTIONS, WELLNESS_AVOID_OPTIONS };
 
 export const EMPTY_FOOD_PREFS = {
   diet_type: 'none',

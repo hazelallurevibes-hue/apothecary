@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   PAID_VENDOR_UPGRADE_FEATURES,
-  CUSTOMER_PERMISSIONS,
+  PAID_CUSTOMER_UPGRADE_FEATURES,
   getCustomerContext,
   getVendorContext,
   isProPlan,
@@ -11,14 +11,6 @@ import {
 import { createProCheckout, getProPricing } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
-
-const CUSTOMER_PRO_FEATURES = [
-  'Exclusive practitioner discounts at checkout',
-  'Lower course prices in Teaching Sanctum',
-  'Ratings, favorites & loyalty rewards',
-  'Priority support tickets',
-  'Premium express checkout',
-];
 
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
@@ -131,14 +123,14 @@ export default function ProUpgrade({ user }) {
           onClick={() => setBillingInterval('annual')}
           className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition ${billingInterval === 'annual' ? 'bg-[#2d1230] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
         >
-          Annual <span className="text-xs opacity-80 ml-1">(save ~17%)</span>
+          Annual <span className="text-xs opacity-80 ml-1">({t('pro.upgrade.annualNote')})</span>
         </button>
       </div>
 
       <div className={`glass-card p-6 sm:p-8 ${!alreadyPro ? 'animate-glow-pulse' : ''} border-2 border-[#4a1942]/12`}>
-        {!alreadyPro && (
+        {!alreadyPro && planType === 'vendor' && (
           <p className="text-xs text-center text-[#4a1942]/70 font-medium mb-5 px-3 py-2 rounded-xl bg-[#c9a227]/10 border border-[#c9a227]/20">
-            Practitioners on Pro grow visibility with storefront tools, courses, and international links — start today, cancel anytime.
+            {t('pro.upgrade.vendorHint')}
           </p>
         )}
 
@@ -149,15 +141,15 @@ export default function ProUpgrade({ user }) {
             </h2>
             <p className="text-sm text-gray-600 mt-1.5 max-w-sm leading-relaxed">
               {planType === 'vendor'
-                ? 'Full practitioner toolkit — storefront links, courses, analytics, and go-live tools.'
-                : 'Member perks — discounts, course pricing, ratings, favorites, and express checkout.'}
+                ? t('pro.upgrade.vendorDescription')
+                : t('pro.upgrade.memberDescription')}
             </p>
           </div>
           <div className="text-right shrink-0">
             <div className="text-4xl font-bold text-[#4a1942] heading-font">{formatCurrency(price)}</div>
             <div className="text-xs text-gray-500 mt-0.5">per {billingInterval === 'annual' ? 'year' : 'month'}</div>
             {billingInterval === 'annual' && (
-              <div className="text-[10px] text-[#6b7f6a] font-medium mt-1">Best value for committed practitioners</div>
+              <div className="text-[10px] text-[#6b7f6a] font-medium mt-1">{t('pro.upgrade.annualNote')}</div>
             )}
           </div>
         </div>
@@ -172,7 +164,7 @@ export default function ProUpgrade({ user }) {
         )}
 
         <ul className="space-y-2.5 mb-6">
-          {(planType === 'vendor' ? PAID_VENDOR_UPGRADE_FEATURES : CUSTOMER_PRO_FEATURES).map((f) => (
+          {(planType === 'vendor' ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES).map((f) => (
             <li key={f} className="text-sm text-gray-700 flex gap-2.5 items-start">
               <span className="text-[#c9a227] font-bold shrink-0" aria-hidden="true">✓</span>
               <span>{f}</span>

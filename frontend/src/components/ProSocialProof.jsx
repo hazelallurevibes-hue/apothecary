@@ -1,9 +1,10 @@
 import { useLocale } from '../i18n';
 
-const TESTIMONIAL_KEYS = [
-  { quote: 'pro.testimonial1.quote', name: 'pro.testimonial1.name', role: 'pro.testimonial1.role' },
-  { quote: 'pro.testimonial2.quote', name: 'pro.testimonial2.name', role: 'pro.testimonial2.role' },
-  { quote: 'pro.testimonial3.quote', name: 'pro.testimonial3.name', role: 'pro.testimonial3.role' },
+const STAT_KEYS = [
+  { value: 'pro.stat1.value', label: 'pro.stat1.label' },
+  { value: 'pro.stat2.value', label: 'pro.stat2.label' },
+  { value: 'pro.stat3.value', label: 'pro.stat3.label' },
+  { value: 'pro.stat4.value', label: 'pro.stat4.label' },
 ];
 
 export default function ProSocialProof() {
@@ -16,34 +17,16 @@ export default function ProSocialProof() {
         <p className="text-sm text-gray-600 mt-1 max-w-md mx-auto">{t('pro.socialProof')}</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {TESTIMONIAL_KEYS.map((item) => (
-          <blockquote
-            key={item.quote}
-            className="bg-white border border-[#4a1942]/10 rounded-2xl p-4 text-left shadow-sm"
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {STAT_KEYS.map((item) => (
+          <div
+            key={item.value}
+            className="bg-white border border-[#4a1942]/10 rounded-2xl p-4 text-center shadow-sm"
           >
-            <p className="text-sm text-gray-700 leading-relaxed">&ldquo;{t(item.quote)}&rdquo;</p>
-            <footer className="mt-3 text-xs text-gray-500">
-              <span className="font-medium text-[#4a1942]">{t(item.name)}</span>
-              <span className="block">{t(item.role)}</span>
-            </footer>
-          </blockquote>
+            <div className="text-xl font-bold text-[#4a1942]">{t(item.value)}</div>
+            <div className="text-xs text-gray-500 mt-1">{t(item.label)}</div>
+          </div>
         ))}
-      </div>
-
-      <div className="flex flex-wrap justify-center gap-6 text-center text-sm">
-        <div>
-          <div className="text-xl font-bold text-[#4a1942]">{t('pro.stat1.value')}</div>
-          <div className="text-xs text-gray-500">{t('pro.stat1.label')}</div>
-        </div>
-        <div>
-          <div className="text-xl font-bold text-[#4a1942]">{t('pro.stat2.value')}</div>
-          <div className="text-xs text-gray-500">{t('pro.stat2.label')}</div>
-        </div>
-        <div>
-          <div className="text-xl font-bold text-[#4a1942]">{t('pro.stat3.value')}</div>
-          <div className="text-xs text-gray-500">{t('pro.stat3.label')}</div>
-        </div>
       </div>
     </section>
   );

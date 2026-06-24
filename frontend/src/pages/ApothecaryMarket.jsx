@@ -20,6 +20,7 @@ import { modificationPayloadFromCart } from '../components/PreorderModificationP
 import { allApothecaryCategories, getCategoryDisplay, isMedicinalCategory } from '../lib/apothecaryCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import { VERTICAL } from '../lib/vertical';
+import { WELLNESS_MARKET_FILTERS } from '../lib/wellnessPreferences';
 
 export default function ApothecaryMarket({ user }) {
   const [items, setItems] = useState([]);
@@ -214,9 +215,10 @@ export default function ApothecaryMarket({ user }) {
             Organic / natural only
           </label>
           <select value={dietaryFilter} onChange={(e) => setDietaryFilter(e.target.value)} className="border px-3 py-2 rounded-2xl text-sm">
-            <option value="">Any Diet</option>
-            <option value="vegan">Vegan</option>
-            <option value="gluten-free">Gluten-Free</option>
+            <option value="">Any wellness style</option>
+            {WELLNESS_MARKET_FILTERS.map((opt) => (
+              <option key={opt.id} value={opt.id}>{opt.label}</option>
+            ))}
           </select>
           <label className="flex items-center gap-2 text-sm cursor-pointer">
             <input type="checkbox" checked={seasonalOnly} onChange={(e) => setSeasonalOnly(e.target.checked)} className="accent-[#4a1942]" /> Seasonal only

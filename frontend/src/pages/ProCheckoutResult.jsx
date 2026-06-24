@@ -56,14 +56,17 @@ export function ProSuccess({ user, onProfileUpdate }) {
   const dashboardPath = isVendor ? '/vendor-dashboard' : '/customer-portal';
   const explorePath = isVendor ? '/storefront-settings' : '/courses';
 
+  const planLabel = isVendor ? 'Pro Practitioner' : 'Pro Member';
+  const activeMessage = t('pro.success.activeMessage').replace('{plan}', planLabel);
+
   return (
     <div className="max-w-lg mx-auto text-center py-12">
-      <div className="text-5xl mb-4">🎉</div>
-      <h1 className="text-3xl font-bold mb-2">Welcome to Hazel Allure Pro!</h1>
+      <div className="inline-flex items-center justify-center w-14 h-14 mb-4 rounded-full bg-[#4a1942]/8 text-[#4a1942] text-2xl" aria-hidden="true">
+        ✓
+      </div>
+      <h1 className="text-3xl font-bold mb-2">{t('pro.success.title')}</h1>
       <p className="text-gray-600 mb-6">
-        {refreshing
-          ? 'Activating your Pro access…'
-          : `Your ${isVendor ? 'Pro Practitioner' : 'Pro Member'} subscription is active. All premium features are now unlocked.`}
+        {refreshing ? t('pro.success.activating') : activeMessage}
       </p>
 
       {!refreshing && (

@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import { PAID_VENDOR_UPGRADE_FEATURES, isProPlan, planBadgeLabel } from '../lib/plans';
+import { useLocale } from '../i18n';
 
 export default function UpgradeBanner({ plan, compact = false }) {
+  const { t } = useLocale();
+
   if (isProPlan(plan)) return null;
 
   if (compact) {
@@ -11,7 +14,7 @@ export default function UpgradeBanner({ plan, compact = false }) {
         className="block mb-4 px-4 py-3.5 gradient-pro-banner text-white rounded-2xl text-sm font-medium hover:opacity-95 transition shadow-md border border-[#c9a227]/20"
       >
         <span className="text-[#c9a227] font-semibold">Pro Practitioner</span>
-        {' '}— unlock storefront tools, courses, analytics &amp; more →
+        {' '}— {t('pro.banner.compact')} →
       </Link>
     );
   }
@@ -30,9 +33,9 @@ export default function UpgradeBanner({ plan, compact = false }) {
           <div className="text-[10px] font-semibold uppercase tracking-widest text-[#c9a227] mb-1.5">
             {planBadgeLabel(plan, 'vendor')} — limited features
           </div>
-          <h3 className="font-semibold text-xl heading-font">Upgrade to Pro Practitioner</h3>
+          <h3 className="font-semibold text-xl heading-font">{t('pro.banner.title')}</h3>
           <p className="text-sm text-white/80 mt-1.5 max-w-xl leading-relaxed">
-            You&apos;re on the free plan. Pro unlocks the full Hazel Allure toolkit — storefront links, courses, and go-live tools for your practice.
+            {t('pro.banner.subtitle')}
           </p>
         </div>
         <Link

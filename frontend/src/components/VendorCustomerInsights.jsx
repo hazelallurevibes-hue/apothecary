@@ -19,7 +19,7 @@ export default function VendorCustomerInsights({ user, vendorId }) {
   if (!canView) {
     return (
       <div className="bg-gray-50 border border-dashed rounded-3xl p-6 text-sm text-gray-600">
-        <strong>Pro Vendor:</strong> See what customers in your area like and dislike (anonymous aggregates).
+        <strong>Pro Practitioner:</strong> See what seekers in your area prefer and avoid (anonymous aggregates).
         <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium ml-1 underline">Upgrade →</Link>
       </div>
     );
@@ -35,23 +35,23 @@ export default function VendorCustomerInsights({ user, vendorId }) {
     );
   }
 
-  if (!insights) return <p className="text-sm text-gray-500">Loading customer insights…</p>;
+  if (!insights) return <p className="text-sm text-gray-500">Loading seeker insights…</p>;
 
   return (
     <div className="bg-white border rounded-3xl p-6 space-y-4">
       <div className="flex items-center gap-2">
-        <h3 className="font-semibold text-lg">Customer likes &amp; dislikes (your area)</h3>
+        <h3 className="font-semibold text-lg">Seeker wellness preferences (your area)</h3>
         <HelpTip title="Anonymous insights" aslNote="Screen-reader friendly summary lists below.">
-          Aggregated from members who completed My Likes &amp; Dislikes. No personal names or emails are shown.
+          Aggregated from members who completed Wellness Preferences. No personal names or emails are shown.
         </HelpTip>
       </div>
       <p className="text-xs text-gray-500">
         Region: {insights.region || 'US'} · {insights.customer_count || 0} members with preferences on file
       </p>
 
-      <InsightBlock title="Popular diets" items={(insights.diets || []).map((d) => `${d.diet} (${d.count})`)} />
-      <InsightBlock title="Often disliked foods" items={(insights.top_disliked_foods || []).map((d) => `${d.item} (${d.count})`)} />
-      <InsightBlock title="Herbs customers avoid" items={(insights.top_disliked_herbs || []).map((d) => `${d.herb} (${d.count})`)} />
+      <InsightBlock title="Popular wellness lifestyles" items={(insights.diets || []).map((d) => `${d.diet} (${d.count})`)} />
+      <InsightBlock title="Often avoided ingredients" items={(insights.top_disliked_foods || []).map((d) => `${d.item} (${d.count})`)} />
+      <InsightBlock title="Botanicals seekers avoid" items={(insights.top_disliked_herbs || []).map((d) => `${d.herb} (${d.count})`)} />
       <InsightBlock title="Common allergens avoided" items={(insights.common_allergens || []).map((d) => `${d.allergen} (${d.count})`)} />
     </div>
   );

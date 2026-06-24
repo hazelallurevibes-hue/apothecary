@@ -159,7 +159,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       };
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
       onProfileUpdate?.(updated);
-      setStatus('My Likes & Dislikes saved.');
+      setStatus('Wellness preferences saved.');
     } catch (e) {
       setStatus(e.message);
     }
@@ -185,7 +185,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       <p className="text-gray-600 mb-8">Manage your profile, plan, and security.</p>
 
       {(role === 'customer' || role === 'guest' || customerCtx) && (
-        <div className="mb-6" id="food-prefs">
+        <div className="mb-6" id="wellness-prefs">
           <MyLikesDislikesQuestionnaire
             value={foodPrefs}
             onChange={setFoodPrefs}
@@ -265,7 +265,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               </button>
             ) : (
               <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium whitespace-nowrap">
-                Be a Pro Vendor
+                Be a Pro Practitioner
               </Link>
             )}
           </div>
@@ -279,7 +279,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         <div className="mb-6 p-4 border rounded-3xl bg-white">
           <div className="font-semibold">{planBadgeLabel(vendorCtx.plan, 'vendor')}</div>
           <div className="text-sm text-gray-600 mt-1">
-            Employee access for vendor #{vendorCtx.vendorId} — {vendorCtx.permissions.length} permissions
+            Employee access for practitioner #{vendorCtx.vendorId} — {vendorCtx.permissions.length} permissions
           </div>
         </div>
       )}

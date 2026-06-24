@@ -172,9 +172,9 @@ export function customerCan(user, permission) {
 
 export function planBadgeLabel(plan, type = 'vendor') {
   if (isProPlan(plan)) {
-    return type === 'vendor' ? 'Pro Vendor' : 'Pro Member';
+    return type === 'vendor' ? 'Pro Practitioner' : 'Pro Member';
   }
-  return type === 'vendor' ? 'Free Vendor' : 'Free Member';
+  return type === 'vendor' ? 'Free Practitioner' : 'Free Member';
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = [
@@ -183,9 +183,19 @@ export const PAID_VENDOR_UPGRADE_FEATURES = [
   'Member discounts — reward Pro seekers, incentivize upgrades',
   'Teaching Sanctum — sell courses & monetize your content',
   'Pro Member pricing on courses (dual price tiers)',
-  'Customer likes & dislikes insights in your area',
+  'Seeker wellness preference insights in your area',
   'International storefront links & shipping rules',
   'Email campaigns, banners & elegant theme',
   'Revenue analytics — reinvest into advertising',
   'Checkout upsells & full team tools',
+];
+
+export const PAID_CUSTOMER_UPGRADE_FEATURES = [
+  'Practitioner member discounts at checkout',
+  'Pro member pricing on Teaching Sanctum courses',
+  'Ratings after qualifying purchases',
+  'Favorites for vendors and items',
+  'Loyalty points — earn and redeem',
+  'Priority support tickets',
+  'Premium express checkout',
 ];

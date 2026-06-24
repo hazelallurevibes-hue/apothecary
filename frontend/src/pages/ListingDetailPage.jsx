@@ -142,7 +142,7 @@ export default function ListingDetailPage({ user }) {
 
           {itemType === 'produce' && item.farm_story && (
             <div className="text-sm text-gray-600 border-t pt-4">
-              <h3 className="font-medium mb-1">Farm story</h3>
+              <h3 className="font-medium mb-1">Artisan story</h3>
               {item.farm_story}
             </div>
           )}

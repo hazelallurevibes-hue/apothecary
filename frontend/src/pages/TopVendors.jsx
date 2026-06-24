@@ -68,14 +68,14 @@ export default function TopVendors() {
         </div>
       </div>
 
-      {loading && <div className="text-gray-500 text-sm">Loading vendors…</div>}
+      {loading && <div className="text-gray-500 text-sm">Loading practitioners…</div>}
 
       {!loading && vendors.length === 0 && (
         <EmptyState
           icon="🏪"
-          title={minRating > 0 ? 'No vendors match' : 'Vendors coming soon'}
-          message={minRating > 0 ? `No approved vendors with ${minRating}+ stars yet. Try a lower filter or leave a review after ordering.` : 'Approved local vendors will appear here as they join. Want to be first on Hazel Allure?'}
-          actionLabel={minRating > 0 ? 'Browse Marketplace' : 'Apply as a vendor'}
+          title={minRating > 0 ? 'No practitioners match' : 'Practitioners coming soon'}
+          message={minRating > 0 ? `No approved practitioners with ${minRating}+ stars yet. Try a lower filter or leave a review after ordering.` : 'Approved practitioners will appear here as they join. Want to be first on Hazel Allure?'}
+          actionLabel={minRating > 0 ? 'Browse Marketplace' : 'Apply as a practitioner'}
           actionTo={minRating > 0 ? '/marketplace' : '/vendor-signup'}
         />
       )}

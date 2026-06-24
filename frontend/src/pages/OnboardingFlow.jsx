@@ -39,15 +39,15 @@ export default function OnboardingFlow({ user }) {
         <h1 className="text-4xl font-bold tracking-tight text-center">Welcome to Hazel Allure!</h1>
         <p className="text-center text-gray-600 mt-2">{VERTICAL.copy.seekerOnboardingTagline}</p>
         <div className="mt-10 bg-white border rounded-3xl p-8 space-y-4">
-          <StepRow n={1} title="Wellness preferences" hint="Allergens, intentions, and what you avoid" to="/account-settings#food-prefs" />
+          <StepRow n={1} title="Wellness preferences" hint="Allergens, intentions, and what you avoid" to="/account-settings#wellness-prefs" />
           <StepRow n={2} title={VERTICAL.copy.seekerStepApothecary} hint={VERTICAL.copy.seekerStepApothecaryHint} to="/products" />
           <StepRow n={3} title={VERTICAL.copy.seekerStepServices} hint={VERTICAL.copy.seekerStepServicesHint} to="/services" />
           <button
             type="button"
-            onClick={() => navigate('/account-settings#food-prefs')}
+            onClick={() => navigate('/account-settings#wellness-prefs')}
             className="mt-6 w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold"
           >
-            Set up My Likes &amp; Dislikes
+            Set up Wellness Preferences
           </button>
         </div>
       </div>

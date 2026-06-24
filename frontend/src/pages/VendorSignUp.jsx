@@ -7,11 +7,13 @@ import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
+import { PRACTITIONER_SPECIALTY_OPTIONS } from '../lib/wellnessPreferences';
 
 export default function VendorSignUp({ onLogin }) {
   const formStartedAt = useRef(Date.now());
   const [businessName, setBusinessName] = useState('');
-  const [cuisine, setCuisine] = useState('');
+  const [specialtyChoice, setSpecialtyChoice] = useState('');
+  const [specialtyOther, setSpecialtyOther] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -21,6 +23,10 @@ export default function VendorSignUp({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const captcha = useAuthCaptcha();
 
+  const resolvedSpecialty = specialtyChoice === 'Other'
+    ? specialtyOther.trim()
+    : specialtyChoice;
+
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!agreedToTerms) {
@@ -28,7 +34,7 @@ export default function VendorSignUp({ onLogin }) {
       return;
     }
     if (!businessName || !email || !password || !confirmPassword) {
-      setMessage('Please provide business name, email, password, and password confirmation.');
+      setMessage('Please provide practice or business name, email, password, and password confirmation.');
       return;
     }
     const passwordError = validatePasswordPair(password, confirmPassword);
@@ -57,7 +63,7 @@ export default function VendorSignUp({ onLogin }) {
 
       const { data: application, error: rpcError } = await supabase.rpc('submit_vendor_application', {
         p_business_name: businessName,
-        p_cuisine: cuisine || '',
+        p_cuisine: resolvedSpecialty || '',
         p_email: signup.email,
       });
       if (rpcError) throw rpcError;
@@ -76,9 +82,9 @@ export default function VendorSignUp({ onLogin }) {
 
       setMessage(
         signup.needsEmailConfirmation
-          ? 'Application saved! Confirm your email, then sign in — admin will approve your vendor status after that.'
+          ? 'Application saved! Confirm your email, then sign in — admin will approve your practitioner status after that.'
           : signup.session
-            ? 'Application submitted! You are signed in — admin will approve your vendor status shortly.'
+            ? 'Application submitted! You are signed in — admin will approve your practitioner status shortly.'
             : 'Application submitted! Sign in at /login while admin reviews your application.',
       );
       captcha.resetCaptcha();
@@ -95,23 +101,38 @@ export default function VendorSignUp({ onLogin }) {
 
   return (
     <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Vendor Sign Up</h1>
+      <h1 className="text-3xl font-bold tracking-tight mb-6">Practitioner Sign Up</h1>
       <div className="bg-white border rounded-3xl p-8 relative">
         <form onSubmit={handleSignUp} className="space-y-4">
           <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
           <input
-            placeholder="Business / Farm name"
+            placeholder="Practice or business name"
             value={businessName}
             onChange={(e) => setBusinessName(e.target.value)}
             className="w-full border p-3.5 rounded-2xl"
             required
           />
-          <input
-            placeholder="Cuisine / Product type (e.g. Mexican, Honey, Produce)"
-            value={cuisine}
-            onChange={(e) => setCuisine(e.target.value)}
-            className="w-full border p-3.5 rounded-2xl"
-          />
+          <div>
+            <label className="text-xs text-gray-500 mb-1 block">Specialty</label>
+            <select
+              value={specialtyChoice}
+              onChange={(e) => setSpecialtyChoice(e.target.value)}
+              className="w-full border p-3.5 rounded-2xl"
+            >
+              <option value="">Select a specialty (optional)</option>
+              {PRACTITIONER_SPECIALTY_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            {specialtyChoice === 'Other' && (
+              <input
+                placeholder="Describe your specialty (e.g. Curandera, Reiki master, herbal apothecary)"
+                value={specialtyOther}
+                onChange={(e) => setSpecialtyOther(e.target.value)}
+                className="w-full border p-3.5 rounded-2xl mt-2"
+              />
+            )}
+          </div>
           <input
             placeholder="Contact email"
             value={email}
@@ -163,7 +184,7 @@ export default function VendorSignUp({ onLogin }) {
               required
             />
             <span>
-              I agree to the <Link to="/agreements" className="underline">Terms &amp; Vendor Operating Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I accept <strong>full liability</strong> for all products I sell, will not offer prohibited items (drugs, unlicensed alcohol, illicit goods), and understand violations may result in <strong>permanent ban</strong>.
+              I agree to the <Link to="/agreements" className="underline">Terms &amp; Practitioner Operating Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I accept <strong>full liability</strong> for all services and goods I offer, will not offer prohibited items (drugs, unlicensed alcohol, illicit goods), and understand violations may result in <strong>permanent ban</strong>.
             </span>
           </label>
           <button
@@ -171,7 +192,7 @@ export default function VendorSignUp({ onLogin }) {
             disabled={loading || !agreedToTerms || passwordsMismatch}
             className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold mt-2 disabled:opacity-70"
           >
-            {loading ? 'Submitting...' : 'Submit Vendor Application'}
+            {loading ? 'Submitting...' : 'Submit Practitioner Application'}
           </button>
           {message && (
             <div className={`text-xs text-center ${successMessage ? 'text-emerald-700' : 'text-red-600'}`}>
