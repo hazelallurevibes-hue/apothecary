@@ -30,8 +30,23 @@ export default defineConfig(({ mode }) => {
     },
   },
   build: {
-    // Raised to silence the chunk size warning (main bundle is ~523 kB because of the full admin portal,
-    // heavy pages, Supabase client, Tailwind, etc.). App still works fine.
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 600,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return
+          if (id.includes('@sentry')) return 'sentry'
+          if (id.includes('@auth0')) return 'auth0'
+          if (id.includes('@supabase')) return 'supabase'
+          if (
+            id.includes('react-dom') ||
+            id.includes('react-router') ||
+            id.includes('/react/')
+          ) {
+            return 'react-vendor'
+          }
+        },
+      },
+    },
   },
 }})

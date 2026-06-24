@@ -1,21 +1,38 @@
 /**
- * Reset Auth0 env vars on Vercel (removes duplicates, sets correct values).
+ * Reset Auth0 env vars on Vercel Hazel Allure project (removes duplicates, sets correct values).
  * node scripts/fix-vercel-auth0-env.mjs
  */
+import { readFileSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, '..');
+
+function loadHazel() {
+  try {
+    const j = JSON.parse(readFileSync(join(ROOT, '.infra', 'PROJECT_REGISTRY.local.json'), 'utf8'));
+    return j?.stacks?.hazelallure || {};
+  } catch {
+    return {};
+  }
+}
+
+const hazel = loadHazel();
 const TOKEN = process.env.VERCEL_TOKEN;
-const TEAM = 'gp-s-projects7';
-const PROJECT = 'bpicius2';
+const TEAM = process.env.VERCEL_TEAM || hazel.vercel_team || 'hazel-allure';
+const PROJECT = process.env.VERCEL_PROJECT || hazel.vercel_project || 'apothecary';
+const APP_URL = process.env.VITE_APP_URL || hazel.domain_app || 'https://apothecary.hazelallure.com';
 
-const DOMAIN = process.env.AUTH0_DOMAIN || 'dev-h4lv4mbm0rw7335o.us.auth0.com';
-const CLIENT_ID = process.env.AUTH0_SPA_CLIENT_ID || '';
+const DOMAIN = process.env.AUTH0_DOMAIN || '';
+const CLIENT_ID = process.env.AUTH0_SPA_CLIENT_ID || process.env.AUTH0_CLIENT_ID || '';
 
 const TARGETS = ['production', 'preview', 'development'];
 const VARS = {
   AUTH0_DOMAIN: DOMAIN,
   VITE_AUTH0_DOMAIN: DOMAIN,
   VITE_AUTH0_ENABLED: 'true',
-  VITE_APP_URL: process.env.VITE_APP_URL || 'https://www.bpicius.com',
+  VITE_APP_URL: APP_URL,
 };
 
 if (CLIENT_ID) {
@@ -41,6 +58,7 @@ async function api(path, options = {}) {
 
 async function main() {
   if (!TOKEN) throw new Error('Set VERCEL_TOKEN');
+  if (!DOMAIN) throw new Error('Set AUTH0_DOMAIN');
   if (!CLIENT_ID) {
     console.warn('AUTH0_SPA_CLIENT_ID not set — updating domain/enabled only. Login will fail until Client ID is set.');
   }
@@ -56,12 +74,13 @@ async function main() {
   }
 
   for (const [key, value] of Object.entries(VARS)) {
+    if (!value) continue;
     await api(`/v10/projects/${PROJECT}/env`, {
       method: 'POST',
       body: JSON.stringify({
         key,
         value,
-        type: key.startsWith('VITE_') && value === 'true' ? 'plain' : 'encrypted',
+        type: 'encrypted',
         target: TARGETS,
       }),
     });

@@ -1,59 +1,70 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import Layout from './components/Layout';
 import { CartProvider } from './components/CartContext';
-
-// Import all pages
-import Home from './pages/Home';
 import Login from './pages/Login';
-import SignUp from './pages/SignUp';
-import VendorSignUp from './pages/VendorSignUp';
-import CustomerSignUp from './pages/CustomerSignUp';
-import Dashboard from './pages/Dashboard';
-import VendorDashboard from './pages/VendorDashboard';
-import Marketplace from './pages/Marketplace';
-import TopVendors from './pages/TopVendors';
-import CustomerPortal from './pages/CustomerPortal';
-import Orders from './pages/Orders';
-import Favorites from './pages/Favorites';
-import Support from './pages/Support';
-import Invoices from './pages/Invoices';
-import Documents from './pages/Documents';
-import Tasks from './pages/Tasks';
-import AdminPortal from './pages/UsersManagement';
-import VendorProductPage from './pages/VendorProductPage';
-import StorefrontSettings from './pages/StorefrontSettings';
-import AccountSettings from './pages/AccountSettings';
-import OnboardingFlow from './pages/OnboardingFlow';
-import FAQ from './pages/FAQ';
-import Contact from './pages/Contact';
-import About from './pages/About';
-import Agreements from './pages/Agreements';
-import PoliciesProcedures from './pages/PoliciesProcedures';
-import CustomerUseAgreement from './pages/CustomerUseAgreement';
-import ApothecaryMarket from './pages/ApothecaryMarket';
-import Messages from './pages/Messages';
-import VendorEmailCampaigns from './pages/VendorEmailCampaigns';
-import { CampaignConfirmPage, EmailUnsubscribePage } from './pages/CampaignOptIn';
-import ListingDetailPage from './pages/ListingDetailPage';
-import VendorVerification from './pages/VendorVerification';
-import VendorSafetyAcceptance from './pages/VendorSafetyAcceptance';
-import VendorEmailVerify from './pages/VendorEmailVerify';
-import VendorTaxCenter from './pages/VendorTaxCenter';
-import PickupConfirmPage from './pages/PickupConfirmPage';
-import ProUpgrade from './pages/ProUpgrade';
-import { ProSuccess, ProCancel } from './pages/ProCheckoutResult';
-import CourseCatalog from './pages/CourseCatalog';
-import CourseDetailPage from './pages/CourseDetailPage';
-import VendorTeaching from './pages/VendorTeaching';
 
-// Utility pages
-import ForgotPassword from './pages/ForgotPassword';
-import ResetPassword from './pages/ResetPassword';
-import LinkExpired from './pages/LinkExpired';
-import PermissionDenied from './pages/PermissionDenied';
-import NotFound from './pages/NotFound';
+const Home = lazy(() => import('./pages/Home'));
+const SignUp = lazy(() => import('./pages/SignUp'));
+const VendorSignUp = lazy(() => import('./pages/VendorSignUp'));
+const CustomerSignUp = lazy(() => import('./pages/CustomerSignUp'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const VendorDashboard = lazy(() => import('./pages/VendorDashboard'));
+const Marketplace = lazy(() => import('./pages/Marketplace'));
+const TopVendors = lazy(() => import('./pages/TopVendors'));
+const CustomerPortal = lazy(() => import('./pages/CustomerPortal'));
+const Orders = lazy(() => import('./pages/Orders'));
+const Favorites = lazy(() => import('./pages/Favorites'));
+const Support = lazy(() => import('./pages/Support'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const Documents = lazy(() => import('./pages/Documents'));
+const Tasks = lazy(() => import('./pages/Tasks'));
+const AdminPortal = lazy(() => import('./pages/UsersManagement'));
+const VendorProductPage = lazy(() => import('./pages/VendorProductPage'));
+const StorefrontSettings = lazy(() => import('./pages/StorefrontSettings'));
+const AccountSettings = lazy(() => import('./pages/AccountSettings'));
+const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
+const FAQ = lazy(() => import('./pages/FAQ'));
+const Contact = lazy(() => import('./pages/Contact'));
+const About = lazy(() => import('./pages/About'));
+const Agreements = lazy(() => import('./pages/Agreements'));
+const PoliciesProcedures = lazy(() => import('./pages/PoliciesProcedures'));
+const CustomerUseAgreement = lazy(() => import('./pages/CustomerUseAgreement'));
+const ApothecaryMarket = lazy(() => import('./pages/ApothecaryMarket'));
+const Messages = lazy(() => import('./pages/Messages'));
+const VendorEmailCampaigns = lazy(() => import('./pages/VendorEmailCampaigns'));
+const CampaignConfirmPage = lazy(() =>
+  import('./pages/CampaignOptIn').then((m) => ({ default: m.CampaignConfirmPage })));
+const EmailUnsubscribePage = lazy(() =>
+  import('./pages/CampaignOptIn').then((m) => ({ default: m.EmailUnsubscribePage })));
+const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'));
+const VendorVerification = lazy(() => import('./pages/VendorVerification'));
+const VendorSafetyAcceptance = lazy(() => import('./pages/VendorSafetyAcceptance'));
+const VendorEmailVerify = lazy(() => import('./pages/VendorEmailVerify'));
+const VendorTaxCenter = lazy(() => import('./pages/VendorTaxCenter'));
+const PickupConfirmPage = lazy(() => import('./pages/PickupConfirmPage'));
+const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
+const ProSuccess = lazy(() =>
+  import('./pages/ProCheckoutResult').then((m) => ({ default: m.ProSuccess })));
+const ProCancel = lazy(() =>
+  import('./pages/ProCheckoutResult').then((m) => ({ default: m.ProCancel })));
+const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
+const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
+const VendorTeaching = lazy(() => import('./pages/VendorTeaching'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const LinkExpired = lazy(() => import('./pages/LinkExpired'));
+const PermissionDenied = lazy(() => import('./pages/PermissionDenied'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+function PageLoader() {
+  return (
+    <div className="min-h-[40vh] flex items-center justify-center text-gray-500">
+      Loading…
+    </div>
+  );
+}
 
 import { getPostLoginPath, restoreSession, signOut, resolveProfile, ensureOAuthUserProfile } from './lib/auth';
 import { mergeAuth0AllergenMetadata } from './lib/auth0MetadataSync';
@@ -231,6 +242,7 @@ function AppCore({ auth0 = null }) {
   };
 
   return (
+    <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Public / Auth routes (no layout) */}
       <Route path="/login" element={<Login onLogin={login} loading={loading} />} />
@@ -350,6 +362,7 @@ function AppCore({ auth0 = null }) {
         }
       />
     </Routes>
+    </Suspense>
   );
 }
 

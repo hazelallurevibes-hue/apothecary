@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser } from '../lib/ordersApi';
 import { getCustomerContext, isProPlan, planBadgeLabel } from '../lib/plans';
+import ProBenefitsStrip from '../components/ProBenefitsStrip';
 import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
 
 let API = import.meta.env.VITE_API_URL || '/api';
@@ -65,14 +66,7 @@ export default function CustomerPortal({ user }) {
         </Link>
       </div>
 
-      {customerCtx && !isProPlan(customerCtx.plan) && (
-        <Link
-          to="/pro-upgrade?type=customer"
-          className="block mt-4 mb-2 px-4 py-3 bg-gradient-to-r from-[#4a1942] to-[#6b3a6a] text-white rounded-2xl text-sm font-medium hover:opacity-95"
-        >
-          Be a Pro Member — ratings, favorites, loyalty &amp; express checkout →
-        </Link>
-      )}
+      <ProBenefitsStrip user={user} variant="customer" compact />
 
       {/* Pro Quick Cart */}
       <div className="mt-6 bg-white border rounded-3xl p-6 mb-8">

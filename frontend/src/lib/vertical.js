@@ -11,7 +11,7 @@ export const VERTICAL = {
   tagline: 'Heal with intention. Shop with spirit.',
   heroTitle: ['Ancient wisdom.', 'Modern healing.', 'Your path.'],
   heroSubtitle:
-    'Connect with psychics, healers, curanderas, and artisans worldwide — book services and discover natural remedies, oils, incense, and apothecary goods made with care.',
+    'Connect with psychics, homeopaths, herbalists, energy workers, curanderas, naturopathic practitioners, and artisans worldwide — book sessions and discover remedies, oils, incense, and apothecary goods made with care.',
   heroBadge: 'ORGANIC • VEGAN • NATURAL • WORLDWIDE',
   contactEmail: 'hazelallurevibes@gmail.com',
   contactPhone: '(505) 479-7475',
@@ -77,14 +77,19 @@ export const VERTICAL = {
   /** User-facing copy — keeps UI off Bpicius food-marketplace language */
   copy: {
     platformDescription:
-      'Hazel Allure is a technology platform connecting seekers with independent practitioners and artisans worldwide — book healing services, shop apothecary goods, and explore the Teaching Sanctum. We provide listings, ordering, messaging, and discovery tools. We are not a party to your transactions.',
-    seekerOnboardingTagline: 'Heal with intention. Discover practitioners, ritual goods, and courses made with care.',
+      'Hazel Allure is a technology platform connecting seekers with independent practitioners and artisans worldwide — homeopathy, herbalism, energy work, curanderismo, Ayurveda, naturopathic wellness, psychic readings, and more. Book sessions, shop apothecary goods, and explore the Teaching Sanctum. We provide listings, ordering, messaging, and discovery tools. We are not a healthcare provider and are not a party to your transactions.',
+    seekerOnboardingTagline:
+      'Heal with intention. Discover practitioners across healing traditions, ritual goods, and courses made with care.',
     seekerStepApothecary: 'Browse the Apothecary',
-    seekerStepApothecaryHint: 'Oils, incense, crystals, herbs, and ritual kits',
+    seekerStepApothecaryHint: 'Homeopathic remedies, herbs, oils, incense, crystals, and ritual kits',
     seekerStepServices: 'Book a healing session',
-    seekerStepServicesHint: 'Psychic, tarot, reiki, curandera, and more',
+    seekerStepServicesHint: 'Homeopathy, herbalism, energy work, psychic, curandera, Ayurveda, and more',
+    wellnessDisclaimer:
+      'Hazel Allure does not provide medical advice, diagnosis, or treatment. Practitioner listings are for wellness and spiritual support only. Always consult a qualified healthcare professional for medical concerns.',
+    inclusiveWellnessLine:
+      'Every tradition is welcome here — from homeopathic and naturopathic practitioners to curanderas, herbalists, energy workers, and ancestral healers worldwide.',
     productSafetyNote:
-      'Practitioners self-certify product quality and lawful sale. Hazel Allure does not inspect items, verify credentials, or guarantee outcomes.',
+      'Practitioners self-certify product quality and lawful sale. Hazel Allure does not inspect items, verify credentials, or guarantee outcomes. Wellness product descriptions must follow structure/function language — not disease treatment claims.',
     apothecaryCartTitle: 'Your Apothecary Cart',
     apothecaryEmptyFilters: 'No apothecary items match your filters. Try broadening your search.',
     apothecaryReviewPrompt: 'Leave a photo review for the Apothecary',

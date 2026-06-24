@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import LaunchBanner from '../components/LaunchBanner';
+import ProBenefitsStrip from '../components/ProBenefitsStrip';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -112,65 +113,92 @@ function VendorHome({ liveStats }) {
   );
 }
 
-function CustomerHome({ liveStats }) {
+function CustomerHome({ user, liveStats }) {
   const [title1, title2, title3] = VERTICAL.heroTitle;
 
   return (
     <div>
       <LaunchBanner vendorCount={liveStats.vendors} itemCount={liveStats.items} />
-      <div className="relative mb-8 overflow-hidden rounded-3xl border border-[#c9a227]/30 bg-[#2d1230] text-white p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
+      <div className="section-hero mb-8 border border-[#c9a227]/25 text-white p-8 sm:p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 z-0"
           style={{
             background: `
-              linear-gradient(145deg, #2d1230 0%, #4a1942 35%, #1a0a18 70%, #2d1230 100%),
+              linear-gradient(145deg, rgba(45,18,48,0.92) 0%, rgba(74,25,66,0.85) 40%, rgba(26,10,24,0.95) 100%),
               url('${HERO_IMG}') center/cover
             `,
             backgroundBlendMode: 'multiply, soft-light',
-            opacity: 0.95,
           }}
+          aria-hidden="true"
         />
         <div
-          className="absolute inset-0 opacity-[0.06] pointer-events-none"
+          className="absolute inset-0 z-0 opacity-[0.05] pointer-events-none"
           style={{
             backgroundImage:
               'repeating-linear-gradient(120deg, transparent, transparent 2px, rgba(201,162,39,0.5) 2px, rgba(201,162,39,0.5) 3px)',
           }}
+          aria-hidden="true"
         />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.7)_85%)]" />
+        <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_88%)]" aria-hidden="true" />
 
-        <div className="relative z-10 flex-1 max-w-[620px]">
-          <div className="inline-flex items-center gap-2 mb-5 text-[10px] tracking-[3.5px] font-mono border border-[#c9a227]/40 px-5 py-1 rounded-full bg-white/5 text-[#c9a227]">
+        <div className="relative z-10 flex-1 max-w-[640px] animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 mb-4 text-[10px] tracking-[3.5px] font-mono border border-[#c9a227]/40 px-5 py-1.5 rounded-full bg-white/5 text-[#c9a227]">
             {VERTICAL.heroBadge}
           </div>
 
-          <h1 className="text-[48px] md:text-[68px] leading-[0.95] font-semibold tracking-[-3px] mb-6 drop-shadow-sm heading-font">
-            {title1}
-            <br />
-            {title2}
-            <br />
-            <span className="text-[#c9a227]">{title3}</span>
+          <p className="text-sm md:text-base text-white/60 mb-3 tracking-wide font-medium">
+            {VERTICAL.tagline}
+          </p>
+
+          <h1 className="text-[2.75rem] sm:text-[3.25rem] md:text-[4.25rem] leading-[1.02] font-semibold tracking-[-0.04em] mb-5 drop-shadow-sm heading-font">
+            <span className="block text-white/95">{title1}</span>
+            <span className="block text-white/90">{title2}</span>
+            <span className="block text-gradient-gold mt-1">{title3}</span>
           </h1>
-          <p className="text-lg md:text-xl text-white/80 max-w-lg tracking-[-0.2px] mb-10 leading-relaxed">
+
+          <p className="text-base md:text-lg text-white/75 max-w-lg mb-6 leading-relaxed">
             {VERTICAL.heroSubtitle}
           </p>
 
-          <div className="flex flex-wrap gap-3">
+          <div className="flex flex-wrap gap-2 mb-8" role="list" aria-label="Trust signals">
+            <span className="trust-badge" role="listitem">
+              <span aria-hidden="true">✓</span> Verified practitioners
+            </span>
+            <span className="trust-badge" role="listitem">
+              <span aria-hidden="true">🔒</span> Secure checkout
+            </span>
+            <span className="trust-badge" role="listitem">
+              <span aria-hidden="true">🌿</span> Organic &amp; natural
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-delay">
             <Link
               to={VERTICAL.routes.servicesMarket}
-              className="inline-flex items-center justify-center px-10 py-4 bg-[#c9a227] text-[#2d1230] rounded-3xl font-semibold text-[17px] hover:bg-[#d4b03a] active:scale-[0.985] transition shadow-xl"
+              className="btn-accent flex-col sm:flex-row !py-4 !px-8 text-center sm:text-left group"
             >
-              {VERTICAL.labels.shopHero}
+              <span className="flex flex-col">
+                <span className="text-[17px]">{VERTICAL.labels.shopHero}</span>
+                <span className="text-xs font-normal opacity-80 mt-0.5">{VERTICAL.labels.marketplace}</span>
+              </span>
+              <span className="hidden sm:inline text-lg opacity-70 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
             </Link>
             <Link
               to={VERTICAL.routes.productsMarket}
-              className="inline-flex items-center justify-center px-10 py-4 border border-white/50 hover:bg-white/10 hover:border-[#c9a227]/60 rounded-3xl font-medium text-[17px] transition backdrop-blur"
+              className="btn-ghost-light flex-col sm:flex-row !py-4 !px-8 text-center sm:text-left group"
             >
-              {VERTICAL.labels.exploreHero}
+              <span className="flex flex-col">
+                <span className="text-[17px]">{VERTICAL.labels.productsMarket}</span>
+                <span className="text-xs font-normal opacity-70 mt-0.5">Oils, incense, crystals &amp; ritual goods</span>
+              </span>
+              <span className="hidden sm:inline text-lg opacity-60 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
             </Link>
           </div>
-          <div className="mt-6 text-[10px] tracking-widest text-white/50 font-mono">
-            LIVE NOW: {liveStats.vendors} PRACTITIONERS • {liveStats.items} OFFERINGS
+
+          <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-widest text-white/45 font-mono">
+            <span>LIVE: {liveStats.vendors} PRACTITIONERS</span>
+            <span className="hidden sm:inline text-white/25" aria-hidden="true">•</span>
+            <span>{liveStats.items} OFFERINGS</span>
           </div>
         </div>
 
@@ -196,13 +224,15 @@ function CustomerHome({ liveStats }) {
         </div>
       </div>
 
-      <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 bg-white border border-[#c9a227]/20 rounded-3xl">
+      <ProBenefitsStrip user={user} variant="customer" />
+
+      <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 glass-card">
         <img src={LOGO_IMG} alt="hazelallure" className="w-24 h-24 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shrink-0" />
         <div>
           <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">About {VERTICAL.name}</h2>
           <p className="text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
-            Rooted in generational healing wisdom — psychics, curanderas, herbalists, and artisans sharing natural remedies
-            and spiritual growth. Read our story on the blog or book a session here.
+            Rooted in generational healing wisdom — practitioners and artisans sharing remedies and spiritual growth.{' '}
+            {VERTICAL.copy.inclusiveWellnessLine} Read our story on the blog or book a session here.
           </p>
           <div className="flex flex-wrap gap-3 mt-3">
             <a
@@ -227,7 +257,7 @@ function CustomerHome({ liveStats }) {
         </Link>
         <Link to="/services" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Healing Services</h3>
-          <p className="text-sm text-gray-600 mt-2">Psychic readings, reiki, massage, yoga, curanderas, and more.</p>
+          <p className="text-sm text-gray-600 mt-2">Homeopathy, herbalism, energy work, psychic readings, Ayurveda, curanderismo, and more.</p>
         </Link>
         <Link to="/products" className="bg-white border border-[#c9a227]/30 rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">🌿 Apothecary &amp; Goods</h3>
@@ -282,5 +312,5 @@ export default function Home({ user }) {
 
   if (role === 'admin') return <AdminHome user={user} liveStats={liveStats} />;
   if (role === 'vendor') return <VendorHome liveStats={liveStats} />;
-  return <CustomerHome liveStats={liveStats} />;
+  return <CustomerHome user={user} liveStats={liveStats} />;
 }

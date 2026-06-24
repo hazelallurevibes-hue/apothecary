@@ -8,6 +8,9 @@ const CATEGORY_EMOJI = {
   incense: '🪔',
   candles: '🕯️',
   potions: '🧪',
+  homeopathic_remedies: '💧',
+  herbal_remedies: '🍃',
+  flower_essences: '🌺',
   apothecary: '🌿',
   teas: '🍵',
   crystals: '💎',
@@ -20,7 +23,15 @@ const CATEGORY_EMOJI = {
   other_product: '🏷️',
 };
 
-const LEGAL_ACK_IDS = new Set(['potions', 'apothecary']);
+/** Categories where practitioners must acknowledge labeling, regional law, and no disease claims */
+const LEGAL_ACK_IDS = new Set([
+  'potions',
+  'apothecary',
+  'homeopathic_remedies',
+  'herbal_remedies',
+  'flower_essences',
+  'teas',
+]);
 
 export const APOTHECARY_LISTING_CATEGORIES = WELLNESS_PRODUCT_CATEGORIES.map((c) => ({
   ...c,
@@ -48,6 +59,10 @@ export function getApothecaryCategoryLabel(id) {
   return getProductCategoryLabel(id);
 }
 
+export function getApothecaryCategoryDescription(id) {
+  return WELLNESS_PRODUCT_CATEGORIES.find((c) => c.id === id)?.description || '';
+}
+
 export function getPlantCategoryLabel(id) {
   return getProductCategoryLabel(id);
 }
@@ -63,7 +78,8 @@ export function getCategoryEmoji(categoryId) {
 export function getCategoryDisplay(categoryId) {
   const label = getApothecaryCategoryLabel(categoryId);
   const emoji = getCategoryEmoji(categoryId) || '🏷️';
-  return { label, emoji };
+  const description = getApothecaryCategoryDescription(categoryId);
+  return { label, emoji, description };
 }
 
 export function isPlantOrSpecialtyListing() {

@@ -141,22 +141,22 @@ export default function Layout({ user, onLogout, children }) {
 
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
-      <nav className="bg-white/95 backdrop-blur-md border-b border-[#e8e4f0] sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-x-3">
+      <nav className="bg-white/90 backdrop-blur-lg border-b border-[#e8e4f0]/80 sticky top-0 z-50 shadow-sm shadow-[#4a1942]/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-[4.25rem] flex items-center justify-between gap-4">
+          <div className="flex items-center gap-x-3 shrink-0">
             <Link to="/" className="flex items-center gap-x-3 group" onClick={closeMobile}>
               <img
                 src={LOGO_IMG}
                 alt={VERTICAL.name}
-                className="w-9 h-9 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shadow-sm"
+                className="w-10 h-10 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shadow-sm"
               />
-              <span className="font-bold text-2xl md:text-3xl tracking-[-1px] heading-font text-[#4a1942] group-hover:text-[#2d1230] transition-colors">
+              <span className="font-bold text-xl sm:text-2xl lg:text-[1.65rem] tracking-[-0.03em] heading-font text-[#4a1942] group-hover:text-[#2d1230] transition-colors">
                 {VERTICAL.name}
               </span>
             </Link>
           </div>
 
-          <div className="hidden md:flex items-center gap-x-5 lg:gap-x-6 text-sm font-medium">
+          <div className="hidden md:flex items-center gap-x-6 lg:gap-x-8 text-sm font-medium">
             <Link to="/" className="hover:text-[#4a1942] font-medium">{t('nav.home')}</Link>
             <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942]">{t('nav.marketplace')}</Link>
             <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942]">{t('nav.apothecary')}</Link>
@@ -179,7 +179,7 @@ export default function Layout({ user, onLogout, children }) {
             {isAdmin && <NavDropdown label={t('nav.admin')} items={adminMenu} className="font-medium" />}
           </div>
 
-          <div className="flex items-center gap-x-3 md:gap-x-4">
+          <div className="flex items-center gap-x-2.5 sm:gap-x-3 md:gap-x-4 shrink-0">
             <button
               type="button"
               onClick={() => setAccessOpen(true)}
@@ -232,7 +232,7 @@ export default function Layout({ user, onLogout, children }) {
                 </button>
               </>
             ) : (
-              <Link to="/login" className="hidden sm:block px-5 py-2 bg-[#4a1942] hover:bg-[#2d1230] text-white rounded-3xl text-sm font-semibold shadow-sm">
+              <Link to="/login" className="hidden sm:inline-flex btn-primary !px-5 !py-2 !text-sm">
                 {t('nav.login')}
               </Link>
             )}
@@ -334,7 +334,7 @@ export default function Layout({ user, onLogout, children }) {
         )}
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 md:px-8 py-6 md:py-8 min-w-0 w-full overflow-x-hidden">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10 min-w-0 w-full overflow-x-hidden">
         {children}
       </main>
 

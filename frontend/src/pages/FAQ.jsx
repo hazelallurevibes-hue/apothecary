@@ -41,12 +41,12 @@ const sections = [
   },
   {
     title: 'What can practitioners sell in the Apothecary?',
-    body: 'Essential oils, incense, candles, crystals, herbs, potions, skincare, ritual kits, teas, soaps, and related holistic goods — each in an appropriate category. Practitioners must accurately categorize listings and comply with cosmetics, labeling, and consumer protection laws in every region they sell.',
+    body: 'Homeopathic remedies, herbal and botanical goods, essential oils, incense, candles, crystals, potions, skincare, ritual kits, teas, and related apothecary items — each in an appropriate category. Listings must use wellness-oriented language (structure/function), not disease treatment claims. Practitioners must accurately categorize listings and comply with cosmetics, labeling, and consumer protection laws in every region they sell.',
     link: '/products',
   },
   {
     title: 'What healing services can practitioners offer?',
-    body: 'Psychic readings, tarot, reiki, curandera sessions, yoga, meditation, energy work, and related bookable services — worldwide categories are available in the vendor dashboard. Practitioners may add photos and YouTube/Vimeo session previews. Hazel Allure does not verify credentials or outcomes.',
+    body: 'Homeopathic and naturopathic consultations, herbalism, energy work, psychic readings, tarot, curanderismo, Ayurveda, yoga, meditation, and related bookable services — worldwide categories are available in the practitioner dashboard. Practitioners may add photos and YouTube/Vimeo session previews. Hazel Allure does not verify credentials, provide medical advice, or guarantee outcomes.',
     link: '/services',
   },
   {
@@ -159,7 +159,10 @@ export default function FAQ() {
   return (
     <div className="max-w-4xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight mb-2">Frequently Asked Questions</h1>
-      <p className="text-sm text-gray-500 mb-6">Holistic marketplace overview for seekers and practitioners. Not legal advice. Last updated June 2026.</p>
+      <p className="text-sm text-gray-500 mb-2">Holistic marketplace overview for seekers and practitioners. Not legal advice. Last updated June 2026.</p>
+      <p className="text-sm text-gray-600 mb-6 max-w-3xl leading-relaxed">
+        {VERTICAL.copy.inclusiveWellnessLine} {VERTICAL.copy.wellnessDisclaimer}
+      </p>
 
       <div className="flex flex-wrap gap-2 mb-8 text-sm">
         <Link to="/agreements" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Terms &amp; Agreements</Link>

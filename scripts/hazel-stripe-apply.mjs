@@ -24,7 +24,30 @@ const SUPABASE_REF = 'jihinbkeqlkgywfsxizj';
 const SUPABASE_URL = `https://${SUPABASE_REF}.supabase.co`;
 
 const save = process.argv.includes('--save');
-const secret = process.env.STRIPE_SECRET_KEY?.trim();
+const setSupabaseSecrets = process.argv.includes('--set-supabase-secrets') || save;
+
+function validateStripeKey(name, value, prefix) {
+  if (!value) return null;
+  const v = value.trim();
+  if (!v.startsWith(prefix)) return `${name} must start with ${prefix}`;
+  if (v.includes('...') || v.includes('xxxx') || v.includes('xxx')) {
+    return `${name} looks like a docs placeholder — paste the FULL key from Stripe Dashboard (Reveal test key)`;
+  }
+  if (v.length < 24) return `${name} is too short — copy the entire key`;
+  return null;
+}
+
+function resolveSecret() {
+  const fromEnv = process.env.STRIPE_SECRET_KEY?.trim();
+  if (fromEnv) return fromEnv;
+  const backend = loadEnvFile('backend/.env.local');
+  if (backend.STRIPE_SECRET_KEY) return backend.STRIPE_SECRET_KEY.trim();
+  const stripeLocal = loadEnvFile('backend/.env.stripe.local');
+  if (stripeLocal.STRIPE_SECRET_KEY) return stripeLocal.STRIPE_SECRET_KEY.trim();
+  return '';
+}
+
+const secret = resolveSecret();
 
 function loadEnvFile(relPath) {
   const path = join(ROOT, relPath);
@@ -179,6 +202,22 @@ async function saveToSupabase(ids, serviceKey) {
   }
 }
 
+async function runSupabaseSecretsSet(sk, whsec) {
+  const { spawnSync } = await import('child_process');
+  console.log('\n── Setting Supabase edge secrets via CLI ──');
+  for (const [name, value] of [['STRIPE_SECRET_KEY', sk], ['STRIPE_WEBHOOK_SECRET', whsec]]) {
+    const r = spawnSync('npx', ['supabase', 'secrets', 'set', `${name}=${value}`, '--project-ref', SUPABASE_REF], {
+      cwd: ROOT,
+      stdio: 'inherit',
+      shell: true,
+    });
+    if (r.status !== 0) {
+      console.log(`\nCLI failed for ${name}. Run manually:`);
+      console.log(`  npx supabase secrets set ${name}="<paste-value>" --project-ref ${SUPABASE_REF}`);
+    }
+  }
+}
+
 async function saveSupabaseSecrets(hints) {
   console.log('\n── Supabase Edge Function secrets (Dashboard → Edge Functions → Secrets) ──');
   console.log(`STRIPE_SECRET_KEY=${secret.slice(0, 12)}…`);
@@ -195,19 +234,54 @@ async function main() {
   console.log('Hazel Allure — Stripe apply (step 6 unblock)');
   console.log('═'.repeat(60));
 
-  if (!secret || !secret.startsWith('sk_')) {
-    console.log(`
-You need STRIPE_SECRET_KEY — this is NOT VERCEL_TOKEN.
+  if (secret?.startsWith('sk_')) {
+    try {
+      const acct = await stripeGet('/account');
+      const name = (acct.settings?.dashboard?.display_name || acct.business_profile?.name || '').toLowerCase();
+      if (name.includes('bpicius') && !process.env.ALLOW_BPICIUS_STRIPE) {
+        console.error(`
+Refusing to use Bpicius Stripe account for Hazel Allure.
+Create a NEW Stripe account for Hazel Allure LLC, or set ALLOW_BPICIUS_STRIPE=1 for emergency test only.
+`);
+        process.exit(1);
+      }
+    } catch {
+      /* account probe optional */
+    }
+  }
 
-PowerShell:
-  $env:STRIPE_SECRET_KEY="sk_test_xxxxxxxx"
+  const secretErr = validateStripeKey('STRIPE_SECRET_KEY', secret, 'sk_');
+  if (secretErr || !secret) {
+    console.log(`
+You need the FULL Stripe secret key — not the literal text "sk_test_..." from docs.
+
+WRONG (what caused "Invalid API Key"):
+  $env:STRIPE_SECRET_KEY="sk_test_..."          ← placeholder, not a real key
+  $env:sk_test_51Tkxmm...="sk_test_..."          ← variable NAME must be STRIPE_SECRET_KEY
+
+RIGHT (PowerShell — paste your real key between the quotes):
+  $env:STRIPE_SECRET_KEY="sk_test_51TkxmmD9VfsxTpOa...yourFullKeyHere"
+  $env:STRIPE_WEBHOOK_SECRET="whsec_h1FbSclIRpgOtsiH2UsLWvIkGGoFfSCV"
+  $env:STRIPE_PUBLISHABLE_KEY="pk_test_51TkxmmD9VfsxTpOa...yourFullKeyHere"
   node scripts/hazel-stripe-apply.mjs --save
 
-Where to get sk_test_…:
-  Stripe Dashboard → Developers → API keys → Secret key → Reveal
+Or put keys in backend/.env.stripe.local (gitignored):
+  STRIPE_SECRET_KEY=sk_test_51...
+  STRIPE_WEBHOOK_SECRET=whsec_...
+  STRIPE_PUBLISHABLE_KEY=pk_test_51...
+  node scripts/hazel-stripe-apply.mjs --save
 
-Also set in Supabase Edge Function secrets (same value).
+Stripe Dashboard → Developers → API keys → Reveal test key
 `);
+    if (secretErr) console.error(`\n${secretErr}\n`);
+    process.exit(1);
+  }
+
+  const webhook = process.env.STRIPE_WEBHOOK_SECRET?.trim()
+    || loadEnvFile('backend/.env.stripe.local').STRIPE_WEBHOOK_SECRET?.trim();
+  const webhookErr = webhook ? validateStripeKey('STRIPE_WEBHOOK_SECRET', webhook, 'whsec_') : null;
+  if (webhookErr) {
+    console.error(`\n${webhookErr}\n`);
     process.exit(1);
   }
 
@@ -232,7 +306,15 @@ Also set in Supabase Edge Function secrets (same value).
       }
     }
 
-    await saveSupabaseSecrets({ webhook: process.env.STRIPE_WEBHOOK_SECRET });
+    await saveSupabaseSecrets({ webhook });
+
+    if (setSupabaseSecrets && webhook) {
+      await runSupabaseSecretsSet(secret, webhook);
+    } else if (setSupabaseSecrets) {
+      console.log('\n── Supabase CLI (run after you set STRIPE_WEBHOOK_SECRET) ──');
+      console.log(`npx supabase secrets set STRIPE_SECRET_KEY="${secret}" --project-ref ${SUPABASE_REF}`);
+      console.log(`npx supabase secrets set STRIPE_WEBHOOK_SECRET="whsec_..." --project-ref ${SUPABASE_REF}`);
+    }
 
     console.log('\n── Vercel (wife\'s account) ──');
     console.log('Add env var VITE_STRIPE_PUBLISHABLE_KEY=' + (publishable || 'pk_test_…'));
