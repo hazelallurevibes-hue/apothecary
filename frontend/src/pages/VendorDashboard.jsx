@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { fetchVendorAnalytics } from '../lib/vendorAnalytics';
@@ -40,6 +40,7 @@ import ListingThumbnailField from '../components/ListingThumbnailField';
 import ServiceMediaField from '../components/ServiceMediaField';
 import VendorDiscountsPanel from '../components/VendorDiscountsPanel';
 import VendorListingRow from '../components/VendorListingRow';
+import ListingQuickAdd from '../components/ListingQuickAdd';
 import { buildServiceMediaPayload } from '../lib/videoEmbed';
 import {
   EMPTY_THUMBNAIL,
@@ -91,6 +92,7 @@ export default function VendorDashboard({ user }) {
   const [vendorIdentityVerified, setVendorIdentityVerified] = useState(false);
   const [requireIdBeforeListing, setRequireIdBeforeListing] = useState(true);
   const [launchSteps, setLaunchSteps] = useState({});
+  const quickAddResolver = useRef(null);
 
   // Pricing Calculator state (analytics tool for competitiveness)
   const [calc, setCalc] = useState({ cost: 2.5, qty: 50, desiredMargin: 40, localPrice: 5.99 });
@@ -484,6 +486,153 @@ export default function VendorDashboard({ user }) {
     }
   };
 
+  const handleQuickAddService = (payload) => new Promise((resolve, reject) => {
+    if (!passesLaunchGate()) {
+      reject(new Error('Complete your launch checklist before your first listing.'));
+      return;
+    }
+    if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
+      reject(new Error(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to Pro for unlimited listings.`));
+      return;
+    }
+    if (payload.safety && !isSafetySubmissionValid(payload.safety)) {
+      reject(new Error('Check vendor-certified safe practices (and finish temperature if needed), or explicitly opt out.'));
+      return;
+    }
+    quickAddResolver.current = { resolve, reject };
+    setConfirmPost({ type: 'menu', name: payload.name, quick: payload });
+  });
+
+  const handleQuickAddProduct = (payload) => new Promise((resolve, reject) => {
+    if (!passesLaunchGate()) {
+      reject(new Error('Complete your launch checklist before your first listing.'));
+      return;
+    }
+    if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
+      reject(new Error(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Pro for unlimited.`));
+      return;
+    }
+    if (payload.safety && !isSafetySubmissionValid(payload.safety)) {
+      reject(new Error('Check vendor-certified safe practices (and finish temperature if needed), or explicitly opt out.'));
+      return;
+    }
+    if (categoryRequiresLegalAck(payload.category) && !payload.medicinalLegalAck) {
+      reject(new Error('Medicinal / therapeutic listings require compliance confirmation.'));
+      return;
+    }
+    quickAddResolver.current = { resolve, reject };
+    setConfirmPost({ type: 'produce', name: payload.name, quick: payload });
+  });
+
+  const addQuickMenuItem = async (quick) => {
+    if (!quick?.name || !quick?.price || !myVendorId) return;
+    setAdding(true);
+    try {
+      const photo = await resolveListingPhotoUrl(quick.thumbnail, user, myVendorId, 'menu');
+      const media = buildServiceMediaPayload({
+        photo,
+        videoUrl: vendorCan(user, 'service_video') ? (quick.videoUrl || '') : '',
+        mediaType: quick.mediaType || 'photo',
+      });
+      const payload = {
+        vendor_id: myVendorId,
+        name: quick.name,
+        price: parseFloat(quick.price),
+        description: quick.description || '',
+        category: quick.category,
+        time_made: quick.time_made || '60 min',
+        ...media,
+        available: 1,
+        allergens: serializeAllergenIds(quick.allergens || []),
+        ...buildSafetyPayload(quick.safety || { ...EMPTY_MENU_SAFETY }),
+        item_options: normalizeOptionsForSave(quick.options || []),
+        last_activity_at: new Date().toISOString(),
+        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: quick.fulfillment_mode || 'hazelallure' } : {}),
+      };
+
+      const { data: added, error } = await supabase.from('menu_items').insert(payload).select().single();
+      if (!error && added) {
+        await logListingAttestation({
+          vendorId: myVendorId,
+          userEmail: user?.email,
+          itemType: 'menu',
+          itemId: added.id,
+          itemName: added.name,
+        });
+        await markOnboardingStep(myVendorId, 'first_listing', true);
+        await refreshVendorData();
+        shareToSocial(added, true);
+        return;
+      }
+      const res = await fetch(`${API}/menu-items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        const item = await res.json();
+        await refreshVendorData();
+        shareToSocial(item, true);
+      } else {
+        throw new Error('Failed to add service. Check Supabase RLS or start the local backend.');
+      }
+    } catch (e) {
+      throw new Error(e?.message || 'Failed to add service.');
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const addQuickProduceItem = async (quick) => {
+    if (!quick?.name || !quick?.price || !myVendorId) return;
+    setAddingProduce(true);
+    try {
+      const photo = await resolveListingPhotoUrl(quick.thumbnail, user, myVendorId, 'produce');
+      const payload = {
+        vendor_id: myVendorId,
+        name: quick.name,
+        price: parseFloat(quick.price),
+        unit: quick.unit || 'each',
+        description: quick.description || '',
+        farm_story: quick.description || '',
+        organic: 0,
+        category: quick.category,
+        photo,
+        allergens: serializeAllergenIds(quick.allergens || []),
+        ...buildSafetyPayload(quick.safety || { ...EMPTY_PRODUCE_SAFETY }),
+        ...buildFreshnessPayload({ ...EMPTY_FRESHNESS, listing_section: 'produce' }),
+        item_options: normalizeOptionsForSave(quick.options || []),
+        last_activity_at: new Date().toISOString(),
+        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: quick.fulfillment_mode || 'hazelallure' } : {}),
+      };
+
+      const { data: added, error } = await supabase.from('produce_items').insert(payload).select().single();
+      if (!error && added) {
+        await logListingAttestation({
+          vendorId: myVendorId,
+          userEmail: user?.email,
+          itemType: 'produce',
+          itemId: added.id,
+          itemName: added.name,
+        });
+        await markOnboardingStep(myVendorId, 'first_listing', true);
+        await refreshVendorData();
+        return;
+      }
+      const res = await fetch(`${API}/produce-items`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok) throw new Error('Failed to add apothecary item.');
+      await refreshVendorData();
+    } catch (e) {
+      throw new Error(e?.message || 'Failed to add apothecary item.');
+    } finally {
+      setAddingProduce(false);
+    }
+  };
+
   const resetProduceForm = () => {
     setNewProduce({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'hazelallure' });
     setNewProduceAllergens([]);
@@ -695,6 +844,17 @@ export default function VendorDashboard({ user }) {
       <VendorDiscountsPanel user={user} vendorId={myVendorId} />
       <div className="mb-8">
         <VendorCustomerInsights user={user} vendorId={myVendorId} />
+      </div>
+
+      <div id="listing-quick-add" className="mb-8 scroll-mt-24">
+        <ListingQuickAdd
+          onSubmitService={handleQuickAddService}
+          onSubmitProduct={handleQuickAddProduct}
+          vendorPlan={vendorPlan}
+          disabled={adding || addingProduce || !!editMenuId || !!editProduceId}
+          user={user}
+          vendorId={myVendorId}
+        />
       </div>
 
       <div id="analytics" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
@@ -1333,12 +1493,24 @@ export default function VendorDashboard({ user }) {
       <VendorListingConfirmModal
         open={!!confirmPost}
         itemName={confirmPost?.name}
-        onCancel={() => setConfirmPost(null)}
-        onConfirm={() => {
-          const t = confirmPost?.type;
+        onCancel={() => {
+          quickAddResolver.current?.reject(new Error('Publishing cancelled.'));
+          quickAddResolver.current = null;
           setConfirmPost(null);
-          if (t === 'menu') addMenuItem();
-          else if (t === 'produce') addProduceItem();
+        }}
+        onConfirm={async () => {
+          const t = confirmPost?.type;
+          const quick = confirmPost?.quick;
+          setConfirmPost(null);
+          try {
+            if (t === 'menu') await (quick ? addQuickMenuItem(quick) : addMenuItem());
+            else if (t === 'produce') await (quick ? addQuickProduceItem(quick) : addProduceItem());
+            quickAddResolver.current?.resolve();
+          } catch (e) {
+            quickAddResolver.current?.reject(e);
+          } finally {
+            quickAddResolver.current = null;
+          }
         }}
       />
     </div>

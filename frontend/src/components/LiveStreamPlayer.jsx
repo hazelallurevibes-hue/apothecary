@@ -15,7 +15,7 @@ export default function LiveStreamPlayer({ vendor }) {
   if (!platform || !rawUrl) {
     return (
       <div className="rounded-3xl border border-dashed p-8 text-center text-gray-500 text-sm">
-        This vendor has not connected a live kitchen stream yet.
+        This practitioner has not connected a live studio stream yet.
       </div>
     );
   }
@@ -31,7 +31,7 @@ export default function LiveStreamPlayer({ vendor }) {
   return (
     <div className="rounded-3xl overflow-hidden border bg-black aspect-video">
       <iframe
-        title={`${vendor.name} live kitchen`}
+        title={`${vendor.name} live studio`}
         src={embedUrl}
         className="w-full h-full"
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

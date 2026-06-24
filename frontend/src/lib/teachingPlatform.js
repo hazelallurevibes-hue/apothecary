@@ -1,6 +1,20 @@
 import { supabase } from './supabaseClient';
 import { isProPlan } from './plans';
 import { parseVideoUrl } from './videoEmbed';
+import { embedHaTeachInDescription, parseHaTeachMetadata } from './teachingStudio';
+
+/** Attach parsed HA_TEACH metadata to a course row for UI convenience. */
+export function enrichCourseWithTeachMeta(course) {
+  if (!course) return course;
+  const { delivery, styles, body } = parseHaTeachMetadata(course.description);
+  return {
+    ...course,
+    description: body,
+    delivery_modes: delivery,
+    learning_styles: styles,
+    _description_raw: course.description,
+  };
+}
 
 export async function fetchPublishedCourses({ vendorId, category, search } = {}) {
   let q = supabase
@@ -32,13 +46,13 @@ export async function fetchVendorCourses(vendorId) {
     .eq('vendor_id', vendorId)
     .order('created_at', { ascending: false });
   if (error) throw error;
-  return data || [];
+  return (data || []).map(enrichCourseWithTeachMeta);
 }
 
 export async function fetchCourseById(id) {
   const { data, error } = await supabase.from('vendor_courses').select('*').eq('id', id).maybeSingle();
   if (error) throw error;
-  return data;
+  return enrichCourseWithTeachMeta(data);
 }
 
 export async function fetchCourseLessons(courseId) {
@@ -52,7 +66,20 @@ export async function fetchCourseLessons(courseId) {
 }
 
 export async function saveCourse(course) {
-  const payload = { ...course, updated_at: new Date().toISOString() };
+  const { delivery_modes, learning_styles, _description_raw, ...rest } = course;
+  const payload = { ...rest, updated_at: new Date().toISOString() };
+
+  if (delivery_modes !== undefined || learning_styles !== undefined) {
+    const existing = course.id ? await fetchCourseById(course.id) : null;
+    const body = rest.description !== undefined
+      ? parseHaTeachMetadata(rest.description).body
+      : (existing?.description ?? '');
+    payload.description = embedHaTeachInDescription(body, {
+      delivery: delivery_modes ?? existing?.delivery_modes ?? [],
+      styles: learning_styles ?? existing?.learning_styles ?? [],
+    });
+  }
+
   if (course.preview_video_url) {
     const p = parseVideoUrl(course.preview_video_url);
     payload.preview_video_provider = p?.provider || null;
@@ -60,11 +87,11 @@ export async function saveCourse(course) {
   if (course.id) {
     const { data, error } = await supabase.from('vendor_courses').update(payload).eq('id', course.id).select().single();
     if (error) throw error;
-    return data;
+    return enrichCourseWithTeachMeta(data);
   }
   const { data, error } = await supabase.from('vendor_courses').insert(payload).select().single();
   if (error) throw error;
-  return data;
+  return enrichCourseWithTeachMeta(data);
 }
 
 export async function saveLesson(lesson) {

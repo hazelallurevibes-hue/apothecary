@@ -7,7 +7,7 @@ import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
-import { PRACTITIONER_SPECIALTY_OPTIONS } from '../lib/wellnessPreferences';
+import { PRACTITIONER_SPECIALTY_GROUPS } from '../lib/wellnessPreferences';
 
 export default function VendorSignUp({ onLogin }) {
   const formStartedAt = useRef(Date.now());
@@ -120,9 +120,14 @@ export default function VendorSignUp({ onLogin }) {
               className="w-full border p-3.5 rounded-2xl"
             >
               <option value="">Select a specialty (optional)</option>
-              {PRACTITIONER_SPECIALTY_OPTIONS.map((opt) => (
-                <option key={opt} value={opt}>{opt}</option>
+              {PRACTITIONER_SPECIALTY_GROUPS.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.options.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </optgroup>
               ))}
+              <option value="Other">Other</option>
             </select>
             {specialtyChoice === 'Other' && (
               <input

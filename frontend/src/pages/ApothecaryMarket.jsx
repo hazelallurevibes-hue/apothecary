@@ -243,27 +243,39 @@ export default function ApothecaryMarket({ user }) {
         ))}
       </div>
 
-      <div className="mb-6 p-4 bg-white border rounded-3xl flex flex-wrap gap-4 items-center">
-        <span className="font-medium text-sm">Fulfillment:</span>
+      <fieldset className="mb-6 p-4 bg-white border rounded-3xl flex flex-wrap gap-3 items-center">
+        <legend className="font-medium text-sm w-full sm:w-auto mb-1 sm:mb-0">How do you want to receive it?</legend>
         {[
-          { value: 'pickup', label: 'Local pickup', icon: '🌿' },
-          { value: 'shipping', label: 'Shipped (practitioner rates)', icon: '📦' },
-          { value: 'digital', label: 'Digital / ritual guide PDF', icon: '✨' },
+          { value: 'pickup', label: 'Pick up in person', icon: '🌿', hint: 'Meet the practitioner locally' },
+          { value: 'shipping', label: 'Shipped to you', icon: '📦', hint: 'Practitioner arranges delivery' },
+          { value: 'digital', label: 'Digital download', icon: '✨', hint: 'PDF guides & ritual kits' },
         ].map((opt) => (
-          <label key={opt.value} className={`flex items-center gap-2 px-4 py-2 rounded-2xl border cursor-pointer text-sm transition ${deliveryMethod === opt.value ? 'border-[#4a1942] bg-[#f5f0e8]' : 'hover:bg-gray-50'}`}>
+          <label
+            key={opt.value}
+            title={opt.hint}
+            className={`flex items-center gap-2 px-4 py-3 min-h-[2.75rem] rounded-2xl border cursor-pointer text-sm transition ${
+              deliveryMethod === opt.value ? 'border-[#4a1942] bg-[#f5f0e8] ring-1 ring-[#4a1942]/20' : 'hover:bg-gray-50'
+            }`}
+          >
             <input
               type="radio"
               name="delivery"
               value={opt.value}
               checked={deliveryMethod === opt.value}
               onChange={() => setDeliveryMethod(opt.value)}
-              className="hidden"
+              className="sr-only"
             />
-            <span>{opt.icon}</span> {opt.label}
+            <span aria-hidden="true">{opt.icon}</span>
+            <span>
+              <span className="font-medium block">{opt.label}</span>
+              <span className="text-[10px] text-gray-500 hidden sm:block">{opt.hint}</span>
+            </span>
           </label>
         ))}
-        <p className="text-xs text-gray-500 ml-auto">Fulfillment is arranged between seeker and practitioner. Shipping integrations coming soon.</p>
-      </div>
+        <p className="text-xs text-gray-500 w-full sm:w-auto sm:ml-auto sm:max-w-xs">
+          Your preference is saved for checkout. Shipping rates are set by each practitioner.
+        </p>
+      </fieldset>
 
       {!loading && filtered.length === 0 && (
         <EmptyState

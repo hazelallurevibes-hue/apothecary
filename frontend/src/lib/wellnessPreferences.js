@@ -45,19 +45,86 @@ export const WELLNESS_AVOID_OPTIONS = [
   'Essential oil blends',
 ];
 
-/** Practitioner specialty options for signup — stored in p_cuisine (DB field). */
+/**
+ * Practitioner specialty options for signup — stored in p_cuisine (DB field).
+ * Grouped for optgroup selects; flat list kept for backward compatibility.
+ */
+export const PRACTITIONER_SPECIALTY_GROUPS = [
+  {
+    label: 'Energy & bodywork',
+    options: [
+      'Reiki',
+      'Energy healing',
+      'Sound healing',
+      'Crystal healing',
+      'Chakra balancing',
+      'Massage therapy',
+      'Reflexology',
+      'Acupuncture',
+    ],
+  },
+  {
+    label: 'Traditional & ancestral healing',
+    options: [
+      'Curandera',
+      'Curandero',
+      'Sobadora',
+      'Yerbera',
+      'Bruja',
+      'Curanderismo',
+      'Shamanic practitioner',
+      'Indigenous healer',
+      'Folk healer',
+    ],
+  },
+  {
+    label: 'Divination & intuitive arts',
+    options: [
+      'Psychic medium',
+      'Tarot reader',
+      'Astrologer',
+      'Numerologist',
+      'Palm reader',
+      'Channeler',
+      'Intuitive coach',
+    ],
+  },
+  {
+    label: 'Herbal & apothecary',
+    options: [
+      'Herbalism',
+      'Herbalist',
+      'Apothecary goods',
+      'Aromatherapy',
+      'Homeopathy',
+      'Naturopathy',
+      'Flower essences',
+    ],
+  },
+  {
+    label: 'Holistic & Eastern traditions',
+    options: [
+      'Ayurveda',
+      'Traditional Chinese Medicine',
+      'Yoga therapy',
+      'Meditation guide',
+      'Breathwork facilitator',
+    ],
+  },
+  {
+    label: 'Spiritual & ritual',
+    options: [
+      'Ritual facilitator',
+      'Ceremony guide',
+      'Spiritual coach',
+      'Past-life regression',
+      'Hypnotherapy (wellness)',
+    ],
+  },
+];
+
+/** Flat list for legacy consumers — includes "Other" for free-text entry. */
 export const PRACTITIONER_SPECIALTY_OPTIONS = [
-  'Reiki',
-  'Herbalism',
-  'Curanderismo',
-  'Homeopathy',
-  'Apothecary goods',
-  'Energy healing',
-  'Ayurveda',
-  'Traditional Chinese Medicine',
-  'Naturopathy',
-  'Crystal healing',
-  'Sound healing',
-  'Aromatherapy',
+  ...PRACTITIONER_SPECIALTY_GROUPS.flatMap((g) => g.options),
   'Other',
 ];
