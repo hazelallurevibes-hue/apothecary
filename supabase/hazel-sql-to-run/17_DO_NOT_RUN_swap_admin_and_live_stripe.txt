@@ -1,0 +1,15 @@
+SKIP THIS FILE — DO NOT RUN IN SUPABASE SQL EDITOR
+==================================================
+
+The old migrations folder had:
+  20260621120000_swap_admin_and_live_stripe.sql
+
+That file:
+  - Sets admin to abeytamonico@yahoo.com (Bpicius owner — wrong for Hazel)
+  - Injects LIVE Stripe price IDs from the Bpicius Stripe account
+  - Enables live billing with someone else's keys
+
+For Hazel Allure, use instead:
+  1. Run 21_hazelallure_isolated_alignment.sql (sets hazelallurevibes@gmail.com as admin)
+  2. Run: node scripts/hazel-stripe-apply.mjs --save
+     (creates Hazel Stripe products/prices and writes them to platform_settings)
