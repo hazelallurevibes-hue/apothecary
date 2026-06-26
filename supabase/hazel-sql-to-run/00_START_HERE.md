@@ -57,13 +57,22 @@ node scripts/setup-admin-auth.js YOUR_SECURE_PASSWORD
 node scripts/upsert-hazel-settings.js
 ```
 
-Stripe (Hazel account only):
+Stripe (Hazel account only) — run from **repo root**, not `backend/`:
 
 ```powershell
 cd C:\Users\abeyt\hazelallure-fullstack
-$env:STRIPE_SECRET_KEY="sk_test_..."
+$env:STRIPE_SECRET_KEY="sk_test_..."   # full key from Stripe Dashboard → Developers → API keys
 node scripts/hazel-stripe-apply.mjs --save
 ```
+
+Or put the key in `backend/.env.stripe.local` as `STRIPE_SECRET_KEY=sk_test_...` then:
+
+```powershell
+cd C:\Users\abeyt\hazelallure-fullstack
+node scripts/hazel-stripe-apply.mjs --save
+```
+
+Wrong path (will fail): `backend\scripts\hazel-stripe-apply.mjs` — script lives in `scripts/` at repo root.
 
 Deploy edge functions (needs Supabase personal access token from hazelallurevibes account):
 
