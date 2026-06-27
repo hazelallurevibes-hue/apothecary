@@ -12,7 +12,7 @@ import { fetchPendingVerifications, reviewIdentity, reviewPermit } from '../lib/
 import PlatformEmailSettings from '../components/PlatformEmailSettings';
 import AdminProPayments from '../components/AdminProPayments';
 
-export default function AdminPortal({ user }) {
+export default function AdminPortal({ user, onLogout }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get('tab') || 'overview';
   const [activeTab, setActiveTab] = useState(initialTab);
@@ -245,6 +245,15 @@ export default function AdminPortal({ user }) {
       {/* Sidebar Menu */}
       <div className="w-full lg:w-64 bg-white border rounded-3xl p-4 flex-shrink-0">
         <h2 className="font-bold text-xl mb-4 px-2">Admin Portal</h2>
+        {onLogout && (
+          <button
+            type="button"
+            onClick={onLogout}
+            className="w-full mb-4 px-3 py-2.5 text-sm font-medium border border-[#4a1942]/30 rounded-2xl hover:bg-[#f5f0e8] min-h-[44px]"
+          >
+            Sign out
+          </button>
+        )}
         <div className="space-y-1 text-sm">
           {[
             { key: 'overview', label: '📊 Overview & Analytics' },

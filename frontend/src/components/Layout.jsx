@@ -227,7 +227,12 @@ export default function Layout({ user, onLogout, children }) {
                   </div>
                 </Link>
                 <ProfileAvatarLink user={user} size="sm" className="block" />
-                <button type="button" onClick={onLogout} className="hidden sm:block text-sm px-3 py-1.5 hover:bg-[#f5f0e8] rounded-3xl border border-transparent hover:border-[#e8e4f0]">
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="text-sm px-3 py-1.5 min-h-[44px] hover:bg-[#f5f0e8] rounded-3xl border border-[#e8e4f0] hover:border-[#4a1942]/30"
+                  aria-label={t('nav.logout')}
+                >
                   {t('nav.logout')}
                 </button>
               </>

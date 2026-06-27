@@ -1,0 +1,17 @@
+{
+  "services": {
+    "bpicius-backend": {
+      "root": "backend",
+      "entrypoint": "server.js"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "bpicius-backend"
+      }
+    }
+  ]
+}

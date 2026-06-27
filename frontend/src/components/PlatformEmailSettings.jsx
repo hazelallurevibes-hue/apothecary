@@ -83,6 +83,15 @@ export default function PlatformEmailSettings({ settings, onSaved, user }) {
         ))}
       </div>
 
+      <div className="text-sm bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 space-y-2">
+        <p className="font-medium text-amber-900">Forwarding to your inbox</p>
+        <ul className="text-xs text-amber-800 list-disc pl-4 space-y-1">
+          <li><strong>support@hazelallure.com</strong> → forward to hazelallurevibes@gmail.com (GoDaddy email forwarding)</li>
+          <li>Resend sends from noreply@hazelallure.com — set Reply-to to support@ so replies reach you</li>
+          <li>Footer contact uses Public contact email below</li>
+        </ul>
+      </div>
+
       <div className="flex flex-wrap gap-2 pt-2 border-t">
         <button
           type="button"

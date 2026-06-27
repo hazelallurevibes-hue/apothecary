@@ -315,7 +315,7 @@ function AppCore({ auth0 = null }) {
                   <ProtectedRoute allowedRoles={['admin', 'vendor']} vendorPermission="documents"><Documents user={user} /></ProtectedRoute>
                 } />
                 <Route path="/users" element={
-                  <ProtectedRoute allowedRoles={['admin']}><AdminPortal user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['admin']}><AdminPortal user={user} onLogout={logout} /></ProtectedRoute>
                 } />
 
                 {/* Vendor specific */}
