@@ -20,6 +20,8 @@ export default defineConfig(({ mode }) => {
     'import.meta.env.VITE_AUTH0_ENABLED': JSON.stringify(auth0Enabled ? 'true' : 'false'),
   },
   server: {
+    port: 5173,
+    strictPort: true,
     proxy: {
       '/api': {
         target: 'http://localhost:3001',
