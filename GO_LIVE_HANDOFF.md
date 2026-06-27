@@ -6,6 +6,11 @@ Use this when credits renew. Everything below is **DIY connect** — code is alr
 
 ## Hazel Allure (`apothecary.hazelallure.com`)
 
+### Vercel build fix (if you see `better-sqlite3` errors)
+- **Root Directory** must be `frontend` (not repo root) — Vercel → apothecary → Settings → General
+- Do **not** use a root `vercel.json` that references `backend` — frontend config lives in `frontend/vercel.json` only
+- Framework: Vite, Build: `npm run build`, Output: `dist`
+
 ### Done already
 - Stripe test products (monthly + annual Pro Member & Pro Practitioner)
 - Vercel env vars + production deploy
