@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
-import { finalizeSignupSession } from '../lib/auth';
+import { finalizeSignupSession, ensureOAuthUserProfile } from '../lib/auth';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
@@ -21,7 +22,20 @@ export default function VendorSignUp({ onLogin }) {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
+  const [googleMode, setGoogleMode] = useState(false);
   const captcha = useAuthCaptcha();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session?.user?.email) return;
+      const oauthEmail = session.user.email.trim().toLowerCase();
+      setEmail(oauthEmail);
+      setGoogleMode(true);
+      const meta = session.user.user_metadata || {};
+      const suggestedName = meta.full_name || meta.name || '';
+      if (suggestedName && !businessName) setBusinessName(suggestedName);
+    });
+  }, []);
 
   const resolvedSpecialty = specialtyChoice === 'Other'
     ? specialtyOther.trim()
@@ -33,20 +47,26 @@ export default function VendorSignUp({ onLogin }) {
       setMessage('You must agree to the Terms, Agreements, Privacy Policy and FAQ to apply.');
       return;
     }
-    if (!businessName || !email || !password || !confirmPassword) {
-      setMessage('Please provide practice or business name, email, password, and password confirmation.');
+    if (!businessName || !email) {
+      setMessage('Please provide your practice or business name and email.');
       return;
     }
-    const passwordError = validatePasswordPair(password, confirmPassword);
-    if (passwordError) {
-      setMessage(passwordError);
-      return;
+    if (!googleMode) {
+      if (!password || !confirmPassword) {
+        setMessage('Please provide password and password confirmation.');
+        return;
+      }
+      const passwordError = validatePasswordPair(password, confirmPassword);
+      if (passwordError) {
+        setMessage(passwordError);
+        return;
+      }
     }
 
     const gate = runSecureAuthChecks({
       honeypot,
       formStartedAt: formStartedAt.current,
-      validateCaptcha: captcha.validateCaptcha,
+      validateCaptcha: googleMode ? () => null : captcha.validateCaptcha,
     });
     if (!gate.ok) {
       setMessage(gate.message);
@@ -57,23 +77,52 @@ export default function VendorSignUp({ onLogin }) {
     setLoading(true);
     setMessage('');
     try {
-      const signup = await registerAuthUser(email, password, {
-        captchaToken: captcha.captchaToken,
-      });
+      let applicantEmail = email.trim().toLowerCase();
+      let activeSession = null;
+
+      if (googleMode) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user?.email) {
+          throw new Error('Sign in with Google first, then complete your practitioner application.');
+        }
+        activeSession = session;
+        applicantEmail = session.user.email.trim().toLowerCase();
+      } else {
+        const signup = await registerAuthUser(email, password, {
+          captchaToken: captcha.captchaToken,
+        });
+        applicantEmail = signup.email;
+        activeSession = signup.session;
+
+        if (signup.needsEmailConfirmation && !signup.session) {
+          const { error: rpcError } = await supabase.rpc('submit_vendor_application', {
+            p_business_name: businessName,
+            p_cuisine: resolvedSpecialty || '',
+            p_email: applicantEmail,
+          });
+          if (rpcError) throw rpcError;
+          setMessage('Application saved! Confirm your email, then sign in — admin will approve your practitioner status after that.');
+          captcha.resetCaptcha();
+          return;
+        }
+      }
 
       const { data: application, error: rpcError } = await supabase.rpc('submit_vendor_application', {
         p_business_name: businessName,
         p_cuisine: resolvedSpecialty || '',
-        p_email: signup.email,
+        p_email: applicantEmail,
       });
       if (rpcError) throw rpcError;
 
-      if (signup.session && onLogin) {
-        const sessionProfile = await finalizeSignupSession(signup);
+      if (activeSession && onLogin) {
+        const sessionProfile = googleMode
+          ? await ensureOAuthUserProfile(activeSession)
+          : await finalizeSignupSession({ email: applicantEmail, session: activeSession });
         onLogin(
-          sessionProfile || {
+          {
+            ...(sessionProfile || {}),
             name: application?.name || businessName,
-            email: application?.email || signup.email,
+            email: application?.email || applicantEmail,
             role: application?.role || 'vendor',
             vendor_id: application?.vendor_id,
           },
@@ -81,13 +130,11 @@ export default function VendorSignUp({ onLogin }) {
       }
 
       setMessage(
-        signup.needsEmailConfirmation
-          ? 'Application saved! Confirm your email, then sign in — admin will approve your practitioner status after that.'
-          : signup.session
-            ? 'Application submitted! You are signed in — admin will approve your practitioner status shortly.'
-            : 'Application submitted! Sign in at /login while admin reviews your application.',
+        activeSession
+          ? 'Application submitted! You are signed in — admin will approve your practitioner status shortly.'
+          : 'Application submitted! Sign in at /login while admin reviews your application.',
       );
-      captcha.resetCaptcha();
+      if (!googleMode) captcha.resetCaptcha();
     } catch (err) {
       setMessage(mapAuthError(err));
       captcha.resetCaptcha();
@@ -103,6 +150,21 @@ export default function VendorSignUp({ onLogin }) {
     <div className="max-w-md mx-auto">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Practitioner Sign Up</h1>
       <div className="bg-white border rounded-3xl p-8 relative">
+        {!googleMode && (
+          <>
+            <GoogleLoginButton redirectPath="/vendor-signup" disabled={loading} />
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">or apply with email</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+          </>
+        )}
+        {googleMode && (
+          <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-100 rounded-2xl px-4 py-3 mb-4">
+            Signed in with Google as <strong>{email}</strong>. Complete your practitioner details below.
+          </p>
+        )}
         <form onSubmit={handleSignUp} className="space-y-4">
           <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
           <input
@@ -138,47 +200,51 @@ export default function VendorSignUp({ onLogin }) {
               />
             )}
           </div>
-          <input
-            placeholder="Contact email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full border p-3.5 rounded-2xl"
-            type="email"
-            required
-          />
-          <input
-            placeholder="Password (min 6 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full border p-3.5 rounded-2xl"
-            type="password"
-            minLength={6}
-            autoComplete="new-password"
-            required
-          />
-          <div>
-            <input
-              placeholder="Confirm password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className={`w-full border p-3.5 rounded-2xl ${passwordsMismatch ? 'border-red-400' : ''}`}
-              type="password"
-              minLength={6}
-              autoComplete="new-password"
-              required
-            />
-            {passwordsMismatch && (
-              <p className="text-xs text-red-600 mt-1">Passwords do not match.</p>
-            )}
-          </div>
-          <AuthCaptcha
-            ref={captcha.captchaRef}
-            onSuccess={captcha.onCaptchaSuccess}
-            onExpire={captcha.onCaptchaExpire}
-            onError={captcha.onCaptchaError}
-          />
-          {captcha.captchaError && (
-            <p className="text-xs text-red-600">{captcha.captchaError}</p>
+          {!googleMode && (
+            <>
+              <input
+                placeholder="Contact email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full border p-3.5 rounded-2xl"
+                type="email"
+                required
+              />
+              <input
+                placeholder="Password (min 6 characters)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full border p-3.5 rounded-2xl"
+                type="password"
+                minLength={6}
+                autoComplete="new-password"
+                required
+              />
+              <div>
+                <input
+                  placeholder="Confirm password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className={`w-full border p-3.5 rounded-2xl ${passwordsMismatch ? 'border-red-400' : ''}`}
+                  type="password"
+                  minLength={6}
+                  autoComplete="new-password"
+                  required
+                />
+                {passwordsMismatch && (
+                  <p className="text-xs text-red-600 mt-1">Passwords do not match.</p>
+                )}
+              </div>
+              <AuthCaptcha
+                ref={captcha.captchaRef}
+                onSuccess={captcha.onCaptchaSuccess}
+                onExpire={captcha.onCaptchaExpire}
+                onError={captcha.onCaptchaError}
+              />
+              {captcha.captchaError && (
+                <p className="text-xs text-red-600">{captcha.captchaError}</p>
+              )}
+            </>
           )}
           <label className="flex items-start gap-2 text-xs text-gray-600">
             <input
@@ -194,7 +260,7 @@ export default function VendorSignUp({ onLogin }) {
           </label>
           <button
             type="submit"
-            disabled={loading || !agreedToTerms || passwordsMismatch}
+            disabled={loading || !agreedToTerms || (!googleMode && passwordsMismatch)}
             className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold mt-2 disabled:opacity-70"
           >
             {loading ? 'Submitting...' : 'Submit Practitioner Application'}

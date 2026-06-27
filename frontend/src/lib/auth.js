@@ -126,10 +126,11 @@ async function fetchBackendProfile(email) {
 
 export { mapAuthError } from './signupFlow';
 
-export async function signInWithGoogle() {
+export async function signInWithGoogle(redirectPath = '/login') {
+  const path = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
   const redirectTo = typeof window !== 'undefined'
-    ? `${window.location.origin}/login`
-    : `${getAppUrl()}/login`;
+    ? `${window.location.origin}${path}`
+    : `${getAppUrl()}${path}`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: 'google',

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { signInWithGoogle } from '../lib/auth';
 import { useLocale } from '../i18n';
 
-export default function GoogleLoginButton({ disabled = false }) {
+export default function GoogleLoginButton({ disabled = false, redirectPath = '/login' }) {
   const { t } = useLocale();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -11,7 +11,7 @@ export default function GoogleLoginButton({ disabled = false }) {
     setLoading(true);
     setError('');
     try {
-      await signInWithGoogle();
+      await signInWithGoogle(redirectPath);
     } catch (e) {
       setError(e.message || 'Google sign-in failed');
       setLoading(false);

@@ -118,7 +118,8 @@ function AppCore({ auth0 = null }) {
       setMonitoringUser(profile);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
 
-      if (event === 'SIGNED_IN' && (window.location.pathname === '/login' || window.location.hash.includes('access_token'))) {
+      const stayOnSignup = ['/login', '/customer-signup', '/vendor-signup'].includes(window.location.pathname);
+      if (event === 'SIGNED_IN' && stayOnSignup && window.location.pathname === '/login') {
         navigate(getPostLoginPath(profile?.role), { replace: true });
       }
     });

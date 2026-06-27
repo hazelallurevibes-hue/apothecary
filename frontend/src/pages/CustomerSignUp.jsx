@@ -1,8 +1,9 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
-import { finalizeSignupSession } from '../lib/auth';
+import { finalizeSignupSession, ensureOAuthUserProfile } from '../lib/auth';
+import GoogleLoginButton from '../components/GoogleLoginButton';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
@@ -24,7 +25,32 @@ export default function CustomerSignUp({ onLogin }) {
   const [sessionProfile, setSessionProfile] = useState(null);
   const [foodPrefs, setFoodPrefs] = useState({ ...EMPTY_FOOD_PREFS });
   const [prefsSaving, setPrefsSaving] = useState(false);
+  const [googleMode, setGoogleMode] = useState(false);
   const captcha = useAuthCaptcha();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (!session?.user?.email) return;
+      const oauthEmail = session.user.email.trim().toLowerCase();
+      const meta = session.user.user_metadata || {};
+      const displayName =
+        meta.full_name ||
+        meta.name ||
+        `${meta.given_name || ''} ${meta.family_name || ''}`.trim() ||
+        oauthEmail.split('@')[0];
+
+      setGoogleMode(true);
+      setEmail(oauthEmail);
+      if (!name) setName(displayName);
+
+      const profile = await ensureOAuthUserProfile(session);
+      if (profile) {
+        setSessionProfile(profile);
+        setStep('prefs');
+        setMessage('Signed in with Google! Share your wellness preferences (optional).');
+      }
+    });
+  }, []);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -144,6 +170,16 @@ export default function CustomerSignUp({ onLogin }) {
     <div className="max-w-md mx-auto">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Seeker Sign Up</h1>
       <div className="bg-white border rounded-3xl p-8 relative">
+        {!googleMode && (
+          <>
+            <GoogleLoginButton redirectPath="/customer-signup" disabled={loading} />
+            <div className="flex items-center gap-3 my-4">
+              <div className="flex-1 h-px bg-gray-200" />
+              <span className="text-xs text-gray-400">or sign up with email</span>
+              <div className="flex-1 h-px bg-gray-200" />
+            </div>
+          </>
+        )}
         <form onSubmit={handleSignUp} className="space-y-4">
           <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />
           <input
