@@ -12,6 +12,7 @@ import Auth0LoginButton from '../components/Auth0LoginButton';
 import Auth0ErrorBanner from '../components/Auth0ErrorBanner';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 import { useLocale } from '../i18n';
+import { VERTICAL } from '../lib/vertical';
 
 export default function Login({ onLogin, loading }) {
   const { t } = useLocale();
@@ -124,10 +125,11 @@ export default function Login({ onLogin, loading }) {
       <div className="max-w-md w-full">
         <div className="text-center mb-10">
           <div className="w-16 h-16 bg-[#4a1942] rounded-3xl mx-auto flex items-center justify-center mb-4">
-            <span className="text-white text-4xl">🍽️</span>
+            <span className="text-white text-4xl" aria-hidden="true">🌿</span>
           </div>
-          <h1 className="text-5xl font-bold tracking-tighter heading-font">Hazel Allure</h1>
-          <p className="text-gray-500 mt-2">Vendor Portal &amp; Culinary Marketplace</p>
+          <h1 className="text-5xl font-bold tracking-tighter heading-font">{VERTICAL.name}</h1>
+          <p className="text-gray-500 mt-2">{VERTICAL.tagline}</p>
+          <p className="text-gray-400 text-sm mt-1">Healing services, apothecary goods &amp; the Teaching Sanctum</p>
         </div>
 
         <div className="bg-white border rounded-3xl p-8 shadow-sm">
