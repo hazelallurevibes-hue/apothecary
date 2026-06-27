@@ -177,12 +177,37 @@ ${rows.map(([k, v]) => `  ('${k}', '${v}', NOW())`).join(',\n')}
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = NOW();`;
 }
 
+async function fetchDisplayAmounts(ids) {
+  const centsToDisplay = (cents) => (cents / 100).toFixed(2);
+  const out = {};
+  for (const [slot, priceId] of Object.entries({
+    vendor_monthly: ids.stripe_vendor_pro_price_id,
+    vendor_annual: ids.stripe_vendor_pro_annual_price_id,
+    customer_monthly: ids.stripe_customer_pro_price_id,
+    customer_annual: ids.stripe_customer_pro_annual_price_id,
+  })) {
+    if (!priceId) continue;
+    const price = await stripeGet(`/prices/${priceId}`);
+    const amount = price.unit_amount;
+    if (amount == null) continue;
+    if (slot === 'vendor_monthly') out.stripe_vendor_pro_monthly_display = centsToDisplay(amount);
+    if (slot === 'vendor_annual') out.stripe_vendor_pro_annual_display = centsToDisplay(amount);
+    if (slot === 'customer_monthly') out.stripe_customer_pro_monthly_display = centsToDisplay(amount);
+    if (slot === 'customer_annual') out.stripe_customer_pro_annual_display = centsToDisplay(amount);
+  }
+  return out;
+}
+
 async function saveToSupabase(ids, serviceKey) {
   const now = new Date().toISOString();
+  const display = await fetchDisplayAmounts(ids).catch(() => ({}));
   const settings = {
     ...ids,
+    ...display,
     pro_billing_enabled: 'true',
     stripe_mode: secret.startsWith('sk_live_') ? 'live' : 'test',
+    stripe_product_vendor_name: 'Hazel Allure Pro Practitioner',
+    stripe_product_customer_name: 'Hazel Allure Pro Member',
   };
   for (const [key, value] of Object.entries(settings)) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/platform_settings`, {
