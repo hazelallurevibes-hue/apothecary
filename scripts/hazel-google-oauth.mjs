@@ -4,8 +4,9 @@
  * Usage:
  *   node scripts/hazel-google-oauth.mjs
  *
- * After creating OAuth credentials in Google Cloud, paste into Supabase Dashboard
- * or set GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET and run with --print-only (default).
+ * After creating OAuth credentials in Google Cloud:
+ *   1. Save to backend/.env.google.local (gitignored)
+ *   2. node scripts/hazel-google-supabase-apply.mjs
  */
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';

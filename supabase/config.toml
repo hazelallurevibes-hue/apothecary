@@ -1,7 +1,28 @@
-# Hazel Allure LLC — jihinbkeqlkgywfsxizj (hazelallurevibes@gmail.com)
-# CLI link from garrettpistool account may fail; wife's account can run: npx supabase link --project-ref jihinbkeqlkgywfsxizj
+# Hazel Allure — remote auth config (pushed via: npx supabase config push --yes)
+# Secrets: backend/.env.google.local (gitignored)
 
 project_id = "jihinbkeqlkgywfsxizj"
+
+[auth]
+enabled = true
+site_url = "https://apothecary.hazelallure.com"
+additional_redirect_urls = [
+  "https://apothecary.hazelallure.com/**",
+  "https://apothecary.hazelallure.com/login",
+  "http://localhost:5173/**",
+  "http://localhost:5173/login",
+  "https://apothecary-two.vercel.app/**",
+]
+enable_signup = true
+enable_manual_linking = true
+
+# Push with: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET in backend/.env.google.local
+#   node scripts/hazel-google-supabase-apply.mjs
+# Or: npx supabase config push --yes (auth only; skip storage prompt if vector 402)
+[auth.external.google]
+enabled = true
+client_id = "env(GOOGLE_CLIENT_ID)"
+secret = "env(GOOGLE_CLIENT_SECRET)"
 
 [functions.notify-low-rating]
 verify_jwt = false
