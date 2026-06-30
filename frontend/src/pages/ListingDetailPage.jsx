@@ -7,7 +7,7 @@ import AllergenBadges from '../components/AllergenBadges';
 import SafetyStatusBadge from '../components/SafetyStatusBadge';
 import PreorderBadge from '../components/PreorderBadge';
 import FreshnessBadge from '../components/FreshnessBadge';
-import VerifiedVendorBadge from '../components/VerifiedVendorBadge';
+import PractitionerBadges from '../components/PractitionerBadges';
 import ReportListingButton from '../components/ReportListingButton';
 import { hasFoodLabel } from '../lib/foodLabels';
 import { formatPickupHoursSummary, upcomingEvents } from '../lib/pickupSchedule';
@@ -77,7 +77,7 @@ export default function ListingDetailPage({ user }) {
             </div>
           </div>
 
-          {vendor && <VerifiedVendorBadge vendor={vendor} />}
+          {vendor && <PractitionerBadges vendor={vendor} />}
 
           <p className="text-gray-700">{item.description}</p>
 

@@ -13,6 +13,8 @@ import { STREAM_PLATFORMS, buildArchiveEntry, parseArchives } from '../lib/strea
 import InternationalStorefrontEditor from '../components/InternationalStorefrontEditor';
 import VendorAddressFields from '../components/VendorAddressFields';
 import { parseRestrictedCategories } from '../lib/shippingRestrictions';
+import PractitionerBadgeEditor from '../components/PractitionerBadgeEditor';
+import { parseBusinessBadges } from '../lib/practitionerBadges';
 
 function parseBanners(raw) {
   if (Array.isArray(raw)) return raw;
@@ -98,6 +100,7 @@ export default function StorefrontSettings({ user }) {
       region: vendor.region || null,
       latitude: vendor.latitude ?? null,
       longitude: vendor.longitude ?? null,
+      business_badges: parseBusinessBadges(vendor.business_badges),
     };
 
     if (canBio && isPaid) payload.slogan = vendor.slogan || '';
@@ -252,6 +255,15 @@ export default function StorefrontSettings({ user }) {
               )}
             </>
           )}
+
+          <div>
+            <h3 className="text-sm font-semibold text-ha-primary mb-2">Business identity badges</h3>
+            <PractitionerBadgeEditor
+              value={vendor?.business_badges}
+              onChange={(ids) => setVendor((v) => ({ ...v, business_badges: ids }))}
+              disabled={!canBio}
+            />
+          </div>
 
           {vendor && (
             <VendorAddressFields

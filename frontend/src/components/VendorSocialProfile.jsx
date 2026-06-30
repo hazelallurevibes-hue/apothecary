@@ -10,7 +10,7 @@ import AllergenBadges from './AllergenBadges';
 import SafetyStatusBadge from './SafetyStatusBadge';
 import LiveStreamPlayer from './LiveStreamPlayer';
 import StreamArchiveGallery from './StreamArchiveGallery';
-import VerifiedVendorBadge from './VerifiedVendorBadge';
+import PractitionerBadges from './PractitionerBadges';
 import VideoEmbed from './VideoEmbed';
 import { fetchPublicReviews, formatStars } from '../lib/reviewsApi';
 import { fetchPublishedCourses } from '../lib/teachingPlatform';
@@ -19,6 +19,7 @@ import { formatPickupHoursSummary, upcomingEvents } from '../lib/pickupSchedule'
 import { listingDetailPath } from '../lib/listingDisplay';
 import SessionBookingPanel from './SessionBookingPanel';
 import { fetchOpenSlots } from '../lib/sessionBookingApi';
+import { resolveVendorBadges } from '../lib/practitionerBadges';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -340,8 +341,8 @@ export default function VendorSocialProfile({ vendorId, user }) {
                 <span className="text-sm font-semibold text-amber-700">{avgRating || '—'}</span>
                 <span className="text-xs text-gray-500">({reviewCount})</span>
               </div>
-              <VerifiedVendorBadge vendor={vendor} compact />
             </div>
+            <PractitionerBadges vendor={vendor} className="mt-2 justify-center sm:justify-start" />
           </div>
         </div>
       </section>
@@ -621,6 +622,13 @@ export default function VendorSocialProfile({ vendorId, user }) {
               >
                 &ldquo;{vendor.slogan}&rdquo;
               </blockquote>
+            )}
+            {resolveVendorBadges(vendor).length > 0 && (
+              <div className="mt-4">
+                <h3 className="text-sm font-semibold text-[#2d1230] mb-2">Business identity</h3>
+                <PractitionerBadges vendor={vendor} max={12} />
+                <p className="text-[11px] text-gray-400 mt-2">Self-declared by the practitioner. Hazel Allure does not independently verify ownership claims.</p>
+              </div>
             )}
             <dl className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>

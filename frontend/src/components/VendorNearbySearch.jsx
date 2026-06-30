@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { haversineMiles, vendorLocationBlob, vendorLocationLabel } from '../lib/geoUtils';
 import { formatStars } from '../lib/reviewsApi';
+import PractitionerBadges from './PractitionerBadges';
 
 const RADIUS_OPTIONS = [
   { mi: 10, km: 16 },
@@ -177,9 +178,10 @@ export default function VendorNearbySearch({ vendors = [], loading = false, onNe
               to={`/vendor/${v.id}`}
               className="flex justify-between items-center p-3 border rounded-2xl hover:border-[#4a1942] text-sm"
             >
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="font-medium">{v.name}</div>
                 <div className="text-xs text-gray-500">{vendorLocationLabel(v)}</div>
+                <PractitionerBadges vendor={v} compact className="mt-1" max={2} />
               </div>
               <div className="text-right shrink-0">
                 {v.distanceMi != null && (

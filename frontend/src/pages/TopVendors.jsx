@@ -4,6 +4,8 @@ import EmptyState from '../components/EmptyState';
 import StarRating from '../components/StarRating';
 import { fetchVendorsWithRatings } from '../lib/reviewsApi';
 import VendorNearbySearch from '../components/VendorNearbySearch';
+import PractitionerBadges from '../components/PractitionerBadges';
+import { PRACTITIONER_BADGE_CATALOG, vendorHasBadge } from '../lib/practitionerBadges';
 
 export default function TopVendors() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -11,16 +13,27 @@ export default function TopVendors() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const minRating = Number(searchParams.get('min') || 0);
+  const badgeFilter = searchParams.get('badge') || '';
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await fetchVendorsWithRatings({ minRating, search });
+      let data = await fetchVendorsWithRatings({ minRating, search });
+      if (badgeFilter) {
+        data = data.filter((v) => vendorHasBadge(v, badgeFilter));
+      }
       setVendors(data);
       setLoading(false);
     };
     load();
-  }, [minRating, search]);
+  }, [minRating, search, badgeFilter]);
+
+  const setBadgeFilter = (id) => {
+    const next = new URLSearchParams(searchParams);
+    if (id) next.set('badge', id);
+    else next.delete('badge');
+    setSearchParams(next);
+  };
 
   const setMinRating = (val) => {
     const next = new URLSearchParams(searchParams);
@@ -31,8 +44,8 @@ export default function TopVendors() {
 
   return (
     <div>
-      <h1 className="text-4xl font-bold tracking-tight mb-2">Top Vendors</h1>
-      <p className="text-gray-600 mb-6">Search and filter by star rating — only public reviews count toward scores.</p>
+      <h1 className="text-4xl font-bold tracking-tight mb-2 heading-font text-ha-primary">Top Practitioners</h1>
+      <p className="text-gray-600 mb-6">Search by name, filter by rating or business identity badges — only public reviews count toward scores.</p>
 
       <VendorNearbySearch vendors={vendors} loading={loading} />
 
@@ -66,6 +79,32 @@ export default function TopVendors() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6 items-center text-sm">
+        <span className="text-gray-500">Badges:</span>
+        <button
+          type="button"
+          onClick={() => setBadgeFilter('')}
+          className={`px-3 py-1.5 rounded-2xl border transition ${!badgeFilter ? 'bg-ha-primary text-white border-ha-primary' : 'bg-white hover:border-ha-primary'}`}
+        >
+          All
+        </button>
+        {PRACTITIONER_BADGE_CATALOG.filter((b) =>
+          ['woman_owned', 'bipoc_owned', 'lgbtq_owned', 'black_owned', 'latina_owned', 'veteran_owned', 'eco_conscious', 'indigenous_led'].includes(b.id),
+        ).map((badge) => (
+          <button
+            key={badge.id}
+            type="button"
+            onClick={() => setBadgeFilter(badge.id)}
+            className={`px-3 py-1.5 rounded-2xl border transition inline-flex items-center gap-1 ${
+              badgeFilter === badge.id ? 'bg-ha-rose-light border-ha-rose text-ha-primary font-medium' : 'bg-white hover:border-ha-rose/50'
+            }`}
+          >
+            <span aria-hidden="true">{badge.icon}</span>
+            {badge.shortLabel}
+          </button>
+        ))}
       </div>
 
       {loading && <div className="text-gray-500 text-sm">Loading practitioners…</div>}
@@ -102,6 +141,7 @@ export default function TopVendors() {
                     </span>
                     {count > 0 && <span className="text-xs text-gray-400">({count})</span>}
                   </div>
+                  <PractitionerBadges vendor={vendor} compact className="mt-2" max={3} />
                 </div>
               </div>
               <div className="mt-3 text-xs px-3 py-1 bg-emerald-100 text-emerald-700 inline-block rounded-3xl capitalize">
