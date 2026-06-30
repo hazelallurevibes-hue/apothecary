@@ -29,6 +29,7 @@ import {
   nextIncompleteStep,
 } from '../lib/onboardingApi';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
+import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import UpgradeBanner from '../components/UpgradeBanner';
 import FoodLabelFields from '../components/FoodLabelFields';
 import { buildFoodLabelPayload } from '../lib/foodLabels';
@@ -804,6 +805,8 @@ export default function VendorDashboard({ user }) {
           )}
         </div>
       </div>
+
+      <EmailVerificationBanner user={user} variant="vendor" />
 
       <VendorOnboardingChecklist
         vendorId={myVendorId}

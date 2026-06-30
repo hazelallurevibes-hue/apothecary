@@ -7,6 +7,7 @@ import { fetchVendorTaxSettings } from '../lib/vendorTaxApi';
 import { calculateCheckoutTotals } from '../lib/vendorTax';
 import { getCustomerContext } from '../lib/plans';
 import { bestCartDiscount, applyDiscountToSubtotal, fetchVendorDiscounts } from '../lib/vendorDiscounts';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function CartCheckoutPanel({
   user,
@@ -18,6 +19,7 @@ export default function CartCheckoutPanel({
   showDeliverySelect = false,
 }) {
   const { cart, removeFromCart, formatCartLineName } = useCart();
+  const { requireVerification } = useProviderInteractionGate(user);
   const lines = cartFilter ? cart.filter(cartFilter) : cart;
 
   if (lines.length === 0) return null;
@@ -112,7 +114,10 @@ export default function CartCheckoutPanel({
       {user ? (
         <button
           type="button"
-          onClick={() => onPlaceOrder?.(modPanel)}
+          onClick={async () => {
+            if (!(await requireVerification())) return;
+            onPlaceOrder?.(modPanel);
+          }}
           disabled={placing}
           className={`mt-4 w-full py-2.5 text-white rounded-2xl font-medium disabled:opacity-70 ${accentClass}`}
         >

@@ -21,8 +21,10 @@ import { allApothecaryCategories, getCategoryDisplay, isMedicinalCategory } from
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import { VERTICAL } from '../lib/vertical';
 import { WELLNESS_MARKET_FILTERS } from '../lib/wellnessPreferences';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function ApothecaryMarket({ user }) {
+  const { requireVerification } = useProviderInteractionGate(user);
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -102,6 +104,7 @@ export default function ApothecaryMarket({ user }) {
       navigate('/login');
       return;
     }
+    if (!(await requireVerification())) return;
     try {
       await findOrCreateConversation({
         vendorId,
@@ -360,6 +363,7 @@ export default function ApothecaryMarket({ user }) {
 
               <div className="mt-3">
                 <AddToCartButton
+                  user={user}
                   item={{ ...item, vendor_id: item.vendor_id }}
                   itemType="produce"
                   accent="#4a1942"

@@ -142,114 +142,116 @@ export default function Layout({ user, onLogout, children }) {
   return (
     <div className="min-h-screen bg-[#f5f0e8]">
       <nav className="bg-white/90 backdrop-blur-lg border-b border-[#e8e4f0]/80 sticky top-0 z-50 shadow-sm shadow-[#4a1942]/5">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 h-[4.25rem] flex items-center justify-between gap-4">
-          <div className="flex items-center gap-x-3 shrink-0">
-            <Link to="/" className="flex items-center gap-x-3 group" onClick={closeMobile}>
-              <img
-                src={LOGO_IMG}
-                alt={VERTICAL.name}
-                className="w-10 h-10 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shadow-sm"
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <div className="flex items-center gap-x-2 sm:gap-x-3 shrink-0 order-1">
+              <Link to="/" className="flex items-center gap-x-2 sm:gap-x-3 group" onClick={closeMobile}>
+                <img
+                  src={LOGO_IMG}
+                  alt={VERTICAL.name}
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shadow-sm"
+                />
+                <span className="font-bold text-lg sm:text-xl xl:text-2xl tracking-[-0.03em] heading-font text-[#4a1942] group-hover:text-[#2d1230] transition-colors whitespace-nowrap">
+                  {VERTICAL.name}
+                </span>
+              </Link>
+            </div>
+
+            <div className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-3 lg:gap-x-4 gap-y-1 min-w-0 order-3 md:order-2 text-[13px] lg:text-sm font-medium">
+              <Link to="/" className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.home')}</Link>
+              <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.marketplace')}</Link>
+              <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.apothecary')}</Link>
+              <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.topVendors')}</Link>
+              <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942] whitespace-nowrap">{VERTICAL.labels.courses}</Link>
+              <NavDropdown
+                label="Blog"
+                items={blogMenu.map((b) => ({ label: b.label, href: b.href, external: true }))}
               />
-              <span className="font-bold text-xl sm:text-2xl lg:text-[1.65rem] tracking-[-0.03em] heading-font text-[#4a1942] group-hover:text-[#2d1230] transition-colors">
-                {VERTICAL.name}
-              </span>
-            </Link>
-          </div>
 
-          <div className="hidden md:flex items-center gap-x-6 lg:gap-x-8 text-sm font-medium">
-            <Link to="/" className="hover:text-[#4a1942] font-medium">{t('nav.home')}</Link>
-            <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942]">{t('nav.marketplace')}</Link>
-            <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942]">{t('nav.apothecary')}</Link>
-            <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942]">{t('nav.topVendors')}</Link>
-            <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942]">{VERTICAL.labels.courses}</Link>
-            <NavDropdown
-              label="Blog"
-              items={blogMenu.map((b) => ({ label: b.label, href: b.href, external: true }))}
-            />
+              {isCustomer && <NavDropdown label={t('nav.myAccount')} items={customerMenu} />}
+              {isGuest && <NavDropdown label={t('nav.explore')} items={guestMenu} />}
 
-            {isCustomer && <NavDropdown label={t('nav.myAccount')} items={customerMenu} />}
-            {isGuest && <NavDropdown label={t('nav.explore')} items={guestMenu} />}
+              {isVendor && vendorSellMenu.length > 0 && <NavDropdown label={t('nav.sell')} items={vendorSellMenu} />}
+              {isVendor && vendorManageMenu.length > 0 && <NavDropdown label={t('nav.manage')} items={vendorManageMenu} />}
+              {isVendor && vendorCan(user, 'analytics') && (
+                <Link to="/vendor-dashboard" className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.analytics')}</Link>
+              )}
 
-            {isVendor && vendorSellMenu.length > 0 && <NavDropdown label={t('nav.sell')} items={vendorSellMenu} />}
-            {isVendor && vendorManageMenu.length > 0 && <NavDropdown label={t('nav.manage')} items={vendorManageMenu} />}
-            {isVendor && vendorCan(user, 'analytics') && (
-              <Link to="/vendor-dashboard" className="hover:text-[#4a1942] text-sm font-medium">{t('nav.analytics')}</Link>
-            )}
+              {isAdmin && <NavDropdown label={t('nav.admin')} items={adminMenu} className="font-medium" />}
+            </div>
 
-            {isAdmin && <NavDropdown label={t('nav.admin')} items={adminMenu} className="font-medium" />}
-          </div>
-
-          <div className="flex items-center gap-x-2.5 sm:gap-x-3 md:gap-x-4 shrink-0">
-            <button
-              type="button"
-              onClick={() => setAccessOpen(true)}
-              className="hidden sm:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-3xl border border-[#e8e4f0] bg-white text-gray-700 hover:border-[#4a1942] font-medium"
-              aria-label="Open accessibility and help"
-              title="Accessibility: text size, read aloud, languages, ASL"
-            >
-              ♿ Access
-            </button>
-            {user && (
+            <div className="flex flex-wrap items-center gap-x-2 sm:gap-x-2.5 ml-auto shrink-0 order-2 md:order-3">
               <button
                 type="button"
-                onClick={toggleEasyMode}
-                className={`hidden sm:inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-3xl border font-medium transition ${
-                  easyMode
-                    ? 'bg-amber-100 border-amber-300 text-amber-900'
-                    : 'bg-white border-[#e8e4f0] text-gray-600 hover:border-amber-200'
-                }`}
-                title="Easy mode — step-by-step tips with ! help buttons"
+                onClick={() => setAccessOpen(true)}
+                className="hidden sm:inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-3xl border border-[#e8e4f0] bg-white text-gray-700 hover:border-[#4a1942] font-medium"
+                aria-label="Open accessibility and help"
+                title="Accessibility: text size, read aloud, languages, ASL"
               >
-                <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">!</span>
-                Easy mode {easyMode ? 'ON' : 'OFF'}
+                ♿ <span className="hidden xl:inline">Access</span>
               </button>
-            )}
-            <LanguageSwitcher compact />
-            {isCustomer && (
-              <Link
-                to="/orders"
-                className="flex items-center gap-x-1.5 text-sm px-3 md:px-4 py-1.5 bg-[#f5f0e8] hover:bg-white border border-[#e8e4f0] rounded-3xl transition"
-                title="Cart & Orders"
-              >
-                🛒 <span className="font-semibold tabular-nums">{cart.reduce((s, i) => s + (i.qty || 1), 0)}</span>
-                {total > 0 && <span className="hidden sm:inline text-xs text-[#4a1942] ml-0.5 font-medium">${total.toFixed(0)}</span>}
-              </Link>
-            )}
-
-            {user ? (
-              <>
-                <Link to={ACCOUNT_PROFILE_PATH} className="text-right hidden lg:block hover:opacity-80 transition" title="Edit profile">
-                  <div className="font-semibold text-sm text-[#2d1230]">{user.name}</div>
-                  <div className="text-[10px] text-[#64748b] -mt-0.5 capitalize">
-                    {user.role}
-                    {vendorCtx && ` • ${planBadgeLabel(vendorCtx.plan, 'vendor')}`}
-                    {isCustomer && user.customer_plan && ` • ${planBadgeLabel(user.customer_plan, 'customer')}`}
-                  </div>
-                </Link>
-                <ProfileAvatarLink user={user} size="sm" className="block" />
+              {user && (
                 <button
                   type="button"
-                  onClick={onLogout}
-                  className="text-sm px-3 py-1.5 min-h-[44px] hover:bg-[#f5f0e8] rounded-3xl border border-[#e8e4f0] hover:border-[#4a1942]/30"
-                  aria-label={t('nav.logout')}
+                  onClick={toggleEasyMode}
+                  className={`hidden sm:inline-flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-3xl border font-medium transition ${
+                    easyMode
+                      ? 'bg-amber-100 border-amber-300 text-amber-900'
+                      : 'bg-white border-[#e8e4f0] text-gray-600 hover:border-amber-200'
+                  }`}
+                  title="Easy mode — step-by-step tips with ! help buttons"
                 >
-                  {t('nav.logout')}
+                  <span className="w-5 h-5 rounded-full bg-amber-500 text-white text-[10px] font-bold flex items-center justify-center">!</span>
+                  <span className="hidden xl:inline">Easy {easyMode ? 'ON' : 'OFF'}</span>
                 </button>
-              </>
-            ) : (
-              <Link to="/login" className="hidden sm:inline-flex btn-primary !px-5 !py-2 !text-sm">
-                {t('nav.login')}
-              </Link>
-            )}
+              )}
+              <LanguageSwitcher compact />
+              {isCustomer && (
+                <Link
+                  to="/orders"
+                  className="flex items-center gap-x-1 text-sm px-2.5 sm:px-3 py-1.5 bg-[#f5f0e8] hover:bg-white border border-[#e8e4f0] rounded-3xl transition"
+                  title="Cart & Orders"
+                >
+                  🛒 <span className="font-semibold tabular-nums">{cart.reduce((s, i) => s + (i.qty || 1), 0)}</span>
+                  {total > 0 && <span className="hidden lg:inline text-xs text-[#4a1942] ml-0.5 font-medium">${total.toFixed(0)}</span>}
+                </Link>
+              )}
 
-            <button
-              type="button"
-              className="md:hidden p-2 rounded-xl border border-[#e8e4f0]"
-              onClick={() => setMobileOpen(!mobileOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? '✕' : '☰'}
-            </button>
+              {user ? (
+                <>
+                  <Link to={ACCOUNT_PROFILE_PATH} className="text-right hidden xl:block hover:opacity-80 transition max-w-[8rem] truncate" title="Edit profile">
+                    <div className="font-semibold text-sm text-[#2d1230] truncate">{user.name}</div>
+                    <div className="text-[10px] text-[#64748b] -mt-0.5 capitalize truncate">
+                      {user.role}
+                      {vendorCtx && ` • ${planBadgeLabel(vendorCtx.plan, 'vendor')}`}
+                      {isCustomer && user.customer_plan && ` • ${planBadgeLabel(user.customer_plan, 'customer')}`}
+                    </div>
+                  </Link>
+                  <ProfileAvatarLink user={user} size="sm" className="block" />
+                  <button
+                    type="button"
+                    onClick={onLogout}
+                    className="text-xs sm:text-sm px-2.5 sm:px-3 py-1.5 min-h-[40px] hover:bg-[#f5f0e8] rounded-3xl border border-[#e8e4f0] hover:border-[#4a1942]/30 whitespace-nowrap"
+                    aria-label={t('nav.logout')}
+                  >
+                    {t('nav.logout')}
+                  </button>
+                </>
+              ) : (
+                <Link to="/login" className="hidden sm:inline-flex btn-primary !px-4 !py-2 !text-sm whitespace-nowrap">
+                  {t('nav.login')}
+                </Link>
+              )}
+
+              <button
+                type="button"
+                className="md:hidden p-2 rounded-xl border border-[#e8e4f0]"
+                onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? '✕' : '☰'}
+              </button>
+            </div>
           </div>
         </div>
 

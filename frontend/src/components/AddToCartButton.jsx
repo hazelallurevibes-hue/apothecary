@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useCart } from './CartContext';
 import { parseItemOptions } from '../lib/itemOptions';
 import ItemOptionsPicker from './ItemOptionsPicker';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function AddToCartButton({
   item,
@@ -9,8 +10,10 @@ export default function AddToCartButton({
   className = '',
   label,
   accent = '#4a1942',
+  user = null,
 }) {
   const { addToCart } = useCart();
+  const { requireVerification } = useProviderInteractionGate(user);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [added, setAdded] = useState(false);
   const optionGroups = parseItemOptions(item?.item_options);
@@ -23,7 +26,8 @@ export default function AddToCartButton({
     item_options: optionGroups,
   };
 
-  const handleAdd = (extras = {}) => {
+  const handleAdd = async (extras = {}) => {
+    if (user && !(await requireVerification())) return;
     addToCart({ ...cartPayload, ...extras });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -35,7 +39,7 @@ export default function AddToCartButton({
     <>
       <button
         type="button"
-        onClick={() => (hasOptions ? setPickerOpen(true) : handleAdd())}
+        onClick={() => (hasOptions ? setPickerOpen(true) : void handleAdd())}
         className={className || 'flex-1 py-2.5 text-white rounded-2xl text-sm font-medium'}
         style={!className ? { backgroundColor: accent } : undefined}
       >

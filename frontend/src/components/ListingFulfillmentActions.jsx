@@ -8,6 +8,7 @@ export default function ListingFulfillmentActions({
   className = '',
   accent = '#4a1942',
   label,
+  user = null,
 }) {
   const mode = item?.fulfillment_mode || 'hazelallure';
 
@@ -47,6 +48,7 @@ export default function ListingFulfillmentActions({
 
   return (
     <AddToCartButton
+      user={user}
       item={item}
       itemType={itemType}
       className={className}

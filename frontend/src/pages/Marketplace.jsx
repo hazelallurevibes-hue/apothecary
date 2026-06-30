@@ -15,6 +15,8 @@ import { buildTaxedOrderPayload } from '../lib/checkoutTax';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
 import { MARKETPLACE_MENU_CATEGORIES } from '../lib/marketplaceMenuCategories';
 import { VERTICAL } from '../lib/vertical';
+import VendorNearbySearch from '../components/VendorNearbySearch';
+import { fetchVendorsWithRatings } from '../lib/reviewsApi';
 
 export default function Marketplace({ user }) {
   const [items, setItems] = useState([]);
@@ -27,6 +29,9 @@ export default function Marketplace({ user }) {
   const [placing, setPlacing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [vendorNames, setVendorNames] = useState({});
+  const [vendors, setVendors] = useState([]);
+  const [vendorsLoading, setVendorsLoading] = useState(true);
+  const [nearbyVendorIds, setNearbyVendorIds] = useState(null);
 
   const { cart, clearCart } = useCart();
 
@@ -70,6 +75,14 @@ export default function Marketplace({ user }) {
     loadItems();
   }, []);
 
+  useEffect(() => {
+    setVendorsLoading(true);
+    fetchVendorsWithRatings()
+      .then(setVendors)
+      .catch(() => setVendors([]))
+      .finally(() => setVendorsLoading(false));
+  }, []);
+
   const allergenAvoid = [
     ...new Set([...profileAllergens, ...(allergenFilter ? [allergenFilter] : [])]),
   ];
@@ -80,7 +93,9 @@ export default function Marketplace({ user }) {
       const matchesCategory = !categoryFilter || item.category === categoryFilter;
       const matchesPrice = item.price <= maxPrice;
       const matchesPreorder = !preorderOnly || item.is_preorder;
-      return matchesSearch && matchesCategory && matchesPrice && matchesPreorder;
+      const matchesLocation =
+        !nearbyVendorIds?.length || nearbyVendorIds.includes(Number(item.vendor_id));
+      return matchesSearch && matchesCategory && matchesPrice && matchesPreorder && matchesLocation;
     }),
     allergenAvoid,
   );
@@ -210,6 +225,12 @@ export default function Marketplace({ user }) {
         </label>
       </div>
 
+      <VendorNearbySearch
+        vendors={vendors}
+        loading={vendorsLoading}
+        onNearbyVendors={(ids) => setNearbyVendorIds(ids?.length ? ids : null)}
+      />
+
       {profileAllergens.length > 0 && (
         <div className="mb-4 text-sm bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2">
           <span>
@@ -291,7 +312,7 @@ export default function Marketplace({ user }) {
                   <ReportListingButton item={item} itemType="menu" user={user} compact />
                 </div>
                 <div className="mt-2 flex gap-2 items-center">
-                  <AddToCartButton item={item} itemType="menu" className="flex-1 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-medium" />
+                  <AddToCartButton user={user} item={item} itemType="menu" className="flex-1 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-medium" />
                   <button
                     type="button"
                     onClick={() => {

@@ -95,6 +95,7 @@ export default function StorefrontSettings({ user }) {
       city: vendor.city || null,
       state: vendor.state || null,
       zip: vendor.zip || null,
+      region: vendor.region || null,
       latitude: vendor.latitude ?? null,
       longitude: vendor.longitude ?? null,
     };

@@ -42,7 +42,7 @@ function parseBanners(raw) {
   return [];
 }
 
-function ListingCard({ item, vendor, itemType, accent }) {
+function ListingCard({ item, vendor, itemType, accent, user }) {
   return (
     <article className="bg-white border border-[#c9a227]/15 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <Link to={listingDetailPath(itemType, item.id)} className="block">
@@ -72,6 +72,7 @@ function ListingCard({ item, vendor, itemType, accent }) {
         </div>
         <div className="mt-3">
           <ListingFulfillmentActions
+            user={user}
             item={{ ...item, vendor_name: vendor.name }}
             vendor={vendor}
             itemType={itemType}
@@ -463,6 +464,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
                     vendor={vendor}
                     itemType={type === 'service' ? 'menu' : 'produce'}
                     accent={accent}
+                    user={user}
                   />
                 )}
               </div>
@@ -533,7 +535,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
                 <p className="text-gray-500 col-span-full text-center py-8">No healing services listed yet.</p>
               )}
               {services.map((item) => (
-                <ListingCard key={item.id} item={item} vendor={vendor} itemType="menu" accent={accent} />
+                <ListingCard key={item.id} item={item} vendor={vendor} itemType="menu" accent={accent} user={user} />
               ))}
             </div>
           </div>
@@ -552,7 +554,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
                 <p className="text-gray-500 col-span-full text-center py-8">No apothecary goods listed yet.</p>
               )}
               {apothecary.map((item) => (
-                <ListingCard key={item.id} item={item} vendor={vendor} itemType="produce" accent={accent} />
+                <ListingCard key={item.id} item={item} vendor={vendor} itemType="produce" accent={accent} user={user} />
               ))}
             </div>
           </div>

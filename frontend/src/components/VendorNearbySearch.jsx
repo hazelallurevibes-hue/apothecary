@@ -1,174 +1,175 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  attachPlacesAutocomplete,
-  getGoogleMapsApiKey,
-  haversineMiles,
-  isGoogleMapsConfigured,
-  loadGoogleMaps,
-} from '../lib/googleMaps';
+import { haversineMiles, vendorLocationBlob, vendorLocationLabel } from '../lib/geoUtils';
 import { formatStars } from '../lib/reviewsApi';
 
-function vendorLocationLabel(v) {
-  const parts = [v.city, v.state, v.zip].filter(Boolean);
-  return parts.join(', ') || v.street_address || v.region || 'Location not listed';
-}
+const RADIUS_OPTIONS = [
+  { mi: 10, km: 16 },
+  { mi: 25, km: 40 },
+  { mi: 50, km: 80 },
+  { mi: 100, km: 160 },
+];
 
-export default function VendorNearbySearch({ vendors = [], loading = false }) {
-  const inputRef = useRef(null);
-  const mapRef = useRef(null);
-  const [mapsReady, setMapsReady] = useState(false);
-  const [mapsError, setMapsError] = useState('');
-  const [center, setCenter] = useState(null);
+export default function VendorNearbySearch({ vendors = [], loading = false, onNearbyVendors }) {
+  const [userCoords, setUserCoords] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locError, setLocError] = useState('');
   const [radiusMi, setRadiusMi] = useState(25);
   const [textLocation, setTextLocation] = useState('');
-  const [mapInstance, setMapInstance] = useState(null);
-  const [markers, setMarkers] = useState([]);
-
-  const configured = isGoogleMapsConfigured();
-
-  useEffect(() => {
-    if (!configured) return;
-    loadGoogleMaps()
-      .then(() => setMapsReady(true))
-      .catch((e) => setMapsError(e.message));
-  }, [configured]);
-
-  useEffect(() => {
-    if (!mapsReady || !inputRef.current) return;
-    attachPlacesAutocomplete(inputRef.current, (place) => {
-      setCenter(place);
-      setTextLocation(place.formatted || '');
-    });
-  }, [mapsReady]);
+  const [useKm, setUseKm] = useState(false);
 
   const locatedVendors = vendors.filter((v) => v.latitude != null && v.longitude != null);
 
-  const nearby = center
+  const nearby = userCoords
     ? locatedVendors
         .map((v) => ({
           ...v,
-          distanceMi: haversineMiles(center.lat, center.lng, Number(v.latitude), Number(v.longitude)),
+          distanceMi: haversineMiles(
+            userCoords.lat,
+            userCoords.lng,
+            Number(v.latitude),
+            Number(v.longitude),
+          ),
         }))
         .filter((v) => v.distanceMi <= radiusMi)
         .sort((a, b) => a.distanceMi - b.distanceMi)
     : [];
 
-  const textFiltered = !center && textLocation.trim()
-    ? vendors.filter((v) => {
-        const q = textLocation.trim().toLowerCase();
-        const blob = [v.city, v.state, v.zip, v.street_address, v.region, v.name].join(' ').toLowerCase();
-        return blob.includes(q);
-      })
+  const textFiltered = !userCoords && textLocation.trim()
+    ? vendors.filter((v) => vendorLocationBlob(v).includes(textLocation.trim().toLowerCase()))
     : [];
 
-  const displayList = center ? nearby : textFiltered;
+  const displayList = userCoords ? nearby : textFiltered;
+  const activeFilter = userCoords || textLocation.trim();
 
   useEffect(() => {
-    if (!mapsReady || !mapRef.current || !window.google?.maps) return;
-
-    const map =
-      mapInstance ||
-      new window.google.maps.Map(mapRef.current, {
-        center: center || { lat: 39.8283, lng: -98.5795 },
-        zoom: center ? 10 : 4,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-      });
-
-    if (!mapInstance) setMapInstance(map);
-
-    markers.forEach((m) => m.setMap(null));
-    const next = [];
-
-    if (center) {
-      next.push(
-        new window.google.maps.Marker({
-          map,
-          position: center,
-          title: 'Your search area',
-          icon: { path: window.google.maps.SymbolPath.CIRCLE, scale: 8, fillColor: '#4a1942', fillOpacity: 1, strokeWeight: 0 },
-        }),
-      );
+    if (!onNearbyVendors) return;
+    if (userCoords) {
+      onNearbyVendors(nearby.map((v) => Number(v.id)));
+    } else if (textLocation.trim() && textFiltered.length) {
+      onNearbyVendors(textFiltered.map((v) => Number(v.id)));
+    } else {
+      onNearbyVendors(null);
     }
+  }, [userCoords, nearby.length, textFiltered.length, textLocation, onNearbyVendors]);
 
-    (center ? nearby : locatedVendors).forEach((v) => {
-      next.push(
-        new window.google.maps.Marker({
-          map,
-          position: { lat: Number(v.latitude), lng: Number(v.longitude) },
-          title: v.name,
-        }),
-      );
-    });
-
-    setMarkers(next);
-    if (center) {
-      map.setCenter(center);
-      map.setZoom(10);
+  const useMyLocation = () => {
+    if (!navigator.geolocation) {
+      setLocError('Location is not available in this browser. Try city or postal code search instead.');
+      return;
     }
-  }, [mapsReady, center, nearby.length, locatedVendors.length]);
+    setLocating(true);
+    setLocError('');
+    setTextLocation('');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+      },
+      () => {
+        setLocError('Could not get your location. Allow location access or search by city / postal code.');
+        setLocating(false);
+      },
+      { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 },
+    );
+  };
+
+  const clearFilters = () => {
+    setUserCoords(null);
+    setTextLocation('');
+    setLocError('');
+  };
+
+  const formatDistance = (mi) => (useKm ? `${(mi * 1.60934).toFixed(1)} km` : `${mi.toFixed(1)} mi`);
 
   return (
     <div className="mb-8 bg-white border rounded-3xl p-6 md:p-8">
-      <h2 className="text-xl font-semibold mb-1">Find vendors near you</h2>
+      <h2 className="text-xl font-semibold mb-1">Find practitioners near you</h2>
       <p className="text-sm text-gray-600 mb-4">
-        {configured
-          ? 'Search by city, ZIP, or neighborhood — powered by Google Maps.'
-          : 'Search by city or ZIP. Add VITE_GOOGLE_MAPS_API_KEY for the interactive map and autocomplete.'}
+        Worldwide search — use your location or type a city, region, or postal code. No map fees, works everywhere.
       </p>
 
       <div className="flex flex-wrap gap-3 mb-4">
+        <button
+          type="button"
+          onClick={useMyLocation}
+          disabled={locating}
+          className="px-4 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-medium disabled:opacity-60 shrink-0"
+        >
+          {locating ? 'Locating…' : '📍 Use my location'}
+        </button>
         <input
-          ref={inputRef}
           type="search"
-          placeholder={configured ? 'City, ZIP, or address…' : 'City or ZIP…'}
+          placeholder="City, region, or postal code…"
           value={textLocation}
-          onChange={(e) => setTextLocation(e.target.value)}
-          className="border px-4 py-2.5 rounded-2xl text-sm flex-1 min-w-[200px]"
+          onChange={(e) => {
+            setTextLocation(e.target.value);
+            if (e.target.value.trim()) setUserCoords(null);
+          }}
+          className="border px-4 py-2.5 rounded-2xl text-sm flex-1 min-w-[180px]"
         />
-        {center && (
+        {userCoords && (
           <select
             value={radiusMi}
             onChange={(e) => setRadiusMi(Number(e.target.value))}
             className="border px-3 py-2 rounded-2xl text-sm"
+            aria-label="Search radius"
           >
-            <option value={10}>Within 10 mi</option>
-            <option value={25}>Within 25 mi</option>
-            <option value={50}>Within 50 mi</option>
-            <option value={100}>Within 100 mi</option>
+            {RADIUS_OPTIONS.map((r) => (
+              <option key={r.mi} value={r.mi}>
+                {useKm ? `Within ${r.km} km` : `Within ${r.mi} mi`}
+              </option>
+            ))}
           </select>
+        )}
+        <button
+          type="button"
+          onClick={() => setUseKm((k) => !k)}
+          className="px-3 py-2 border rounded-2xl text-xs text-gray-600 hover:border-[#4a1942]"
+        >
+          {useKm ? 'km' : 'mi'}
+        </button>
+        {activeFilter && (
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="px-3 py-2 border rounded-2xl text-xs text-gray-600 hover:border-[#4a1942]"
+          >
+            Clear
+          </button>
         )}
       </div>
 
-      {mapsError && <p className="text-xs text-amber-800 mb-3">{mapsError}</p>}
+      {locError && <p className="text-xs text-amber-800 mb-3">{locError}</p>}
 
-      {configured && mapsReady && (
-        <div ref={mapRef} className="w-full h-56 md:h-72 rounded-2xl border mb-4 bg-gray-100" aria-label="Vendor map" />
+      {userCoords && (
+        <p className="text-xs text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mb-3">
+          Showing practitioners with a saved location within your radius.
+          {locatedVendors.length === 0 && ' Practitioners can add coordinates in Storefront Settings.'}
+        </p>
       )}
 
-      {!configured && (
-        <div className="text-xs text-gray-500 mb-4 p-3 bg-gray-50 rounded-xl border">
-          Tip: Enable Maps JavaScript API + Places API in Google Cloud, then set{' '}
-          <code className="text-[#4a1942]">VITE_GOOGLE_MAPS_API_KEY</code> in Vercel.
-        </div>
+      {loading && <p className="text-sm text-gray-500">Loading practitioners…</p>}
+
+      {!loading && userCoords && nearby.length === 0 && (
+        <p className="text-sm text-gray-500">
+          No practitioners with a saved location within {useKm ? `${(radiusMi * 1.60934).toFixed(0)} km` : `${radiusMi} miles`}.
+          Try a larger radius or search by city name.
+        </p>
       )}
 
-      {loading && <p className="text-sm text-gray-500">Loading vendors…</p>}
-
-      {!loading && center && nearby.length === 0 && (
-        <p className="text-sm text-gray-500">No vendors with map locations within {radiusMi} miles. Vendors can add their address in Storefront Settings.</p>
-      )}
-
-      {!loading && !center && textLocation && textFiltered.length === 0 && (
-        <p className="text-sm text-gray-500">No vendors match &ldquo;{textLocation}&rdquo;. Try a broader search.</p>
+      {!loading && !userCoords && textLocation && textFiltered.length === 0 && (
+        <p className="text-sm text-gray-500">
+          No practitioners match &ldquo;{textLocation}&rdquo;. Try a broader city or region.
+        </p>
       )}
 
       {displayList.length > 0 && (
         <div className="space-y-2 mt-2">
           <div className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-            {center ? `${nearby.length} vendor${nearby.length !== 1 ? 's' : ''} nearby` : `${textFiltered.length} match${textFiltered.length !== 1 ? 'es' : ''}`}
+            {userCoords
+              ? `${nearby.length} practitioner${nearby.length !== 1 ? 's' : ''} nearby`
+              : `${textFiltered.length} match${textFiltered.length !== 1 ? 'es' : ''}`}
           </div>
           {displayList.slice(0, 8).map((v) => (
             <Link
@@ -181,7 +182,9 @@ export default function VendorNearbySearch({ vendors = [], loading = false }) {
                 <div className="text-xs text-gray-500">{vendorLocationLabel(v)}</div>
               </div>
               <div className="text-right shrink-0">
-                {v.distanceMi != null && <div className="text-xs text-emerald-700">{v.distanceMi.toFixed(1)} mi</div>}
+                {v.distanceMi != null && (
+                  <div className="text-xs text-emerald-700">{formatDistance(v.distanceMi)}</div>
+                )}
                 <div className="text-amber-500 text-xs">{formatStars(v.avg_rating || 0)}</div>
               </div>
             </Link>

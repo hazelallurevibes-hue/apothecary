@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { submitItemRequest } from '../lib/messagingApi';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function ItemRequestForm({ vendorId, vendorName, user, onSuccess, onMessageVendor }) {
+  const { requireVerification } = useProviderInteractionGate(user);
   const [itemName, setItemName] = useState('');
   const [description, setDescription] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -16,6 +18,7 @@ export default function ItemRequestForm({ vendorId, vendorName, user, onSuccess,
       return;
     }
     if (!itemName.trim()) return;
+    if (!(await requireVerification())) return;
 
     setSubmitting(true);
     setMessage('');

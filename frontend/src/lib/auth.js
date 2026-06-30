@@ -167,12 +167,15 @@ export async function ensureOAuthUserProfile(session) {
     profile = await fetchSupabaseProfile(email);
   }
 
-  if (profile && avatar) {
-    profile.avatar = avatar;
-    profile.auth_provider = session.user.app_metadata?.provider || 'google';
+  const provider = session.user.app_metadata?.provider || 'google';
+  if (profile) {
+    if (avatar) profile.avatar = avatar;
+    profile.auth_provider = provider;
   }
 
-  return profile ? enrichProfile(normalizeProfile(profile)) : null;
+  const enriched = profile ? enrichProfile(normalizeProfile(profile)) : null;
+  if (enriched) enriched.auth_provider = provider;
+  return enriched;
 }
 
 export async function resolveProfile(email, authUserId) {

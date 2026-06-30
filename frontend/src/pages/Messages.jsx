@@ -11,8 +11,10 @@ import {
   updateItemRequestStatus,
   findOrCreateConversation,
 } from '../lib/messagingApi';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function Messages({ user }) {
+  const { requireVerification } = useProviderInteractionGate(user);
   const vendorCtx = getVendorContext(user);
   const vendorId = vendorCtx?.vendorId;
   const isVendor = user?.role === 'vendor' || !!vendorId;
@@ -74,6 +76,7 @@ export default function Messages({ user }) {
 
   const postMessage = async () => {
     if (!draft.trim() || !activeId) return;
+    if (!isVendor && !(await requireVerification())) return;
     const role = isVendor ? 'vendor' : 'customer';
     await sendMessage({
       conversationId: activeId,
@@ -89,6 +92,7 @@ export default function Messages({ user }) {
 
   const startWithVendor = async () => {
     if (!vendorPick || !user?.email) return;
+    if (!(await requireVerification())) return;
     const conv = await findOrCreateConversation({
       vendorId: Number(vendorPick),
       customerEmail: user.email,

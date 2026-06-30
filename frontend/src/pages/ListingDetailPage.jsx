@@ -169,6 +169,7 @@ export default function ListingDetailPage({ user }) {
 
           <div className="flex flex-wrap gap-3 pt-2 items-center">
             <ListingFulfillmentActions
+              user={user}
               item={item}
               vendor={vendor}
               itemType={itemType}

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { bookSessionSlot, fetchOpenSlots, formatSlotTime } from '../lib/sessionBookingApi';
 import { SESSION_TYPES } from '../lib/teachingStudio';
+import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 
 export default function SessionBookingPanel({ vendorId, vendorName, user }) {
+  const { requireVerification } = useProviderInteractionGate(user);
   const [slots, setSlots] = useState([]);
   const [loading, setLoading] = useState(true);
   const [bookingId, setBookingId] = useState(null);
@@ -24,6 +26,7 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
       setError('Sign in to book a session.');
       return;
     }
+    if (!(await requireVerification())) return;
     setBookingId(slot.id);
     setError('');
     setSuccess('');

@@ -42,6 +42,7 @@ const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'));
 const VendorVerification = lazy(() => import('./pages/VendorVerification'));
 const VendorSafetyAcceptance = lazy(() => import('./pages/VendorSafetyAcceptance'));
 const VendorEmailVerify = lazy(() => import('./pages/VendorEmailVerify'));
+const EmailVerifyPage = lazy(() => import('./pages/EmailVerifyPage'));
 const VendorTaxCenter = lazy(() => import('./pages/VendorTaxCenter'));
 const PickupConfirmPage = lazy(() => import('./pages/PickupConfirmPage'));
 const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
@@ -118,9 +119,14 @@ function AppCore({ auth0 = null }) {
       setMonitoringUser(profile);
       localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
 
-      const stayOnSignup = ['/login', '/customer-signup', '/vendor-signup'].includes(window.location.pathname);
-      if (event === 'SIGNED_IN' && stayOnSignup && window.location.pathname === '/login') {
-        navigate(getPostLoginPath(profile?.role), { replace: true });
+      const path = window.location.pathname;
+      const autoRedirectPaths = ['/login', '/customer-signup', '/vendor-signup'];
+      if (event === 'SIGNED_IN' && autoRedirectPaths.includes(path)) {
+        if (path === '/login' || (path === '/vendor-signup' && profile?.role === 'vendor')) {
+          navigate(getPostLoginPath(profile?.role), { replace: true });
+        } else if (path === '/customer-signup' && profile?.role === 'customer') {
+          navigate(getPostLoginPath(profile?.role), { replace: true });
+        }
       }
     });
 
@@ -248,7 +254,7 @@ function AppCore({ auth0 = null }) {
       {/* Public / Auth routes (no layout) */}
       <Route path="/login" element={<Login onLogin={login} loading={loading} />} />
       <Route path="/signup" element={<SignUp onLogin={login} />} />
-      <Route path="/vendor-signup" element={<VendorSignUp />} />
+      <Route path="/vendor-signup" element={<VendorSignUp onLogin={login} />} />
       <Route path="/customer-signup" element={<CustomerSignUp onLogin={login} />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
@@ -304,7 +310,7 @@ function AppCore({ auth0 = null }) {
                   <ProtectedRoute allowedRoles={['admin', 'vendor']}><Dashboard user={user} /></ProtectedRoute>
                 } />
                 <Route path="/vendor-dashboard" element={
-                  <ProtectedRoute allowedRoles={['vendor', 'admin']} vendorPermission="sell"><VendorDashboard user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorDashboard user={user} /></ProtectedRoute>
                 } />
                 <Route path="/invoices" element={
                   <ProtectedRoute allowedRoles={['admin', 'vendor']} vendorPermission="invoices"><Invoices user={user} /></ProtectedRoute>
@@ -330,6 +336,11 @@ function AppCore({ auth0 = null }) {
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorVerification user={user} /></ProtectedRoute>
                 } />
                 <Route path="/verify-email" element={
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
+                    <EmailVerifyPage user={user} />
+                  </ProtectedRoute>
+                } />
+                <Route path="/vendor-verify-email" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorEmailVerify user={user} /></ProtectedRoute>
                 } />
                 <Route path="/vendor-safety-acceptance" element={

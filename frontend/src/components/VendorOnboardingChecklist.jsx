@@ -42,7 +42,7 @@ export default function VendorOnboardingChecklist({ vendorId, menuCount = 0, pro
           <p className="text-sm text-gray-600">
             {complete
               ? 'All launch steps complete — you are live!'
-              : `${done} of ${total} complete — finish in order before your first listing`}
+              : `${done} of ${total} complete — explore your dashboard anytime; finish in order before your first listing`}
           </p>
         </div>
         <div className="flex items-center gap-3">
