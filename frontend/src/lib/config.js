@@ -3,6 +3,10 @@ import { isAuth0Configured } from './auth0Config';
 export const isDev = import.meta.env.DEV;
 export const auth0Enabled = isAuth0Configured();
 
+/** Google OAuth via Supabase — off until Google Cloud + Supabase provider configured */
+export const googleSignInEnabled =
+  import.meta.env.VITE_GOOGLE_SIGNIN_ENABLED === 'true';
+
 /** Test role accounts — hidden in production unless explicitly enabled */
 export const enableTestAccounts =
   import.meta.env.VITE_ENABLE_TEST_ACCOUNTS === 'true' || isDev;

@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { finalizeSignupSession, ensureOAuthUserProfile } from '../lib/auth';
 import GoogleLoginButton from '../components/GoogleLoginButton';
+import { googleSignInEnabled } from '../lib/config';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
@@ -150,7 +151,7 @@ export default function VendorSignUp({ onLogin }) {
     <div className="max-w-md mx-auto">
       <h1 className="text-3xl font-bold tracking-tight mb-6">Practitioner Sign Up</h1>
       <div className="bg-white border rounded-3xl p-8 relative">
-        {!googleMode && (
+        {!googleMode && googleSignInEnabled && (
           <>
             <GoogleLoginButton redirectPath="/vendor-signup" disabled={loading} />
             <div className="flex items-center gap-3 my-4">

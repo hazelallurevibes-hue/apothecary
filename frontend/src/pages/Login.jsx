@@ -7,7 +7,7 @@ import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
-import { enableTestAccounts, LIVE_TEST_ACCOUNTS, auth0Enabled } from '../lib/config';
+import { enableTestAccounts, LIVE_TEST_ACCOUNTS, auth0Enabled, googleSignInEnabled } from '../lib/config';
 import Auth0LoginButton from '../components/Auth0LoginButton';
 import Auth0ErrorBanner from '../components/Auth0ErrorBanner';
 import GoogleLoginButton from '../components/GoogleLoginButton';
@@ -138,23 +138,27 @@ export default function Login({ onLogin, loading }) {
           {!needs2FA && (
             <>
               <div className="text-center text-sm text-gray-500 mb-4">
-                {auth0Enabled ? 'Sign in securely with Auth0 or Google, or use email below' : t('auth.signInSubtitle')}
+                {auth0Enabled || googleSignInEnabled
+                  ? 'Sign in with social or email below'
+                  : t('auth.signInSubtitle')}
               </div>
 
-              <div className="mb-4 space-y-3">
-                <GoogleLoginButton disabled={loading} />
-                {auth0Enabled && (
-                  <>
-                    <Auth0ErrorBanner />
-                    <Auth0LoginButton disabled={loading} />
-                  </>
-                )}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-gray-200" />
-                  <span className="text-xs text-gray-400">{t('auth.orEmail')}</span>
-                  <div className="flex-1 h-px bg-gray-200" />
+              {(googleSignInEnabled || auth0Enabled) && (
+                <div className="mb-4 space-y-3">
+                  {googleSignInEnabled && <GoogleLoginButton disabled={loading} />}
+                  {auth0Enabled && (
+                    <>
+                      <Auth0ErrorBanner />
+                      <Auth0LoginButton disabled={loading} />
+                    </>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className="flex-1 h-px bg-gray-200" />
+                    <span className="text-xs text-gray-400">{t('auth.orEmail')}</span>
+                    <div className="flex-1 h-px bg-gray-200" />
+                  </div>
                 </div>
-              </div>
+              )}
 
               <form onSubmit={handleAuth} className="space-y-3 relative">
                 <HoneypotField value={honeypot} onChange={(e) => setHoneypot(e.target.value)} />

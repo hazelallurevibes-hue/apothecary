@@ -10,6 +10,8 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useLocale } from '../i18n';
 import { useEasyMode } from '../lib/easyMode';
 import AccessibilityHub from './AccessibilityHub';
+import GuidanceCoach from './GuidanceCoach';
+import EasyModePrompt from './EasyModePrompt';
 import { VERTICAL, blogUrl } from '../lib/vertical';
 
 const LOGO_IMG =
@@ -346,6 +348,8 @@ export default function Layout({ user, onLogout, children }) {
       </main>
 
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
+      <GuidanceCoach user={user} />
+      <EasyModePrompt />
 
       <footer className="border-t bg-white mt-12 py-8 text-sm text-gray-500">
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-2">
