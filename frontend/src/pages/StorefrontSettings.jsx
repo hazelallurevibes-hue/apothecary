@@ -131,7 +131,17 @@ export default function StorefrontSettings({ user }) {
       payload.sell_regions = vendor.sell_regions || ['US'];
     }
 
-    const { error } = await supabase.from('vendors').update(payload).eq('id', Number(vendorId));
+    let { error } = await supabase.from('vendors').update(payload).eq('id', Number(vendorId));
+    if (error && /business_badges/i.test(error.message)) {
+      const { business_badges: _badges, ...fallback } = payload;
+      const retry = await supabase.from('vendors').update(fallback).eq('id', Number(vendorId));
+      error = retry.error;
+      if (!error) {
+        setMessage('Storefront saved (badges need SQL migration 24 — run in Supabase SQL Editor).');
+        setSaving(false);
+        return;
+      }
+    }
     setSaving(false);
     setMessage(error ? error.message : 'Storefront saved.');
   };
