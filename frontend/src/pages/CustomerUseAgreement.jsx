@@ -11,7 +11,7 @@ export default function CustomerUseAgreement() {
       </p>
 
       <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8 text-sm text-red-900">
-        <strong>Wellness platform — not medical care:</strong> {VERTICAL.copy.wellnessDisclaimer}
+        <strong>Wellness platform — not medical care:</strong> {VERTICAL.copy.wellnessDisclaimer}{' '}
         You assume responsibility for evaluating practitioners, products, and your own health decisions.
       </div>
 
@@ -182,7 +182,7 @@ export default function CustomerUseAgreement() {
         <section className="border rounded-2xl p-5">
           <h2 className="font-semibold text-lg mb-2">15. International seekers</h2>
           <p>
-            If you access {VERTICAL.name} from outside the United States, you are responsible for compliance with local laws governing wellness services, botanical products, homeopathic remedies, imports, and data protection.
+            If you access {VERTICAL.name} from outside the United States, you are responsible for compliance with local laws governing wellness services, botanical products, homeopathic remedies, imports, and data protection.{' '}
             {VERTICAL.legalEntity} makes no representation that content is appropriate or lawful in your jurisdiction.
           </p>
         </section>

@@ -1,14 +1,14 @@
 {
-  "name": "Hazel Allure — Holistic Healing & Apothecary",
+  "name": "Hazel Allure — Woman-Owned Holistic Healing & Apothecary",
   "short_name": "Hazel Allure",
-  "description": "Book healing services and shop natural apothecary goods from practitioners worldwide.",
+  "description": "Book healing services and shop natural apothecary goods from a woman-owned spiritual wellness marketplace.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f5f0e8",
+  "background_color": "#faf6f4",
   "theme_color": "#4a1942",
   "icons": [
     {
-      "src": "https://i.pravatar.cc/192?img=47",
+      "src": "https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:192,cg:true",
       "sizes": "192x192",
       "type": "image/png"
     }

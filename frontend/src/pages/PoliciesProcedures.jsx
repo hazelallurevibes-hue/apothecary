@@ -7,7 +7,7 @@ export default function PoliciesProcedures() {
     <div className="max-w-4xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight mb-2">Policies &amp; Procedures</h1>
       <p className="text-sm text-gray-500 mb-8">
-        Comprehensive platform policies for {VERTICAL.name} — a spiritual wellness marketplace connecting seekers with independent practitioners and artisans.
+        Comprehensive platform policies for {VERTICAL.name} — a spiritual wellness marketplace connecting seekers with independent practitioners and artisans.{' '}
         Operated by {VERTICAL.legalEntity} at {VERTICAL.appUrl}. Effective June 2026. Subject to change without prior notice.
       </p>
 
@@ -387,7 +387,7 @@ export default function PoliciesProcedures() {
       <section className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">28. Seeker due diligence</h2>
         <p className="text-gray-700 leading-relaxed text-sm">
-          Seekers are solely responsible for evaluating practitioners, reading ingredient disclosures and quality badges, verifying permits and credentials where relevant, reviewing checkout totals including tax, and deciding whether to book or purchase.
+          Seekers are solely responsible for evaluating practitioners, reading ingredient disclosures and quality badges, verifying permits and credentials where relevant, reviewing checkout totals including tax, and deciding whether to book or purchase.{' '}
           {VERTICAL.name} does not guarantee outcomes, safety, legality, efficacy, or photo accuracy. Report concerns via Support; contact appropriate local authorities for urgent safety issues. For medical emergencies, call emergency services immediately.
         </p>
       </section>

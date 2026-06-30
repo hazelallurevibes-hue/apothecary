@@ -7,7 +7,7 @@ export default function Agreements() {
     <div className="max-w-4xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight mb-2">Legal Agreements</h1>
       <p className="text-sm text-gray-500 mb-8">
-        Binding terms for all {VERTICAL.name} users — seekers, practitioners, and artisans.
+        Binding terms for all {VERTICAL.name} users — seekers, practitioners, and artisans.{' '}
         {VERTICAL.legalEntity} · {VERTICAL.appUrl} · Effective June 2026. Subject to change at any time. Continued use constitutes acceptance.
       </p>
 

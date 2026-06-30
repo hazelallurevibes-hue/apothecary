@@ -62,7 +62,7 @@ export default function Contact() {
         <p className="text-xs text-gray-400 border-t pt-4">
           Blog: <a href={VERTICAL.siteUrl} className="text-[#4a1942]">{siteUrl}</a>
           {' · '}
-          Marketplace: <Link to="/" className="text-[#4a1942]">shop app</Link>
+          Marketplace: <Link to="/" className="text-ha-primary">Hazel Allure app</Link>
         </p>
       </div>
 

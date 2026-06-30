@@ -24,10 +24,24 @@ export const VERTICAL = {
   colors: {
     primary: '#4a1942',
     primaryDark: '#2d1230',
+    primaryLight: '#6b3a62',
     accent: '#c9a227',
+    accentSoft: '#d4b896',
+    champagne: '#e8dcc8',
+    rose: '#b76e79',
+    roseLight: '#f4e8ec',
     sage: '#6b7f6a',
     cream: '#f5f0e8',
     moon: '#e8e4f0',
+    lavender: '#d4c8e0',
+  },
+
+  /** Woman-owned business — branding + SEO */
+  womanOwned: {
+    badge: 'Woman-Owned Business',
+    headline: 'Built by a healer. Led with heart.',
+    summary:
+      'Hazel Allure is a proudly woman-owned holistic wellness marketplace — founded by a healer raised among curanderas, herbalists, and energy workers, and dedicated to preserving traditions that deserve to thrive in the modern world.',
   },
 
   routes: {

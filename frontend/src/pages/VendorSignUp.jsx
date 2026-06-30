@@ -45,7 +45,7 @@ export default function VendorSignUp({ onLogin }) {
   const handleSignUp = async (e) => {
     e.preventDefault();
     if (!agreedToTerms) {
-      setMessage('You must agree to the Terms, Agreements, Privacy Policy and FAQ to apply.');
+      setMessage('You must agree to the Terms, Agreements, Privacy Policy, and FAQ to apply.');
       return;
     }
     if (!businessName || !email) {

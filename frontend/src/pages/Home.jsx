@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import LaunchBanner from '../components/LaunchBanner';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
+import WomanOwnedBadge from '../components/WomanOwnedBadge';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -142,8 +143,11 @@ function CustomerHome({ user, liveStats }) {
         <div className="absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(0,0,0,0.65)_88%)]" aria-hidden="true" />
 
         <div className="relative z-10 flex-1 max-w-[640px] animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 mb-4 text-[10px] tracking-[3.5px] font-mono border border-[#c9a227]/40 px-5 py-1.5 rounded-full bg-white/5 text-[#c9a227]">
-            {VERTICAL.heroBadge}
+          <div className="flex flex-wrap items-center gap-2 mb-4">
+            <WomanOwnedBadge variant="dark" />
+            <div className="inline-flex items-center gap-2 text-[10px] tracking-[3.5px] font-mono border border-ha-accent/40 px-5 py-1.5 rounded-full bg-white/5 text-ha-accent-soft">
+              {VERTICAL.heroBadge}
+            </div>
           </div>
 
           <p className="text-sm md:text-base text-white/60 mb-3 tracking-wide font-medium">
@@ -161,6 +165,9 @@ function CustomerHome({ user, liveStats }) {
           </p>
 
           <div className="flex flex-wrap gap-2 mb-8" role="list" aria-label="Trust signals">
+            <span className="trust-badge" role="listitem">
+              <span aria-hidden="true">✦</span> Woman-owned
+            </span>
             <span className="trust-badge" role="listitem">
               <span aria-hidden="true">✓</span> Verified practitioners
             </span>
@@ -226,25 +233,27 @@ function CustomerHome({ user, liveStats }) {
 
       <ProBenefitsStrip user={user} variant="customer" />
 
-      <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 glass-card">
-        <img src={LOGO_IMG} alt="hazelallure" className="w-24 h-24 rounded-2xl object-cover ring-1 ring-[#c9a227]/30 shrink-0" />
+      <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 section-woman-owned">
+        <img src={LOGO_IMG} alt={VERTICAL.name} className="w-24 h-24 rounded-2xl object-cover ring-1 ring-ha-accent/30 shrink-0" />
         <div>
-          <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">About {VERTICAL.name}</h2>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <WomanOwnedBadge />
+            <h2 className="text-2xl font-semibold heading-font text-ha-primary">About {VERTICAL.name}</h2>
+          </div>
           <p className="text-sm text-gray-600 mt-2 max-w-2xl leading-relaxed">
-            Rooted in generational healing wisdom — practitioners and artisans sharing remedies and spiritual growth.{' '}
-            {VERTICAL.copy.inclusiveWellnessLine} Read our story on the blog or book a session here.
+            {VERTICAL.womanOwned.summary} Read our full story or book a session today.
           </p>
           <div className="flex flex-wrap gap-3 mt-3">
             <a
               href={VERTICAL.siteUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-sm text-[#4a1942] font-medium hover:underline"
+              className="text-sm text-ha-primary font-medium hover:underline"
             >
-              Visit blog on GoDaddy →
+              Visit our blog →
             </a>
-            <Link to="/about" className="text-sm text-[#4a1942] font-medium hover:underline">
-              Our story in the app →
+            <Link to="/about" className="text-sm text-ha-primary font-medium hover:underline">
+              Woman-owned story →
             </Link>
           </div>
         </div>
@@ -274,7 +283,7 @@ function CustomerHome({ user, liveStats }) {
           className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block"
         >
           <h3 className="font-semibold text-xl">Essential Oils Guide</h3>
-          <p className="text-sm text-gray-600 mt-2">Her timeless guide — on the blog (SEO preserved).</p>
+          <p className="text-sm text-gray-600 mt-2">A timeless guide to oils, blends, and ritual use — on our blog.</p>
         </a>
         <Link to="/courses" className="bg-white border border-[#c9a227]/30 rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Teaching Sanctum</h3>

@@ -10,16 +10,26 @@ html {
 :root {
   --ha-primary: #4a1942;
   --ha-primary-dark: #2d1230;
+  --ha-primary-light: #6b3a62;
   --ha-accent: #c9a227;
+  --ha-accent-soft: #d4b896;
+  --ha-champagne: #e8dcc8;
+  --ha-rose: #b76e79;
+  --ha-rose-light: #f4e8ec;
+  --ha-blush: #faf6f4;
   --ha-sage: #6b7f6a;
+  --ha-sage-light: #8fa08e;
   --ha-cream: #f5f0e8;
+  --ha-moon: #e8e4f0;
+  --ha-lavender: #d4c8e0;
 }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
   overflow-x: hidden;
   max-width: 100vw;
-  background-color: var(--ha-cream);
+  background: linear-gradient(180deg, var(--ha-blush) 0%, var(--ha-cream) 28%, var(--ha-rose-light) 100%);
+  background-attachment: fixed;
 }
 
 /* Prevent flex/grid children from forcing horizontal scroll on narrow Android viewports */
@@ -190,7 +200,7 @@ button {
   outline-offset: 2px;
 }
 
-/* Hero section gradient — soft plum-to-deep with gold accent wash */
+/* Hero section gradient — plum, rose-gold, and champagne wash */
 .section-hero {
   position: relative;
   overflow: hidden;
@@ -198,8 +208,9 @@ button {
   background: linear-gradient(
     145deg,
     var(--ha-primary-dark) 0%,
-    var(--ha-primary) 38%,
-    #3a1a35 62%,
+    var(--ha-primary) 32%,
+    #5c2d52 55%,
+    #3a1a35 78%,
     #1a0a18 100%
   );
 }
@@ -209,9 +220,9 @@ button {
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    ellipse 80% 60% at 20% 40%,
-    rgba(201, 162, 39, 0.12) 0%,
-    transparent 55%
+    ellipse 75% 55% at 18% 38%,
+    rgba(201, 162, 39, 0.16) 0%,
+    transparent 58%
   );
   pointer-events: none;
 }
@@ -220,12 +231,23 @@ button {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(
-    ellipse 50% 40% at 85% 75%,
-    rgba(107, 127, 106, 0.08) 0%,
-    transparent 50%
-  );
+  background:
+    radial-gradient(ellipse 45% 38% at 88% 72%, rgba(183, 110, 121, 0.14) 0%, transparent 52%),
+    radial-gradient(ellipse 40% 30% at 72% 18%, rgba(212, 200, 224, 0.1) 0%, transparent 48%);
   pointer-events: none;
+}
+
+/* Woman-owned feature panel */
+.section-woman-owned {
+  background: linear-gradient(
+    135deg,
+    var(--ha-rose-light) 0%,
+    #fff 42%,
+    var(--ha-champagne) 100%
+  );
+  border: 1px solid rgba(183, 110, 121, 0.22);
+  border-radius: 1.5rem;
+  box-shadow: 0 8px 32px rgba(74, 25, 66, 0.06);
 }
 
 /* Trust badge pills */

@@ -12,6 +12,8 @@ import { useEasyMode } from '../lib/easyMode';
 import AccessibilityHub from './AccessibilityHub';
 import GuidanceCoach from './GuidanceCoach';
 import EasyModePrompt from './EasyModePrompt';
+import PageSeo from './PageSeo';
+import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl } from '../lib/vertical';
 
 const LOGO_IMG =
@@ -142,8 +144,9 @@ export default function Layout({ user, onLogout, children }) {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f5f0e8]">
-      <nav className="bg-white/90 backdrop-blur-lg border-b border-[#e8e4f0]/80 sticky top-0 z-50 shadow-sm shadow-[#4a1942]/5">
+    <div className="min-h-screen">
+      <PageSeo />
+      <nav className="bg-white/92 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-50 shadow-sm shadow-ha-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <div className="flex items-center gap-x-2 sm:gap-x-3 shrink-0 order-1">
@@ -351,9 +354,12 @@ export default function Layout({ user, onLogout, children }) {
       <GuidanceCoach user={user} />
       <EasyModePrompt />
 
-      <footer className="border-t bg-white mt-12 py-8 text-sm text-gray-500">
-        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-2">
-          <div>© {new Date().getFullYear()} {VERTICAL.name} • {t('footer.copyright')}</div>
+      <footer className="border-t border-ha-lavender/40 bg-white/90 backdrop-blur-sm mt-12 py-8 text-sm text-gray-500">
+        <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span>© {new Date().getFullYear()} {VERTICAL.name} • {t('footer.copyright')}</span>
+            <WomanOwnedBadge className="!text-[9px] !py-0.5" />
+          </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">
             <LanguageSwitcher />
             <SiteEmailFooter />

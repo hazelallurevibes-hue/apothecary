@@ -15,10 +15,18 @@ export default {
         ha: {
           plum: '#4a1942',
           'plum-dark': '#2d1230',
+          'plum-light': '#6b3a62',
           gold: '#c9a227',
+          'gold-soft': '#d4b896',
+          champagne: '#e8dcc8',
+          rose: '#b76e79',
+          'rose-light': '#f4e8ec',
+          blush: '#faf6f4',
           sage: '#6b7f6a',
+          'sage-light': '#8fa08e',
           cream: '#f5f0e8',
           moon: '#e8e4f0',
+          lavender: '#d4c8e0',
         },
       },
       fontFamily: {
