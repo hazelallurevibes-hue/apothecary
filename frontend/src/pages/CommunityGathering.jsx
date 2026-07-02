@@ -16,6 +16,11 @@ import OfficeHoursPanel from '../components/OfficeHoursPanel';
 import GatheringProposals from '../components/GatheringProposals';
 import SolsticeRsvpCard from '../components/SolsticeRsvpCard';
 import DailyOracleCard from '../components/DailyOracleCard';
+import CommunityCodeBanner from '../components/CommunityCodeBanner';
+import ModAuthorBadge from '../components/ModAuthorBadge';
+import ReportContentButton from '../components/ReportContentButton';
+import { fetchModerators } from '../lib/communityModeration';
+import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -27,7 +32,18 @@ export default function CommunityGathering({ user }) {
   const [newBody, setNewBody] = useState('');
   const [reply, setReply] = useState('');
   const [error, setError] = useState('');
+  const [modMap, setModMap] = useState({});
+  const [showBanner, setShowBanner] = useState(true);
   const canStart = customerCan(user, 'community_threads');
+
+  useEffect(() => {
+    fetchModerators().then((mods) => {
+      const m = {};
+      mods.forEach((x) => { m[x.user_email] = x; });
+      setModMap(m);
+    }).catch(() => {});
+    fetchPlatformSettings().then((s) => setShowBanner(s.hearth_show_community_banner !== 'false')).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetchTopics('seeker').then(setTopics).catch((e) => setError(e.message));
@@ -57,6 +73,7 @@ export default function CommunityGathering({ user }) {
         authorEmail: user.email,
         title: newTitle,
         body: newBody,
+        spaceType: 'seeker',
       });
       const unlocked = await trackAchievementEvent(user.email, 'first_community_post');
       if (unlocked) window.dispatchEvent(new CustomEvent('hazel-achievement', { detail: unlocked }));
@@ -71,7 +88,7 @@ export default function CommunityGathering({ user }) {
   const postReply = async () => {
     if (!user?.email || !reply.trim() || !threadId) return;
     try {
-      await replyToThread({ threadId: Number(threadId), authorEmail: user.email, body: reply });
+      await replyToThread({ threadId: Number(threadId), authorEmail: user.email, body: reply, spaceType: 'seeker' });
       const detail = await fetchThread(Number(threadId));
       setThreadDetail(detail);
       setReply('');
@@ -90,8 +107,12 @@ export default function CommunityGathering({ user }) {
         <div className="space-y-4 mb-8">
           {posts.map((p) => (
             <article key={p.id} className="rounded-2xl border border-gray-100 bg-white p-4 text-sm">
-              <p className="text-xs text-gray-400 mb-2">{p.author_email.split('@')[0]}</p>
+              <p className="text-xs text-gray-400 mb-2">
+                {p.author_email.split('@')[0]}
+                <ModAuthorBadge mod={modMap[p.author_email]} />
+              </p>
               <p className="text-gray-700 whitespace-pre-wrap">{p.body}</p>
+              <ReportContentButton user={user} threadId={thread.id} postId={p.id} />
             </article>
           ))}
         </div>
@@ -128,6 +149,7 @@ export default function CommunityGathering({ user }) {
         </div>
       </header>
 
+      {showBanner && <CommunityCodeBanner />}
       <SolsticeRsvpCard user={user} />
       <DailyOracleCard className="mb-6" />
       <OfficeHoursPanel user={user} />

@@ -1,16 +1,20 @@
 import { useState } from 'react';
 import { reportContent } from '../lib/moderationApi';
+import { REPORT_PRESETS } from '../lib/communityModeration';
 
 export default function ReportContentButton({ user, threadId, postId, cohortThreadId, cohortPostId }) {
   const [open, setOpen] = useState(false);
+  const [preset, setPreset] = useState('');
   const [reason, setReason] = useState('');
   const [done, setDone] = useState(false);
 
   if (!user?.email) return null;
 
   const submit = async () => {
-    if (!reason.trim()) return;
-    await reportContent({ reporterEmail: user.email, reason, threadId, postId, cohortThreadId, cohortPostId });
+    const label = REPORT_PRESETS.find((p) => p.id === preset)?.label;
+    const full = [label, reason.trim()].filter(Boolean).join(': ');
+    if (!full) return;
+    await reportContent({ reporterEmail: user.email, reason: full, threadId, postId, cohortThreadId, cohortPostId });
     setDone(true);
     setOpen(false);
   };
@@ -24,7 +28,11 @@ export default function ReportContentButton({ user, threadId, postId, cohortThre
       </button>
       {open && (
         <div className="mt-2 p-3 border rounded-xl bg-white text-sm space-y-2">
-          <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} className="w-full border rounded-lg px-2 py-1 text-xs" placeholder="Why is this concerning?" />
+          <select value={preset} onChange={(e) => setPreset(e.target.value)} className="w-full border rounded-lg px-2 py-1 text-xs">
+            <option value="">Select reason…</option>
+            {REPORT_PRESETS.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
+          </select>
+          <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={2} className="w-full border rounded-lg px-2 py-1 text-xs" placeholder="Additional details (optional)" />
           <button type="button" onClick={submit} className="text-xs px-3 py-1 bg-gray-800 text-white rounded-full">Submit report</button>
         </div>
       )}

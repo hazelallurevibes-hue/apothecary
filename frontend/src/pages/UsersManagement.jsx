@@ -12,7 +12,7 @@ import { fetchPendingVerifications, reviewIdentity, reviewPermit } from '../lib/
 import PlatformEmailSettings from '../components/PlatformEmailSettings';
 import AdminProPayments from '../components/AdminProPayments';
 import AdminVendorBadgePanel from '../components/AdminVendorBadgePanel';
-import AdminModerationPanel from '../components/AdminModerationPanel';
+import AdminCommunityModerationPanel from '../components/AdminCommunityModerationPanel';
 import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
@@ -677,7 +677,7 @@ export default function AdminPortal({ user, onLogout }) {
 
         {!loading && activeTab === 'compliance' && (
           <div className="space-y-6">
-            <AdminModerationPanel />
+            <AdminCommunityModerationPanel adminEmail={user?.email} />
             <div className="bg-white border rounded-3xl p-6">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-semibold">Listing safety reports</h3>

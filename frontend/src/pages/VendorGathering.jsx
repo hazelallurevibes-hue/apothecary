@@ -3,6 +3,10 @@ import { Link, useParams } from 'react-router-dom';
 import ProFeatureHint from '../components/ProFeatureHint';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { fetchTopics, fetchThreads, fetchThread, createThread, replyToThread } from '../lib/communityApi';
+import CommunityCodeBanner from '../components/CommunityCodeBanner';
+import ModAuthorBadge from '../components/ModAuthorBadge';
+import ReportContentButton from '../components/ReportContentButton';
+import { fetchModerators } from '../lib/communityModeration';
 
 export default function VendorGathering({ user }) {
   const ctx = getVendorContext(user);
@@ -15,6 +19,16 @@ export default function VendorGathering({ user }) {
   const [newTitle, setNewTitle] = useState('');
   const [newBody, setNewBody] = useState('');
   const [reply, setReply] = useState('');
+  const [error, setError] = useState('');
+  const [modMap, setModMap] = useState({});
+
+  useEffect(() => {
+    fetchModerators().then((mods) => {
+      const m = {};
+      mods.forEach((x) => { if (x.space_type === 'vendor' || x.space_type === 'both') m[x.user_email] = x; });
+      setModMap(m);
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!canAccess) return;
@@ -45,17 +59,27 @@ export default function VendorGathering({ user }) {
 
   const startThread = async () => {
     if (!user?.email || !newTitle.trim() || !newBody.trim() || !activeTopic) return;
-    const t = await createThread({ topicId: activeTopic, authorEmail: user.email, title: newTitle, body: newBody });
-    setThreads((prev) => [t, ...prev]);
-    setNewTitle('');
-    setNewBody('');
+    setError('');
+    try {
+      const t = await createThread({ topicId: activeTopic, authorEmail: user.email, title: newTitle, body: newBody, spaceType: 'vendor' });
+      setThreads((prev) => [t, ...prev]);
+      setNewTitle('');
+      setNewBody('');
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   const postReply = async () => {
     if (!reply.trim() || !threadId) return;
-    await replyToThread({ threadId: Number(threadId), authorEmail: user.email, body: reply });
-    setThreadDetail(await fetchThread(Number(threadId)));
-    setReply('');
+    setError('');
+    try {
+      await replyToThread({ threadId: Number(threadId), authorEmail: user.email, body: reply, spaceType: 'vendor' });
+      setThreadDetail(await fetchThread(Number(threadId)));
+      setReply('');
+    } catch (e) {
+      setError(e.message);
+    }
   };
 
   if (threadDetail) {
@@ -67,8 +91,12 @@ export default function VendorGathering({ user }) {
         <div className="space-y-4 mb-8">
           {posts.map((p) => (
             <article key={p.id} className="rounded-2xl border p-4 text-sm">
-              <p className="text-xs text-gray-400 mb-1">{p.author_email.split('@')[0]}</p>
+              <p className="text-xs text-gray-400 mb-1">
+                {p.author_email.split('@')[0]}
+                <ModAuthorBadge mod={modMap[p.author_email]} />
+              </p>
               <p className="whitespace-pre-wrap">{p.body}</p>
+              <ReportContentButton user={user} threadId={thread.id} postId={p.id} />
             </article>
           ))}
         </div>
@@ -81,7 +109,9 @@ export default function VendorGathering({ user }) {
   return (
     <div className="max-w-5xl mx-auto pb-16">
       <h1 className="text-3xl font-bold text-[#4a1942] mb-2">Practitioner lounge</h1>
-      <p className="text-gray-600 mb-8 max-w-2xl">Peer space for Pro practitioners — Sanctum craft, compliance notes, and gentle growth. Not legal advice.</p>
+      <p className="text-gray-600 mb-4 max-w-2xl">Peer space for Pro practitioners — Sanctum craft, compliance notes, and gentle growth. Not legal advice.</p>
+      <CommunityCodeBanner />
+      {error && <p className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl p-3 mb-4">{error}</p>}
       <div className="grid lg:grid-cols-3 gap-6">
         <aside className="space-y-2">
           {topics.map((t) => (

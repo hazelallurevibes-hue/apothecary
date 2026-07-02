@@ -75,7 +75,9 @@ export default function CustomerUseAgreement() {
           <h2 className="font-semibold text-lg mb-2">5. Community gathering (The Hearth)</h2>
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
             Discussion threads are peer spaces — not medical advice, not practitioner sessions, and not endorsed by {VERTICAL.legalEntity}.
-            You are responsible for what you post. Do not share others&apos; private health details. Report concerns to {VERTICAL.contactEmail}.
+            <strong> Hate speech, bullying, and harassment are not tolerated.</strong> Automated filters may block prohibited language.
+            You are responsible for what you post. Do not share others&apos; private health details. Use Report on any concerning post.
+            Repeated violations may result in warnings and posting restrictions. Report concerns to {VERTICAL.contactEmail}.
             Hazel Allure may remove content or suspend accounts without liability to you for user posts you read or rely upon.
           </p>
 

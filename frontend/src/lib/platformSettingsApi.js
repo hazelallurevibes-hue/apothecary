@@ -24,6 +24,11 @@ const DEFAULTS = {
   stripe_vendor_pro_annual_display: '299.99',
   stripe_customer_pro_annual_display: '99.99',
   stripe_live_mode_enabled: 'false',
+  hearth_auto_block_enabled: 'true',
+  hearth_auto_flag_enabled: 'true',
+  hearth_strike_post_ban: '3',
+  hearth_warning_days: '30',
+  hearth_show_community_banner: 'true',
   ...EMAIL_SETTING_DEFAULTS,
 };
 

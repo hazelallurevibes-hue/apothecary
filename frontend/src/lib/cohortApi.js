@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { guardCommunityContent } from './communityModeration';
 
 export async function fetchCohortThreads(courseId) {
   const { data, error } = await supabase
@@ -21,6 +22,7 @@ export async function fetchCohortThread(threadId) {
 
 export async function createCohortThread({ courseId, authorEmail, title, body }) {
   const email = authorEmail.trim().toLowerCase();
+  await guardCommunityContent({ email, title, body, spaceType: 'seeker' });
   const { data: thread, error: tErr } = await supabase
     .from('cohort_threads')
     .insert({ course_id: courseId, author_email: email, title: title.trim() })
@@ -32,6 +34,7 @@ export async function createCohortThread({ courseId, authorEmail, title, body })
 }
 
 export async function replyCohort({ threadId, authorEmail, body }) {
+  await guardCommunityContent({ email: authorEmail, body, spaceType: 'seeker' });
   const { error } = await supabase.from('cohort_posts').insert({
     thread_id: threadId,
     author_email: authorEmail.trim().toLowerCase(),
