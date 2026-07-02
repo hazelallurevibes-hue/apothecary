@@ -31,6 +31,7 @@ import {
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import UpgradeBanner from '../components/UpgradeBanner';
+import ThankYouComposer from '../components/ThankYouComposer';
 import FoodLabelFields from '../components/FoodLabelFields';
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -1600,6 +1601,7 @@ function MyTopReviews({ reviews, myVendorId }) {
       {reviews.length ? reviews.map((r) => (
         <div key={r.id} className="text-sm py-2 border-b last:border-0">
           {'★'.repeat(r.rating || 5)} {r.comment} {r.image_url && '📷'}
+          <ThankYouComposer vendorId={myVendorId} review={r} />
         </div>
       )) : (
         <div className="text-xs text-gray-500">Reviews on your services and apothecary items will appear here and on your public storefront.</div>

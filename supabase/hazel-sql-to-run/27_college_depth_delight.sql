@@ -1,0 +1,1 @@
+-- Run after 26. See: supabase/migrations/20260702100000_college_depth_delight.sql

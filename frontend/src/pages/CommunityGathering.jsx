@@ -10,6 +10,9 @@ import {
   replyToThread,
 } from '../lib/communityApi';
 import { trackAchievementEvent } from '../lib/achievements';
+import { getStudyHallPrompt } from '../lib/seasonalSanctum';
+import AmbientSoundToggle from '../components/AmbientSoundToggle';
+import OfficeHoursPanel from '../components/OfficeHoursPanel';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -116,7 +119,13 @@ export default function CommunityGathering({ user }) {
           A warm room for seekers — introductions, Sanctum study, apothecary finds, and seasonal practice.
           Hazel Allure hosts the space; you own your words. Be kind, be truthful, no medical claims.
         </p>
+        <div className="flex flex-wrap items-center gap-4 mt-3">
+          <p className="text-sm text-[#4a1942]/80 italic">Study hall prompt: {getStudyHallPrompt()}</p>
+          <AmbientSoundToggle />
+        </div>
       </header>
+
+      <OfficeHoursPanel user={user} />
 
       {error && (
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">

@@ -18,6 +18,8 @@ import {
 import { checkoutCourseEnrollment } from '../lib/courseBillingApi';
 import { fetchUserLearningProfile, scoreCourseForLearner } from '../lib/learningPathApi';
 import { LEARNING_STYLES, formatDeliverySummary } from '../lib/teachingStudio';
+import CourseCollegeHub from '../components/CourseCollegeHub';
+import CohortRoomPanel from '../components/CohortRoomPanel';
 
 export default function CourseDetailPage({ user }) {
   const { id } = useParams();
@@ -231,6 +233,17 @@ export default function CourseDetailPage({ user }) {
               )}
             </div>
           </div>
+
+          <CourseCollegeHub
+            user={user}
+            course={course}
+            enrolled={enrolled}
+            vendorName={course.vendors?.name}
+            progressPercent={completionPercent(completedLessons.size, lessons.length)}
+          />
+          {enrolled && user?.email && (
+            <CohortRoomPanel user={user} courseId={Number(id)} courseTitle={course.title} />
+          )}
         </div>
       </div>
     </div>

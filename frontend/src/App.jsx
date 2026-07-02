@@ -55,6 +55,7 @@ const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 const VendorTeaching = lazy(() => import('./pages/VendorTeaching'));
 const CommunityGathering = lazy(() => import('./pages/CommunityGathering'));
 const VendorGathering = lazy(() => import('./pages/VendorGathering'));
+const SanctumStudentHub = lazy(() => import('./pages/SanctumStudentHub'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const LinkExpired = lazy(() => import('./pages/LinkExpired'));
@@ -289,6 +290,11 @@ function AppCore({ auth0 = null }) {
                 <Route path="/top-vendors" element={<TopVendors user={user} />} />
                 <Route path="/courses" element={<CourseCatalog user={user} />} />
                 <Route path="/courses/:id" element={<CourseDetailPage user={user} />} />
+                <Route path="/sanctum-student-hub" element={
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
+                    <SanctumStudentHub user={user} />
+                  </ProtectedRoute>
+                } />
                 <Route path="/gathering" element={<CommunityGathering user={user} />} />
                 <Route path="/gathering/thread/:threadId" element={<CommunityGathering user={user} />} />
                 <Route path="/vendor-gathering" element={

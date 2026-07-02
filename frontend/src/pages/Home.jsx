@@ -5,6 +5,7 @@ import LaunchBanner from '../components/LaunchBanner';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
 import WomanOwnedBadge from '../components/WomanOwnedBadge';
 import FeaturedPractitioners from '../components/FeaturedPractitioners';
+import DailyRitualCard from '../components/DailyRitualCard';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -231,6 +232,8 @@ function CustomerHome({ user, liveStats }) {
           </div>
         </div>
       </div>
+
+      {user?.email && <DailyRitualCard user={user} />}
 
       <ProBenefitsStrip user={user} variant="customer" />
 

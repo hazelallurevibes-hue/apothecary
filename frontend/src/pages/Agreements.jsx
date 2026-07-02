@@ -95,6 +95,7 @@ export default function Agreements() {
           <p><strong>4.5 Pricing &amp; refunds.</strong> You set course pricing. Refund policies, if any, are between you and the seeker unless Hazel Allure implements platform-default rules at checkout. Chargebacks are handled per Stripe policies.</p>
           <p><strong>4.6 Intellectual property.</strong> You retain ownership of original course content you create. You grant Hazel Allure a license to host, stream, and display course materials to enrolled users. Do not include infringing third-party content without authorization.</p>
           <p><strong>4.7 Removal.</strong> Hazel Allure may remove courses that violate policy, contain impermissible health claims, or receive credible safety complaints, without liability to you or enrolled seekers.</p>
+          <p><strong>4.8 College-style tools.</strong> Syllabi, study groups, office hours, waitlists, honor roll, transcripts, assignments, course evaluations, cohort rooms, and downloadable certificates are convenience features — not accredited academic programs, degrees, licensure, or employment guarantees. Practitioners issue honors and certificates in their independent capacity. Seekers must verify any credential with the issuing practitioner.</p>
         </div>
       </section>
 

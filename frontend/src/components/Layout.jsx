@@ -88,6 +88,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
+      { label: 'Sanctum student hub', to: '/sanctum-student-hub', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
       { label: 'Favorites', to: '/favorites', perm: 'favorites' },
       { label: 'Support & Help', to: '/support', perm: 'support' },

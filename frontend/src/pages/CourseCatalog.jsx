@@ -4,6 +4,7 @@ import { fetchPublishedCourses, COURSE_CATEGORIES } from '../lib/teachingPlatfor
 import { VERTICAL } from '../lib/vertical';
 import VideoEmbed from '../components/VideoEmbed';
 import LearningPathPanel from '../components/LearningPathPanel';
+import SeasonalSanctumBanner from '../components/SeasonalSanctumBanner';
 
 export default function CourseCatalog({ user }) {
   const [courses, setCourses] = useState([]);
@@ -31,6 +32,7 @@ export default function CourseCatalog({ user }) {
         </p>
       </div>
 
+      <SeasonalSanctumBanner />
       <LearningPathPanel user={user} />
 
       <div className="flex flex-wrap gap-3 mb-8">

@@ -8,6 +8,7 @@ import LearningPathPanel from '../components/LearningPathPanel';
 import MySessionsPanel from '../components/MySessionsPanel';
 import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
+import SeekerJourneyMap from '../components/SeekerJourneyMap';
 
 let API = import.meta.env.VITE_API_URL || '/api';
 if (API && !API.endsWith('/api')) {
@@ -48,6 +49,9 @@ export default function CustomerPortal({ user }) {
   return (
     <div>
       <EmailVerificationBanner user={user} variant="customer" />
+      <div className="mb-8">
+        <SeekerJourneyMap user={user} />
+      </div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-4xl font-bold tracking-tight">Customer Portal</h1>

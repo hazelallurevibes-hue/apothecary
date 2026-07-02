@@ -21,6 +21,7 @@ import SessionBookingPanel from './SessionBookingPanel';
 import { fetchOpenSlots } from '../lib/sessionBookingApi';
 import { resolveVendorBadges, resolveAdminBadges } from '../lib/practitionerBadges';
 import PractitionerSpotlightBanner from './PractitionerSpotlightBanner';
+import VendorStoryCarousel from './VendorStoryCarousel';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -612,6 +613,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
             tabIndex={0}
             className="bg-white border border-[#c9a227]/15 rounded-3xl p-6 sm:p-8 outline-none focus-visible:ring-2 focus-visible:ring-[#4a1942] focus-visible:ring-offset-2"
           >
+            <VendorStoryCarousel slides={vendor.story_slides} vendorName={vendor.name} />
             {vendor.bio ? (
               <p className="text-gray-700 leading-relaxed text-base sm:text-lg">{vendor.bio}</p>
             ) : (
