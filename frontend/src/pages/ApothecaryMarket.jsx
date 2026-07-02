@@ -17,6 +17,7 @@ import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
 import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
+import { offerSpellReceiptDownload } from '../lib/spellReceiptExport';
 import BloodMoonBanner from '../components/BloodMoonBanner';
 import CauldronCancelToast from '../components/CauldronCancelToast';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
@@ -170,7 +171,14 @@ export default function ApothecaryMarket({ user }) {
       else if (deliveryMethod === 'shipping') msg += ' — shipping arranged with the practitioner.';
       else msg += ' — digital delivery details sent via messaging.';
 
-      alert(formatOrderSuccessMessage(msg));
+      offerSpellReceiptDownload({
+        successMessage: formatOrderSuccessMessage(msg),
+        total: orderData.total,
+        items: cartLines,
+        deliveryMethod,
+        userName: user?.name,
+        source: 'Hazel Allure Apothecary',
+      });
       clearCart();
     } catch (e) {
       console.error('Apothecary order error:', e);

@@ -17,6 +17,8 @@ import {
 } from '../lib/communityModeration';
 import { updatePlatformSettings, fetchPlatformSettings } from '../lib/platformSettingsApi';
 import { supabase } from '../lib/supabaseClient';
+import { fetchPendingBlessings, moderateBlessing } from '../lib/gratitudeApi';
+import { downloadCsv } from '../lib/csvExport';
 
 const SEVERITIES = ['block', 'warn', 'flag'];
 const CATEGORIES = ['hate', 'bully', 'harassment', 'slur', 'spam', 'medical', 'scam', 'threat', 'other'];
@@ -30,6 +32,8 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
   const [actions, setActions] = useState([]);
   const [settings, setSettings] = useState({});
   const [integrityLog, setIntegrityLog] = useState([]);
+  const [seekerOathLog, setSeekerOathLog] = useState([]);
+  const [pendingBlessings, setPendingBlessings] = useState([]);
   const [msg, setMsg] = useState('');
 
   const [modForm, setModForm] = useState({ user_email: '', display_name: '', space_type: 'both', badge_title: 'Hearth Keeper' });
@@ -46,8 +50,18 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
     return data || [];
   };
 
+  const loadSeekerOathLog = async () => {
+    const { data, error } = await supabase
+      .from('seeker_oath_acceptances')
+      .select('*')
+      .order('accepted_at', { ascending: false })
+      .limit(100);
+    if (error) return [];
+    return data || [];
+  };
+
   const load = async () => {
-    const [r, m, f, w, a, s, integrity] = await Promise.all([
+    const [r, m, f, w, a, s, integrity, seeker, blessings] = await Promise.all([
       fetchPendingReports().catch(() => []),
       fetchModerators().catch(() => []),
       fetchActiveWordFilters(true).catch(() => []),
@@ -55,6 +69,8 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
       fetchModActions().catch(() => []),
       fetchPlatformSettings().catch(() => ({})),
       loadIntegrityLog().catch(() => []),
+      loadSeekerOathLog().catch(() => []),
+      fetchPendingBlessings().catch(() => []),
     ]);
     setReports(r);
     setMods(m);
@@ -63,6 +79,27 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
     setActions(a);
     setSettings(s);
     setIntegrityLog(integrity);
+    setSeekerOathLog(seeker);
+    setPendingBlessings(blessings);
+  };
+
+  const exportIntegrityCsv = () => {
+    downloadCsv(integrityLog.map((row) => ({
+      vendor_email: row.vendor_email,
+      vendor_id: row.vendor_id,
+      version: row.attestation_version,
+      accepted_at: row.accepted_at,
+      attestations: Object.entries(row.attestations || {}).filter(([, v]) => v).map(([k]) => k).join(';'),
+    })), 'vendor-integrity-audit.csv');
+  };
+
+  const exportSeekerCsv = () => {
+    downloadCsv(seekerOathLog.map((row) => ({
+      user_email: row.user_email,
+      version: row.attestation_version,
+      accepted_at: row.accepted_at,
+      attestations: Object.entries(row.attestations || {}).filter(([, v]) => v).map(([k]) => k).join(';'),
+    })), 'seeker-oath-audit.csv');
   };
 
   useEffect(() => { load(); }, []);
@@ -129,6 +166,7 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
     { id: 'actions', label: 'Action log' },
     { id: 'settings', label: 'Settings' },
     { id: 'integrity', label: `Integrity audit (${integrityLog.length})` },
+    { id: 'gratitude', label: `Gratitude (${pendingBlessings.length})` },
   ];
 
   return (
@@ -241,10 +279,31 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
           </div>
         )}
 
+        {tab === 'gratitude' && (
+          <div>
+            <p className="text-xs text-gray-500 mb-3">Pending gratitude blessings — approve for the wall or hide.</p>
+            {pendingBlessings.length === 0 && <p className="text-sm text-gray-500">No pending blessings.</p>}
+            {pendingBlessings.map((b) => (
+              <div key={b.id} className="border rounded-xl p-3 text-sm mb-2">
+                <p className="text-xs text-gray-500">{b.user_email} · {new Date(b.created_at).toLocaleString()}</p>
+                <p className="text-gray-800 mt-1">{b.body}</p>
+                <div className="flex gap-2 mt-2">
+                  <button type="button" onClick={() => moderateBlessing(b.id, 'approved', adminEmail).then(load)} className="text-xs px-2 py-1 bg-emerald-100 rounded">Approve</button>
+                  <button type="button" onClick={() => moderateBlessing(b.id, 'hidden', adminEmail).then(load)} className="text-xs px-2 py-1 bg-gray-100 rounded">Hide</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
         {tab === 'integrity' && (
           <div>
+            <div className="flex flex-wrap gap-2 mb-3">
+              <button type="button" onClick={exportIntegrityCsv} className="text-xs px-3 py-1.5 border rounded-full">Export integrity CSV</button>
+              <button type="button" onClick={exportSeekerCsv} className="text-xs px-3 py-1.5 border rounded-full">Export seeker oath CSV</button>
+            </div>
             <p className="text-xs text-gray-500 mb-3">Practitioner integrity pledge acceptances — newest first. For compliance review and audit trail.</p>
-            <div className="max-h-80 overflow-auto space-y-2">
+            <div className="max-h-48 overflow-auto space-y-2 mb-4">
               {integrityLog.length === 0 && <p className="text-sm text-gray-500">No integrity acceptances logged yet (run migration 31).</p>}
               {integrityLog.map((row) => (
                 <div key={row.id} className="border rounded-xl p-3 text-xs">
@@ -255,6 +314,15 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
                   <p className="text-gray-600 mt-1">
                     Attestations: {Object.entries(row.attestations || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || '—'}
                   </p>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs font-medium text-gray-600 mb-2">Seeker oath log ({seekerOathLog.length})</p>
+            <div className="max-h-40 overflow-auto space-y-2">
+              {seekerOathLog.map((row) => (
+                <div key={row.id} className="border rounded-xl p-3 text-xs">
+                  <p className="font-medium text-[#4a1942]">{row.user_email}</p>
+                  <p className="text-gray-500">v{row.attestation_version} · {new Date(row.accepted_at).toLocaleString()}</p>
                 </div>
               ))}
             </div>

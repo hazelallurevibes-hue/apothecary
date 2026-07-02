@@ -16,6 +16,7 @@ import { parseRestrictedCategories } from '../lib/shippingRestrictions';
 import PractitionerBadgeEditor from '../components/PractitionerBadgeEditor';
 import PractitionerBadges from '../components/PractitionerBadges';
 import { parseBusinessBadges, resolveAdminBadges } from '../lib/practitionerBadges';
+import { applySabbaticalExpiry } from '../lib/sabbaticalUtils';
 
 function parseBanners(raw) {
   if (Array.isArray(raw)) return raw;
@@ -67,7 +68,7 @@ export default function StorefrontSettings({ user }) {
       .single()
       .then(({ data }) => {
         if (data) {
-          setVendor(data);
+          setVendor(applySabbaticalExpiry(data));
           setBanners(parseBanners(data.banner_images));
           setArchives(parseArchives(data.stream_archives));
           setPickupHours(parsePickupHours(data.pickup_hours));
@@ -125,6 +126,8 @@ export default function StorefrontSettings({ user }) {
     payload.sabbatical_active = !!vendor.sabbatical_active;
     payload.sabbatical_note = vendor.sabbatical_note || null;
     payload.sabbatical_returns_at = vendor.sabbatical_returns_at || null;
+    payload.aura_color = vendor.aura_color || null;
+    payload.aura_follow_moon = vendor.aura_follow_moon !== false;
 
     if (canInternational) {
       payload.ships_domestically = vendor.ships_domestically !== false;
@@ -293,6 +296,28 @@ export default function StorefrontSettings({ user }) {
                     className="w-full border p-3 rounded-2xl mt-1"
                     value={vendor?.sabbatical_returns_at || ''}
                     onChange={(e) => setVendor((v) => ({ ...v, sabbatical_returns_at: e.target.value || null }))}
+                  />
+                  <p className="text-[10px] text-gray-500 mt-1">Auto-clears nightly when date passes (migration 33 cron).</p>
+                </div>
+              </div>
+              <div className="border-t pt-4 mt-2 space-y-3">
+                <p className="text-sm font-medium text-[#4a1942]">Practitioner aura</p>
+                <p className="text-xs text-gray-500">Public storefront glow — custom color or follow the moon.</p>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={vendor?.aura_follow_moon !== false}
+                    onChange={(e) => setVendor((v) => ({ ...v, aura_follow_moon: e.target.checked }))}
+                  />
+                  Follow moon phase for aura color
+                </label>
+                <div>
+                  <label className="text-sm font-medium">Custom aura (optional)</label>
+                  <input
+                    type="color"
+                    className="w-full h-10 rounded-lg mt-1"
+                    value={vendor?.aura_color || vendor?.theme_color || '#4a1942'}
+                    onChange={(e) => setVendor((v) => ({ ...v, aura_color: e.target.value }))}
                   />
                 </div>
               </div>

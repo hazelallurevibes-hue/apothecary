@@ -22,6 +22,7 @@ export default function Magic8Ball() {
       setAnswer(pick);
     }
     setHasAsked(true);
+    window.dispatchEvent(new CustomEvent('hazel-oracle-asked'));
   }, [reverseMode]);
 
   const close = () => {

@@ -24,6 +24,9 @@ import PractitionerSpotlightBanner from './PractitionerSpotlightBanner';
 import VendorStoryCarousel from './VendorStoryCarousel';
 import PractitionerMoonMood from './PractitionerMoonMood';
 import PractitionerSabbaticalBanner from './PractitionerSabbaticalBanner';
+import PractitionerAuraGlow from './PractitionerAuraGlow';
+import { applySabbaticalExpiry } from '../lib/sabbaticalUtils';
+import { resolveVendorAura } from '../lib/vendorAura';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -192,7 +195,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
         fetchPublishedCourses({ vendorId: vid }).catch(() => []),
       ]);
 
-      const v = vendorRes.data || { id: vendorId, name: VERTICAL.copy.practitionerFallback, bio: '' };
+      const v = applySabbaticalExpiry(vendorRes.data || { id: vendorId, name: VERTICAL.copy.practitionerFallback, bio: '' });
       setVendor(v);
       setServices(servicesRes.data || []);
       setApothecary(apothecaryRes.data || []);
@@ -271,11 +274,17 @@ export default function VendorSocialProfile({ vendorId, user }) {
 
   const reviewsTabLabel = reviewCount > 0 ? `Reviews (${reviewCount})` : 'Reviews';
 
+  const aura = resolveVendorAura(vendor);
+
   return (
     <div className="max-w-4xl mx-auto pb-12">
       <PractitionerSpotlightBanner vendor={vendor} />
       <PractitionerSabbaticalBanner vendor={vendor} />
+      <p className="text-[10px] text-gray-500 mb-2 text-center sm:text-left" title={aura.label}>
+        ✦ {aura.label}
+      </p>
       {/* Hero cover */}
+      <PractitionerAuraGlow vendor={vendor} className="rounded-none sm:rounded-3xl">
       <section aria-label="Practitioner cover" className="relative -mx-4 sm:mx-0">
         <div className="relative h-48 sm:h-64 md:h-72 rounded-none sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4a1942] to-[#2d1230]">
           {heroImage && (
@@ -355,6 +364,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
           </div>
         </div>
       </section>
+      </PractitionerAuraGlow>
 
       {/* Story-style highlight rings */}
       {storyImages.length > 0 && (

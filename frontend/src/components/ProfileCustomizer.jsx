@@ -10,7 +10,7 @@ import {
   saveProfileCustomization,
   uploadProfileBanner,
 } from '../lib/profileCustomization';
-import { fetchLoginStreak } from '../lib/loginStreakApi';
+import { fetchLoginStreak, hasScryingUnlock } from '../lib/loginStreakApi';
 import FamiliarPicker from './FamiliarPicker';
 import { fetchBadgesForStudent, STUDENT_BADGE_TYPES } from '../lib/studentBadgesApi';
 import { fetchUnlockedAchievements, getAchievementMeta } from '../lib/achievements';
@@ -26,6 +26,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const [badges, setBadges] = useState([]);
   const [achievements, setAchievements] = useState([]);
   const [tarotCards, setTarotCards] = useState(0);
+  const [scryingPermanent, setScryingPermanent] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -49,11 +50,14 @@ export default function ProfileCustomizer({ user, onUpdate }) {
     fetchBadgesForStudent(user.email).then(setBadges).catch(() => setBadges([]));
     fetchUnlockedAchievements(user.email).then(setAchievements).catch(() => setAchievements([]));
     fetchLoginStreak(user.email)
-      .then((s) => setTarotCards((s?.cards_collected || []).length))
-      .catch(() => setTarotCards(0));
+      .then((s) => {
+        setTarotCards((s?.cards_collected || []).length);
+        setScryingPermanent(hasScryingUnlock(s));
+      })
+      .catch(() => { setTarotCards(0); setScryingPermanent(false); });
   }, [user?.email]);
 
-  const scryingUnlocked = tarotCards >= SCRYING_FRAME_UNLOCK_CARDS;
+  const scryingUnlocked = scryingPermanent || tarotCards >= SCRYING_FRAME_UNLOCK_CARDS;
 
   const pinnedBadge = badges.find((b) => b.id === pinnedId);
 
@@ -176,6 +180,9 @@ export default function ProfileCustomizer({ user, onUpdate }) {
               <p className="text-[10px] text-gray-500 mt-2">
                 Scrying mirror unlocks at {SCRYING_FRAME_UNLOCK_CARDS}/78 tarot cards — you have {tarotCards}.
               </p>
+            )}
+            {scryingPermanent && (
+              <p className="text-[10px] text-indigo-600 mt-2">Scrying mirror permanently unlocked — yours even if streak resets.</p>
             )}
           </div>
         </div>

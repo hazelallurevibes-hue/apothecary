@@ -3,6 +3,7 @@ import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser, placeOrder as placeOrderApi } from '../lib/ordersApi';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
 import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
+import { offerSpellReceiptDownload } from '../lib/spellReceiptExport';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { CustomerPickupQR, VendorPickupScanner } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
@@ -78,7 +79,14 @@ export default function Orders({ user }) {
     try {
       await placeOrderApi(orderData);
       const baseMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}. ${deliveryMethod !== 'pickup' ? 'Tracking link sent to your connected delivery app.' : ''}`;
-      alert(formatOrderSuccessMessage(baseMsg));
+      offerSpellReceiptDownload({
+        successMessage: formatOrderSuccessMessage(baseMsg),
+        total: orderData.total,
+        items: cart,
+        deliveryMethod,
+        userName: user?.name,
+        source: 'Hazel Allure Orders',
+      });
       clearCart();
       setCheckoutStep(1);
       setAddress({ street: '', city: '', zip: '' });

@@ -13,6 +13,7 @@ import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
 import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
+import { offerSpellReceiptDownload } from '../lib/spellReceiptExport';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
 import { MARKETPLACE_MENU_CATEGORIES } from '../lib/marketplaceMenuCategories';
 import { VERTICAL } from '../lib/vertical';
@@ -162,7 +163,14 @@ export default function Marketplace({ user }) {
       if (chosenDelivery === 'pickup') msg += ' — Ready for local pickup!';
       else if (chosenDelivery === 'doordash') msg += ' — DoorDash will handle delivery.';
       else msg += ' — Uber Eats delivery confirmed.';
-      alert(formatOrderSuccessMessage(msg));
+      offerSpellReceiptDownload({
+        successMessage: formatOrderSuccessMessage(msg),
+        total: orderData.total,
+        items: menuLines,
+        deliveryMethod: chosenDelivery,
+        userName: user?.name,
+        source: 'Hazel Allure Marketplace',
+      });
       clearCart();
     } catch (e) {
       console.error('Order error:', e);

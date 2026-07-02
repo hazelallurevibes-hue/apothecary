@@ -151,7 +151,10 @@ export default function PoliciesProcedures() {
           <p><strong>Practitioner integrity pledge:</strong> Vendors must affirm at signup they will not commit fraud, sell deceptive or dangerous goods, infringe IP, or act with ill intent. Violations may be referred to authorities and business bureaus. Logged acceptances are retained for audit in Admin → Compliance → Integrity audit.</p>
           <p><strong>Seeker oath:</strong> Customers affirm entertainment disclaimers, due diligence, respectful conduct, and lawful use at signup. Logged acceptances are retained.</p>
           <p><strong>Confession booth:</strong> Private journal entries belong to the user; not shared on The Hearth. Not crisis support — contact local emergency services when needed.</p>
-          <p><strong>Practitioner sabbatical:</strong> Vendors may mark rest periods on storefronts with optional return dates.</p>
+          <p><strong>Practitioner sabbatical:</strong> Vendors may mark rest periods on storefronts with optional return dates. Flags auto-expire after the return date (nightly cron).</p>
+          <p><strong>Gratitude wall:</strong> Short blessings on The Hearth are moderated — auto-approved when clean, otherwise queued in Admin → Compliance → Gratitude.</p>
+          <p><strong>Familiar quests &amp; grimoire slips:</strong> Daily quests and printable order slips are entertainment only. Confession booth supports private JSON export.</p>
+          <p><strong>Seeker oath reaffirm:</strong> Customers may be prompted annually to re-affirm the logged seeker oath.</p>
           <p>Users grant {VERTICAL.legalEntity} a non-exclusive, worldwide, royalty-free license to host, display, reproduce, resize, and distribute user content solely to operate and promote the platform.</p>
         </div>
       </section>

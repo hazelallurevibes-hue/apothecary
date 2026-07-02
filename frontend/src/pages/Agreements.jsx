@@ -86,7 +86,9 @@ export default function Agreements() {
           <p><strong>3.16 Tarot &amp; daily delights.</strong> Daily tarot draws, login streaks, familiars, confession booth entries, reverse oracle mode, and similar gamification are entertainment only — not predictions or professional advice.</p>
           <p><strong>3.17 Seeker oath.</strong> Customer signup includes a logged seeker oath covering entertainment disclaimers, due diligence, respectful conduct, and lawful use. Acceptance is timestamped for audit.</p>
           <p><strong>3.18 Confession booth.</strong> Private journal entries are visible only to the account holder unless law or safety policy requires disclosure. They are not therapy records or legal documents.</p>
-          <p><strong>3.19 Sabbatical.</strong> Practitioners may display sabbatical status on storefronts. Hazel Allure does not guarantee response times during declared rest periods.</p>
+          <p><strong>3.19 Sabbatical.</strong> Practitioners may display sabbatical status on storefronts. Sabbatical flags auto-expire after the stated return date. Hazel Allure does not guarantee response times during declared rest periods.</p>
+          <p><strong>3.20 Gratitude wall.</strong> Short moderated blessings on The Hearth may be auto-approved or queued for review. Not endorsements by Hazel Allure.</p>
+          <p><strong>3.21 Familiar quests &amp; grimoire slips.</strong> Daily quests, lunar familiar moods, and printable order grimoire slips are entertainment only.</p>
         </div>
       </section>
 

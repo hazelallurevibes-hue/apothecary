@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { fetchConfessionHistory, fetchTodayConfession, saveConfession } from '../lib/confessionApi';
+import { localDateKey } from '../lib/loginStreakApi';
+import { downloadJson } from '../lib/csvExport';
 
 export default function ConfessionBoothPanel({ user }) {
   const [body, setBody] = useState('');
@@ -23,6 +25,22 @@ export default function ConfessionBoothPanel({ user }) {
   };
 
   useEffect(() => { load(); }, [user?.email]);
+
+  const exportArchive = async () => {
+    if (!user?.email) return;
+    try {
+      const all = await fetchConfessionHistory(user.email, 500);
+      downloadJson({
+        exported_at: new Date().toISOString(),
+        user_email: user.email,
+        entries: all,
+        disclaimer: 'Private journal export — entertainment only, not legal or medical record.',
+      }, `confession-booth-${localDateKey()}.json`);
+      setMessage('Archive downloaded to your device.');
+    } catch (e) {
+      setMessage(e.message);
+    }
+  };
 
   const save = async () => {
     if (!user?.email) return;
@@ -76,6 +94,13 @@ export default function ConfessionBoothPanel({ user }) {
             {expanded ? 'Hide past entries' : `Past entries (${history.length})`}
           </button>
         )}
+        <button
+          type="button"
+          onClick={exportArchive}
+          className="text-sm text-[#4a1942] underline"
+        >
+          Export JSON archive
+        </button>
         {message && <p className="text-sm text-gray-600">{message}</p>}
       </div>
       {expanded && history.length > 0 && (

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FAMILIAR_LIST } from '../lib/familiars';
+import { getLunarFamiliarPresentation } from '../lib/lunarFamiliar';
+import { getMoonPhase } from '../lib/seasonalSanctum';
 import { fetchChosenFamiliar, saveChosenFamiliar } from '../lib/familiarApi';
 
 export default function FamiliarPicker({ user, onUpdate }) {
@@ -30,13 +32,19 @@ export default function FamiliarPicker({ user, onUpdate }) {
     }
   };
 
+  const moon = getMoonPhase();
+  const preview = chosen ? getLunarFamiliarPresentation(chosen) : null;
+
   return (
     <section className="rounded-2xl border border-[#4a1942]/10 bg-white p-6 space-y-4">
       <div>
         <h2 className="text-xl font-semibold text-[#4a1942]">Spirit familiar</h2>
         <p className="text-sm text-gray-500 mt-1">
-          Choose a companion that floats beside the Sanctum sphere. Cosmetic delight only — not advice.
+          Choose a companion that floats beside the Sanctum sphere. Mood shifts with the moon ({moon.emoji} {moon.name}). Entertainment only.
         </p>
+        {preview && (
+          <p className="text-xs text-indigo-700 mt-2 italic">{preview.moodLine}</p>
+        )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
         <button

@@ -14,6 +14,8 @@ import GuidanceCoach from './GuidanceCoach';
 import HiddenCats from './HiddenCats';
 import Magic8Ball from './Magic8Ball';
 import FamiliarCompanion from './FamiliarCompanion';
+import DailyFamiliarQuest from './DailyFamiliarQuest';
+import SeekerOathReaffirmModal from './SeekerOathReaffirmModal';
 import LoginStreakHandler from './LoginStreakHandler';
 import EasyModePrompt from './EasyModePrompt';
 import PageSeo from './PageSeo';
@@ -371,8 +373,10 @@ export default function Layout({ user, onLogout, children }) {
 
       <HiddenCats user={user} />
       <LoginStreakHandler user={user} />
+      <DailyFamiliarQuest user={user} />
       <FamiliarCompanion user={user} />
       <Magic8Ball />
+      <SeekerOathReaffirmModal user={user} />
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <GuidanceCoach user={user} />
       <EasyModePrompt />

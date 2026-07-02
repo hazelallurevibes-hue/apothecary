@@ -22,6 +22,7 @@ import ReportContentButton from '../components/ReportContentButton';
 import { fetchModerators } from '../lib/communityModeration';
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 import CovenRollCall from '../components/CovenRollCall';
+import GratitudeWall from '../components/GratitudeWall';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -151,6 +152,7 @@ export default function CommunityGathering({ user }) {
       </header>
 
       <CovenRollCall />
+      <GratitudeWall user={user} />
       {showBanner && <CommunityCodeBanner />}
       <SolsticeRsvpCard user={user} />
       <DailyOracleCard className="mb-6" />

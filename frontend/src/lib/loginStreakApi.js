@@ -33,6 +33,7 @@ export async function recordDailyLogin(email) {
       alreadyToday: true,
       reset: false,
       longest: row.longest_streak || row.current_streak,
+      scryingUnlocked: !!row.scrying_unlocked || (row.cards_collected || []).length >= 39,
     };
   }
 
@@ -60,19 +61,27 @@ export async function recordDailyLogin(email) {
   }
 
   const longest = Math.max(row?.longest_streak || 0, streak);
+  const scryingUnlocked = !!row?.scrying_unlocked || cards.length >= 39;
   const payload = {
     user_email: normalized,
     last_login_date: today,
     current_streak: streak,
     cards_collected: cards,
     longest_streak: longest,
+    scrying_unlocked: scryingUnlocked,
     updated_at: new Date().toISOString(),
   };
 
   const { error } = await supabase.from('user_login_streaks').upsert(payload, { onConflict: 'user_email' });
   if (error) throw new Error(error.message);
 
-  return { streak, cards, newCard, alreadyToday: false, reset, longest };
+  return { streak, cards, newCard, alreadyToday: false, reset, longest, scryingUnlocked };
+}
+
+export function hasScryingUnlock(streakRow) {
+  if (!streakRow) return false;
+  if (streakRow.scrying_unlocked) return true;
+  return (streakRow.cards_collected || []).length >= 39;
 }
 
 export async function fetchLoginStreak(email) {
