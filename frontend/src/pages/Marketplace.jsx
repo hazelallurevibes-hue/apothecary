@@ -17,6 +17,7 @@ import { modificationPayloadFromCart } from '../components/PreorderModificationP
 import { MARKETPLACE_MENU_CATEGORIES } from '../lib/marketplaceMenuCategories';
 import { VERTICAL } from '../lib/vertical';
 import VendorNearbySearch from '../components/VendorNearbySearch';
+import CauldronCancelToast from '../components/CauldronCancelToast';
 import { fetchVendorsWithRatings } from '../lib/reviewsApi';
 
 export default function Marketplace({ user }) {
@@ -173,6 +174,7 @@ export default function Marketplace({ user }) {
 
   return (
     <div>
+      <CauldronCancelToast />
       <div className="flex justify-between items-end mb-6">
         <div>
           <h1 className="text-4xl font-bold tracking-tight heading-font text-[#4a1942]">{VERTICAL.labels.marketplace}</h1>

@@ -1,0 +1,1 @@
+-- Run after 30. See: supabase/migrations/20260706100000_integrity_tarot_streaks.sql

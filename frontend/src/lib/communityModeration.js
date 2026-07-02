@@ -2,7 +2,7 @@ import { supabase } from './supabaseClient';
 import { fetchPlatformSettings } from './platformSettingsApi';
 
 const MOD_MESSAGE = {
-  block: 'This message contains language that violates our community guidelines. Hate speech, bullying, and harassment are not tolerated on The Hearth.',
+  block: 'The hearth rejected that energy. Hate speech, bullying, and harassment are not tolerated — revise your message with kindness.',
   strike: 'Your account has active community warnings. Posting is temporarily restricted — contact Support if you believe this is an error.',
   locked: 'This thread is locked by moderators.',
 };

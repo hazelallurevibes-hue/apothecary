@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from './CartContext';
 import NavDropdown from './NavDropdown';
@@ -13,6 +13,7 @@ import AccessibilityHub from './AccessibilityHub';
 import GuidanceCoach from './GuidanceCoach';
 import HiddenCats from './HiddenCats';
 import Magic8Ball from './Magic8Ball';
+import LoginStreakHandler from './LoginStreakHandler';
 import EasyModePrompt from './EasyModePrompt';
 import PageSeo from './PageSeo';
 import WomanOwnedBadge from './WomanOwnedBadge';
@@ -53,6 +54,15 @@ export default function Layout({ user, onLogout, children }) {
   const { t } = useLocale();
   const { enabled: easyMode, toggle: toggleEasyMode } = useEasyMode();
   const footerHaiku = useMemo(() => pickWhimsy(FOOTER_HAIKU), []);
+  const witchingHour = useMemo(() => {
+    const h = new Date().getHours();
+    return h === 23 || h === 0;
+  }, []);
+
+  useEffect(() => {
+    document.body.classList.toggle('witching-hour', witchingHour);
+    return () => document.body.classList.remove('witching-hour');
+  }, [witchingHour]);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
 
@@ -359,6 +369,7 @@ export default function Layout({ user, onLogout, children }) {
       </main>
 
       <HiddenCats user={user} />
+      <LoginStreakHandler user={user} />
       <Magic8Ball />
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <GuidanceCoach user={user} />

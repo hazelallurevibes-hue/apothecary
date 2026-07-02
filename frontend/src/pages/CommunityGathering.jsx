@@ -21,6 +21,7 @@ import ModAuthorBadge from '../components/ModAuthorBadge';
 import ReportContentButton from '../components/ReportContentButton';
 import { fetchModerators } from '../lib/communityModeration';
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
+import CovenRollCall from '../components/CovenRollCall';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -149,6 +150,7 @@ export default function CommunityGathering({ user }) {
         </div>
       </header>
 
+      <CovenRollCall />
       {showBanner && <CommunityCodeBanner />}
       <SolsticeRsvpCard user={user} />
       <DailyOracleCard className="mb-6" />

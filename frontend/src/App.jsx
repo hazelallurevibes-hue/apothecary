@@ -57,6 +57,7 @@ const CommunityGathering = lazy(() => import('./pages/CommunityGathering'));
 const VendorGathering = lazy(() => import('./pages/VendorGathering'));
 const SanctumStudentHub = lazy(() => import('./pages/SanctumStudentHub'));
 const VerifyCredential = lazy(() => import('./pages/VerifyCredential'));
+const TarotCollection = lazy(() => import('./pages/TarotCollection'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const LinkExpired = lazy(() => import('./pages/LinkExpired'));
@@ -299,6 +300,11 @@ function AppCore({ auth0 = null }) {
                   </ProtectedRoute>
                 } />
                 <Route path="/verify-credential/:hash" element={<VerifyCredential />} />
+                <Route path="/tarot-collection" element={
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
+                    <TarotCollection user={user} />
+                  </ProtectedRoute>
+                } />
                 <Route path="/gathering" element={<CommunityGathering user={user} />} />
                 <Route path="/gathering/thread/:threadId" element={<CommunityGathering user={user} />} />
                 <Route path="/vendor-gathering" element={

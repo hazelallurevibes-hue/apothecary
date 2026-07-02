@@ -8,6 +8,7 @@ import FeaturedPractitioners from '../components/FeaturedPractitioners';
 import DailyRitualCard from '../components/DailyRitualCard';
 import FirstVisitorGlow from '../components/FirstVisitorGlow';
 import DailyOracleCard from '../components/DailyOracleCard';
+import TarotCollectionPanel from '../components/TarotCollectionPanel';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -238,6 +239,7 @@ function CustomerHome({ user, liveStats }) {
       <DailyOracleCard className="mb-6" />
 
       {user?.email && <DailyRitualCard user={user} />}
+      {user?.email && <TarotCollectionPanel user={user} compact className="mb-6" />}
 
       <ProBenefitsStrip user={user} variant="customer" />
 

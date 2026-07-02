@@ -10,6 +10,12 @@ import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
 import { PRACTITIONER_SPECIALTY_GROUPS } from '../lib/wellnessPreferences';
+import {
+  VENDOR_INTEGRITY_ATTESTATIONS,
+  emptyIntegrityState,
+  allIntegrityChecked,
+} from '../lib/vendorIntegrityPledge';
+import { logVendorIntegrityAcceptance } from '../lib/vendorIntegrityApi';
 
 export default function VendorSignUp({ onLogin }) {
   const formStartedAt = useRef(Date.now());
@@ -21,6 +27,7 @@ export default function VendorSignUp({ onLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [integrityChecks, setIntegrityChecks] = useState(emptyIntegrityState());
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleMode, setGoogleMode] = useState(false);
@@ -46,6 +53,10 @@ export default function VendorSignUp({ onLogin }) {
     e.preventDefault();
     if (!agreedToTerms) {
       setMessage('You must agree to the Terms, Agreements, Privacy Policy, and FAQ to apply.');
+      return;
+    }
+    if (!allIntegrityChecked(integrityChecks)) {
+      setMessage('You must acknowledge every integrity and honor pledge below.');
       return;
     }
     if (!businessName || !email) {
@@ -114,6 +125,12 @@ export default function VendorSignUp({ onLogin }) {
         p_email: applicantEmail,
       });
       if (rpcError) throw rpcError;
+
+      await logVendorIntegrityAcceptance({
+        vendorEmail: applicantEmail,
+        vendorId: application?.vendor_id,
+        attestations: integrityChecks,
+      });
 
       if (activeSession && onLogin) {
         const sessionProfile = googleMode
@@ -259,9 +276,25 @@ export default function VendorSignUp({ onLogin }) {
               I agree to the <Link to="/agreements" className="underline">Terms &amp; Practitioner Operating Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I accept <strong>full liability</strong> for all services and goods I offer, will not offer prohibited items (drugs, unlicensed alcohol, illicit goods), and understand violations may result in <strong>permanent ban</strong>.
             </span>
           </label>
+
+          <div className="rounded-2xl border border-[#4a1942]/15 bg-[#faf7f9] p-4 space-y-3 max-h-64 overflow-y-auto">
+            <p className="text-xs font-semibold text-[#4a1942] uppercase tracking-wide">Practitioner integrity &amp; honor pledge</p>
+            {VENDOR_INTEGRITY_ATTESTATIONS.map((a) => (
+              <label key={a.id} className="flex gap-2 items-start text-xs cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={!!integrityChecks[a.id]}
+                  onChange={() => setIntegrityChecks((c) => ({ ...c, [a.id]: !c[a.id] }))}
+                  className="mt-0.5 shrink-0"
+                />
+                <span>{a.label}</span>
+              </label>
+            ))}
+          </div>
+
           <button
             type="submit"
-            disabled={loading || !agreedToTerms || (!googleMode && passwordsMismatch)}
+            disabled={loading || !agreedToTerms || !allIntegrityChecked(integrityChecks) || (!googleMode && passwordsMismatch)}
             className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold mt-2 disabled:opacity-70"
           >
             {loading ? 'Submitting...' : 'Submit Practitioner Application'}

@@ -82,6 +82,8 @@ export default function Agreements() {
           <p><strong>3.12 Platform fees.</strong> Hazel Allure may charge a platform service fee on gross sales as disclosed in the Tax Center. Fees may change with notice.</p>
           <p><strong>3.13 Ban policy.</strong> Failure to uphold quality, honesty, tax compliance, licensing, or legal standards may result in <strong>immediate listing removal and permanent account ban</strong> without refund.</p>
           <p><strong>3.14 Practitioner indemnity.</strong> You indemnify Hazel Allure and its members, managers, officers, employees, and affiliates against all claims arising from your listings, conduct, services, products, tax practices, credentials, or photos.</p>
+          <p><strong>3.15 Integrity &amp; honor pledge.</strong> At signup and onboarding, practitioners affirm they will not engage in fraud, dishonesty, snake-oil claims, ill intent, sale of poison or dangerous goods misrepresented as wellness products, lying, cheating, stealing, or intellectual-property infringement. Practitioners hold themselves to the highest standards of honesty and honor on and off the platform. Credible violations may be reported to local law enforcement, regulatory agencies, and consumer or business bureaus; Hazel Allure may cooperate with investigations. Acceptance is logged with timestamp.</p>
+          <p><strong>3.16 Tarot &amp; daily delights.</strong> Daily tarot draws, login streaks, and similar gamification are entertainment only — not predictions or professional advice.</p>
         </div>
       </section>
 

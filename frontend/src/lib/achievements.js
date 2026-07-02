@@ -22,6 +22,10 @@ const DEFINITIONS = {
   loyal_seeker: { icon: '🦋', rarity: 'epic' },
   ritual_dawn: { icon: '🌅', rarity: 'uncommon' },
   velvet_paw: { icon: '🐈‍⬛', rarity: 'legendary' },
+  daily_flame: { icon: '🕯️', rarity: 'common' },
+  tarot_seeker: { icon: '🃏', rarity: 'uncommon' },
+  lunar_devotion: { icon: '🌙', rarity: 'epic' },
+  arcana_master: { icon: '✦', rarity: 'legendary' },
 };
 
 function readLocal(email) {
@@ -103,6 +107,10 @@ export async function trackAchievementEvent(email, event, meta = {}) {
     visited_five_pages: 'cartographer',
     easy_mode_enabled: 'quiet_guardian',
     first_order: 'midnight_bloom',
+    daily_login: 'daily_flame',
+    streak_7: 'tarot_seeker',
+    streak_30: 'lunar_devotion',
+    streak_78: 'arcana_master',
   };
 
   let id = map[event];
