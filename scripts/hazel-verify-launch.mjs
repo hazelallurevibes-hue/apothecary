@@ -42,6 +42,7 @@ const admin = createClient(url, key, { auth: { autoRefreshToken: false, persistS
 const TABLES = [
   'users', 'vendors', 'menu_items', 'produce_items', 'orders',
   'vendor_courses', 'vendor_course_lessons', 'vendor_course_enrollments',
+  // business_badges, admin_badges are columns on vendors — optional until SQL 24–25 run
   'practitioner_session_slots', 'practitioner_bookings', 'platform_settings',
 ];
 

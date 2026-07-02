@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import LaunchBanner from '../components/LaunchBanner';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
 import WomanOwnedBadge from '../components/WomanOwnedBadge';
+import FeaturedPractitioners from '../components/FeaturedPractitioners';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -232,6 +233,8 @@ function CustomerHome({ user, liveStats }) {
       </div>
 
       <ProBenefitsStrip user={user} variant="customer" />
+
+      <FeaturedPractitioners limit={3} />
 
       <div className="mb-8 flex flex-col sm:flex-row items-center gap-6 p-6 section-woman-owned">
         <img src={LOGO_IMG} alt={VERTICAL.name} className="w-24 h-24 rounded-2xl object-cover ring-1 ring-ha-accent/30 shrink-0" />

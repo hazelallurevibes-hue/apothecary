@@ -19,7 +19,8 @@ import { formatPickupHoursSummary, upcomingEvents } from '../lib/pickupSchedule'
 import { listingDetailPath } from '../lib/listingDisplay';
 import SessionBookingPanel from './SessionBookingPanel';
 import { fetchOpenSlots } from '../lib/sessionBookingApi';
-import { resolveVendorBadges } from '../lib/practitionerBadges';
+import { resolveVendorBadges, resolveAdminBadges } from '../lib/practitionerBadges';
+import PractitionerSpotlightBanner from './PractitionerSpotlightBanner';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -269,6 +270,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
 
   return (
     <div className="max-w-4xl mx-auto pb-12">
+      <PractitionerSpotlightBanner vendor={vendor} />
       {/* Hero cover */}
       <section aria-label="Practitioner cover" className="relative -mx-4 sm:mx-0">
         <div className="relative h-48 sm:h-64 md:h-72 rounded-none sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4a1942] to-[#2d1230]">
@@ -623,11 +625,22 @@ export default function VendorSocialProfile({ vendorId, user }) {
                 &ldquo;{vendor.slogan}&rdquo;
               </blockquote>
             )}
-            {resolveVendorBadges(vendor).length > 0 && (
-              <div className="mt-4">
-                <h3 className="text-sm font-semibold text-[#2d1230] mb-2">Business identity</h3>
-                <PractitionerBadges vendor={vendor} max={12} />
-                <p className="text-[11px] text-gray-400 mt-2">Self-declared by the practitioner. Hazel Allure does not independently verify ownership claims.</p>
+            {(resolveAdminBadges(vendor).length > 0 || resolveVendorBadges(vendor).length > 0) && (
+              <div className="mt-4 space-y-4">
+                {resolveAdminBadges(vendor).length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#2d1230] mb-2">Awards from Hazel Allure</h3>
+                    <PractitionerBadges vendor={vendor} showIdentity={false} showEarned={false} max={12} />
+                  </div>
+                )}
+                {resolveVendorBadges(vendor).length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold text-[#2d1230] mb-2">Business identity</h3>
+                    <PractitionerBadges vendor={vendor} showAdmin={false} showEarned={false} max={12} />
+                    <p className="text-[11px] text-gray-400 mt-2">Self-declared by the practitioner.</p>
+                  </div>
+                )}
+                <PractitionerBadges vendor={vendor} showAdmin={false} showIdentity={false} max={6} />
               </div>
             )}
             <dl className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">

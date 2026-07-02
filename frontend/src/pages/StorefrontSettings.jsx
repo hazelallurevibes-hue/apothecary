@@ -14,7 +14,8 @@ import InternationalStorefrontEditor from '../components/InternationalStorefront
 import VendorAddressFields from '../components/VendorAddressFields';
 import { parseRestrictedCategories } from '../lib/shippingRestrictions';
 import PractitionerBadgeEditor from '../components/PractitionerBadgeEditor';
-import { parseBusinessBadges } from '../lib/practitionerBadges';
+import PractitionerBadges from '../components/PractitionerBadges';
+import { parseBusinessBadges, resolveAdminBadges } from '../lib/practitionerBadges';
 
 function parseBanners(raw) {
   if (Array.isArray(raw)) return raw;
@@ -264,6 +265,22 @@ export default function StorefrontSettings({ user }) {
                 </div>
               )}
             </>
+          )}
+
+          {resolveAdminBadges(vendor).length > 0 && (
+            <div className="p-4 rounded-2xl border border-ha-accent/30 bg-gradient-to-br from-ha-champagne/40 to-white">
+              <h3 className="text-sm font-semibold text-ha-primary mb-2">🏆 Awards from Hazel Allure</h3>
+              <PractitionerBadges vendor={vendor} showIdentity={false} showEarned={false} />
+              {vendor?.spotlight_note && (
+                <p className="text-xs text-gray-600 mt-2 italic">&ldquo;{vendor.spotlight_note}&rdquo;</p>
+              )}
+              {vendor?.featured_rank && (
+                <p className="text-[10px] text-ha-accent font-semibold mt-1 uppercase tracking-wide">
+                  Homepage spotlight #{vendor.featured_rank}
+                </p>
+              )}
+              <p className="text-[10px] text-gray-400 mt-2">Awarded by our team — contact support if you have questions.</p>
+            </div>
           )}
 
           <div>

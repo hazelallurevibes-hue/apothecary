@@ -11,6 +11,8 @@ import { VENDOR_LISTING_ATTESTATIONS } from '../lib/vendorListingAgreement';
 import { fetchPendingVerifications, reviewIdentity, reviewPermit } from '../lib/verificationApi';
 import PlatformEmailSettings from '../components/PlatformEmailSettings';
 import AdminProPayments from '../components/AdminProPayments';
+import AdminVendorBadgePanel from '../components/AdminVendorBadgePanel';
+import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -422,21 +424,30 @@ export default function AdminPortal({ user, onLogout }) {
             <h3 className="font-semibold mb-4">Vendor Management &amp; Approvals</h3>
             <div className="space-y-2">
               {vendors.map(v => (
-                <div key={v.id} className="flex justify-between items-center border p-3 rounded-2xl">
-                  <div>
-                    <span className="font-medium">{v.name}</span> • {v.category} • <span className={v.status === 'approved' ? 'text-green-600' : 'text-amber-600'}>{v.status}</span>
+                <div key={v.id} className="border p-4 rounded-2xl space-y-3">
+                  <div className="flex flex-wrap justify-between items-start gap-3">
+                    <div className="min-w-0">
+                      <div className="font-medium">{v.name}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {v.category} • <span className={v.status === 'approved' ? 'text-green-600' : 'text-amber-600'}>{v.status}</span>
+                        {v.featured_rank ? ` • Spotlight #${v.featured_rank}` : ''}
+                      </div>
+                      <PractitionerBadges vendor={v} compact className="mt-2" max={5} />
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-end">
+                      <Link to={`/vendor/${v.id}`} className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">View storefront</Link>
+                      {v.status !== 'approved' && <button onClick={() => approveVendor(v.id)} className="px-3 py-1 bg-emerald-600 text-white text-sm rounded-2xl">Approve</button>}
+                      <button
+                        type="button"
+                        onClick={() => supabase.from('vendors').update({ email_campaigns_enabled: v.email_campaigns_enabled === false }).eq('id', v.id).then(() => loadAllData())}
+                        className="px-3 py-1 border text-sm rounded-2xl"
+                      >
+                        {v.email_campaigns_enabled === false ? 'Enable campaigns' : 'Disable campaigns'}
+                      </button>
+                      <button onClick={() => supabase.from('vendors').update({status: v.status === 'approved' ? 'suspended' : 'approved'}).eq('id', v.id).then(() => loadAllData())} className="px-3 py-1 border text-sm rounded-2xl">Toggle Status</button>
+                    </div>
                   </div>
-                  <div className="space-x-2 flex flex-wrap gap-2 justify-end">
-                    {v.status !== 'approved' && <button onClick={() => approveVendor(v.id)} className="px-3 py-1 bg-emerald-600 text-white text-sm rounded-2xl">Approve</button>}
-                    <button
-                      type="button"
-                      onClick={() => supabase.from('vendors').update({ email_campaigns_enabled: v.email_campaigns_enabled === false }).eq('id', v.id).then(() => loadAllData())}
-                      className="px-3 py-1 border text-sm rounded-2xl"
-                    >
-                      {v.email_campaigns_enabled === false ? 'Enable campaigns' : 'Disable campaigns'}
-                    </button>
-                    <button onClick={() => supabase.from('vendors').update({status: v.status === 'approved' ? 'suspended' : 'approved'}).eq('id', v.id).then(() => loadAllData())} className="px-3 py-1 border text-sm rounded-2xl">Toggle Status</button>
-                  </div>
+                  <AdminVendorBadgePanel vendor={v} onSaved={loadAllData} />
                 </div>
               ))}
             </div>

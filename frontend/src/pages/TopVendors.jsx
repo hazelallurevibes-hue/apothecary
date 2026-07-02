@@ -5,7 +5,12 @@ import StarRating from '../components/StarRating';
 import { fetchVendorsWithRatings } from '../lib/reviewsApi';
 import VendorNearbySearch from '../components/VendorNearbySearch';
 import PractitionerBadges from '../components/PractitionerBadges';
-import { PRACTITIONER_BADGE_CATALOG, vendorHasBadge } from '../lib/practitionerBadges';
+import {
+  PRACTITIONER_BADGE_CATALOG,
+  ADMIN_AWARD_BADGE_CATALOG,
+  vendorHasAnyBadge,
+  sortVendorsByPrestige,
+} from '../lib/practitionerBadges';
 
 export default function TopVendors() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -14,19 +19,23 @@ export default function TopVendors() {
   const [search, setSearch] = useState(searchParams.get('q') || '');
   const minRating = Number(searchParams.get('min') || 0);
   const badgeFilter = searchParams.get('badge') || '';
+  const sortMode = searchParams.get('sort') || 'rating';
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
       let data = await fetchVendorsWithRatings({ minRating, search });
       if (badgeFilter) {
-        data = data.filter((v) => vendorHasBadge(v, badgeFilter));
+        data = data.filter((v) => vendorHasAnyBadge(v, badgeFilter));
+      }
+      if (sortMode === 'featured') {
+        data = sortVendorsByPrestige(data);
       }
       setVendors(data);
       setLoading(false);
     };
     load();
-  }, [minRating, search, badgeFilter]);
+  }, [minRating, search, badgeFilter, sortMode]);
 
   const setBadgeFilter = (id) => {
     const next = new URLSearchParams(searchParams);
@@ -81,15 +90,58 @@ export default function TopVendors() {
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-2 mb-6 items-center text-sm">
-        <span className="text-gray-500">Badges:</span>
+      <div className="flex flex-wrap gap-2 mb-4 items-center text-sm">
+        <span className="text-gray-500">Sort:</span>
+        {[
+          { id: 'rating', label: 'By rating' },
+          { id: 'featured', label: 'Featured & awarded' },
+        ].map((opt) => (
+          <button
+            key={opt.id}
+            type="button"
+            onClick={() => {
+              const next = new URLSearchParams(searchParams);
+              if (opt.id === 'rating') next.delete('sort');
+              else next.set('sort', opt.id);
+              setSearchParams(next);
+            }}
+            className={`px-3 py-1.5 rounded-2xl border transition ${
+              sortMode === opt.id ? 'bg-ha-primary text-white border-ha-primary' : 'bg-white hover:border-ha-primary'
+            }`}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4 items-center text-sm">
+        <span className="text-gray-500">Awards:</span>
         <button
           type="button"
           onClick={() => setBadgeFilter('')}
-          className={`px-3 py-1.5 rounded-2xl border transition ${!badgeFilter ? 'bg-ha-primary text-white border-ha-primary' : 'bg-white hover:border-ha-primary'}`}
+          className={`px-3 py-1.5 rounded-2xl border transition ${!badgeFilter ? 'bg-ha-accent/20 border-ha-accent text-ha-primary font-medium' : 'bg-white hover:border-ha-accent/50'}`}
         >
           All
         </button>
+        {ADMIN_AWARD_BADGE_CATALOG.filter((b) =>
+          ['best_seller', 'number_one_product', 'editors_choice', 'top_rated_pick', 'practitioner_of_month', 'community_favorite'].includes(b.id),
+        ).map((badge) => (
+          <button
+            key={badge.id}
+            type="button"
+            onClick={() => setBadgeFilter(badge.id)}
+            className={`px-3 py-1.5 rounded-2xl border transition inline-flex items-center gap-1 ${
+              badgeFilter === badge.id ? 'bg-ha-champagne border-ha-accent text-ha-primary-dark font-medium' : 'bg-white hover:border-ha-accent/40'
+            }`}
+          >
+            <span aria-hidden="true">{badge.icon}</span>
+            {badge.shortLabel}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-6 items-center text-sm">
+        <span className="text-gray-500">Identity:</span>
         {PRACTITIONER_BADGE_CATALOG.filter((b) =>
           ['woman_owned', 'bipoc_owned', 'lgbtq_owned', 'black_owned', 'latina_owned', 'veteran_owned', 'eco_conscious', 'indigenous_led'].includes(b.id),
         ).map((badge) => (
