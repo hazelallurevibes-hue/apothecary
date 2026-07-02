@@ -79,7 +79,20 @@ export default function CustomerUseAgreement() {
             Hazel Allure may remove content or suspend accounts without liability to you for user posts you read or rely upon.
           </p>
 
-          <h2 className="font-semibold text-lg mb-2">6. Teaching Sanctum courses</h2>
+          <h2 className="font-semibold text-lg mb-2">6. Certificates — not professional licensure</h2>
+          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+            Completion certificates, honor roll, transcripts, and credential wallet items on {VERTICAL.name} are educational and ceremonial.
+            They do <strong>not</strong> make you a doctor, nurse, therapist, attorney, or holder of an accredited degree.
+            Do not use them to practice regulated professions or mislead others about your qualifications.
+          </p>
+
+          <h2 className="font-semibold text-lg mb-2">7. Entertainment (Sanctum sphere)</h2>
+          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+            The optional corner &quot;8&quot; sphere gives random YES / NO / MAYBE answers for fun only — not real advice.
+            Do not use it for health, legal, financial, or safety decisions.
+          </p>
+
+          <h2 className="font-semibold text-lg mb-2">8. Teaching Sanctum courses</h2>
           <p className="mb-3">
             Courses in the Teaching Sanctum are educational content provided by independent practitioners. {VERTICAL.legalEntity} does not accredit, endorse, or verify course accuracy, safety of taught practices, or professional outcomes.
           </p>

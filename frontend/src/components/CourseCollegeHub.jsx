@@ -14,6 +14,15 @@ import { openCertificatePrint } from '../lib/certificatePdf';
 import OfficeHoursPanel from './OfficeHoursPanel';
 import ProFeatureHint from './ProFeatureHint';
 import { customerCan } from '../lib/plans';
+import {
+  checkInEvent,
+  checkPrerequisites,
+  fetchPrerequisitesForCourse,
+  fetchScholarships,
+  graduateAlumni,
+  issueCredentialWallet,
+  submitCapstone,
+} from '../lib/sanctumAdvancedApi';
 
 export default function CourseCollegeHub({ user, course, enrolled, vendorName, progressPercent = 0 }) {
   const [syllabus, setSyllabus] = useState([]);
@@ -24,6 +33,12 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
   const [groupName, setGroupName] = useState('');
   const [msg, setMsg] = useState('');
   const [submission, setSubmission] = useState({});
+  const [prereqIds, setPrereqIds] = useState([]);
+  const [prereqMet, setPrereqMet] = useState(true);
+  const [scholarships, setScholarships] = useState([]);
+  const [capstoneTitle, setCapstoneTitle] = useState('');
+  const [capstoneBody, setCapstoneBody] = useState('');
+  const [printing, setPrinting] = useState(false);
 
   const courseId = course?.id;
   const vendorId = course?.vendor_id;
@@ -34,7 +49,12 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
     fetchSyllabus(courseId).then(setSyllabus).catch(() => {});
     fetchStudyGroups(courseId).then(setGroups).catch(() => {});
     fetchCalendarEvents({ courseId }).then(setEvents).catch(() => {});
-  }, [courseId]);
+    fetchPrerequisitesForCourse(courseId).then(setPrereqIds).catch(() => setPrereqIds([]));
+    fetchScholarships(courseId).then(setScholarships).catch(() => setScholarships([]));
+    if (user?.email) {
+      checkPrerequisites(courseId, user.email).then((r) => setPrereqMet(r.met)).catch(() => setPrereqMet(true));
+    }
+  }, [courseId, user?.email]);
 
   if (!courseId) return null;
 
@@ -69,19 +89,65 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
     setMsg('Assignment submitted.');
   };
 
-  const printCert = () => {
+  const printCert = async () => {
     if (progressPercent < 80) { setMsg('Complete at least 80% of lessons to download your certificate.'); return; }
-    openCertificatePrint({
-      studentName: user?.name || user?.email?.split('@')[0],
-      courseTitle: course.title,
-      vendorName: vendorName || 'Practitioner',
-      templateTitle: 'Certificate of Completion',
-      bodyText: 'For dedicated study and mindful completion of course materials.',
-    });
+    setPrinting(true);
+    try {
+      const cred = await issueCredentialWallet({
+        userEmail: user.email,
+        credentialType: 'completion',
+        referenceId: courseId,
+        title: `${course.title} — completion`,
+      });
+      await graduateAlumni(courseId, user.email);
+      openCertificatePrint({
+        studentName: user?.name || user?.email?.split('@')[0],
+        courseTitle: course.title,
+        vendorName: vendorName || 'Practitioner',
+        templateTitle: 'Certificate of Completion',
+        bodyText: 'For dedicated study and mindful completion of course materials.',
+        verifyHash: cred.verify_hash,
+      });
+      setMsg('Certificate saved to your credential wallet.');
+    } catch (e) {
+      setMsg(e.message || 'Could not issue certificate.');
+    }
+    setPrinting(false);
+  };
+
+  const onCapstone = async () => {
+    if (!capstoneTitle.trim()) return;
+    await submitCapstone({ courseId, studentEmail: user.email, title: capstoneTitle, body: capstoneBody });
+    setMsg('Capstone submitted to your practitioner.');
+    setCapstoneTitle('');
+    setCapstoneBody('');
+  };
+
+  const onCheckIn = async (eventId) => {
+    await checkInEvent(eventId, user.email);
+    setMsg('Checked in — thank you for showing up.');
   };
 
   return (
     <div className="space-y-6 mt-8">
+      {prereqIds.length > 0 && !enrolled && (
+        <div className={`rounded-2xl border p-4 ${prereqMet ? 'border-emerald-200 bg-emerald-50/40' : 'border-amber-300 bg-amber-50/50'}`}>
+          <p className="text-sm font-medium text-[#4a1942]">Prerequisites</p>
+          <p className="text-xs text-gray-600 mt-1">
+            {prereqMet ? 'You have met the required prior courses.' : 'Complete prerequisite courses before enrolling.'}
+          </p>
+        </div>
+      )}
+
+      {scholarships.length > 0 && !enrolled && (
+        <section className="rounded-2xl border border-emerald-200/60 bg-emerald-50/30 p-4">
+          <h3 className="font-semibold text-[#4a1942] text-sm mb-2">Available scholarships</h3>
+          {scholarships.map((s) => (
+            <p key={s.id} className="text-xs text-gray-700">{s.title} — {s.discount_percent}% off{s.code ? ` · code ${s.code}` : ''}</p>
+          ))}
+        </section>
+      )}
+
       {!enrolled && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4 flex flex-wrap gap-3 items-center justify-between">
           <p className="text-sm text-amber-900">Course full or not yet open? Join the waitlist.</p>
@@ -138,8 +204,20 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
             <section className="rounded-2xl border p-4 bg-[#faf7f9]">
               <h3 className="font-semibold text-[#4a1942] mb-2">Academic calendar</h3>
               {events.map((e) => (
-                <p key={e.id} className="text-sm text-gray-700 mb-1">{new Date(e.starts_at).toLocaleDateString()} — {e.title}</p>
+                <div key={e.id} className="flex flex-wrap justify-between items-center text-sm text-gray-700 mb-2 gap-2">
+                  <span>{new Date(e.starts_at).toLocaleDateString()} — {e.title}</span>
+                  <button type="button" onClick={() => onCheckIn(e.id)} className="text-xs underline text-[#4a1942]">Check in</button>
+                </div>
               ))}
+            </section>
+          )}
+
+          {progressPercent >= 60 && (
+            <section className="rounded-2xl border p-4">
+              <h3 className="font-semibold text-[#4a1942] mb-2">Capstone project</h3>
+              <input value={capstoneTitle} onChange={(e) => setCapstoneTitle(e.target.value)} className="w-full border rounded-xl px-3 py-2 text-sm mb-2" placeholder="Project title" />
+              <textarea value={capstoneBody} onChange={(e) => setCapstoneBody(e.target.value)} rows={3} className="w-full border rounded-xl px-3 py-2 text-sm mb-2" placeholder="Reflection, portfolio notes, or deliverable summary…" />
+              <button type="button" onClick={onCapstone} className="px-4 py-2 rounded-full bg-[#4a1942] text-white text-sm">Submit capstone</button>
             </section>
           )}
 
@@ -156,8 +234,8 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
           {!canEval && enrolled && <ProFeatureHint hintKey="lesson_progress" />}
 
           {enrolled && (
-            <button type="button" onClick={printCert} className="px-5 py-2.5 rounded-full border border-[#4a1942] text-[#4a1942] text-sm">
-              Download completion certificate (PDF)
+            <button type="button" onClick={printCert} disabled={printing} className="px-5 py-2.5 rounded-full border border-[#4a1942] text-[#4a1942] text-sm disabled:opacity-50">
+              {printing ? 'Issuing…' : 'Download completion certificate (PDF)'}
             </button>
           )}
         </>

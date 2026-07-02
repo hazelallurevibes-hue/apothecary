@@ -4,6 +4,9 @@ import { buildTranscript, fetchHonorRoll, fetchCalendarEvents, fetchOpportunitie
 import { fetchThankYouNotesForStudent, pinThankYouNote } from '../lib/thankYouApi';
 import { STUDENT_BADGE_TYPES } from '../lib/studentBadgesApi';
 import ProfileAvatarFrame from '../components/ProfileAvatarFrame';
+import CredentialWalletPanel from '../components/CredentialWalletPanel';
+import WellnessGpaCard from '../components/WellnessGpaCard';
+import { fetchBundles } from '../lib/sanctumAdvancedApi';
 
 export default function SanctumStudentHub({ user }) {
   const [transcript, setTranscript] = useState(null);
@@ -13,6 +16,7 @@ export default function SanctumStudentHub({ user }) {
   const [thanks, setThanks] = useState([]);
   const [mentorTopic, setMentorTopic] = useState('');
   const [msg, setMsg] = useState('');
+  const [bundles, setBundles] = useState([]);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -21,6 +25,7 @@ export default function SanctumStudentHub({ user }) {
     fetchCalendarEvents().then(setEvents).catch(() => {});
     fetchOpportunities().then(setOpps).catch(() => {});
     fetchThankYouNotesForStudent(user.email).then(setThanks).catch(() => {});
+    fetchBundles().then(setBundles).catch(() => []);
   }, [user?.email]);
 
   const requestMentorship = async () => {
@@ -39,6 +44,8 @@ export default function SanctumStudentHub({ user }) {
       </header>
 
       <SeekerJourneyMap user={user} />
+      <WellnessGpaCard user={user} />
+      <CredentialWalletPanel user={user} />
 
       <div className="flex items-center gap-4 p-4 rounded-2xl border bg-white">
         <ProfileAvatarFrame avatarUrl={user?.avatar} name={user?.name} size="md" />
@@ -95,6 +102,15 @@ export default function SanctumStudentHub({ user }) {
                 {n.pinned_on_profile ? 'Unpin from profile' : 'Pin on profile'}
               </button>
             </blockquote>
+          ))}
+        </section>
+      )}
+
+      {bundles.length > 0 && (
+        <section className="rounded-2xl border p-5">
+          <h2 className="font-semibold text-[#4a1942] mb-2">Learning paths</h2>
+          {bundles.map((b) => (
+            <p key={b.id} className="text-sm text-gray-700 mb-1"><strong>{b.title}</strong> — {b.description}</p>
           ))}
         </section>
       )}

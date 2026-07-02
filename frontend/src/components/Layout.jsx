@@ -12,10 +12,12 @@ import { useEasyMode } from '../lib/easyMode';
 import AccessibilityHub from './AccessibilityHub';
 import GuidanceCoach from './GuidanceCoach';
 import HiddenCats from './HiddenCats';
+import Magic8Ball from './Magic8Ball';
 import EasyModePrompt from './EasyModePrompt';
 import PageSeo from './PageSeo';
 import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl } from '../lib/vertical';
+import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
 
 const LOGO_IMG =
   'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:120,cg:true';
@@ -50,6 +52,7 @@ export default function Layout({ user, onLogout, children }) {
   const { cart, total } = useCart();
   const { t } = useLocale();
   const { enabled: easyMode, toggle: toggleEasyMode } = useEasyMode();
+  const footerHaiku = useMemo(() => pickWhimsy(FOOTER_HAIKU), []);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
 
@@ -356,11 +359,13 @@ export default function Layout({ user, onLogout, children }) {
       </main>
 
       <HiddenCats user={user} />
+      <Magic8Ball />
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <GuidanceCoach user={user} />
       <EasyModePrompt />
 
       <footer className="border-t border-ha-lavender/40 bg-white/90 backdrop-blur-sm mt-12 py-8 text-sm text-gray-500">
+        <p className="max-w-7xl mx-auto px-4 md:px-8 mb-4 text-center text-xs text-[#4a1942]/50 whitespace-pre-line italic">{footerHaiku}</p>
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-3">
           <div className="flex flex-wrap items-center gap-2">
             <span>© {new Date().getFullYear()} {VERTICAL.name} • {t('footer.copyright')}</span>

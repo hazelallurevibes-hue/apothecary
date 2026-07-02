@@ -13,6 +13,7 @@ import { trackAchievementEvent } from '../lib/achievements';
 import { getStudyHallPrompt } from '../lib/seasonalSanctum';
 import AmbientSoundToggle from '../components/AmbientSoundToggle';
 import OfficeHoursPanel from '../components/OfficeHoursPanel';
+import GatheringProposals from '../components/GatheringProposals';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -126,6 +127,7 @@ export default function CommunityGathering({ user }) {
       </header>
 
       <OfficeHoursPanel user={user} />
+      <GatheringProposals user={user} />
 
       {error && (
         <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4">

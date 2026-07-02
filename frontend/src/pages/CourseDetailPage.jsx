@@ -20,6 +20,7 @@ import { fetchUserLearningProfile, scoreCourseForLearner } from '../lib/learning
 import { LEARNING_STYLES, formatDeliverySummary } from '../lib/teachingStudio';
 import CourseCollegeHub from '../components/CourseCollegeHub';
 import CohortRoomPanel from '../components/CohortRoomPanel';
+import { checkPrerequisites } from '../lib/sanctumAdvancedApi';
 
 export default function CourseDetailPage({ user }) {
   const { id } = useParams();
@@ -31,6 +32,7 @@ export default function CourseDetailPage({ user }) {
   const [matchScore, setMatchScore] = useState(0);
   const [toast, setToast] = useState('');
   const [completedLessons, setCompletedLessons] = useState(new Set());
+  const [prereqMet, setPrereqMet] = useState(true);
 
   const customerCtx = getCustomerContext(user);
   const canTrackProgress = customerCan(user, 'lesson_progress');
@@ -42,6 +44,7 @@ export default function CourseDetailPage({ user }) {
     fetchCourseLessons(id).then(setLessons);
     if (user?.email) {
       isEnrolled(id, user.email).then(setEnrolled);
+      checkPrerequisites(Number(id), user.email).then((r) => setPrereqMet(r.met)).catch(() => setPrereqMet(true));
       fetchLessonProgress(user.email, Number(id)).then(setCompletedLessons).catch(() => setCompletedLessons(new Set()));
       fetchUserLearningProfile(user.email).then((profile) => {
         fetchCourseById(id).then((c) => {
@@ -72,6 +75,12 @@ export default function CourseDetailPage({ user }) {
   const handleEnroll = async () => {
     if (!user?.email) {
       alert('Sign in as a seeker to enroll.');
+      return;
+    }
+    const prereqs = await checkPrerequisites(Number(id), user.email);
+    if (!prereqs.met) {
+      alert('Complete prerequisite courses before enrolling in this course.');
+      setPrereqMet(false);
       return;
     }
     setEnrolling(true);
@@ -159,10 +168,11 @@ export default function CourseDetailPage({ user }) {
               <button
                 type="button"
                 onClick={handleEnroll}
-                disabled={enrolling}
+                disabled={enrolling || !prereqMet}
                 className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50 min-h-[44px]"
+                title={!prereqMet ? 'Complete prerequisite courses first' : undefined}
               >
-                {enrolling ? 'Redirecting…' : price > 0 ? `Enroll — $${price.toFixed(2)}` : 'Enroll free'}
+                {enrolling ? 'Redirecting…' : !prereqMet ? 'Prerequisites required' : price > 0 ? `Enroll — $${price.toFixed(2)}` : 'Enroll free'}
               </button>
             )}
           </div>

@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { uploadVendorAsset } from './storageApi';
+import { validateCertificateTitle } from './sanctumAdvancedApi';
 
 export async function fetchVendorCertificates(vendorId) {
   const { data, error } = await supabase
@@ -12,6 +13,8 @@ export async function fetchVendorCertificates(vendorId) {
 }
 
 export async function uploadCertificate({ vendorId, user, file, title, issuer, issuedAt }) {
+  const v = validateCertificateTitle(title);
+  if (!v.ok) throw new Error(v.reason);
   const fileUrl = file ? await uploadVendorAsset(file, user, vendorId, 'certificates') : null;
   const { data, error } = await supabase
     .from('practitioner_certificates')

@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { validateCertificateTitle } from './sanctumAdvancedApi';
 
 export const STUDENT_BADGE_TYPES = {
   top_student: { label: 'Top Student', icon: '🏆', color: 'amber' },
@@ -16,6 +17,8 @@ export async function issueStudentBadge({
   note,
   templateId,
 }) {
+  const v = validateCertificateTitle(title);
+  if (!v.ok) throw new Error(v.reason);
   const { data, error } = await supabase
     .from('student_badges_issued')
     .insert({

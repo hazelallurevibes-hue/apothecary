@@ -18,6 +18,7 @@ export default function Agreements() {
         <a href="#teaching" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Teaching Sanctum</a>
         <a href="#gathering" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Community Gathering</a>
         <a href="#certificates" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Certificates</a>
+        <a href="#entertainment" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Entertainment</a>
         <a href="#email" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Email Campaigns</a>
         <a href="#stripe-connect" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Stripe Connect</a>
         <a href="#ip" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">IP Ownership</a>
@@ -117,8 +118,19 @@ export default function Agreements() {
         <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
           <p><strong>4c.1 Practitioner-issued only.</strong> Uploaded credentials and digital certifications are created and issued by independent Pro practitioners — not by Hazel Allure. The platform displays and delivers honors; we do not accredit, license, or guarantee the validity of any certificate or badge.</p>
           <p><strong>4c.2 No misrepresentation.</strong> Practitioners warrant that uploaded credentials are genuine and current. Digital honors must not imply state licensure, board certification, or guaranteed employment outcomes unless truthfully held.</p>
-          <p><strong>4c.3 Seeker display.</strong> Seekers may pin practitioner-issued honors on their profile at their discretion. Display is optional and does not constitute Hazel Allure endorsement of the practitioner or the honor.</p>
-          <p><strong>4c.4 Platform disclaimer.</strong> Hazel Allure disclaims all liability for reliance on certificates, badges, or course completion markers. Verification of any credential is solely between seeker and practitioner.</p>
+          <p><strong>4c.3 Prohibited professional credentials.</strong> Hazel Allure does not issue, accredit, or verify licenses to practice medicine, nursing, pharmacy, dentistry, psychology, psychotherapy, law, accounting, engineering, or any other regulated profession. Practitioners and seekers may not use platform certificates, badges, transcripts, honor roll, credential wallet entries, or completion PDFs to claim status as a medical doctor (MD/DO), nurse (RN/LPN/NP), physician assistant, pharmacist, dentist, attorney, CPA, licensed therapist, or holder of an accredited university degree unless they independently hold such credentials outside the platform and comply with all applicable laws. Course completion and wellness honors are educational and ceremonial only.</p>
+          <p><strong>4c.4 Seeker display.</strong> Seekers may pin practitioner-issued honors on their profile at their discretion. Display is optional and does not constitute Hazel Allure endorsement of the practitioner or the honor.</p>
+          <p><strong>4c.5 Verification hashes.</strong> Credential wallet verification codes confirm that a record was stored on the platform at issuance — not that Hazel Allure endorses skill, safety, licensure, or outcomes.</p>
+          <p><strong>4c.6 Platform disclaimer.</strong> Hazel Allure disclaims all liability for reliance on certificates, badges, transcripts, wellness learning scores, or course completion markers. Verification of any credential is solely between seeker and practitioner.</p>
+        </div>
+      </section>
+
+      <section id="entertainment" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">4d. Entertainment &amp; playful features</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>4d.1 Sanctum sphere (&quot;Magic 8&quot;).</strong> The optional corner sphere provides random YES / NO / MAYBE responses for amusement only. It does not provide medical, legal, financial, relationship, or professional advice. Do not rely on it for decisions affecting health, safety, or compliance.</p>
+          <p><strong>4d.2 Hidden delights.</strong> Achievements, Easter eggs, ambient sounds, moon-phase banners, and similar features are non-binding gamification. They confer no rights, credentials, or platform endorsement.</p>
+          <p><strong>4d.3 Wellness learning score.</strong> Any composite &quot;learning score&quot; or honor metric is illustrative engagement data — not an academic GPA, credit hour, or professional qualification.</p>
         </div>
       </section>
 

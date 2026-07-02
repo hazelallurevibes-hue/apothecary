@@ -1,0 +1,1 @@
+-- Run after 27. See: supabase/migrations/20260703100000_sanctum_advanced_personality.sql

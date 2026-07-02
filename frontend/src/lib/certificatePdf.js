@@ -1,6 +1,6 @@
 /** Client-side printable certificate — opens print dialog for PDF save */
 
-export function openCertificatePrint({ studentName, courseTitle, vendorName, templateTitle, bodyText, sealColor = '#4a1942', issuedDate }) {
+export function openCertificatePrint({ studentName, courseTitle, vendorName, templateTitle, bodyText, sealColor = '#4a1942', issuedDate, verifyHash }) {
   const html = `
 <!DOCTYPE html><html><head><title>Certificate</title>
 <style>
@@ -25,7 +25,8 @@ export function openCertificatePrint({ studentName, courseTitle, vendorName, tem
   ${bodyText ? `<p class="body">${escapeHtml(bodyText)}</p>` : ''}
   <div class="seal">✦</div>
   <p class="footer">${escapeHtml(vendorName)} · ${escapeHtml(issuedDate || new Date().toLocaleDateString())}</p>
-  <p class="disclaimer">Issued by an independent practitioner via Hazel Allure. Not an accredited degree or state license.</p>
+  ${verifyHash ? `<p class="footer" style="margin-top:8px">Verify: ${escapeHtml(verifyHash)}</p>` : ''}
+  <p class="disclaimer">Issued by an independent practitioner via Hazel Allure. Not an accredited degree, medical license, or state professional credential.</p>
 </div>
 <script>window.onload=function(){window.print();}</script>
 </body></html>`;
