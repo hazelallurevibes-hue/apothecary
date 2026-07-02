@@ -10,6 +10,7 @@ import {
   fetchScholarships,
   saveSemesterSettings,
 } from '../lib/sanctumAdvancedApi';
+import { fetchCohortPlaylist, saveCohortPlaylist } from '../lib/cohortApi';
 
 const EMPTY_SLIDE = { title: '', body: '', image_url: '' };
 
@@ -33,12 +34,14 @@ export default function VendorCollegeStudio({ user, vendorId, courses = [] }) {
   const [scholarshipPct, setScholarshipPct] = useState(10);
   const [scholarships, setScholarships] = useState([]);
   const [taEmail, setTaEmail] = useState('');
+  const [playlistUrl, setPlaylistUrl] = useState('');
 
   useEffect(() => {
     if (!courseId) return;
     fetchSyllabus(Number(courseId)).then(setSyllabus).catch(() => setSyllabus([]));
     fetchPrerequisitesForCourse(Number(courseId)).then(setPrereqs).catch(() => setPrereqs([]));
     fetchScholarships(Number(courseId)).then(setScholarships).catch(() => setScholarships([]));
+    fetchCohortPlaylist(Number(courseId)).then(setPlaylistUrl).catch(() => setPlaylistUrl(''));
     const c = courses.find((x) => String(x.id) === String(courseId));
     if (c) {
       setSemesterLabel(c.semester_label || '');
@@ -97,6 +100,12 @@ export default function VendorCollegeStudio({ user, vendorId, courses = [] }) {
     await appointTA(Number(courseId), taEmail);
     setTaEmail('');
     setMsg('Teaching assistant appointed.');
+  };
+
+  const savePlaylist = async () => {
+    if (!courseId) return;
+    await saveCohortPlaylist(Number(courseId), playlistUrl);
+    setMsg('Cohort playlist saved.');
   };
 
   return (
@@ -170,6 +179,15 @@ export default function VendorCollegeStudio({ user, vendorId, courses = [] }) {
         {scholarships.map((s) => (
           <p key={s.id} className="text-xs text-gray-600">{s.title} — {s.discount_percent}% off</p>
         ))}
+      </section>
+
+      <section className="rounded-2xl border p-5 bg-[#faf7f9]">
+        <h3 className="font-semibold text-[#4a1942] mb-3">Cohort study playlist</h3>
+        <div className="flex flex-wrap gap-2">
+          <input value={playlistUrl} onChange={(e) => setPlaylistUrl(e.target.value)} className="flex-1 border rounded-xl px-3 py-2 text-sm" placeholder="Spotify or YouTube link…" />
+          <button type="button" onClick={savePlaylist} className="px-4 py-2 rounded-full bg-[#4a1942] text-white text-sm">Save</button>
+        </div>
+        <p className="text-[10px] text-gray-500 mt-1">Shared vibe for enrolled students — optional.</p>
       </section>
 
       <section className="rounded-2xl border p-5">

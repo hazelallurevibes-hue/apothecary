@@ -7,6 +7,7 @@ import ProfileAvatarFrame from '../components/ProfileAvatarFrame';
 import CredentialWalletPanel from '../components/CredentialWalletPanel';
 import WellnessGpaCard from '../components/WellnessGpaCard';
 import { fetchBundles } from '../lib/sanctumAdvancedApi';
+import SolsticeRsvpCard from '../components/SolsticeRsvpCard';
 
 export default function SanctumStudentHub({ user }) {
   const [transcript, setTranscript] = useState(null);
@@ -43,6 +44,7 @@ export default function SanctumStudentHub({ user }) {
         <p className="text-gray-600 mt-2">Transcript, honors, calendar, mentorship — your academic sanctuary.</p>
       </header>
 
+      <SolsticeRsvpCard user={user} />
       <SeekerJourneyMap user={user} />
       <WellnessGpaCard user={user} />
       <CredentialWalletPanel user={user} />
@@ -98,6 +100,11 @@ export default function SanctumStudentHub({ user }) {
           {thanks.map((n) => (
             <blockquote key={n.id} className="text-sm italic text-gray-700 border-l-2 border-[#4a1942]/20 pl-3 mb-3">
               &ldquo;{n.message}&rdquo; — {n.vendors?.name}
+              {n.voice_url && (
+                <audio controls preload="none" src={n.voice_url} className="block mt-2 w-full max-w-xs h-8">
+                  <a href={n.voice_url} className="text-xs underline not-italic">Listen to voice blessing</a>
+                </audio>
+              )}
               <button type="button" onClick={() => pinThankYouNote(n.id, user.email, !n.pinned_on_profile).then(() => fetchThankYouNotesForStudent(user.email).then(setThanks))} className="block text-xs text-[#4a1942] mt-1 underline">
                 {n.pinned_on_profile ? 'Unpin from profile' : 'Pin on profile'}
               </button>

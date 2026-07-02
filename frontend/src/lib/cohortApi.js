@@ -39,3 +39,14 @@ export async function replyCohort({ threadId, authorEmail, body }) {
   });
   if (error) throw new Error(error.message);
 }
+
+export async function fetchCohortPlaylist(courseId) {
+  const { data, error } = await supabase.from('vendor_courses').select('cohort_playlist_url').eq('id', courseId).maybeSingle();
+  if (error) throw new Error(error.message);
+  return data?.cohort_playlist_url || '';
+}
+
+export async function saveCohortPlaylist(courseId, url) {
+  const { error } = await supabase.from('vendor_courses').update({ cohort_playlist_url: url?.trim() || null }).eq('id', courseId);
+  if (error) throw new Error(error.message);
+}

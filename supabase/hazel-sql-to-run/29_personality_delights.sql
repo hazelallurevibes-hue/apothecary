@@ -1,0 +1,1 @@
+-- Run after 28. See: supabase/migrations/20260704100000_personality_delights.sql

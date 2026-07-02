@@ -1,11 +1,12 @@
 import { supabase } from './supabaseClient';
 
-export async function sendThankYouNote({ vendorId, studentEmail, message, reviewId }) {
+export async function sendThankYouNote({ vendorId, studentEmail, message, reviewId, voiceUrl }) {
   const { data, error } = await supabase.from('thank_you_notes').insert({
     vendor_id: vendorId,
     student_email: studentEmail.trim().toLowerCase(),
     message: message.trim().slice(0, 500),
     review_id: reviewId || null,
+    voice_url: voiceUrl?.trim() || null,
   }).select().single();
   if (error) throw new Error(error.message);
   return data;

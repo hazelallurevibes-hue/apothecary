@@ -16,6 +16,7 @@ import AddToCartButton from '../components/AddToCartButton';
 import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
+import { pickCheckoutFortune } from '../lib/whimsyMessages';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
 import { allApothecaryCategories, getCategoryDisplay, isMedicinalCategory } from '../lib/apothecaryCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
@@ -166,6 +167,7 @@ export default function ApothecaryMarket({ user }) {
       if (deliveryMethod === 'pickup') msg += ' — your practitioner will confirm pickup details.';
       else if (deliveryMethod === 'shipping') msg += ' — shipping arranged with the practitioner.';
       else msg += ' — digital delivery details sent via messaging.';
+      msg += `\n\n✦ ${pickCheckoutFortune()}`;
 
       alert(msg);
       clearCart();

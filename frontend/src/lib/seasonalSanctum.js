@@ -40,3 +40,36 @@ export function getSeasonalAccent(date = new Date()) {
   if (m >= 8 && m <= 10) return { label: 'Autumn harvest', gradient: 'from-orange-50 to-[#f5f0e8]' };
   return { label: 'Winter sanctum', gradient: 'from-indigo-50 to-[#faf7f9]' };
 }
+
+const DAILY_ORACLE = [
+  'The shelf remembers every hand that tended it gently.',
+  'Patience is a herb that ripens in its own season.',
+  'Your question already holds the seed of its answer.',
+  'Still water reflects more than rushing streams.',
+  'A single candle can warm an entire study nook.',
+  'Kindred spirits find each other by quiet resonance.',
+  'Rest is not absence — it is preparation.',
+  'What you nurture inwardly will bloom outwardly.',
+];
+
+const MOON_MOODS = {
+  'New Moon': { mood: 'Reflective', vibe: 'Ideal for intention-setting sessions' },
+  'Waxing Crescent': { mood: 'Curious', vibe: 'Open to new seekers and questions' },
+  'First Quarter': { mood: 'Focused', vibe: 'Deep work and structured offerings shine' },
+  'Waxing Gibbous': { mood: 'Refining', vibe: 'Polishing rituals and apothecary blends' },
+  'Full Moon': { mood: 'Radiant', vibe: 'Celebration readings and community energy' },
+  'Waning Gibbous': { mood: 'Grateful', vibe: 'Thank-you blessings and reflection' },
+  'Last Quarter': { mood: 'Releasing', vibe: 'Gentle closure and integration work' },
+  'Waning Crescent': { mood: 'Restful', vibe: 'Soft consultations and quiet goods' },
+};
+
+export function getDailyOracle(date = new Date()) {
+  const day = Math.floor(date.getTime() / 86400000);
+  return DAILY_ORACLE[day % DAILY_ORACLE.length];
+}
+
+export function getPractitionerMoonMood(date = new Date()) {
+  const phase = getMoonPhase(date);
+  const extra = MOON_MOODS[phase.name] || { mood: 'Present', vibe: 'Welcoming seekers today' };
+  return { ...phase, ...extra };
+}

@@ -14,6 +14,16 @@ export const WHIMSY_EMPTY = [
   'Nothing here yet — a gentle beginning awaits.',
 ];
 
+export const CHECKOUT_FORTUNES = [
+  'The sphere whispers: savor slowly.',
+  'May your order arrive with gentle intention.',
+  'A small ritual begins with unboxing.',
+  'Trust the path — your practitioner prepared with care.',
+  'The hearth blesses this exchange.',
+  'Stir, breathe, receive.',
+  'What you ordered is a doorway — walk through kindly.',
+];
+
 export const FOOTER_HAIKU = [
   'Moonlight on the shelf —\nquiet herbs wait for your hand.\nBegin when ready.',
   'Threads in the hearth glow —\nkindred seekers share the path.\nYou are not alone.',
@@ -24,4 +34,8 @@ export const FOOTER_HAIKU = [
 export function pickWhimsy(list, seed = Date.now()) {
   const day = Math.floor(seed / 86400000);
   return list[day % list.length];
+}
+
+export function pickCheckoutFortune() {
+  return CHECKOUT_FORTUNES[Math.floor(Math.random() * CHECKOUT_FORTUNES.length)];
 }

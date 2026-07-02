@@ -22,6 +22,7 @@ import { fetchOpenSlots } from '../lib/sessionBookingApi';
 import { resolveVendorBadges, resolveAdminBadges } from '../lib/practitionerBadges';
 import PractitionerSpotlightBanner from './PractitionerSpotlightBanner';
 import VendorStoryCarousel from './VendorStoryCarousel';
+import PractitionerMoonMood from './PractitionerMoonMood';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -346,6 +347,9 @@ export default function VendorSocialProfile({ vendorId, user }) {
               </div>
             </div>
             <PractitionerBadges vendor={vendor} className="mt-2 justify-center sm:justify-start" />
+            <div className="mt-2 flex justify-center sm:justify-start">
+              <PractitionerMoonMood />
+            </div>
           </div>
         </div>
       </section>

@@ -86,10 +86,12 @@ export default function CustomerUseAgreement() {
             Do not use them to practice regulated professions or mislead others about your qualifications.
           </p>
 
-          <h2 className="font-semibold text-lg mb-2">7. Entertainment (Sanctum sphere)</h2>
+          <h2 className="font-semibold text-lg mb-2">7. Entertainment &amp; playful features</h2>
           <p className="text-sm text-gray-700 leading-relaxed mb-4">
             The optional corner &quot;8&quot; sphere gives random YES / NO / MAYBE answers for fun only — not real advice.
-            Do not use it for health, legal, financial, or safety decisions.
+            Daily oracle lines, checkout fortunes, moon-mood badges, footer haiku, and similar delights are atmospheric — not guidance.
+            Practitioner voice-note links and study playlists are practitioner-provided; we do not verify them.
+            Do not use playful features for health, legal, financial, or safety decisions.
           </p>
 
           <h2 className="font-semibold text-lg mb-2">8. Teaching Sanctum courses</h2>

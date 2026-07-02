@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { createCohortThread, fetchCohortThreads, replyCohort } from '../lib/cohortApi';
+import { createCohortThread, fetchCohortPlaylist, fetchCohortThreads, replyCohort } from '../lib/cohortApi';
 import ReportContentButton from './ReportContentButton';
 
 export default function CohortRoomPanel({ user, courseId, courseTitle }) {
@@ -9,9 +9,11 @@ export default function CohortRoomPanel({ user, courseId, courseTitle }) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
   const [reply, setReply] = useState('');
+  const [playlistUrl, setPlaylistUrl] = useState('');
 
   useEffect(() => {
     fetchCohortThreads(courseId).then(setThreads).catch(() => setThreads([]));
+    fetchCohortPlaylist(courseId).then(setPlaylistUrl).catch(() => setPlaylistUrl(''));
   }, [courseId]);
 
   useEffect(() => {
@@ -39,6 +41,17 @@ export default function CohortRoomPanel({ user, courseId, courseTitle }) {
     <section className="rounded-3xl border border-[#4a1942]/10 bg-[#faf7f9] p-5 mt-8">
       <h2 className="font-semibold text-[#4a1942]">Cohort room · {courseTitle}</h2>
       <p className="text-xs text-gray-500 mb-4">Classmates only — study questions, ritual check-ins, peer support.</p>
+
+      {playlistUrl && (
+        <a
+          href={playlistUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 text-sm text-[#4a1942] mb-4 px-3 py-2 rounded-xl bg-white border hover:border-[#4a1942]/30"
+        >
+          <span aria-hidden>🎵</span> Cohort study playlist
+        </a>
+      )}
 
       {!activeId ? (
         <>

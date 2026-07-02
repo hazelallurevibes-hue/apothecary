@@ -14,6 +14,8 @@ import { getStudyHallPrompt } from '../lib/seasonalSanctum';
 import AmbientSoundToggle from '../components/AmbientSoundToggle';
 import OfficeHoursPanel from '../components/OfficeHoursPanel';
 import GatheringProposals from '../components/GatheringProposals';
+import SolsticeRsvpCard from '../components/SolsticeRsvpCard';
+import DailyOracleCard from '../components/DailyOracleCard';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -126,6 +128,8 @@ export default function CommunityGathering({ user }) {
         </div>
       </header>
 
+      <SolsticeRsvpCard user={user} />
+      <DailyOracleCard className="mb-6" />
       <OfficeHoursPanel user={user} />
       <GatheringProposals user={user} />
 

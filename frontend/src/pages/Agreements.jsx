@@ -131,6 +131,9 @@ export default function Agreements() {
           <p><strong>4d.1 Sanctum sphere (&quot;Magic 8&quot;).</strong> The optional corner sphere provides random YES / NO / MAYBE responses for amusement only. It does not provide medical, legal, financial, relationship, or professional advice. Do not rely on it for decisions affecting health, safety, or compliance.</p>
           <p><strong>4d.2 Hidden delights.</strong> Achievements, Easter eggs, ambient sounds, moon-phase banners, and similar features are non-binding gamification. They confer no rights, credentials, or platform endorsement.</p>
           <p><strong>4d.3 Wellness learning score.</strong> Any composite &quot;learning score&quot; or honor metric is illustrative engagement data — not an academic GPA, credit hour, or professional qualification.</p>
+          <p><strong>4d.4 Daily oracle &amp; moon mood.</strong> Poetic oracle lines, footer haiku, and practitioner &quot;moon mood&quot; badges are atmospheric design — not forecasts, endorsements, or scheduling guarantees.</p>
+          <p><strong>4d.5 Checkout fortunes.</strong> Playful post-checkout messages are ceremonial delight only — not financial, medical, or fulfillment advice.</p>
+          <p><strong>4d.6 Voice blessings &amp; playlists.</strong> Optional practitioner voice-note links and cohort playlist URLs are user-supplied content. Hazel Allure does not host, verify, or endorse audio or third-party streaming links.</p>
         </div>
       </section>
 

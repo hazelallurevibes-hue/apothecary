@@ -12,6 +12,7 @@ import AddToCartButton from '../components/AddToCartButton';
 import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
+import { pickCheckoutFortune } from '../lib/whimsyMessages';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
 import { MARKETPLACE_MENU_CATEGORIES } from '../lib/marketplaceMenuCategories';
 import { VERTICAL } from '../lib/vertical';
@@ -160,6 +161,7 @@ export default function Marketplace({ user }) {
       if (chosenDelivery === 'pickup') msg += ' — Ready for local pickup!';
       else if (chosenDelivery === 'doordash') msg += ' — DoorDash will handle delivery.';
       else msg += ' — Uber Eats delivery confirmed.';
+      msg += `\n\n✦ ${pickCheckoutFortune()}`;
       alert(msg);
       clearCart();
     } catch (e) {

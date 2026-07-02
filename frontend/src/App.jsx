@@ -65,12 +65,14 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 function PageLoader() {
   return (
-    <div className="min-h-[40vh] flex items-center justify-center text-gray-500">
-      Loading…
+    <div className="min-h-[40vh] flex flex-col items-center justify-center text-gray-500 gap-2">
+      <span className="text-2xl animate-pulse" aria-hidden>✦</span>
+      <span>{pickWhimsy(WHIMSY_LOADING)}</span>
     </div>
   );
 }
 
+import { WHIMSY_LOADING, pickWhimsy } from './lib/whimsyMessages';
 import { getPostLoginPath, restoreSession, signOut, resolveProfile, ensureOAuthUserProfile } from './lib/auth';
 import { mergeAuth0AllergenMetadata } from './lib/auth0MetadataSync';
 import { setMonitoringUser } from './lib/monitoring';

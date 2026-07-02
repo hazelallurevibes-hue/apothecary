@@ -6,6 +6,8 @@ import ProBenefitsStrip from '../components/ProBenefitsStrip';
 import WomanOwnedBadge from '../components/WomanOwnedBadge';
 import FeaturedPractitioners from '../components/FeaturedPractitioners';
 import DailyRitualCard from '../components/DailyRitualCard';
+import FirstVisitorGlow from '../components/FirstVisitorGlow';
+import DailyOracleCard from '../components/DailyOracleCard';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -122,7 +124,7 @@ function CustomerHome({ user, liveStats }) {
   return (
     <div>
       <LaunchBanner vendorCount={liveStats.vendors} itemCount={liveStats.items} />
-      <div className="section-hero mb-8 border border-[#c9a227]/25 text-white p-8 sm:p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
+      <FirstVisitorGlow user={user} className="section-hero mb-8 border border-[#c9a227]/25 text-white p-8 sm:p-10 md:p-14 lg:p-16 flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
         <div
           className="absolute inset-0 z-0"
           style={{
@@ -231,7 +233,9 @@ function CustomerHome({ user, liveStats }) {
             </div>
           </div>
         </div>
-      </div>
+      </FirstVisitorGlow>
+
+      <DailyOracleCard className="mb-6" />
 
       {user?.email && <DailyRitualCard user={user} />}
 
