@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
-import { WHIMSY_EMPTY, pickWhimsy } from '../lib/whimsyMessages';
+import { WHIMSY_EMPTY, pickBlackCatVerdict, pickWhimsy } from '../lib/whimsyMessages';
 
-export default function EmptyState({ icon = '🌾', title, message, actionLabel, actionTo, whimsy }) {
-  const subline = whimsy ?? pickWhimsy(WHIMSY_EMPTY);
+export default function EmptyState({ icon = '🌾', title, message, actionLabel, actionTo, whimsy, jury }) {
+  const subline = whimsy ?? (jury !== false ? pickBlackCatVerdict() : pickWhimsy(WHIMSY_EMPTY));
   return (
     <div className="col-span-full flex flex-col items-center justify-center py-16 px-6 bg-white border border-dashed border-[#e8e4d9] rounded-3xl text-center">
       <div className="text-5xl mb-4">{icon}</div>

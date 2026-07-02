@@ -23,6 +23,7 @@ import { resolveVendorBadges, resolveAdminBadges } from '../lib/practitionerBadg
 import PractitionerSpotlightBanner from './PractitionerSpotlightBanner';
 import VendorStoryCarousel from './VendorStoryCarousel';
 import PractitionerMoonMood from './PractitionerMoonMood';
+import PractitionerSabbaticalBanner from './PractitionerSabbaticalBanner';
 
 const TABS = [
   { id: 'services', label: 'Services' },
@@ -273,6 +274,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
   return (
     <div className="max-w-4xl mx-auto pb-12">
       <PractitionerSpotlightBanner vendor={vendor} />
+      <PractitionerSabbaticalBanner vendor={vendor} />
       {/* Hero cover */}
       <section aria-label="Practitioner cover" className="relative -mx-4 sm:mx-0">
         <div className="relative h-48 sm:h-64 md:h-72 rounded-none sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#4a1942] to-[#2d1230]">

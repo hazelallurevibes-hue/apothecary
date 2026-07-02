@@ -13,6 +13,7 @@ import AccessibilityHub from './AccessibilityHub';
 import GuidanceCoach from './GuidanceCoach';
 import HiddenCats from './HiddenCats';
 import Magic8Ball from './Magic8Ball';
+import FamiliarCompanion from './FamiliarCompanion';
 import LoginStreakHandler from './LoginStreakHandler';
 import EasyModePrompt from './EasyModePrompt';
 import PageSeo from './PageSeo';
@@ -370,6 +371,7 @@ export default function Layout({ user, onLogout, children }) {
 
       <HiddenCats user={user} />
       <LoginStreakHandler user={user} />
+      <FamiliarCompanion user={user} />
       <Magic8Ball />
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <GuidanceCoach user={user} />

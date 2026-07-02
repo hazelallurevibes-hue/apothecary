@@ -16,6 +16,7 @@ import {
   invalidateFilterCache,
 } from '../lib/communityModeration';
 import { updatePlatformSettings, fetchPlatformSettings } from '../lib/platformSettingsApi';
+import { supabase } from '../lib/supabaseClient';
 
 const SEVERITIES = ['block', 'warn', 'flag'];
 const CATEGORIES = ['hate', 'bully', 'harassment', 'slur', 'spam', 'medical', 'scam', 'threat', 'other'];
@@ -28,20 +29,32 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
   const [warnings, setWarnings] = useState([]);
   const [actions, setActions] = useState([]);
   const [settings, setSettings] = useState({});
+  const [integrityLog, setIntegrityLog] = useState([]);
   const [msg, setMsg] = useState('');
 
   const [modForm, setModForm] = useState({ user_email: '', display_name: '', space_type: 'both', badge_title: 'Hearth Keeper' });
   const [wordForm, setWordForm] = useState({ phrase: '', severity: 'block', category: 'other', match_type: 'substring' });
   const [warnForm, setWarnForm] = useState({ user_email: '', reason: '', strike_level: 1 });
 
+  const loadIntegrityLog = async () => {
+    const { data, error } = await supabase
+      .from('vendor_integrity_acceptances')
+      .select('*')
+      .order('accepted_at', { ascending: false })
+      .limit(100);
+    if (error) return [];
+    return data || [];
+  };
+
   const load = async () => {
-    const [r, m, f, w, a, s] = await Promise.all([
+    const [r, m, f, w, a, s, integrity] = await Promise.all([
       fetchPendingReports().catch(() => []),
       fetchModerators().catch(() => []),
       fetchActiveWordFilters(true).catch(() => []),
       fetchRecentWarnings().catch(() => []),
       fetchModActions().catch(() => []),
       fetchPlatformSettings().catch(() => ({})),
+      loadIntegrityLog().catch(() => []),
     ]);
     setReports(r);
     setMods(m);
@@ -49,6 +62,7 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
     setWarnings(w);
     setActions(a);
     setSettings(s);
+    setIntegrityLog(integrity);
   };
 
   useEffect(() => { load(); }, []);
@@ -114,6 +128,7 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
     { id: 'warnings', label: 'Warnings' },
     { id: 'actions', label: 'Action log' },
     { id: 'settings', label: 'Settings' },
+    { id: 'integrity', label: `Integrity audit (${integrityLog.length})` },
   ];
 
   return (
@@ -223,6 +238,26 @@ export default function AdminCommunityModerationPanel({ adminEmail }) {
                 {a.note ? ` — ${a.note}` : ''}
               </p>
             ))}
+          </div>
+        )}
+
+        {tab === 'integrity' && (
+          <div>
+            <p className="text-xs text-gray-500 mb-3">Practitioner integrity pledge acceptances — newest first. For compliance review and audit trail.</p>
+            <div className="max-h-80 overflow-auto space-y-2">
+              {integrityLog.length === 0 && <p className="text-sm text-gray-500">No integrity acceptances logged yet (run migration 31).</p>}
+              {integrityLog.map((row) => (
+                <div key={row.id} className="border rounded-xl p-3 text-xs">
+                  <p className="font-medium text-[#4a1942]">{row.vendor_email}</p>
+                  <p className="text-gray-500 mt-0.5">
+                    Vendor #{row.vendor_id || '—'} · v{row.attestation_version} · {new Date(row.accepted_at).toLocaleString()}
+                  </p>
+                  <p className="text-gray-600 mt-1">
+                    Attestations: {Object.entries(row.attestations || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || '—'}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

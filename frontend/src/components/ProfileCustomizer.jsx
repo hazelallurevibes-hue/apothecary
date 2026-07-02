@@ -6,9 +6,12 @@ import {
   canUseProProfileFeatures,
   fetchProfileCustomization,
   PROFILE_FRAMES,
+  SCRYING_FRAME_UNLOCK_CARDS,
   saveProfileCustomization,
   uploadProfileBanner,
 } from '../lib/profileCustomization';
+import { fetchLoginStreak } from '../lib/loginStreakApi';
+import FamiliarPicker from './FamiliarPicker';
 import { fetchBadgesForStudent, STUDENT_BADGE_TYPES } from '../lib/studentBadgesApi';
 import { fetchUnlockedAchievements, getAchievementMeta } from '../lib/achievements';
 import { trackAchievementEvent } from '../lib/achievements';
@@ -22,6 +25,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const [showcase, setShowcase] = useState([]);
   const [badges, setBadges] = useState([]);
   const [achievements, setAchievements] = useState([]);
+  const [tarotCards, setTarotCards] = useState(0);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -44,7 +48,12 @@ export default function ProfileCustomizer({ user, onUpdate }) {
       .catch(() => {});
     fetchBadgesForStudent(user.email).then(setBadges).catch(() => setBadges([]));
     fetchUnlockedAchievements(user.email).then(setAchievements).catch(() => setAchievements([]));
+    fetchLoginStreak(user.email)
+      .then((s) => setTarotCards((s?.cards_collected || []).length))
+      .catch(() => setTarotCards(0));
   }, [user?.email]);
+
+  const scryingUnlocked = tarotCards >= SCRYING_FRAME_UNLOCK_CARDS;
 
   const pinnedBadge = badges.find((b) => b.id === pinnedId);
 
@@ -53,11 +62,12 @@ export default function ProfileCustomizer({ user, onUpdate }) {
     setSaving(true);
     setMessage('');
     try {
+      const frameToSave = canPin && (frame !== 'scrying' || scryingUnlocked) ? frame : 'none';
       const patch = {
         profile_bio: bio,
         profile_accent_color: isPro ? accent : '#4a1942',
         profile_banner_url: canPin ? banner : null,
-        profile_frame: canPin ? frame : 'none',
+        profile_frame: frameToSave,
         pinned_student_badge_id: canPin ? pinnedId : null,
         showcase_achievements: canShowcase ? showcase : [],
       };
@@ -146,17 +156,27 @@ export default function ProfileCustomizer({ user, onUpdate }) {
           <div className="sm:col-span-2">
             <p className="text-sm text-gray-600 mb-2">Portrait frame</p>
             <div className="flex flex-wrap gap-2">
-              {Object.entries(PROFILE_FRAMES).map(([key, f]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setFrame(key)}
-                  className={`px-3 py-1.5 rounded-full text-xs border ${frame === key ? 'bg-[#4a1942] text-white border-[#4a1942]' : 'border-gray-200'}`}
-                >
-                  {f.label}
-                </button>
-              ))}
+              {Object.entries(PROFILE_FRAMES).map(([key, f]) => {
+                const locked = key === 'scrying' && !scryingUnlocked;
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    disabled={locked}
+                    onClick={() => !locked && setFrame(key)}
+                    className={`px-3 py-1.5 rounded-full text-xs border ${frame === key ? 'bg-[#4a1942] text-white border-[#4a1942]' : 'border-gray-200'} ${locked ? 'opacity-40 cursor-not-allowed' : ''}`}
+                    title={locked ? `Collect ${SCRYING_FRAME_UNLOCK_CARDS} tarot cards (${tarotCards}/${SCRYING_FRAME_UNLOCK_CARDS})` : f.label}
+                  >
+                    {f.label}{locked ? ' 🔒' : ''}
+                  </button>
+                );
+              })}
             </div>
+            {!scryingUnlocked && (
+              <p className="text-[10px] text-gray-500 mt-2">
+                Scrying mirror unlocks at {SCRYING_FRAME_UNLOCK_CARDS}/78 tarot cards — you have {tarotCards}.
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -212,6 +232,8 @@ export default function ProfileCustomizer({ user, onUpdate }) {
           </div>
         </div>
       )}
+
+      <FamiliarPicker user={user} onUpdate={onUpdate} />
 
       <div className="flex items-center gap-3">
         <button

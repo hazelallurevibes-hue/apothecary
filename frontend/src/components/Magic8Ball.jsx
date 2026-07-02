@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { pickReverseProverb } from '../lib/whimsyMessages';
 
 const ANSWERS = [
   { text: 'YES', tone: 'text-emerald-700 bg-emerald-50' },
@@ -11,12 +12,17 @@ export default function Magic8Ball() {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState(null);
   const [hasAsked, setHasAsked] = useState(false);
+  const [reverseMode, setReverseMode] = useState(false);
 
   const ask = useCallback(() => {
-    const pick = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
-    setAnswer(pick);
+    if (reverseMode) {
+      setAnswer({ text: pickReverseProverb(), tone: 'text-indigo-900 bg-indigo-50 text-base font-medium italic' });
+    } else {
+      const pick = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+      setAnswer(pick);
+    }
     setHasAsked(true);
-  }, []);
+  }, [reverseMode]);
 
   const close = () => {
     setOpen(false);
@@ -48,6 +54,14 @@ export default function Magic8Ball() {
           aria-label="Sanctum sphere"
         >
           <p className="text-xs text-[#4a1942]/70 mb-2">Ask any question — the sphere answers for fun, not fact.</p>
+          <label className="flex items-center gap-2 text-xs text-[#4a1942]/80 mb-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={reverseMode}
+              onChange={(e) => { setReverseMode(e.target.checked); setAnswer(null); }}
+            />
+            Reverse oracle — proverb mode (flips the question)
+          </label>
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
@@ -63,7 +77,7 @@ export default function Magic8Ball() {
             {answer ? 'Ask again' : 'Reveal answer'}
           </button>
           {answer && (
-            <div className={`mt-3 text-center py-4 rounded-xl font-bold text-xl tracking-wide ${answer.tone}`}>
+            <div className={`mt-3 text-center py-4 rounded-xl px-2 tracking-wide ${answer.tone} ${reverseMode ? '' : 'font-bold text-xl'}`}>
               {answer.text}
             </div>
           )}

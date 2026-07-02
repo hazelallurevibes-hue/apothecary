@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser, placeOrder as placeOrderApi } from '../lib/ordersApi';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
-import { pickCheckoutFortune } from '../lib/whimsyMessages';
+import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { CustomerPickupQR, VendorPickupScanner } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
@@ -77,8 +77,8 @@ export default function Orders({ user }) {
 
     try {
       await placeOrderApi(orderData);
-      const successMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}. ${deliveryMethod !== 'pickup' ? 'Tracking link sent to your connected delivery app.' : ''}\n\n✦ ${pickCheckoutFortune()}`;
-      alert(successMsg);
+      const baseMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}. ${deliveryMethod !== 'pickup' ? 'Tracking link sent to your connected delivery app.' : ''}`;
+      alert(formatOrderSuccessMessage(baseMsg));
       clearCart();
       setCheckoutStep(1);
       setAddress({ street: '', city: '', zip: '' });

@@ -11,6 +11,12 @@ import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
 import MyLikesDislikesQuestionnaire from '../components/MyLikesDislikesQuestionnaire';
 import { EMPTY_FOOD_PREFS, saveFoodPreferences } from '../lib/foodPreferences';
+import {
+  SEEKER_OATH_ATTESTATIONS,
+  allSeekerOathChecked,
+  emptySeekerOathState,
+} from '../lib/seekerOathPledge';
+import { logSeekerOathAcceptance } from '../lib/seekerOathApi';
 
 export default function CustomerSignUp({ onLogin }) {
   const formStartedAt = useRef(Date.now());
@@ -20,6 +26,8 @@ export default function CustomerSignUp({ onLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [seekerOath, setSeekerOath] = useState(emptySeekerOathState());
+  const [oathLogged, setOathLogged] = useState(false);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState('signup');
@@ -57,6 +65,10 @@ export default function CustomerSignUp({ onLogin }) {
     e.preventDefault();
     if (!agreedToTerms) {
       setMessage('You must agree to the Terms, Agreements, Privacy Policy, and FAQ to sign up.');
+      return;
+    }
+    if (!allSeekerOathChecked(seekerOath)) {
+      setMessage('You must acknowledge every Seeker oath item below.');
       return;
     }
     if (!name || !email || !password || !confirmPassword) {
@@ -100,6 +112,12 @@ export default function CustomerSignUp({ onLogin }) {
           email: profile?.email || signup.email,
           role: profile?.role || 'customer',
         };
+        try {
+          await logSeekerOathAcceptance({ userEmail: profileData.email, attestations: seekerOath });
+          setOathLogged(true);
+        } catch {
+          /* migration 32 may be pending */
+        }
         setSessionProfile(profileData);
         setStep('prefs');
         setMessage('Account created! Share your wellness preferences (optional).');
@@ -128,8 +146,20 @@ export default function CustomerSignUp({ onLogin }) {
 
   const savePrefsAndFinish = async () => {
     if (!sessionProfile?.email) return;
+    if (googleMode && !oathLogged && !allSeekerOathChecked(seekerOath)) {
+      setMessage('Please acknowledge every Seeker oath item before continuing.');
+      return;
+    }
     setPrefsSaving(true);
     try {
+      if (googleMode && !oathLogged) {
+        try {
+          await logSeekerOathAcceptance({ userEmail: sessionProfile.email, attestations: seekerOath });
+          setOathLogged(true);
+        } catch {
+          /* migration 32 may be pending */
+        }
+      }
       await saveFoodPreferences(sessionProfile.email, foodPrefs);
       finishSignup({
         ...sessionProfile,
@@ -148,6 +178,22 @@ export default function CustomerSignUp({ onLogin }) {
       <div className="max-w-lg mx-auto">
         <h1 className="text-3xl font-bold tracking-tight mb-2">Wellness Preferences</h1>
         <p className="text-gray-600 mb-6 text-sm">Help practitioners and artisans tailor offerings to your intentions. You can change this anytime in Account Settings.</p>
+        {googleMode && !oathLogged && (
+          <div className="mb-6 p-4 border rounded-2xl bg-[#faf7f9] space-y-2">
+            <p className="text-xs font-semibold text-[#4a1942] uppercase tracking-wide">Seeker oath</p>
+            {SEEKER_OATH_ATTESTATIONS.map((a) => (
+              <label key={a.id} className="flex items-start gap-2 text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={!!seekerOath[a.id]}
+                  onChange={() => setSeekerOath((c) => ({ ...c, [a.id]: !c[a.id] }))}
+                  className="mt-0.5 shrink-0"
+                />
+                <span>{a.label}</span>
+              </label>
+            ))}
+          </div>
+        )}
         <MyLikesDislikesQuestionnaire
           value={foodPrefs}
           onChange={setFoodPrefs}
@@ -157,7 +203,13 @@ export default function CustomerSignUp({ onLogin }) {
         />
         <button
           type="button"
-          onClick={() => finishSignup(sessionProfile)}
+          onClick={() => {
+            if (googleMode && !oathLogged && !allSeekerOathChecked(seekerOath)) {
+              setMessage('Please acknowledge every Seeker oath item before continuing.');
+              return;
+            }
+            finishSignup(sessionProfile);
+          }}
           className="mt-4 w-full py-3 border rounded-3xl text-sm text-gray-600 hover:bg-gray-50"
         >
           Skip for now
@@ -244,9 +296,23 @@ export default function CustomerSignUp({ onLogin }) {
               I agree to the <Link to="/agreements" className="underline">Terms</Link>, <Link to="/customer-use-agreement" className="underline">Customer Use Agreement</Link>, <Link to="/policies-procedures" className="underline">Policies &amp; Procedures</Link>, and <Link to="/faq" className="underline">FAQ</Link>. I will perform my own due diligence on practitioners and apothecary goods and assume all booking and purchase risks.
             </span>
           </label>
+          <div className="p-4 border rounded-2xl bg-[#faf7f9] space-y-2">
+            <p className="text-xs font-semibold text-[#4a1942] uppercase tracking-wide">Seeker oath</p>
+            {SEEKER_OATH_ATTESTATIONS.map((a) => (
+              <label key={a.id} className="flex items-start gap-2 text-xs text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={!!seekerOath[a.id]}
+                  onChange={() => setSeekerOath((c) => ({ ...c, [a.id]: !c[a.id] }))}
+                  className="mt-0.5 shrink-0"
+                />
+                <span>{a.label}</span>
+              </label>
+            ))}
+          </div>
           <button
             type="submit"
-            disabled={loading || !agreedToTerms || passwordsMismatch}
+            disabled={loading || !agreedToTerms || !allSeekerOathChecked(seekerOath) || passwordsMismatch}
             className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold mt-2 disabled:opacity-70"
           >
             {loading ? 'Creating...' : 'Create Seeker Account'}

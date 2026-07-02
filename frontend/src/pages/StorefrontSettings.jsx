@@ -122,6 +122,10 @@ export default function StorefrontSettings({ user }) {
     if (vendorCan(user, 'checkout_upsells') && isPaid) {
       payload.checkout_upsells = normalizeUpsellsForSave(checkoutUpsells);
     }
+    payload.sabbatical_active = !!vendor.sabbatical_active;
+    payload.sabbatical_note = vendor.sabbatical_note || null;
+    payload.sabbatical_returns_at = vendor.sabbatical_returns_at || null;
+
     if (canInternational) {
       payload.ships_domestically = vendor.ships_domestically !== false;
       payload.ships_internationally = !!vendor.ships_internationally;
@@ -264,6 +268,34 @@ export default function StorefrontSettings({ user }) {
                   />
                 </div>
               )}
+              <div className="border-t pt-4 mt-2 space-y-3">
+                <p className="text-sm font-medium text-[#4a1942]">Practitioner sabbatical</p>
+                <p className="text-xs text-gray-500">Signal rest periods on your public storefront — seekers see a gentle banner.</p>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={!!vendor?.sabbatical_active}
+                    onChange={(e) => setVendor((v) => ({ ...v, sabbatical_active: e.target.checked }))}
+                  />
+                  Sabbatical active
+                </label>
+                <textarea
+                  className="w-full border p-3 rounded-2xl text-sm min-h-[72px]"
+                  value={vendor?.sabbatical_note || ''}
+                  onChange={(e) => setVendor((v) => ({ ...v, sabbatical_note: e.target.value }))}
+                  placeholder="Optional note — e.g. Resting until autumn; messages answered weekly."
+                  maxLength={500}
+                />
+                <div>
+                  <label className="text-sm font-medium">Expected return (optional)</label>
+                  <input
+                    type="date"
+                    className="w-full border p-3 rounded-2xl mt-1"
+                    value={vendor?.sabbatical_returns_at || ''}
+                    onChange={(e) => setVendor((v) => ({ ...v, sabbatical_returns_at: e.target.value || null }))}
+                  />
+                </div>
+              </div>
             </>
           )}
 

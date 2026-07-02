@@ -16,7 +16,8 @@ import AddToCartButton from '../components/AddToCartButton';
 import CartCheckoutPanel from '../components/CartCheckoutPanel';
 import { listingDetailPath } from '../lib/listingDisplay';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
-import { pickCheckoutFortune } from '../lib/whimsyMessages';
+import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
+import BloodMoonBanner from '../components/BloodMoonBanner';
 import CauldronCancelToast from '../components/CauldronCancelToast';
 import { modificationPayloadFromCart } from '../components/PreorderModificationPanel';
 import { allApothecaryCategories, getCategoryDisplay, isMedicinalCategory } from '../lib/apothecaryCategories';
@@ -168,9 +169,8 @@ export default function ApothecaryMarket({ user }) {
       if (deliveryMethod === 'pickup') msg += ' — your practitioner will confirm pickup details.';
       else if (deliveryMethod === 'shipping') msg += ' — shipping arranged with the practitioner.';
       else msg += ' — digital delivery details sent via messaging.';
-      msg += `\n\n✦ ${pickCheckoutFortune()}`;
 
-      alert(msg);
+      alert(formatOrderSuccessMessage(msg));
       clearCart();
     } catch (e) {
       console.error('Apothecary order error:', e);
@@ -184,6 +184,7 @@ export default function ApothecaryMarket({ user }) {
   return (
     <div className="max-w-6xl mx-auto">
       <CauldronCancelToast />
+      <BloodMoonBanner />
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#f5f0e8] text-[#4a1942] border border-[#c9a227]/30 rounded-full text-sm font-medium mb-2">

@@ -18,6 +18,7 @@ import { fetchFoodPreferences, saveFoodPreferences, EMPTY_FOOD_PREFS } from '../
 import { STORAGE_KEYS } from '../lib/storageKeys';
 import LearningStyleChips from '../components/LearningStyleChips';
 import ProfileCustomizer from '../components/ProfileCustomizer';
+import ConfessionBoothPanel from '../components/ConfessionBoothPanel';
 import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
 
 export default function AccountSettings({ user, onProfileUpdate }) {
@@ -220,6 +221,10 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         <div className="mb-6" id="profile-studio">
           <ProfileCustomizer user={user} onUpdate={onProfileUpdate} />
         </div>
+      )}
+
+      {(role === 'customer' || role === 'guest' || customerCtx) && (
+        <ConfessionBoothPanel user={user} />
       )}
 
       {(role === 'customer' || role === 'guest' || customerCtx) && (
