@@ -27,6 +27,9 @@ export const VENDOR_PERMISSIONS = {
   teaching_platform: { label: 'Teaching Sanctum', description: 'Monetized courses with YouTube/Vimeo lessons (paid)' },
   service_video: { label: 'Service video previews', description: 'Embed YouTube/Vimeo on every service listing (paid)' },
   ad_credits: { label: 'Ad reinvestment tools', description: 'Revenue dashboard & campaign ROI for advertising (paid)' },
+  certificates: { label: 'Certificates & credentials', description: 'Upload credentials and issue digital student honors (paid)' },
+  vendor_gathering: { label: 'Practitioner gathering', description: 'Private vendor lounge threads and topics (paid)' },
+  student_badges: { label: 'Student honors', description: 'Award top student and class favorite badges (paid)' },
 };
 
 /** Free: core selling with limits; paid: full platform */
@@ -55,6 +58,10 @@ export const CUSTOMER_PERMISSIONS = {
   loyalty: { label: 'Loyalty rewards', description: 'Earn and redeem loyalty points' },
   support: { label: 'Priority support', description: 'Support tickets and help' },
   premium_express: { label: 'Premium express', description: 'Faster checkout options' },
+  community_threads: { label: 'Start gathering threads', description: 'Open new topics in the seeker gathering (paid)' },
+  profile_custom: { label: 'Profile studio', description: 'Banner, accent color, frames, and badge pinning (paid)' },
+  lesson_progress: { label: 'Sanctum progress', description: 'Lesson completion tracking across courses (paid)' },
+  showcase_achievements: { label: 'Achievement shelf', description: 'Choose achievements to display on profile (paid)' },
 };
 
 export const FREE_CUSTOMER_PERMISSIONS = ['buy', 'track_orders', 'delivery_connect', 'profile_editor'];
@@ -188,6 +195,8 @@ export const PAID_VENDOR_UPGRADE_FEATURES = [
   'Email campaigns, banners & elegant theme',
   'Revenue analytics — reinvest into advertising',
   'Checkout upsells & full team tools',
+  'Upload credentials & issue digital student honors',
+  'Practitioner lounge — peer threads & Sanctum craft',
 ];
 
 export const PAID_CUSTOMER_UPGRADE_FEATURES = [
@@ -198,4 +207,7 @@ export const PAID_CUSTOMER_UPGRADE_FEATURES = [
   'Loyalty points — earn and redeem',
   'Priority support tickets',
   'Premium express checkout',
+  'Profile studio — banner, frames, pinned class honors',
+  'Start threads in The Hearth gathering',
+  'Sanctum lesson progress & achievement shelf',
 ];

@@ -1,0 +1,2 @@
+-- Run after 25. Sanctum depth, community, certificates, achievements, profile extras.
+-- Full SQL: supabase/migrations/20260701100000_sanctum_community_depth.sql

@@ -17,6 +17,7 @@ import { syncAllergenToAuth0, syncAllergenToLocalUser } from '../lib/auth0Metada
 import { fetchFoodPreferences, saveFoodPreferences, EMPTY_FOOD_PREFS } from '../lib/foodPreferences';
 import { STORAGE_KEYS } from '../lib/storageKeys';
 import LearningStyleChips from '../components/LearningStyleChips';
+import ProfileCustomizer from '../components/ProfileCustomizer';
 import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
 
 export default function AccountSettings({ user, onProfileUpdate }) {
@@ -212,6 +213,12 @@ export default function AccountSettings({ user, onProfileUpdate }) {
             onSave={saveFoodPrefs}
             saving={prefsSaving}
           />
+        </div>
+      )}
+
+      {(role === 'customer' || role === 'guest' || customerCtx) && (
+        <div className="mb-6" id="profile-studio">
+          <ProfileCustomizer user={user} onUpdate={onProfileUpdate} />
         </div>
       )}
 

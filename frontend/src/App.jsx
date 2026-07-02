@@ -53,6 +53,8 @@ const ProCancel = lazy(() =>
 const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
 const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
 const VendorTeaching = lazy(() => import('./pages/VendorTeaching'));
+const CommunityGathering = lazy(() => import('./pages/CommunityGathering'));
+const VendorGathering = lazy(() => import('./pages/VendorGathering'));
 const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const LinkExpired = lazy(() => import('./pages/LinkExpired'));
@@ -74,6 +76,7 @@ import { supabase } from './lib/supabaseClient';
 import { customerCan, vendorCan } from './lib/plans';
 import { isAuth0Configured } from './lib/auth0Config';
 import { EasyModeProvider } from './lib/easyMode';
+import { AchievementProvider } from './components/AchievementToast';
 import { STORAGE_KEYS } from './lib/storageKeys';
 
 function AppCore({ auth0 = null }) {
@@ -269,6 +272,7 @@ function AppCore({ auth0 = null }) {
         element={
           <CartProvider>
             <EasyModeProvider user={user}>
+            <AchievementProvider>
             <Layout user={user} onLogout={logout}>
               <Routes>
                 <Route path="/" element={<Home user={user} />} />
@@ -285,6 +289,14 @@ function AppCore({ auth0 = null }) {
                 <Route path="/top-vendors" element={<TopVendors user={user} />} />
                 <Route path="/courses" element={<CourseCatalog user={user} />} />
                 <Route path="/courses/:id" element={<CourseDetailPage user={user} />} />
+                <Route path="/gathering" element={<CommunityGathering user={user} />} />
+                <Route path="/gathering/thread/:threadId" element={<CommunityGathering user={user} />} />
+                <Route path="/vendor-gathering" element={
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorGathering user={user} /></ProtectedRoute>
+                } />
+                <Route path="/vendor-gathering/thread/:threadId" element={
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorGathering user={user} /></ProtectedRoute>
+                } />
                 <Route path="/vendor-teaching" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorTeaching user={user} /></ProtectedRoute>
                 } />
@@ -369,6 +381,7 @@ function AppCore({ auth0 = null }) {
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Layout>
+            </AchievementProvider>
             </EasyModeProvider>
           </CartProvider>
         }

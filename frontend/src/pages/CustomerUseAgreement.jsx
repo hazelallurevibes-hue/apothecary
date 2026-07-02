@@ -72,7 +72,14 @@ export default function CustomerUseAgreement() {
         </section>
 
         <section className="border rounded-2xl p-5">
-          <h2 className="font-semibold text-lg mb-2">5. Teaching Sanctum courses</h2>
+          <h2 className="font-semibold text-lg mb-2">5. Community gathering (The Hearth)</h2>
+          <p className="text-sm text-gray-700 leading-relaxed mb-4">
+            Discussion threads are peer spaces — not medical advice, not practitioner sessions, and not endorsed by {VERTICAL.legalEntity}.
+            You are responsible for what you post. Do not share others&apos; private health details. Report concerns to {VERTICAL.contactEmail}.
+            Hazel Allure may remove content or suspend accounts without liability to you for user posts you read or rely upon.
+          </p>
+
+          <h2 className="font-semibold text-lg mb-2">6. Teaching Sanctum courses</h2>
           <p className="mb-3">
             Courses in the Teaching Sanctum are educational content provided by independent practitioners. {VERTICAL.legalEntity} does not accredit, endorse, or verify course accuracy, safety of taught practices, or professional outcomes.
           </p>

@@ -16,6 +16,8 @@ export default function Agreements() {
         <a href="#privacy" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Privacy</a>
         <a href="#vendor" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Practitioner Agreement</a>
         <a href="#teaching" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Teaching Sanctum</a>
+        <a href="#gathering" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Community Gathering</a>
+        <a href="#certificates" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Certificates</a>
         <a href="#email" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Email Campaigns</a>
         <a href="#stripe-connect" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Stripe Connect</a>
         <a href="#ip" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">IP Ownership</a>
@@ -93,6 +95,29 @@ export default function Agreements() {
           <p><strong>4.5 Pricing &amp; refunds.</strong> You set course pricing. Refund policies, if any, are between you and the seeker unless Hazel Allure implements platform-default rules at checkout. Chargebacks are handled per Stripe policies.</p>
           <p><strong>4.6 Intellectual property.</strong> You retain ownership of original course content you create. You grant Hazel Allure a license to host, stream, and display course materials to enrolled users. Do not include infringing third-party content without authorization.</p>
           <p><strong>4.7 Removal.</strong> Hazel Allure may remove courses that violate policy, contain impermissible health claims, or receive credible safety complaints, without liability to you or enrolled seekers.</p>
+        </div>
+      </section>
+
+      {/* 4b Gathering */}
+      <section id="gathering" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">4b. Community gathering terms</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>4b.1 Hosting only.</strong> The Hearth (seeker gathering) and Practitioner lounge are discussion spaces hosted by Hazel Allure. We provide threading tools only — we do not endorse, verify, or adopt user posts, advice, diagnoses, product recommendations, or spiritual guidance shared in threads.</p>
+          <p><strong>4b.2 Your responsibility.</strong> You alone are responsible for content you post. Do not share protected health information, harass others, impersonate practitioners, solicit off-platform payments, or make impermissible disease or outcome claims. Pro Members may start new seeker threads; all signed-in users may reply where threads are open.</p>
+          <p><strong>4b.3 Moderation.</strong> Hazel Allure may remove posts, lock threads, or suspend accounts without notice for policy violations, spam, or credible safety reports. We have no duty to monitor all posts and no liability for user-generated content.</p>
+          <p><strong>4b.4 No professional relationship.</strong> Peer discussion does not create a practitioner–client, therapist–patient, or advisor–client relationship with Hazel Allure or with other users. Seek licensed care for medical emergencies and regulated professions.</p>
+          <p><strong>4b.5 Indemnity.</strong> You indemnify Hazel Allure against claims arising from your posts, replies, or reliance on others&apos; posts in gathering spaces.</p>
+        </div>
+      </section>
+
+      {/* 4c Certificates */}
+      <section id="certificates" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">4c. Certificates &amp; student honors</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>4c.1 Practitioner-issued only.</strong> Uploaded credentials and digital certifications are created and issued by independent Pro practitioners — not by Hazel Allure. The platform displays and delivers honors; we do not accredit, license, or guarantee the validity of any certificate or badge.</p>
+          <p><strong>4c.2 No misrepresentation.</strong> Practitioners warrant that uploaded credentials are genuine and current. Digital honors must not imply state licensure, board certification, or guaranteed employment outcomes unless truthfully held.</p>
+          <p><strong>4c.3 Seeker display.</strong> Seekers may pin practitioner-issued honors on their profile at their discretion. Display is optional and does not constitute Hazel Allure endorsement of the practitioner or the honor.</p>
+          <p><strong>4c.4 Platform disclaimer.</strong> Hazel Allure disclaims all liability for reliance on certificates, badges, or course completion markers. Verification of any credential is solely between seeker and practitioner.</p>
         </div>
       </section>
 

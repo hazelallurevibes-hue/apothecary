@@ -24,10 +24,12 @@ import {
 import { STREAM_PLATFORMS, getStreamUrlForPlatform } from '../lib/streamUtils';
 import PractitionerSlotManager from '../components/PractitionerSlotManager';
 import PractitionerBookingsPanel from '../components/PractitionerBookingsPanel';
+import VendorCertificateStudio from '../components/VendorCertificateStudio';
 
 const TABS = [
   { id: 'courses', label: 'Courses', icon: '📚' },
   { id: 'sessions', label: 'Live & 1:1', icon: '📡' },
+  { id: 'honors', label: 'Credentials & honors', icon: '📜' },
   { id: 'guide', label: 'Learning design', icon: '✨' },
 ];
 
@@ -538,6 +540,10 @@ export default function VendorTeaching({ user }) {
             </ul>
           </div>
         </div>
+      )}
+
+      {activeTab === 'honors' && (
+        <VendorCertificateStudio user={user} vendorId={vendorId} />
       )}
 
       {activeTab === 'guide' && (

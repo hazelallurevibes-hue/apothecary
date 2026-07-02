@@ -1,7 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import VideoEmbed from '../components/VideoEmbed';
-import { getCustomerContext, isProPlan } from '../lib/plans';
+import { customerCan, getCustomerContext, isProPlan } from '../lib/plans';
+import ProFeatureHint from '../components/ProFeatureHint';
+import {
+  completionPercent,
+  fetchLessonProgress,
+  markLessonComplete,
+} from '../lib/courseProgressApi';
+import { trackAchievementEvent } from '../lib/achievements';
 import {
   coursePriceForCustomer,
   fetchCourseById,
@@ -21,8 +28,10 @@ export default function CourseDetailPage({ user }) {
   const [enrolling, setEnrolling] = useState(false);
   const [matchScore, setMatchScore] = useState(0);
   const [toast, setToast] = useState('');
+  const [completedLessons, setCompletedLessons] = useState(new Set());
 
   const customerCtx = getCustomerContext(user);
+  const canTrackProgress = customerCan(user, 'lesson_progress');
   const price = course ? coursePriceForCustomer(course, customerCtx?.plan) : 0;
   const isPro = isProPlan(customerCtx?.plan);
 
@@ -31,6 +40,7 @@ export default function CourseDetailPage({ user }) {
     fetchCourseLessons(id).then(setLessons);
     if (user?.email) {
       isEnrolled(id, user.email).then(setEnrolled);
+      fetchLessonProgress(user.email, Number(id)).then(setCompletedLessons).catch(() => setCompletedLessons(new Set()));
       fetchUserLearningProfile(user.email).then((profile) => {
         fetchCourseById(id).then((c) => {
           if (c && profile.styles?.length) {
@@ -155,12 +165,51 @@ export default function CourseDetailPage({ user }) {
             )}
           </div>
 
+          {enrolled && lessons.length > 0 && (
+            <div className="rounded-2xl border border-[#4a1942]/10 p-4 bg-[#faf7f9]">
+              {canTrackProgress ? (
+                <>
+                  <p className="text-sm text-[#4a1942] font-medium">Sanctum progress</p>
+                  <div className="mt-2 h-2 rounded-full bg-gray-200 overflow-hidden">
+                    <div
+                      className="h-full bg-[#4a1942] transition-all"
+                      style={{ width: `${completionPercent(completedLessons.size, lessons.length)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {completedLessons.size} of {lessons.length} lessons marked complete
+                  </p>
+                </>
+              ) : (
+                <ProFeatureHint hintKey="lesson_progress" />
+              )}
+            </div>
+          )}
+
           <div>
             <h2 className="font-semibold text-lg mb-3">Lessons ({lessons.length})</h2>
             <div className="space-y-4">
               {previewLessons.map((l) => (
                 <div key={l.id} className="border rounded-2xl p-4">
-                  <div className="font-medium">{l.title}</div>
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="font-medium">{l.title}</div>
+                    {enrolled && canTrackProgress && (
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await markLessonComplete({ studentEmail: user.email, lessonId: l.id, courseId: Number(id) });
+                          const next = new Set(completedLessons);
+                          next.add(l.id);
+                          setCompletedLessons(next);
+                          const u = await trackAchievementEvent(user.email, 'completed_lesson', { lessonCount: next.size });
+                          if (u) window.dispatchEvent(new CustomEvent('hazel-achievement', { detail: u }));
+                        }}
+                        className={`text-xs px-3 py-1 rounded-full border ${completedLessons.has(l.id) ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'border-gray-200'}`}
+                      >
+                        {completedLessons.has(l.id) ? 'Complete ✓' : 'Mark complete'}
+                      </button>
+                    )}
+                  </div>
                   {l.duration_minutes && (
                     <div className="text-xs text-gray-500">{l.duration_minutes} min</div>
                   )}

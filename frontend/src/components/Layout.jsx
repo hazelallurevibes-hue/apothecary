@@ -11,6 +11,7 @@ import { useLocale } from '../i18n';
 import { useEasyMode } from '../lib/easyMode';
 import AccessibilityHub from './AccessibilityHub';
 import GuidanceCoach from './GuidanceCoach';
+import HiddenCats from './HiddenCats';
 import EasyModePrompt from './EasyModePrompt';
 import PageSeo from './PageSeo';
 import WomanOwnedBadge from './WomanOwnedBadge';
@@ -72,6 +73,7 @@ export default function Layout({ user, onLogout, children }) {
       <NavLink to={VERTICAL.routes.productsMarket} onNavigate={closeMobile}>{t('nav.apothecary')}</NavLink>
       <NavLink to={VERTICAL.routes.topPractitioners} onNavigate={closeMobile}>{t('nav.topVendors')}</NavLink>
       <NavLink to={VERTICAL.routes.courses} onNavigate={closeMobile}>{VERTICAL.labels.courses}</NavLink>
+      <NavLink to="/gathering" onNavigate={closeMobile}>The Hearth</NavLink>
       {blogMenu.map((b) => (
         <ExternalNavLink key={b.href} href={b.href} onNavigate={closeMobile}>
           {b.label}
@@ -85,6 +87,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Seeker Portal', to: '/customer-portal', perm: null },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
+      { label: 'The Hearth', to: '/gathering', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
       { label: 'Favorites', to: '/favorites', perm: 'favorites' },
       { label: 'Support & Help', to: '/support', perm: 'support' },
@@ -117,6 +120,7 @@ export default function Layout({ user, onLogout, children }) {
     const items = [
       { label: 'Account Settings', to: '/account-settings', perm: null },
       { label: 'Messages', to: '/messages', perm: 'sell' },
+      { label: 'Practitioner lounge', to: '/vendor-gathering', perm: 'vendor_gathering' },
       { label: 'Email Campaigns', to: '/vendor-campaigns', perm: null },
       { label: 'Launch Checklist', to: '/onboarding', perm: null },
       { label: 'ID Verification', to: '/vendor-verification', perm: null },
@@ -350,6 +354,7 @@ export default function Layout({ user, onLogout, children }) {
         {children}
       </main>
 
+      <HiddenCats user={user} />
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <GuidanceCoach user={user} />
       <EasyModePrompt />
