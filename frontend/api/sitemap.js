@@ -1,7 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
-import { allSitemapEntries, SITEMAP_BASE_DEFAULT } from '../src/lib/siteMapData.js';
+/** Vercel serverless — dynamic XML sitemap (static + Supabase vendors/courses) */
 
-const BASE = SITEMAP_BASE_DEFAULT.replace(/\/$/, '');
+const BASE = 'https://apothecary.hazelallure.com';
+
+const STATIC_ENTRIES = [
+  { path: '/', changefreq: 'daily', priority: '1.0' },
+  { path: '/services', changefreq: 'daily', priority: '0.9' },
+  { path: '/products', changefreq: 'daily', priority: '0.9' },
+  { path: '/courses', changefreq: 'weekly', priority: '0.8' },
+  { path: '/top-vendors', changefreq: 'weekly', priority: '0.8' },
+  { path: '/gathering', changefreq: 'daily', priority: '0.7' },
+  { path: '/customer-signup', changefreq: 'monthly', priority: '0.7' },
+  { path: '/vendor-signup', changefreq: 'monthly', priority: '0.7' },
+  { path: '/login', changefreq: 'monthly', priority: '0.6' },
+  { path: '/pro-upgrade', changefreq: 'monthly', priority: '0.6' },
+  { path: '/about', changefreq: 'monthly', priority: '0.6' },
+  { path: '/contact', changefreq: 'monthly', priority: '0.6' },
+  { path: '/faq', changefreq: 'monthly', priority: '0.6' },
+  { path: '/sitemap', changefreq: 'monthly', priority: '0.4' },
+  { path: '/agreements', changefreq: 'monthly', priority: '0.5' },
+  { path: '/policies-procedures', changefreq: 'monthly', priority: '0.5' },
+  { path: '/customer-use-agreement', changefreq: 'monthly', priority: '0.5' },
+];
 
 function escapeXml(str) {
   return String(str)
@@ -28,88 +47,98 @@ function urlEntry(loc, lastmod, changefreq, priority) {
   </url>`;
 }
 
-function getSupabase() {
+function supabaseConfig() {
   const url = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
   const key =
     process.env.SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_ANON_KEY ||
     process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
   if (!url || !key) return null;
-  return createClient(url, key);
+  return { url: url.replace(/\/$/, ''), key };
+}
+
+async function supabaseSelect(table, query) {
+  const cfg = supabaseConfig();
+  if (!cfg) return [];
+
+  const endpoint = `${cfg.url}/rest/v1/${table}?${query}`;
+  const res = await fetch(endpoint, {
+    headers: {
+      apikey: cfg.key,
+      Authorization: `Bearer ${cfg.key}`,
+      Accept: 'application/json',
+    },
+  });
+
+  if (!res.ok) {
+    console.error(`Sitemap ${table} fetch HTTP ${res.status}`);
+    return [];
+  }
+
+  return res.json();
 }
 
 export default async function handler(req, res) {
-  const today = new Date().toISOString().slice(0, 10);
+  try {
+    const today = new Date().toISOString().slice(0, 10);
 
-  const staticUrls = allSitemapEntries().map((entry) =>
-    urlEntry(
-      `${BASE}${entry.path}`,
-      today,
-      entry.changefreq || 'weekly',
-      entry.priority || '0.5',
-    ),
-  );
+    const staticUrls = STATIC_ENTRIES.map((entry) =>
+      urlEntry(`${BASE}${entry.path}`, today, entry.changefreq, entry.priority),
+    );
 
-  const dynamicUrls = [];
-  const supabase = getSupabase();
+    const dynamicUrls = [];
 
-  if (supabase) {
-    try {
-      const [vendorsRes, coursesRes] = await Promise.all([
-        supabase
-          .from('vendors')
-          .select('id, updated_at')
-          .eq('status', 'approved')
-          .limit(500),
-        supabase
-          .from('vendor_courses')
-          .select('id, updated_at')
-          .eq('published', true)
-          .eq('approved', 1)
-          .limit(500),
-      ]);
+    const [vendors, courses] = await Promise.all([
+      supabaseSelect('vendors', 'status=eq.approved&select=id,updated_at&limit=500'),
+      supabaseSelect(
+        'vendor_courses',
+        'published=eq.true&approved=eq.1&select=id,updated_at&limit=500',
+      ),
+    ]);
 
-      if (vendorsRes.error) {
-        console.error('Sitemap vendors fetch error:', vendorsRes.error.message);
-      } else {
-        for (const vendor of vendorsRes.data || []) {
-          dynamicUrls.push(
-            urlEntry(
-              `${BASE}/vendor/${vendor.id}`,
-              formatLastmod(vendor.updated_at),
-              'weekly',
-              '0.6',
-            ),
-          );
-        }
-      }
-
-      if (coursesRes.error) {
-        console.error('Sitemap courses fetch error:', coursesRes.error.message);
-      } else {
-        for (const course of coursesRes.data || []) {
-          dynamicUrls.push(
-            urlEntry(
-              `${BASE}/courses/${course.id}`,
-              formatLastmod(course.updated_at),
-              'weekly',
-              '0.5',
-            ),
-          );
-        }
-      }
-    } catch (err) {
-      console.error('Sitemap dynamic fetch error:', err);
+    for (const vendor of vendors || []) {
+      dynamicUrls.push(
+        urlEntry(
+          `${BASE}/vendor/${vendor.id}`,
+          formatLastmod(vendor.updated_at),
+          'weekly',
+          '0.6',
+        ),
+      );
     }
-  }
 
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>
+    for (const course of courses || []) {
+      dynamicUrls.push(
+        urlEntry(
+          `${BASE}/courses/${course.id}`,
+          formatLastmod(course.updated_at),
+          'weekly',
+          '0.5',
+        ),
+      );
+    }
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${[...staticUrls, ...dynamicUrls].join('\n')}
 </urlset>
 `;
 
-  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
-  res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
-  res.status(200).send(xml);
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    res.status(200).send(xml);
+  } catch (err) {
+    console.error('Sitemap handler error:', err);
+    const today = new Date().toISOString().slice(0, 10);
+    const fallback = STATIC_ENTRIES.map((entry) =>
+      urlEntry(`${BASE}${entry.path}`, today, entry.changefreq, entry.priority),
+    ).join('\n');
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${fallback}
+</urlset>
+`;
+    res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+    res.status(200).send(xml);
+  }
 }

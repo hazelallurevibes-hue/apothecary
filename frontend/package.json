@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite --port 5173 --strictPort",
-    "build": "npm run sitemap && vite build",
+    "build": "vite build",
     "sitemap": "node scripts/generate-sitemap.mjs",
     "preview": "vite preview"
   },

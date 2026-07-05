@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { FAMILIAR_LIST } from '../lib/familiars';
 import FamiliarPortrait from './FamiliarPortrait';
 import FamiliarShareCard from './FamiliarShareCard';
@@ -13,6 +14,17 @@ export default function FamiliarPicker({ user, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [shareOpen, setShareOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  useEffect(() => {
+    const shareId = searchParams.get('familiarShare');
+    if (shareId && FAMILIAR_LIST.some((f) => f.id === shareId)) {
+      setShareOpen(true);
+      const next = new URLSearchParams(searchParams);
+      next.delete('familiarShare');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   useEffect(() => {
     if (!user?.email) return;
