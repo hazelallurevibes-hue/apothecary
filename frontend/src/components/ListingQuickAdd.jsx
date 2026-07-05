@@ -42,7 +42,7 @@ export default function ListingQuickAdd({
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState('');
   const [thumbnail, setThumbnail] = useState({ ...EMPTY_THUMBNAIL });
-  const [fulfillmentMode, setFulfillmentMode] = useState('hazelallure');
+  const [fulfillmentMode, setFulfillmentMode] = useState('pickup_and_shipping');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [allergens, setAllergens] = useState([]);
   const [safety, setSafety] = useState({ ...EMPTY_MENU_SAFETY });
@@ -56,7 +56,7 @@ export default function ListingQuickAdd({
   const isService = listingType === 'service';
   const isProduct = listingType === 'product';
   const categories = isService ? MARKETPLACE_MENU_CATEGORIES : APOTHECARY_LISTING_CATEGORIES;
-  const canPickFulfillment = isPaidVendor(vendorPlan);
+  const isPro = isPaidVendor(vendorPlan);
   const touchInput = `border-2 p-4 rounded-2xl w-full min-w-0 text-base min-h-[3.25rem] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#4a1942]`;
 
   const resetWizard = () => {
@@ -66,7 +66,7 @@ export default function ListingQuickAdd({
     setPrice('');
     setCategory('');
     setThumbnail({ ...EMPTY_THUMBNAIL });
-    setFulfillmentMode('hazelallure');
+    setFulfillmentMode('pickup_and_shipping');
     setAdvancedOpen(false);
     setAllergens([]);
     setSafety(isService ? { ...EMPTY_MENU_SAFETY } : { ...EMPTY_PRODUCE_SAFETY });
@@ -122,7 +122,7 @@ export default function ListingQuickAdd({
     name: name.trim(),
     price: parseFloat(price),
     category,
-    fulfillment_mode: canPickFulfillment ? fulfillmentMode : 'hazelallure',
+    fulfillment_mode: fulfillmentMode,
     thumbnail,
     allergens,
     safety,
@@ -348,21 +348,19 @@ export default function ListingQuickAdd({
 
       {step === 4 && (
         <div className="space-y-4 max-w-3xl">
-          <p className="text-sm text-gray-700 font-medium">How will customers get this item?</p>
-          {canPickFulfillment ? (
-            <FulfillmentQuickPicker
-              value={fulfillmentMode}
-              onChange={(mode) => { setFulfillmentMode(mode); setError(''); }}
-              disabled={busy}
-              idPrefix={`${formId}-fulfillment`}
-            />
-          ) : (
-            <div className="p-4 rounded-2xl bg-gray-50 border text-sm text-gray-700">
-              <span className="font-semibold text-[#4a1942]">📦 Hazel Allure checkout</span>
-              <p className="mt-1 text-xs text-gray-600">
-                Upgrade to Pro to mark listings as local pickup only or external-store-only.
-              </p>
-            </div>
+          <p className="text-sm text-gray-700 font-medium">How will customers receive this {isService ? 'service or goods' : 'item'}?</p>
+          <p className="text-xs text-gray-500">Choose pickup, shipping, or both — seekers see this on your listing and at checkout.</p>
+          <FulfillmentQuickPicker
+            value={fulfillmentMode}
+            onChange={(mode) => { setFulfillmentMode(mode); setError(''); }}
+            disabled={busy}
+            isPro={isPro}
+            idPrefix={`${formId}-fulfillment`}
+          />
+          {!isPro && (
+            <p className="text-xs text-gray-500">
+              Pro practitioners can also mark listings as <strong>external store only</strong> (Amazon, Etsy, your shop).
+            </p>
           )}
         </div>
       )}

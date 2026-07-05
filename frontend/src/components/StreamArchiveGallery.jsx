@@ -1,6 +1,6 @@
 import { parseArchives, publicArchiveView } from '../lib/streamUtils';
 
-export default function StreamArchiveGallery({ archives, title = 'Past kitchen broadcasts' }) {
+export default function StreamArchiveGallery({ archives, title = 'Past session broadcasts' }) {
   const items = parseArchives(archives).map(publicArchiveView).filter(Boolean);
   if (!items.length) return null;
 

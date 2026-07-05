@@ -161,8 +161,8 @@ export default function Marketplace({ user }) {
 
       let msg = `Order placed successfully! Total: $${orderData.total.toFixed(2)}`;
       if (chosenDelivery === 'pickup') msg += ' — Ready for local pickup!';
-      else if (chosenDelivery === 'doordash') msg += ' — DoorDash will handle delivery.';
-      else msg += ' — Uber Eats delivery confirmed.';
+      else if (chosenDelivery === 'shipping') msg += ' — Your practitioner will arrange shipping.';
+      else msg += ' — Fulfillment confirmed.';
       offerSpellReceiptDownload({
         successMessage: formatOrderSuccessMessage(msg),
         total: orderData.total,
@@ -223,7 +223,7 @@ export default function Marketplace({ user }) {
           value={allergenFilter}
           onChange={(e) => setAllergenFilter(e.target.value)}
           className="border px-4 py-3 rounded-3xl text-sm"
-          title="Hide items with this allergen in the vendor kitchen"
+          title="Hide items with this allergen noted by the practitioner"
         >
           <option value="">All allergens OK</option>
           {ALLERGENS.map((a) => (

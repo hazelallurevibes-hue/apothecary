@@ -45,7 +45,7 @@ export default function AdminPortal({ user, onLogout }) {
     recentActivity: [] 
   });
   const [newVendor, setNewVendor] = useState({ name: '', category: '', email: '' });
-  const [newMenuItem, setNewMenuItem] = useState({ name: '', price: '', vendor_id: '', category: 'American' });
+  const [newMenuItem, setNewMenuItem] = useState({ name: '', price: '', vendor_id: '', category: 'psychic' });
   const [listingReports, setListingReports] = useState([]);
   const [pendingCampaigns, setPendingCampaigns] = useState([]);
   const [allCampaigns, setAllCampaigns] = useState([]);
@@ -260,11 +260,11 @@ export default function AdminPortal({ user, onLogout }) {
       price: parseFloat(newMenuItem.price) || 0,
       vendor_id: parseInt(newMenuItem.vendor_id, 10),
       category: newMenuItem.category,
-      description: 'Fresh from a local Hazel Allure vendor.',
+      description: 'Offered by a Hazel Allure practitioner.',
       photo: 'https://picsum.photos/id/312/400/300',
       approved: 1,
     });
-    setNewMenuItem({ name: '', price: '', vendor_id: '', category: 'American' });
+    setNewMenuItem({ name: '', price: '', vendor_id: '', category: 'psychic' });
     loadAllData();
   };
 

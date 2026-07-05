@@ -1,10 +1,12 @@
-import { FULFILLMENT_MODES } from '../lib/internationalStorefront';
+import { FULFILLMENT_MODES, fulfillmentModesForListing } from '../lib/internationalStorefront';
 
 /** Compact icons + short labels for practitioner quick-add flows */
 export const FULFILLMENT_QUICK_META = {
-  hazelallure: { icon: '📦', shortLabel: 'Ship / checkout', hint: 'Add to cart on Hazel Allure' },
   pickup_only: { icon: '🌿', shortLabel: 'Local pickup', hint: 'Customer picks up in person' },
+  shipping: { icon: '📦', shortLabel: 'Shipping', hint: 'You ship or deliver to the customer' },
+  pickup_and_shipping: { icon: '✨', shortLabel: 'Pickup or shipping', hint: 'Customer chooses at checkout' },
   external_only: { icon: '↗️', shortLabel: 'External store', hint: 'Buy on Amazon, Etsy, your shop, etc.' },
+  hazelallure: { icon: '✨', shortLabel: 'Pickup or shipping', hint: 'Customer chooses at checkout' },
 };
 
 /**
@@ -12,17 +14,18 @@ export const FULFILLMENT_QUICK_META = {
  * Props: value, onChange, disabled, allowModes (ids), compact, className
  */
 export default function FulfillmentQuickPicker({
-  value = 'hazelallure',
+  value = 'pickup_and_shipping',
   onChange,
   disabled = false,
   allowModes = null,
+  isPro = false,
   compact = false,
   className = '',
   idPrefix = 'fulfillment',
 }) {
   const modes = allowModes
     ? FULFILLMENT_MODES.filter((m) => allowModes.includes(m.id))
-    : FULFILLMENT_MODES;
+    : fulfillmentModesForListing({ isPro });
 
   return (
     <fieldset className={`border-0 p-0 m-0 min-w-0 ${className}`}>

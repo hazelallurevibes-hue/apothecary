@@ -55,12 +55,46 @@ export function recommendsExternalForInternational(vendor) {
   return vendor.ships_internationally && vendor.international_via_external !== false;
 }
 
-export const FULFILLMENT_MODES = [
-  { id: 'hazelallure', label: 'Hazel Allure checkout', description: 'Add to cart on Hazel Allure' },
-  { id: 'pickup_only', label: 'Local pickup only', description: 'No shipping — customer picks up in person' },
-  { id: 'external_only', label: 'External store only', description: 'Buy on Amazon, eBay, WooCommerce, etc.' },
+/** Core modes — all practitioners (free & Pro) */
+export const FULFILLMENT_MODES_CORE = [
+  { id: 'pickup_only', label: 'Local pickup only', description: 'Customer picks up in person — no shipping' },
+  { id: 'shipping', label: 'Shipping / delivery', description: 'You ship or deliver to the customer' },
+  { id: 'pickup_and_shipping', label: 'Pickup or shipping', description: 'Customer chooses pickup or shipping at checkout' },
 ];
 
+/** Pro-only — external storefront links */
+export const FULFILLMENT_MODES_PRO = [
+  { id: 'external_only', label: 'External store only', description: 'Buy on Amazon, Etsy, WooCommerce, your shop, etc.' },
+];
+
+/** All modes (legacy hazelallure / bpicius included for DB reads) */
+export const FULFILLMENT_MODES = [
+  ...FULFILLMENT_MODES_CORE,
+  ...FULFILLMENT_MODES_PRO,
+  { id: 'hazelallure', label: 'Pickup or shipping', description: 'Legacy — same as pickup or shipping' },
+];
+
+export function normalizeFulfillmentMode(mode) {
+  if (!mode || mode === 'hazelallure' || mode === 'bpicius') return 'pickup_and_shipping';
+  return mode;
+}
+
+export function fulfillmentModesForListing({ isPro = false } = {}) {
+  return isPro ? [...FULFILLMENT_MODES_CORE, ...FULFILLMENT_MODES_PRO] : [...FULFILLMENT_MODES_CORE];
+}
+
 export function fulfillmentLabel(mode) {
-  return FULFILLMENT_MODES.find((m) => m.id === mode)?.label || 'Hazel Allure checkout';
+  const id = normalizeFulfillmentMode(mode);
+  return FULFILLMENT_MODES.find((m) => m.id === id)?.label || 'Pickup or shipping';
+}
+
+export function fulfillmentShortLabel(mode) {
+  const id = normalizeFulfillmentMode(mode);
+  const map = {
+    pickup_only: 'Local pickup',
+    shipping: 'Shipping',
+    pickup_and_shipping: 'Pickup or shipping',
+    external_only: 'External store',
+  };
+  return map[id] || 'Pickup or shipping';
 }

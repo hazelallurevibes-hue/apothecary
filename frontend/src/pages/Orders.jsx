@@ -7,6 +7,7 @@ import { offerSpellReceiptDownload } from '../lib/spellReceiptExport';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { CustomerPickupQR, VendorPickupScanner } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
+import CheckoutDeliveryPicker, { formatDeliverySuccessNote } from '../components/CheckoutDeliveryPicker';
 
 export default function Orders({ user }) {
   const [orders, setOrders] = useState([]);
@@ -16,8 +17,7 @@ export default function Orders({ user }) {
   const [deliveryMethod, setDeliveryMethod] = useState('pickup');
   const [paymentMethod, setPaymentMethod] = useState('card');
   const [applyLoyalty, setApplyLoyalty] = useState(false);
-  const [connectedDelivery, setConnectedDelivery] = useState({ doordash: false, ubereats: false });
-  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
+
 
   const { cart, removeFromCart, clearCart, total } = useCart();
 
@@ -39,22 +39,6 @@ export default function Orders({ user }) {
     return 'bg-blue-100 text-blue-700';
   };
 
-  const connectDelivery = (app) => {
-    setConnectedDelivery(prev => ({ ...prev, [app]: true }));
-    alert(`Connected to ${app === 'doordash' ? 'DoorDash' : 'Uber Eats'} (simulated). Real integration will use OAuth / partner APIs.`);
-  };
-
-  const getEstimate = () => {
-    const baseTime = deliveryMethod === 'doordash' ? 35 : deliveryMethod === 'ubereats' ? 30 : 0;
-    const estimate = {
-      time: baseTime + Math.floor(Math.random() * 10),
-      fee: deliveryMethod === 'pickup' ? 0 : (deliveryMethod === 'doordash' ? 6.99 : 7.49),
-      provider: deliveryMethod
-    };
-    setDeliveryEstimate(estimate);
-    alert(`Estimate: ${estimate.time} min, $${estimate.fee} fee via ${estimate.provider}. (In prod: call DoorDash/Uber API with your connected account for live tracking link.)`);
-  };
-
   const handlePlaceOrder = async () => {
     if (cart.length === 0 || !user) return;
 
@@ -72,13 +56,12 @@ export default function Orders({ user }) {
       delivery_method: deliveryMethod,
       payment_method: paymentMethod,
       loyalty_applied: applyLoyalty ? loyaltyDiscount : 0,
-      delivery_connected: connectedDelivery,
-      tracking_note: deliveryMethod !== 'pickup' && (connectedDelivery.doordash || connectedDelivery.ubereats) ? 'Tracking via connected app' : '',
+      tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner' : '',
     }, vendorId);
 
     try {
       await placeOrderApi(orderData);
-      const baseMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}. ${deliveryMethod !== 'pickup' ? 'Tracking link sent to your connected delivery app.' : ''}`;
+      const baseMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}${formatDeliverySuccessNote(deliveryMethod)}`;
       offerSpellReceiptDownload({
         successMessage: formatOrderSuccessMessage(baseMsg),
         total: orderData.total,
@@ -92,7 +75,7 @@ export default function Orders({ user }) {
       clearCart();
       setCheckoutStep(1);
       setAddress({ street: '', city: '', zip: '' });
-      setDeliveryEstimate(null);
+
       const fresh = await fetchOrdersForUser(user);
       setOrders(fresh);
     } catch (e) {
@@ -114,23 +97,6 @@ export default function Orders({ user }) {
           <p className="text-gray-600 mb-4 -mt-4">Incoming orders for your storefront. Update status in the admin portal or mark fulfilled when complete.</p>
           {vendorCan(user, 'pickup_qr') && <VendorPickupScanner user={user} />}
         </>
-      )}
-
-      {!isVendor && (
-      <div className="bg-white border rounded-3xl p-6 mb-6">
-        <h3 className="font-semibold mb-2">Connect Delivery Apps for Tracking &amp; Estimates</h3>
-        <div className="flex gap-3 flex-wrap">
-          <button onClick={() => connectDelivery('doordash')} className={`px-4 py-2 rounded-2xl text-sm border ${connectedDelivery.doordash ? 'bg-green-100 border-green-400' : ''}`}>
-            {connectedDelivery.doordash ? '✅ DoorDash Connected' : 'Connect DoorDash'}
-          </button>
-          <button onClick={() => connectDelivery('ubereats')} className={`px-4 py-2 rounded-2xl text-sm border ${connectedDelivery.ubereats ? 'bg-green-100 border-green-400' : ''}`}>
-            {connectedDelivery.ubereats ? '✅ Uber Eats Connected' : 'Connect Uber Eats'}
-          </button>
-          <button onClick={getEstimate} className="px-4 py-2 bg-blue-600 text-white rounded-2xl text-sm">Get Live Estimate (uses connected account)</button>
-        </div>
-        {deliveryEstimate && <div className="text-sm mt-2 text-green-700">Live estimate ready in checkout below.</div>}
-        <p className="text-xs text-gray-500 mt-1">In production: OAuth to DoorDash/UberEats APIs for real-time estimates and order tracking IDs.</p>
-      </div>
       )}
 
       {/* Current Cart + Fluid Multi-Step Checkout */}
@@ -174,16 +140,16 @@ export default function Orders({ user }) {
           {/* Step 2: Delivery & Address + Connected Apps */}
           {checkoutStep === 2 && (
             <div className="space-y-4">
-              <div>
-                <label className="text-sm">Delivery Method</label>
-                <select value={deliveryMethod} onChange={e => setDeliveryMethod(e.target.value)} className="w-full border p-3 rounded-2xl mt-1">
-                  <option value="pickup">Local Pickup (Free, ready tomorrow)</option>
-                  <option value="doordash">DoorDash (est. via connected account)</option>
-                  <option value="ubereats">Uber Eats (est. via connected account)</option>
-                </select>
-              </div>
-              {deliveryMethod !== 'pickup' && (
-                <div className="bg-green-50 p-3 rounded text-sm">Using your connected {deliveryMethod} account for accurate estimates and tracking.</div>
+              <CheckoutDeliveryPicker
+                value={deliveryMethod}
+                onChange={setDeliveryMethod}
+                variant="radios"
+                selectId="orders-delivery"
+              />
+              {deliveryMethod === 'shipping' && (
+                <div className="bg-[#f5f0e8] p-3 rounded-2xl text-sm text-gray-700">
+                  Your practitioner will confirm shipping cost and timing after you place the order.
+                </div>
               )}
               <div>
                 <label className="text-sm">Delivery Address</label>
@@ -227,7 +193,7 @@ export default function Orders({ user }) {
           {checkoutStep === 4 && (
             <div>
               <div className="bg-gray-50 p-4 rounded-2xl mb-4 text-sm">
-                <div><strong>Delivery:</strong> {deliveryMethod} {deliveryEstimate ? `• ${deliveryEstimate.time} min • $${deliveryEstimate.fee}` : ''}</div>
+                <div><strong>Fulfillment:</strong> {deliveryMethod === 'pickup' ? 'Local pickup' : 'Shipping / delivery'}</div>
                 <div><strong>Address:</strong> {address.street}, {address.city} {address.zip}</div>
                 <div><strong>Payment:</strong> {paymentMethod} {paymentMethod !== 'cash' ? '(to vendor linked account)' : ''}</div>
                 <div><strong>Total after loyalty:</strong> ${finalTotal.toFixed(2)}</div>
@@ -257,7 +223,7 @@ export default function Orders({ user }) {
               </div>
               <span className={`px-3 py-1 text-xs rounded-3xl self-start ${getStatusColor(order.status)}`}>{order.status}</span>
             </div>
-            {order.delivery_method && order.delivery_method !== 'pickup' && <div className="text-xs mt-1 text-blue-600">Track in your connected {order.delivery_method} app</div>}
+            {order.delivery_method === 'shipping' && <div className="text-xs mt-1 text-blue-600">Shipping — practitioner will follow up</div>}
             {!isVendor && <CustomerPickupQR order={order} />}
             <OrderModificationCard
               order={order}

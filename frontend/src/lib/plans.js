@@ -51,7 +51,7 @@ export const FREE_VENDOR_PRODUCE_LIMIT = 5;
 export const CUSTOMER_PERMISSIONS = {
   buy: { label: 'Buy & checkout', description: 'Place orders from vendors' },
   track_orders: { label: 'Track orders', description: 'View order history and status' },
-  delivery_connect: { label: 'Uber / DoorDash', description: 'Link delivery apps for tracking' },
+  delivery_connect: { label: 'Fulfillment preferences', description: 'Save pickup vs shipping preference at checkout' },
   profile_editor: { label: 'Profile picture', description: 'Upload your avatar' },
   ratings: { label: 'Leave ratings', description: 'Rate vendors after qualifying purchases' },
   favorites: { label: 'Favorites', description: 'Save favorite vendors and items' },

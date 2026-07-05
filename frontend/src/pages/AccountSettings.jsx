@@ -46,8 +46,7 @@ function familiarTierFromStreak(streak) {
 export default function AccountSettings({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
-  const [doordash, setDoordash] = useState(!!user?.doordash_linked);
-  const [ubereats, setUbereats] = useState(!!user?.ubereats_linked);
+
   const [twoFA, setTwoFA] = useState({
     enabled: false,
     factorId: '',
@@ -220,8 +219,6 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       buildProfileSavePatch({
         name,
         avatar,
-        doordash_linked: doordash,
-        ubereats_linked: ubereats,
         allergen_avoid: serializeAllergenIds(foodPrefs.allergen_avoid),
       }),
     );
@@ -240,8 +237,6 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       ...user,
       name,
       avatar,
-      doordash_linked: doordash,
-      ubereats_linked: ubereats,
       allergen_avoid: allergenStr,
     };
     localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(updated));
@@ -503,21 +498,6 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               className="mt-1 w-full border p-3 rounded-2xl bg-gray-50"
             />
           </div>
-
-          {(role === 'customer' || customerCtx) && customerCtx?.permissions.includes('delivery_connect') && (
-            <div className="border-t pt-4">
-              <div className="text-sm font-medium mb-3">Delivery app connections</div>
-              <label className="flex items-center gap-2 text-sm mb-2">
-                <input type="checkbox" checked={doordash} onChange={(e) => setDoordash(e.target.checked)} />
-                DoorDash linked
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input type="checkbox" checked={ubereats} onChange={(e) => setUbereats(e.target.checked)} />
-                Uber Eats linked
-              </label>
-              <p className="text-xs text-gray-500 mt-2">Used at checkout for live tracking (OAuth integration coming).</p>
-            </div>
-          )}
 
           <button
             type="button"

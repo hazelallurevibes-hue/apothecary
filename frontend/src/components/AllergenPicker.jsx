@@ -13,7 +13,7 @@ export default function AllergenPicker({ selected = [], onChange, disabled }) {
 
   return (
     <div>
-      <div className="text-sm font-medium mb-2">Allergens in your home kitchen</div>
+      <div className="text-sm font-medium mb-2">Allergens in your preparation space</div>
       <p className="text-xs text-gray-500 mb-3">
         Check every allergen that is cooked with, stored, or present in your home when you prepare this item.
         Symbols appear on your public listing.

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { fetchVendorAnalytics } from '../lib/vendorAnalytics';
-import { getVendorContext, planBadgeLabel, vendorCan } from '../lib/plans';
+import { getVendorContext, isPaidVendor, planBadgeLabel, vendorCan } from '../lib/plans';
 import RatingAlertsPanel from '../components/RatingAlertsPanel';
 import VendorCustomerInsights from '../components/VendorCustomerInsights';
 import VendorNotificationsPanel from '../components/VendorNotificationsPanel';
@@ -51,7 +51,7 @@ import {
   produceItemToFormState,
   resolveListingPhotoUrl,
 } from '../lib/vendorListings';
-import { FULFILLMENT_MODES } from '../lib/internationalStorefront';
+import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
 import { VERTICAL } from '../lib/vertical';
 
 const API = import.meta.env.VITE_API_URL || '/api';
@@ -66,7 +66,7 @@ export default function VendorDashboard({ user }) {
   const [myTasks, setMyTasks] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'hazelallure' });
+  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
   const [serviceVideoUrl, setServiceVideoUrl] = useState('');
   const [serviceMediaType, setServiceMediaType] = useState('both');
   const [produceVideoUrl, setProduceVideoUrl] = useState('');
@@ -76,7 +76,7 @@ export default function VendorDashboard({ user }) {
   const [newItemPreorder, setNewItemPreorder] = useState({ ...EMPTY_PREORDER });
   const [newItemFoodLabel, setNewItemFoodLabel] = useState({});
   const [produceSection, setProduceSection] = useState('produce');
-  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'hazelallure' });
+  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
   const [newProduceAllergens, setNewProduceAllergens] = useState([]);
   const [newProduceSafety, setNewProduceSafety] = useState({ ...EMPTY_PRODUCE_SAFETY });
   const [medicinalLegalAck, setMedicinalLegalAck] = useState(false);
@@ -202,7 +202,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetMenuForm = () => {
-    setNewItem({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'hazelallure' });
+    setNewItem({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
     setNewItemAllergens([]);
     setNewItemSafety({ ...EMPTY_MENU_SAFETY });
     setNewItemPreorder({ ...EMPTY_PREORDER });
@@ -269,7 +269,7 @@ export default function VendorDashboard({ user }) {
         ...(vendorCan(user, 'food_labels') ? buildFoodLabelPayload(newItemFoodLabel) : {}),
         item_options: normalizeOptionsForSave(newItemOptions),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newItem.fulfillment_mode || 'hazelallure' } : {}),
+        fulfillment_mode: newItem.fulfillment_mode || 'pickup_and_shipping',
       };
 
       if (editMenuId) {
@@ -407,7 +407,7 @@ export default function VendorDashboard({ user }) {
         ...buildPreorderPayload(newProducePreorder),
         item_options: normalizeOptionsForSave(newProduceOptions),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: newProduce.fulfillment_mode || 'hazelallure' } : {}),
+        fulfillment_mode: newProduce.fulfillment_mode || 'pickup_and_shipping',
       };
 
       if (editProduceId) {
@@ -550,7 +550,7 @@ export default function VendorDashboard({ user }) {
         ...buildSafetyPayload(quick.safety || { ...EMPTY_MENU_SAFETY }),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: quick.fulfillment_mode || 'hazelallure' } : {}),
+        fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
       };
 
       const { data: added, error } = await supabase.from('menu_items').insert(payload).select().single();
@@ -606,7 +606,7 @@ export default function VendorDashboard({ user }) {
         ...buildFreshnessPayload({ ...EMPTY_FRESHNESS, listing_section: 'produce' }),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
-        ...(vendorCan(user, 'international_storefront') ? { fulfillment_mode: quick.fulfillment_mode || 'hazelallure' } : {}),
+        fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
       };
 
       const { data: added, error } = await supabase.from('produce_items').insert(payload).select().single();
@@ -637,7 +637,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetProduceForm = () => {
-    setNewProduce({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'hazelallure' });
+    setNewProduce({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
     setNewProduceAllergens([]);
     setNewProduceSafety({ ...EMPTY_PRODUCE_SAFETY });
     setMedicinalLegalAck(false);
@@ -977,23 +977,16 @@ export default function VendorDashboard({ user }) {
             />
             <PreorderFields value={newItemPreorder} onChange={setNewItemPreorder} disabled={adding} label="Accept advance bookings (schedule ahead)" />
             <ItemOptionsEditor value={newItemOptions} onChange={setNewItemOptions} disabled={adding} />
-            {vendorCan(user, 'international_storefront') ? (
-              <div>
-                <label className="text-sm font-medium">How customers order this item</label>
-                <select
-                  value={newItem.fulfillment_mode || 'hazelallure'}
-                  onChange={(e) => setNewItem({ ...newItem, fulfillment_mode: e.target.value })}
-                  className="w-full border p-3 rounded-2xl mt-1 text-sm"
-                  disabled={adding}
-                >
-                  {FULFILLMENT_MODES.map((m) => (
-                    <option key={m.id} value={m.id}>{m.label} — {m.description}</option>
-                  ))}
-                </select>
-              </div>
-            ) : (
-              <p className="text-xs text-gray-500">Pro vendors can mark items as pickup-only or external-store-only in Storefront Settings.</p>
-            )}
+            <div>
+              <label className="text-sm font-medium block mb-2">How customers receive this service</label>
+              <FulfillmentQuickPicker
+                value={newItem.fulfillment_mode || 'pickup_and_shipping'}
+                onChange={(mode) => setNewItem({ ...newItem, fulfillment_mode: mode })}
+                disabled={adding}
+                isPro={isPaidVendor(vendorPlan)}
+                idPrefix="menu-fulfillment"
+              />
+            </div>
           </div>
           <div className="mt-4 flex flex-col sm:flex-row gap-2">
             <button
@@ -1150,21 +1143,16 @@ export default function VendorDashboard({ user }) {
             />
             <PreorderFields value={newProducePreorder} onChange={setNewProducePreorder} disabled={addingProduce} />
             <ItemOptionsEditor value={newProduceOptions} onChange={setNewProduceOptions} disabled={addingProduce} />
-            {vendorCan(user, 'international_storefront') ? (
-              <div>
-                <label className="text-sm font-medium">How customers order this item</label>
-                <select
-                  value={newProduce.fulfillment_mode || 'hazelallure'}
-                  onChange={(e) => setNewProduce({ ...newProduce, fulfillment_mode: e.target.value })}
-                  className="w-full border p-3 rounded-2xl mt-1 text-sm"
-                  disabled={addingProduce}
-                >
-                  {FULFILLMENT_MODES.map((m) => (
-                    <option key={m.id} value={m.id}>{m.label} — {m.description}</option>
-                  ))}
-                </select>
-              </div>
-            ) : null}
+            <div>
+              <label className="text-sm font-medium block mb-2">How customers receive this product</label>
+              <FulfillmentQuickPicker
+                value={newProduce.fulfillment_mode || 'pickup_and_shipping'}
+                onChange={(mode) => setNewProduce({ ...newProduce, fulfillment_mode: mode })}
+                disabled={addingProduce}
+                isPro={isPaidVendor(vendorPlan)}
+                idPrefix="produce-fulfillment"
+              />
+            </div>
           </div>
           <div className="flex flex-col gap-3 mt-3 sm:flex-row sm:items-center">
             <button type="button" onClick={requestAddProduceItem} disabled={addingProduce} className="w-full sm:flex-1 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-60 hover:bg-[#2d1230]">

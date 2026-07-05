@@ -160,7 +160,7 @@ export default function CustomerPortal({ user }) {
                 </button>
               )}
             </div>
-            <p className="text-[10px] text-center text-gray-400 mt-2">Premium members get priority kitchen slot + free express on orders &gt;$25</p>
+            <p className="text-[10px] text-center text-gray-400 mt-2">Premium members get priority fulfillment + free express on orders &gt;$25</p>
           </>
         )}
       </div>
@@ -244,7 +244,7 @@ export default function CustomerPortal({ user }) {
           <div className="font-semibold">Your Premium Perks Active</div>
           <ul className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-x-4 text-xs text-gray-600 list-disc pl-4">
             <li>Free Express on orders &gt;$25</li>
-            <li>Priority kitchen slot</li>
+            <li>Priority fulfillment slot</li>
             <li>Loyalty points (2x on every order)</li>
             <li>Exclusive vendor previews</li>
           </ul>

@@ -5,7 +5,7 @@ export default function AllergenBadges({ allergens, compact }) {
   if (!ids.length) return null;
 
   return (
-    <div className={`flex flex-wrap gap-1 ${compact ? '' : 'mt-2'}`} title="Allergens present in vendor home kitchen">
+    <div className={`flex flex-wrap gap-1 ${compact ? '' : 'mt-2'}`} title="Allergens noted by practitioner">
       {ids.map((id) => {
         const a = getAllergenMeta(id);
         return (

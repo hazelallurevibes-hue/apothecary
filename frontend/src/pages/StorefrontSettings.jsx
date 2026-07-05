@@ -506,7 +506,7 @@ export default function StorefrontSettings({ user }) {
       </div>
 
       <div className="mt-8 bg-white border rounded-3xl p-8">
-        <h2 className="font-semibold text-lg mb-1">Live kitchen stream</h2>
+        <h2 className="font-semibold text-lg mb-1">Live session stream</h2>
         <p className="text-sm text-gray-500 mb-5">
           Link your YouTube, Twitch, or Rumble channel. Customers see a live embed on your storefront while you cook.
           Past broadcasts are archived as thumbnails only — source links stay private.

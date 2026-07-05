@@ -14,7 +14,7 @@ export default function CustomerAllergenProfile({ selected = [], onChange, compa
     <div className={compact ? '' : 'border rounded-3xl p-6 bg-white'}>
       <div className="text-sm font-medium mb-1">My allergen profile</div>
       <p className="text-xs text-gray-500 mb-3">
-        Items containing these allergens in the vendor&apos;s kitchen will be hidden automatically when you browse.
+        Items containing these allergens (as noted by practitioners) will be hidden automatically when you browse.
       </p>
       <div className={`grid gap-2 ${compact ? 'grid-cols-3' : 'grid-cols-2 sm:grid-cols-3'}`}>
         {ALLERGENS.map((a) => {

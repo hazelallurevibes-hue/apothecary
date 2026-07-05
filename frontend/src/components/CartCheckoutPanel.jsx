@@ -8,6 +8,7 @@ import { calculateCheckoutTotals } from '../lib/vendorTax';
 import { getCustomerContext } from '../lib/plans';
 import { bestCartDiscount, applyDiscountToSubtotal, fetchVendorDiscounts } from '../lib/vendorDiscounts';
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
+import CheckoutDeliveryPicker from './CheckoutDeliveryPicker';
 
 export default function CartCheckoutPanel({
   user,
@@ -56,11 +57,7 @@ export default function CartCheckoutPanel({
       </div>
 
       {showDeliverySelect && (
-        <select className="w-full border p-2 rounded mb-3 text-sm" id="delivery-select" defaultValue="pickup">
-          <option value="pickup">Local Pickup (Free, next day)</option>
-          <option value="doordash">DoorDash (+$6.99, ~45min)</option>
-          <option value="ubereats">Uber Eats (+$7.49, ~35min)</option>
-        </select>
+        <CheckoutDeliveryPicker selectId="delivery-select" />
       )}
 
       <CheckoutUpsellPanel vendorId={vendorId} />

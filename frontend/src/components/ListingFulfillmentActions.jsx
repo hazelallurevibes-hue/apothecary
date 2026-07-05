@@ -1,5 +1,5 @@
 import AddToCartButton from './AddToCartButton';
-import { activeExternalLinks } from '../lib/internationalStorefront';
+import { activeExternalLinks, fulfillmentShortLabel, normalizeFulfillmentMode } from '../lib/internationalStorefront';
 
 export default function ListingFulfillmentActions({
   item,
@@ -10,13 +10,27 @@ export default function ListingFulfillmentActions({
   label,
   user = null,
 }) {
-  const mode = item?.fulfillment_mode || 'hazelallure';
+  const mode = normalizeFulfillmentMode(item?.fulfillment_mode);
 
   if (mode === 'pickup_only') {
     return (
-      <p className="text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2 text-center">
-        Local pickup only
-      </p>
+      <div className="space-y-2">
+        <p className="text-sm text-amber-900 bg-amber-50 border border-amber-100 rounded-2xl px-3 py-2 text-center">
+          🌿 Local pickup only
+        </p>
+        <AddToCartButton user={user} item={item} itemType={itemType} className={className} label={label || 'Reserve pickup'} accent={accent} />
+      </div>
+    );
+  }
+
+  if (mode === 'shipping') {
+    return (
+      <div className="space-y-2">
+        <p className="text-xs text-gray-600 bg-gray-50 border rounded-xl px-3 py-2 text-center">
+          📦 {fulfillmentShortLabel(mode)} — practitioner arranges delivery after order
+        </p>
+        <AddToCartButton user={user} item={item} itemType={itemType} className={className} label={label} accent={accent} />
+      </div>
     );
   }
 
@@ -47,13 +61,18 @@ export default function ListingFulfillmentActions({
   }
 
   return (
-    <AddToCartButton
-      user={user}
-      item={item}
-      itemType={itemType}
-      className={className}
-      label={label}
-      accent={accent}
-    />
+    <div className="space-y-2">
+      {mode === 'pickup_and_shipping' && (
+        <p className="text-xs text-gray-500 text-center">Pickup or shipping at checkout</p>
+      )}
+      <AddToCartButton
+        user={user}
+        item={item}
+        itemType={itemType}
+        className={className}
+        label={label}
+        accent={accent}
+      />
+    </div>
   );
 }
