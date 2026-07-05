@@ -94,3 +94,19 @@ export function isVendorProUser(user) {
   if ((user.role || '').toLowerCase() === 'admin') return true;
   return isProPlan(user.vendor_plan) || !!user.vendor_pro_active;
 }
+
+/** Compare pro-related fields — avoid parent re-renders when nothing changed. */
+export function proStatusFingerprint(profile) {
+  if (!profile) return '';
+  return [
+    profile.customer_plan || 'free',
+    profile.customer_pro_active ? '1' : '0',
+    profile.vendor_plan || 'free',
+    profile.vendor_pro_active ? '1' : '0',
+    profile.purchase_count ?? '',
+  ].join('|');
+}
+
+export function proStatusChanged(before, after) {
+  return proStatusFingerprint(before) !== proStatusFingerprint(after);
+}

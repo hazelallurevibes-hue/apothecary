@@ -8,21 +8,77 @@ export function getEmailVerifyRedirect(role = 'customer') {
   return `${base}${path}`;
 }
 
+const VERIFIED_CACHE_KEY = 'hazel-email-verified';
+
+function verifiedCacheKey(email) {
+  return email?.trim().toLowerCase() || '';
+}
+
+/** Session-scoped cache so remounts do not re-flash the verify banner. */
+export function readEmailVerifiedCache(email) {
+  const key = verifiedCacheKey(email);
+  if (!key) return null;
+  try {
+    const raw = sessionStorage.getItem(VERIFIED_CACHE_KEY);
+    if (!raw) return null;
+    const map = JSON.parse(raw);
+    return map[key] === true ? true : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeEmailVerifiedCache(email, verified) {
+  const key = verifiedCacheKey(email);
+  if (!key || !verified) return;
+  try {
+    const raw = sessionStorage.getItem(VERIFIED_CACHE_KEY);
+    const map = raw ? JSON.parse(raw) : {};
+    map[key] = true;
+    sessionStorage.setItem(VERIFIED_CACHE_KEY, JSON.stringify(map));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function isEmailKnownVerified(user) {
+  if (!user?.email) return false;
+  if (user.auth_provider === 'google' || user.auth_provider === 'auth0' || user.email_verified) return true;
+  return readEmailVerifiedCache(user.email) === true;
+}
+
+function sessionUserIsVerified(sessionUser) {
+  if (!sessionUser) return false;
+  if (sessionUser.email_confirmed_at || sessionUser.confirmed_at) return true;
+  const provider = sessionUser.app_metadata?.provider;
+  return provider === 'google' || provider === 'apple';
+}
+
 /** Supabase Auth email confirmation, or legacy/local auth fallback. */
 export async function checkEmailVerified(user) {
   if (!user?.email) return false;
 
+  if (isEmailKnownVerified(user)) return true;
+
   try {
-    const { data } = await supabase.auth.getUser();
-    if (data?.user?.email_confirmed_at) return true;
-    if (data?.user?.confirmed_at) return true;
-    const provider = data?.user?.app_metadata?.provider;
-    if (provider === 'google' || provider === 'apple') return true;
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (sessionUserIsVerified(sessionData?.session?.user)) {
+      writeEmailVerifiedCache(user.email, true);
+      return true;
+    }
   } catch {
     /* hybrid auth may not have Supabase session */
   }
 
-  if (user.auth_provider === 'google' || user.auth_provider === 'auth0' || user.email_verified) return true;
+  try {
+    const { data } = await supabase.auth.getUser();
+    if (sessionUserIsVerified(data?.user)) {
+      writeEmailVerifiedCache(user.email, true);
+      return true;
+    }
+  } catch {
+    /* hybrid auth may not have Supabase session */
+  }
 
   try {
     const { data: row } = await supabase
@@ -30,7 +86,10 @@ export async function checkEmailVerified(user) {
       .select('email_verified')
       .ilike('email', user.email.trim())
       .maybeSingle();
-    if (row?.email_verified) return true;
+    if (row?.email_verified) {
+      writeEmailVerifiedCache(user.email, true);
+      return true;
+    }
   } catch {
     /* column may not exist yet */
   }

@@ -77,7 +77,7 @@ function PageLoader() {
 
 import { WHIMSY_LOADING, pickWhimsy } from './lib/whimsyMessages';
 import { getPostLoginPath, restoreSession, signOut, resolveProfile, ensureOAuthUserProfile } from './lib/auth';
-import { syncUserProStatus } from './lib/proStatus';
+import { proStatusChanged, proStatusFingerprint, syncUserProStatus } from './lib/proStatus';
 import { mergeAuth0AllergenMetadata } from './lib/auth0MetadataSync';
 import { setMonitoringUser } from './lib/monitoring';
 import { supabase } from './lib/supabaseClient';
@@ -97,6 +97,18 @@ function readCachedUser() {
   return null;
 }
 
+function userProfileFingerprint(profile) {
+  if (!profile) return '';
+  return [
+    profile.email || '',
+    profile.role || '',
+    profile.name || '',
+    profile.avatar || '',
+    profile.email_verified ? '1' : '0',
+    proStatusFingerprint(profile),
+  ].join('|');
+}
+
 function AppCore({ auth0 = null }) {
   const auth0Enabled = !!auth0;
   const [user, setUser] = useState(readCachedUser);
@@ -107,6 +119,21 @@ function AppCore({ auth0 = null }) {
   const auth0Synced = useRef(false);
   const callbackHandled = useRef(false);
 
+  const commitUserProfile = (next) => {
+    if (!next) {
+      setUser(null);
+      setMonitoringUser(null);
+      localStorage.removeItem(STORAGE_KEYS.user);
+      return;
+    }
+    setUser((prev) => {
+      if (userProfileFingerprint(prev) === userProfileFingerprint(next)) return prev;
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(next));
+      setMonitoringUser(next);
+      return next;
+    });
+  };
+
   useEffect(() => {
     clearChunkReloadFlag();
   }, []);
@@ -116,18 +143,18 @@ function AppCore({ auth0 = null }) {
 
     const initSession = async () => {
       if (auth0Enabled && auth0?.isLoading) return;
-      let profile = await restoreSession();
+      const cached = await restoreSession();
+      let profile = cached;
       if (profile?.email) {
-        profile = await syncUserProStatus(profile);
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+        const synced = await syncUserProStatus(profile);
+        if (proStatusChanged(profile, synced)) {
+          profile = synced;
+          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+        }
       }
       if (active) {
-        if (profile) {
-          setUser(profile);
-          setMonitoringUser(profile);
-        } else {
-          setUser(null);
-        }
+        if (profile) commitUserProfile(profile);
+        else commitUserProfile(null);
         setSessionChecked(true);
       }
       if (auth0Enabled && !auth0?.isLoading) setAuth0Ready(true);
@@ -150,9 +177,7 @@ function AppCore({ auth0 = null }) {
         profile = await resolveProfile(session.user.email, session.user.id);
       }
 
-      setUser(profile);
-      setMonitoringUser(profile);
-      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+      commitUserProfile(profile);
 
       const path = window.location.pathname;
       const autoRedirectPaths = ['/login', '/customer-signup', '/vendor-signup'];
@@ -185,9 +210,7 @@ function AppCore({ auth0 = null }) {
           avatar: auth0.user.picture || withAllergens?.avatar,
           auth_provider: 'auth0',
         };
-        setUser(merged);
-        setMonitoringUser(merged);
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(merged));
+        commitUserProfile(merged);
         auth0Synced.current = true;
 
         if (window.location.search.includes('code=') && !callbackHandled.current) {
@@ -196,8 +219,7 @@ function AppCore({ auth0 = null }) {
           navigate(target, { replace: true });
         }
       } else if (!auth0.isAuthenticated && auth0Synced.current) {
-        setUser(null);
-        localStorage.removeItem(STORAGE_KEYS.user);
+        commitUserProfile(null);
         auth0Synced.current = false;
       }
       setAuth0Ready(true);
@@ -229,8 +251,7 @@ function AppCore({ auth0 = null }) {
         userData = await resolveProfile(userOrEmail, null);
       }
 
-      setUser(userData);
-      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(userData));
+      commitUserProfile(userData);
       navigate(getPostLoginPath(userData.role));
     } catch (e) {
       console.error('Login error:', e);
@@ -240,7 +261,7 @@ function AppCore({ auth0 = null }) {
   };
 
   const logout = async () => {
-    setUser(null);
+    commitUserProfile(null);
     auth0Synced.current = false;
     await signOut();
     if (auth0Enabled && auth0?.isAuthenticated) {
@@ -350,7 +371,7 @@ function AppCore({ auth0 = null }) {
                 
                 {/* Customer Routes */}
                 <Route path="/customer-portal" element={
-                  <ProtectedRoute allowedRoles={['customer']}><CustomerPortal user={user} onProfileUpdate={setUser} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['customer']}><CustomerPortal user={user} /></ProtectedRoute>
                 } />
                 <Route path="/orders" element={
                   <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']} customerPermission="track_orders">
@@ -411,9 +432,9 @@ function AppCore({ auth0 = null }) {
                 <Route path="/vendor/:id" element={<VendorProductPage user={user} />} />
 
                 {/* Shared / Public-ish */}
-                <Route path="/account-settings" element={<AccountSettings user={user} onProfileUpdate={setUser} />} />
+                <Route path="/account-settings" element={<AccountSettings user={user} onProfileUpdate={commitUserProfile} />} />
                 <Route path="/pro-upgrade" element={<ProUpgrade user={user} />} />
-                <Route path="/pro/success" element={<ProSuccess user={user} onProfileUpdate={setUser} />} />
+                <Route path="/pro/success" element={<ProSuccess user={user} onProfileUpdate={commitUserProfile} />} />
                 <Route path="/pro/cancel" element={<ProCancel />} />
                 <Route path="/onboarding" element={<OnboardingFlow user={user} />} />
                 <Route path="/faq" element={<FAQ />} />

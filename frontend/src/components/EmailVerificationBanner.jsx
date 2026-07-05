@@ -1,30 +1,71 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { checkEmailVerified, resendVerificationEmail } from '../lib/emailVerification';
+import { supabase } from '../lib/supabaseClient';
+import {
+  checkEmailVerified,
+  isEmailKnownVerified,
+  resendVerificationEmail,
+  writeEmailVerifiedCache,
+} from '../lib/emailVerification';
+
+function initialVerifiedState(user) {
+  if (!user?.email) return null;
+  if (isEmailKnownVerified(user)) return true;
+  return null;
+}
 
 export default function EmailVerificationBanner({ user, variant = 'customer' }) {
-  const [verified, setVerified] = useState(null);
-  const [checking, setChecking] = useState(true);
+  const [verified, setVerified] = useState(() => initialVerifiedState(user));
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
+  const checkedEmailRef = useRef(null);
+  const checkGenRef = useRef(0);
 
-  const refresh = async () => {
+  const runCheck = useCallback(async (force = false) => {
     if (!user?.email) {
       setVerified(null);
-      setChecking(false);
+      checkedEmailRef.current = null;
       return;
     }
-    setChecking(true);
+
+    if (isEmailKnownVerified(user)) {
+      setVerified(true);
+      return;
+    }
+
+    const email = user.email.trim().toLowerCase();
+    if (!force && checkedEmailRef.current === email) {
+      return;
+    }
+
+    checkedEmailRef.current = email;
+    const gen = ++checkGenRef.current;
     const ok = await checkEmailVerified(user);
+    if (gen !== checkGenRef.current) return;
+
+    if (ok) writeEmailVerifiedCache(user.email, true);
     setVerified(ok);
-    setChecking(false);
-  };
+  }, [user?.email, user?.auth_provider, user?.email_verified]);
 
   useEffect(() => {
-    refresh();
-  }, [user?.email, user?.auth_provider]);
+    runCheck(false);
+  }, [runCheck]);
 
-  if (checking || verified) return null;
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      const sessionUser = session?.user;
+      if (!sessionUser?.email || !user?.email) return;
+      if (sessionUser.email.trim().toLowerCase() !== user.email.trim().toLowerCase()) return;
+      if (sessionUser.email_confirmed_at || sessionUser.confirmed_at) {
+        writeEmailVerifiedCache(user.email, true);
+        setVerified(true);
+      }
+    });
+    return () => subscription.unsubscribe();
+  }, [user?.email]);
+
+  // Only show when we know email is unverified — never flash while checking (verified === null)
+  if (verified !== false) return null;
 
   const isVendor = variant === 'vendor';
 
@@ -60,7 +101,10 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
         <div className="flex flex-col sm:flex-row gap-2 shrink-0">
           <button
             type="button"
-            onClick={refresh}
+            onClick={() => {
+              checkedEmailRef.current = null;
+              runCheck(true);
+            }}
             className="px-4 py-2 border border-amber-300 bg-white rounded-2xl text-sm font-medium hover:bg-amber-100/50"
           >
             I verified — refresh
