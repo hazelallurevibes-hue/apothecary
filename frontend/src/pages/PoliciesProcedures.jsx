@@ -40,7 +40,7 @@ export default function PoliciesProcedures() {
       <section id="scope" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">1. Purpose, scope &amp; acceptance</h2>
         <p className="text-gray-700 leading-relaxed text-sm mb-3">
-          These Policies &amp; Procedures (&quot;Policies&quot;) govern access to and use of {VERTICAL.name}, including healing-service bookings, the Apothecary marketplace, the Teaching Sanctum, messaging, reviews, subscriptions, and related features at {VERTICAL.appUrl} and affiliated domains.
+          These Policies &amp; Procedures (&quot;Policies&quot;) govern access to and use of {VERTICAL.name}, including wellness-service bookings, the Apothecary marketplace, the Teaching Sanctum, messaging, reviews, subscriptions, and related features at {VERTICAL.appUrl} and affiliated domains.
           They supplement the <Link to="/agreements" className="underline text-[#4a1942]">Legal Agreements</Link>, <Link to="/customer-use-agreement" className="underline text-[#4a1942]">Seeker Use Agreement</Link>, and <Link to="/faq" className="underline text-[#4a1942]">FAQ</Link>.
           By creating an account, browsing, booking, purchasing, listing, or messaging, you agree to these Policies. If you do not agree, do not use the platform.
         </p>
@@ -54,8 +54,8 @@ export default function PoliciesProcedures() {
       <section id="terms" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">2. Terms of service — platform role</h2>
         <div className="space-y-3 text-gray-700 text-sm leading-relaxed">
-          <p><strong>2.1 Neutral technology platform.</strong> {VERTICAL.legalEntity} operates a neutral online marketplace and software service. We provide discovery tools, listings, booking and ordering interfaces, messaging, optional tax display tools, course hosting, and subscription billing. We are <strong>not</strong> a healthcare provider, hospital, clinic, pharmacy, insurer, credentialing body, product manufacturer, spiritual authority, escrow agent, broker, or guarantor of any transaction, healing outcome, or product efficacy.</p>
-          <p><strong>2.2 Direct user transactions.</strong> Every healing session, apothecary purchase, course enrollment, and related arrangement is a direct contract between the independent practitioner or artisan and the seeker. {VERTICAL.legalEntity} is not a party to those contracts except as a technical facilitator for certain payment flows processed by Stripe.</p>
+          <p><strong>2.1 Neutral technology platform.</strong> {VERTICAL.legalEntity} operates a neutral online marketplace and software service. We provide discovery tools, listings, booking and ordering interfaces, messaging, optional tax display tools, course hosting, and subscription billing. We are <strong>not</strong> a healthcare provider, hospital, clinic, pharmacy, insurer, credentialing body, product manufacturer, spiritual authority, escrow agent, broker, or guarantor of any transaction, session outcome, or product efficacy.</p>
+          <p><strong>2.2 Direct user transactions.</strong> Every wellness session, apothecary purchase, course enrollment, and related arrangement is a direct contract between the independent practitioner or artisan and the seeker. {VERTICAL.legalEntity} is not a party to those contracts except as a technical facilitator for certain payment flows processed by Stripe.</p>
           <p><strong>2.3 No medical services.</strong> {VERTICAL.name} does not offer medical advice, diagnosis, treatment, prescription, emergency care, or licensed clinical services. Listings for homeopathy, herbalism, naturopathic wellness, energy work, psychic readings, curanderismo, Ayurveda, and similar modalities are offered by independent practitioners for personal exploration and complementary wellness support only — not as substitutes for qualified medical or mental health care.</p>
           <p><strong>2.4 Eligibility.</strong> You must be at least 18 years of age and legally competent to enter a binding contract. One account per individual or authorized business entity. You are responsible for all activity under your credentials.</p>
           <p><strong>2.5 Modifications.</strong> We may modify features, fees, verification requirements, and these Policies at any time. Continued use after changes constitutes acceptance of the updated Policies.</p>
@@ -171,7 +171,7 @@ export default function PoliciesProcedures() {
           <li><strong>Adulterated, misbranded, or unsafe</strong> cosmetics, supplements, homeopathic products, or herbal preparations.</li>
           <li><strong>Alcohol, tobacco, nicotine, or vape products</strong> without all required licenses and lawful sale.</li>
           <li><strong>Weapons, explosives, stolen property,</strong> counterfeit goods, or items illegal to transfer.</li>
-          <li><strong>Fraudulent psychic or healing services</strong> made with intent to deceive, extort, or exploit vulnerable persons.</li>
+          <li><strong>Fraudulent psychic or wellness services</strong> made with intent to deceive, extort, or exploit vulnerable persons.</li>
           <li><strong>Human trafficking, exploitation,</strong> or services violating criminal law.</li>
           <li><strong>Circumvention</strong> of identity verification, bot protection, bans, or platform fees.</li>
           <li><strong>Restricted botanicals</strong> sold in violation of federal, state, or international law.</li>
@@ -189,7 +189,7 @@ export default function PoliciesProcedures() {
           <li>Wellness and spiritual service descriptions must use honest, non-deceptive language about scope and limitations.</li>
           <li>Apothecary listings must avoid impermissible drug claims. Structure/function statements (e.g., &quot;supports relaxation,&quot; &quot;promotes a sense of calm&quot;) are permitted only where lawful and substantiated; disease claims are prohibited without authorization.</li>
           <li>Homeopathic and herbal products must comply with FDA, FTC, DSHEA, state attorney general, and international equivalent rules as applicable.</li>
-          <li>Energy healing, psychic readings, and ritual work must not be presented as licensed medical or mental health treatment.</li>
+          <li>Energy work, psychic readings, and ritual work must not be presented as licensed medical or mental health treatment.</li>
           <li>Violations may result in immediate removal, permanent ban, and referral to regulatory authorities.</li>
         </ul>
       </section>
@@ -233,7 +233,7 @@ export default function PoliciesProcedures() {
 
       {/* 14 */}
       <section className="mb-10">
-        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">14. Healing services standards</h2>
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">14. Wellness services standards</h2>
         <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
           <li>Services (psychic, tarot, reiki, curandera, herbal consultation, naturopathic wellness, Ayurveda, and similar) must be described honestly — including session length, modality, delivery method, and inclusions.</li>
           <li>Video previews must represent actual practice style; misleading clips are prohibited.</li>

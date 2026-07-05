@@ -16,13 +16,13 @@ const legalSafetySections = [
         link: '/customer-use-agreement',
       },
       {
-        title: 'Is Hazel Allure responsible for healing outcomes or product quality?',
+        title: 'Is Hazel Allure responsible for session outcomes or product quality?',
         body: 'No. Hazel Allure does not verify practitioner credentials, test apothecary goods, guarantee spiritual or health outcomes, or endorse any listing. Badges and attestations reflect practitioner self-certification only. Seekers and practitioners each bear full responsibility for due diligence, compliance, and liability.',
         link: '/policies-procedures',
       },
       {
-        title: 'What is Hazel Allure\'s stance on homeopathy, herbalism, and energy healing?',
-        body: 'Hazel Allure welcomes diverse healing traditions — homeopathy, herbalism, naturopathic wellness, energy work, psychic readings, curanderismo, Ayurveda, and related modalities — as listings by independent practitioners. We do not evaluate efficacy, safety, or legality of these practices. Practitioners must use lawful structure/function language for products (not impermissible disease claims). Seekers must research modalities independently and consult licensed healthcare providers for medical conditions.',
+        title: 'What is Hazel Allure\'s stance on homeopathy, herbalism, and energy work?',
+        body: 'Hazel Allure welcomes diverse wellness traditions — homeopathy, herbalism, naturopathic wellness, energy work, psychic readings, curanderismo, Ayurveda, and related modalities — as listings by independent practitioners. We do not evaluate efficacy, safety, or legality of these practices. Practitioners must use lawful structure/function language for products (not impermissible disease claims). Seekers must research modalities independently and consult licensed healthcare providers for medical conditions.',
         link: '/policies-procedures#homeopathic',
       },
       {
@@ -75,7 +75,7 @@ const legalSafetySections = [
       },
       {
         title: 'What items and conduct are prohibited?',
-        body: 'Illegal drugs, unlicensed practice of regulated professions, impermissible disease treatment claims, prescription products without authorization, unlicensed alcohol, weapons, stolen goods, adulterated products, counterfeit goods, fraudulent healing claims, and anything unlawful in your jurisdiction. Restricted botanicals sold in violation of law are prohibited.',
+        body: 'Illegal drugs, unlicensed practice of regulated professions, impermissible disease treatment claims, prescription products without authorization, unlicensed alcohol, weapons, stolen goods, adulterated products, counterfeit goods, fraudulent wellness outcome claims, and anything unlawful in your jurisdiction. Restricted botanicals sold in violation of law are prohibited.',
         link: '/agreements#prohibited',
       },
       {
@@ -101,7 +101,7 @@ const legalSafetySections = [
     ],
   },
   {
-    category: 'Apothecary & healing services',
+    category: 'Apothecary & wellness services',
     items: [
       {
         title: 'What can practitioners sell in the Apothecary?',
@@ -109,8 +109,8 @@ const legalSafetySections = [
         link: '/products',
       },
       {
-        title: 'What healing services can practitioners offer?',
-        body: 'Homeopathic and naturopathic consultations, herbalism, energy work, psychic readings, tarot, curanderismo, Ayurveda, yoga, meditation, sound healing, and related bookable services — worldwide categories are available in the practitioner dashboard. Practitioners may add photos and YouTube/Vimeo session previews. Hazel Allure does not verify credentials, provide medical advice, or guarantee outcomes.',
+        title: 'What wellness services can practitioners offer?',
+        body: 'Homeopathic and naturopathic consultations, herbalism, energy work, psychic readings, tarot, curanderismo, Ayurveda, yoga, meditation, sound wellness, and related bookable services — worldwide categories are available in the practitioner dashboard. Practitioners may add photos and YouTube/Vimeo session previews. Hazel Allure does not verify credentials, provide medical advice, or guarantee outcomes.',
         link: '/services',
       },
       {

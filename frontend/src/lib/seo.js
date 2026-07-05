@@ -10,7 +10,7 @@ export const SEO_BRAND = {
   defaultImage: LOGO_IMG,
   defaultKeywords: [
     'woman-owned business',
-    'holistic healing',
+    'holistic wellness',
     'natural apothecary',
     'spiritual wellness',
     'psychic readings',
@@ -18,7 +18,7 @@ export const SEO_BRAND = {
     'curandera',
     'essential oils',
     'herbal remedies',
-    'energy healing',
+    'energy work',
     'Hazel Allure',
     'New Mexico wellness',
   ].join(', '),
@@ -27,24 +27,24 @@ export const SEO_BRAND = {
 /** Per-route title + description for search and social sharing */
 export const ROUTE_SEO = {
   '/': {
-    title: `${VERTICAL.name} — Woman-Owned Holistic Healing & Natural Apothecary`,
+    title: `${VERTICAL.name} — Woman-Owned Holistic Wellness & Natural Apothecary`,
     description:
-      'Book psychics, healers, curanderas, and holistic practitioners worldwide. Shop essential oils, incense, and apothecary goods from a woman-owned spiritual wellness marketplace.',
+      'Book psychics, practitioners, curanderas, and holistic wellness guides worldwide. Shop essential oils, incense, and apothecary goods from a woman-owned spiritual wellness marketplace.',
   },
   '/about': {
-    title: `About ${VERTICAL.name} — Woman-Owned Healing Marketplace`,
+    title: `About ${VERTICAL.name} — Woman-Owned Wellness Marketplace`,
     description:
-      'Meet the woman-owned team behind Hazel Allure. Generational healing wisdom, worldwide practitioners, and a curated apothecary rooted in intention and care.',
+      'Meet the woman-owned team behind Hazel Allure. Generational wellness wisdom, worldwide practitioners, and a curated apothecary rooted in intention and care.',
   },
   '/services': {
-    title: `Healing Services — Book Practitioners | ${VERTICAL.name}`,
+    title: `Wellness Services — Book Practitioners | ${VERTICAL.name}`,
     description:
-      'Book homeopathy, reiki, psychic readings, curandera sessions, Ayurveda, energy work, and holistic healing services from verified practitioners worldwide.',
+      'Book homeopathy, reiki, psychic readings, curandera sessions, Ayurveda, energy work, and holistic wellness services from independent practitioners worldwide.',
   },
   '/marketplace': {
-    title: `Healing Services Marketplace | ${VERTICAL.name}`,
+    title: `Wellness Services Marketplace | ${VERTICAL.name}`,
     description:
-      'Discover and book holistic healing sessions — tarot, massage, acupuncture, spiritual counseling, and traditions from cultures around the world.',
+      'Discover and book holistic wellness sessions — tarot, massage, acupuncture, spiritual counseling, and traditions from cultures around the world.',
   },
   '/products': {
     title: `Natural Apothecary — Oils, Herbs & Ritual Goods | ${VERTICAL.name}`,
@@ -59,12 +59,12 @@ export const ROUTE_SEO = {
   '/top-vendors': {
     title: `Top Practitioners & Artisans | ${VERTICAL.name}`,
     description:
-      'Explore top-rated healers, psychics, herbalists, and apothecary artisans trusted by the Hazel Allure community.',
+      'Explore top-rated practitioners, psychics, herbalists, and apothecary artisans trusted by the Hazel Allure community.',
   },
   '/faq': {
     title: `FAQ — ${VERTICAL.name} Holistic Marketplace`,
     description:
-      'Answers about booking healing services, apothecary purchases, practitioner verification, wellness disclaimers, and platform policies.',
+      'Answers about booking wellness services, apothecary purchases, practitioner verification, wellness disclaimers, and platform policies.',
   },
   '/contact': {
     title: `Contact ${VERTICAL.name}`,
@@ -77,11 +77,11 @@ export const ROUTE_SEO = {
   },
   '/customer-use-agreement': {
     title: `Seeker Use Agreement | ${VERTICAL.name}`,
-    description: 'Binding terms for seekers booking healing services, purchasing apothecary goods, and enrolling in Teaching Sanctum courses.',
+    description: 'Binding terms for seekers booking wellness services, purchasing apothecary goods, and enrolling in Teaching Sanctum courses.',
   },
   '/policies-procedures': {
     title: `Policies & Procedures | ${VERTICAL.name}`,
-    description: 'Comprehensive platform policies for healing-service bookings, apothecary marketplace, verification, and user safety.',
+    description: 'Comprehensive platform policies for wellness-service bookings, apothecary marketplace, verification, and user safety.',
   },
   '/pro-upgrade': {
     title: `Pro Membership — ${VERTICAL.name}`,
@@ -89,11 +89,11 @@ export const ROUTE_SEO = {
   },
   '/vendor-signup': {
     title: `Become a Practitioner | ${VERTICAL.name}`,
-    description: 'Apply to list healing services, apothecary goods, and courses on our woman-owned holistic wellness marketplace.',
+    description: 'Apply to list wellness services, apothecary goods, and courses on our woman-owned holistic wellness marketplace.',
   },
   '/sitemap': {
     title: `Site Map | ${VERTICAL.name}`,
-    description: 'Browse all public pages on Hazel Allure — healing services, apothecary, courses, practitioners, and platform policies.',
+    description: 'Browse all public pages on Hazel Allure — wellness services, apothecary, courses, practitioners, and platform policies.',
   },
   '/tarot-collection': {
     title: `Tarot Collection | ${VERTICAL.name}`,
@@ -122,13 +122,13 @@ export function resolveSeo(pathname) {
   if (path.startsWith('/vendor/')) {
     return {
       title: `Practitioner Storefront | ${VERTICAL.name}`,
-      description: 'Browse healing services and apothecary goods from an independent Hazel Allure practitioner.',
+      description: 'Browse wellness services and apothecary goods from an independent Hazel Allure practitioner.',
     };
   }
   if (path.startsWith('/listing/')) {
     return {
       title: `Listing Details | ${VERTICAL.name}`,
-      description: 'View details, pricing, and booking options for this healing service or apothecary item.',
+      description: 'View details, pricing, and booking options for this wellness service or apothecary item.',
     };
   }
   return ROUTE_SEO['/'];
@@ -156,7 +156,7 @@ export function organizationJsonLd() {
       {
         '@type': 'PropertyValue',
         name: 'Industry',
-        value: 'Holistic healing and natural apothecary marketplace',
+        value: 'Holistic wellness and natural apothecary marketplace',
       },
     ],
   };

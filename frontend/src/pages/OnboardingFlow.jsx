@@ -49,10 +49,10 @@ export default function OnboardingFlow({ user }) {
               Yearly Pro saves about 17% — familiar evolution, tarot path perks, priority support, and more.
             </p>
             <Link
-              to="/pro-upgrade?interval=annual"
+              to="/pro-upgrade"
               className="mt-4 inline-block w-full text-center py-3 bg-[#4a1942] text-white rounded-2xl font-semibold hover:bg-[#2d1230] transition"
             >
-              View Pro Member yearly plan →
+              View Pro Member plans →
             </Link>
           </div>
           <button

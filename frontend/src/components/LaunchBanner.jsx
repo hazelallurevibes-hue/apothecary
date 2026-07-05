@@ -30,7 +30,7 @@ export default function LaunchBanner({ vendorCount = 0, itemCount = 0 }) {
         <div className="text-[10px] tracking-[3px] font-mono text-[#4a1942] mb-2">NOW OPENING</div>
         <h2 className="text-xl font-semibold text-[#2d1230] mb-1 heading-font">{VERTICAL.name} is welcoming practitioners &amp; seekers</h2>
         <p className="text-sm text-gray-600 max-w-xl">
-          Listings are growing as healers and artisans join worldwide. Practitioners can apply today — seekers can create accounts and get notified as new services and apothecary goods go live.
+          Listings are growing as practitioners and artisans join worldwide. Practitioners can apply today — seekers can create accounts and get notified as new services and apothecary goods go live.
         </p>
       </div>
       <div className="flex flex-wrap gap-2 shrink-0">

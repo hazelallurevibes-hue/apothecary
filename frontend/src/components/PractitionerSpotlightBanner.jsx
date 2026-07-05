@@ -32,7 +32,7 @@ export default function PractitionerSpotlightBanner({ vendor }) {
           <p className="text-sm sm:text-base text-white/90 leading-relaxed">{note}</p>
         ) : (
           <p className="text-sm text-white/75">
-            Recognized by Hazel Allure for outstanding service to our healing community.
+            Recognized by Hazel Allure for outstanding service to our wellness community.
           </p>
         )}
       </div>

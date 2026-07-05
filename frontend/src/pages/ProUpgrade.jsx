@@ -11,11 +11,12 @@ import {
 import { createProCheckout, getProPricing } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
+import ProBillingPlanPicker from '../components/ProBillingPlanPicker';
 
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
   const [searchParams] = useSearchParams();
-  const billingDefault = searchParams.get('interval') === 'monthly' ? 'monthly' : 'annual';
+  const billingDefault = searchParams.get('interval') === 'annual' ? 'annual' : 'monthly';
   const [billingInterval, setBillingInterval] = useState(billingDefault);
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -94,41 +95,16 @@ export default function ProUpgrade({ user }) {
         </p>
       </div>
 
-      {billingInterval === 'monthly' && (
-        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#c9a227]/15 to-amber-50 border border-[#c9a227]/30 text-center">
-          <p className="text-sm font-semibold text-[#4a1942]">
-            Save about {formatCurrency(annualSavings)} per year with annual billing
-          </p>
-          <button
-            type="button"
-            onClick={() => setBillingInterval('annual')}
-            className="mt-2 text-sm font-bold text-[#4a1942] underline hover:no-underline"
-          >
-            Switch to yearly — {formatCurrency(annualPrice)}/yr ({formatCurrency((parseFloat(annualPrice) / 12).toFixed(2))}/mo)
-          </button>
-        </div>
+      {!alreadyPro && (
+        <ProBillingPlanPicker
+          billingInterval={billingInterval}
+          onSelect={setBillingInterval}
+          monthlyPrice={monthlyPrice}
+          annualPrice={annualPrice}
+          annualSavings={annualSavings}
+          vendorOnly={vendorOnly}
+        />
       )}
-
-      <div className="flex justify-center gap-2 mb-6" role="group" aria-label="Billing interval">
-        <button
-          type="button"
-          onClick={() => setBillingInterval('monthly')}
-          className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition ${billingInterval === 'monthly' ? 'bg-[#2d1230] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
-        >
-          Monthly
-        </button>
-        <button
-          type="button"
-          onClick={() => setBillingInterval('annual')}
-          className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition relative ${billingInterval === 'annual' ? 'bg-[#2d1230] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
-        >
-          Yearly
-          <span className="absolute -top-2 -right-2 text-[9px] bg-[#c9a227] text-[#1a0a18] px-1.5 py-0.5 rounded-full font-bold">
-            Best value
-          </span>
-          <span className="text-xs opacity-80 ml-1">({t('pro.upgrade.annualNote')})</span>
-        </button>
-      </div>
 
       <div className={`glass-card p-6 sm:p-8 ${!alreadyPro ? 'animate-glow-pulse' : ''} border-2 border-[#4a1942]/12`}>
         <div className="flex flex-wrap justify-between items-start gap-4 mb-6 pb-6 border-b border-[#4a1942]/8">

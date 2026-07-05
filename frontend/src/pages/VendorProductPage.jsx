@@ -19,7 +19,7 @@ export default function VendorProductPage({ user }) {
       vendorName: v.name,
       image: v.highlight_photo,
       title: `${v.name} — ${VERTICAL.labels.vendor} | ${VERTICAL.name}`,
-      description: (v.bio || `Browse healing services and apothecary goods from ${v.name}.`).slice(0, 160),
+      description: (v.bio || `Browse wellness services and apothecary goods from ${v.name}.`).slice(0, 160),
     });
   };
 

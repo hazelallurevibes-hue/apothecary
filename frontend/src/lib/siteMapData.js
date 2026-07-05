@@ -7,7 +7,7 @@ export const SITEMAP_SECTIONS = [
     title: 'Explore',
     links: [
       { path: '/', label: 'Home', priority: '1.0', changefreq: 'daily' },
-      { path: '/services', label: 'Healing Services Marketplace', priority: '0.9', changefreq: 'daily' },
+      { path: '/services', label: 'Wellness Services Marketplace', priority: '0.9', changefreq: 'daily' },
       { path: '/products', label: 'Apothecary & Ritual Goods', priority: '0.9', changefreq: 'daily' },
       { path: '/courses', label: 'Teaching Sanctum — Courses', priority: '0.8', changefreq: 'weekly' },
       { path: '/top-vendors', label: 'Top Practitioners', priority: '0.8', changefreq: 'weekly' },

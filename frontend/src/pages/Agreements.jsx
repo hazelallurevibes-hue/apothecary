@@ -37,7 +37,7 @@ export default function Agreements() {
 
       <div className="bg-red-50 border border-red-200 rounded-2xl p-5 mb-8 text-sm text-red-900">
         <strong>Platform-only relationship:</strong> {VERTICAL.legalEntity} provides software and marketplace tools for spiritual wellness — not medical care, credentialing, product testing, or transaction guarantees.
-        Every healing session and apothecary sale is between independent users.
+        Every wellness session and apothecary sale is between independent users.
       </div>
 
       {/* 1 */}
@@ -45,7 +45,7 @@ export default function Agreements() {
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">1. Terms of Service</h2>
         <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
           <p><strong>1.1 Agreement.</strong> These Terms of Service (&quot;Terms&quot;) form a binding agreement between you and {VERTICAL.legalEntity}, a Wyoming limited liability company with operations in New Mexico (&quot;Hazel Allure,&quot; &quot;we,&quot; &quot;us&quot;). They govern your access to {VERTICAL.name} at {VERTICAL.appUrl} and related services.</p>
-          <p><strong>1.2 Platform role.</strong> Hazel Allure is a neutral technology platform connecting independent seekers with practitioners and artisans worldwide. We provide discovery, healing-service bookings, apothecary listings, Teaching Sanctum courses, ordering tools, messaging, optional tax calculators, email campaign tools, and Pro subscriptions. <strong>Hazel Allure is not a practitioner, seeker, broker, insurer, credentialing body, tax preparer, escrow agent, or guarantor of any transaction, healing outcome, product safety, or spiritual result.</strong></p>
+          <p><strong>1.2 Platform role.</strong> Hazel Allure is a neutral technology platform connecting independent seekers with practitioners and artisans worldwide. We provide discovery, wellness-service bookings, apothecary listings, Teaching Sanctum courses, ordering tools, messaging, optional tax calculators, email campaign tools, and Pro subscriptions. <strong>Hazel Allure is not a practitioner, seeker, broker, insurer, credentialing body, tax preparer, escrow agent, or guarantor of any transaction, session outcome, product safety, or spiritual result.</strong></p>
           <p><strong>1.3 No medical services.</strong> Hazel Allure does not provide medical advice, diagnosis, treatment, prescription, or emergency services. Listings for homeopathy, herbalism, naturopathic wellness, energy work, psychic readings, curanderismo, and related modalities are offered by independent practitioners for complementary wellness and personal exploration only.</p>
           <p><strong>1.4 Eligibility.</strong> You must be at least 18 years old and legally competent to contract. One account per individual or authorized business entity. You are responsible for all activity on your account and for maintaining credential security.</p>
           <p><strong>1.5 Account registration.</strong> You agree to provide accurate registration information and keep it current. Falsifying identity, credentials, or business information is grounds for immediate termination.</p>

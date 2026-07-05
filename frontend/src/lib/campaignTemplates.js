@@ -7,10 +7,10 @@ export const CAMPAIGN_TEMPLATES = [
       'We just added new oils, incense, and apothecary favorites to our storefront. Browse what is in stock and order through Hazel Allure.',
   },
   {
-    label: 'New healing service',
+    label: 'New wellness service',
     subject: 'A new session is open for booking',
     body:
-      'We added a new healing service to our menu. See photos, details, and book directly on Hazel Allure.',
+      'We added a new wellness service to our menu. See photos, details, and book directly on Hazel Allure.',
   },
   {
     label: 'Seasonal offering',

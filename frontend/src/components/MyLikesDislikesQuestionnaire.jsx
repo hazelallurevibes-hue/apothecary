@@ -41,7 +41,7 @@ export default function MyLikesDislikesQuestionnaire({
             </HelpTip>
           </div>
           <p className="text-sm text-gray-600">
-            Our mission: connect seekers with trusted practitioners and artisans — healing services, ritual goods, and courses made with intention worldwide.
+            Our mission: connect seekers with trusted practitioners and artisans — wellness services, ritual goods, and courses made with intention worldwide.
           </p>
         </div>
       )}

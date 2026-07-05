@@ -187,7 +187,7 @@ export default function Marketplace({ user }) {
       <div className="flex justify-between items-end mb-6">
         <div>
           <h1 className="text-4xl font-bold tracking-tight heading-font text-[#4a1942]">{VERTICAL.labels.marketplace}</h1>
-          <p className="text-gray-600">Book psychics, healers, massage, yoga, curanderas &amp; more worldwide</p>
+          <p className="text-gray-600">Book psychics, practitioners, massage, yoga, curanderas &amp; more worldwide</p>
           <Link to="/top-vendors" className="text-sm text-[#4a1942] font-medium mt-1 inline-block">
             Find practitioners by rating →
           </Link>

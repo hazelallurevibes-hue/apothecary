@@ -15,7 +15,7 @@ export default function SignUp() {
           <span className="text-3xl" aria-hidden>🌿</span>
           <h2 className="text-lg font-semibold text-[#4a1942] mt-3 group-hover:text-[#2d1230]">Seeker (Member)</h2>
           <p className="text-sm text-gray-500 mt-2 leading-relaxed">
-            Book healing sessions, shop the apothecary, join the Hearth, and collect tarot delights.
+            Book wellness sessions, shop the apothecary, join the Hearth, and collect tarot delights.
           </p>
           <span className="inline-block mt-4 text-sm font-medium text-[#4a1942] underline">Sign up as a seeker →</span>
         </Link>

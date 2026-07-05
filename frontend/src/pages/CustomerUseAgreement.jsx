@@ -33,7 +33,7 @@ export default function CustomerUseAgreement() {
         <section className="border rounded-2xl p-5">
           <h2 className="font-semibold text-lg mb-2">2. No medical reliance</h2>
           <p className="mb-3">
-            <strong>Do not rely on {VERTICAL.name} for medical advice, diagnosis, treatment, or emergency care.</strong> Healing sessions, psychic readings, energy work, homeopathic consultations, herbal guidance, naturopathic wellness sessions, curanderismo, Ayurveda, and Teaching Sanctum courses are offered for personal exploration, complementary wellness, and spiritual support — not as substitutes for licensed medical, dental, psychiatric, or emergency services.
+            <strong>Do not rely on {VERTICAL.name} for medical advice, diagnosis, treatment, or emergency care.</strong> Wellness sessions, psychic readings, energy work, homeopathic consultations, herbal guidance, naturopathic wellness sessions, curanderismo, Ayurveda, and Teaching Sanctum courses are offered for personal exploration, complementary wellness, and spiritual support — not as substitutes for licensed medical, dental, psychiatric, or emergency services.
           </p>
           <ul className="list-disc pl-5 space-y-1">
             <li>Always consult a qualified healthcare professional for medical conditions, symptoms, medication interactions, pregnancy, nursing, or mental health crises.</li>
@@ -61,9 +61,9 @@ export default function CustomerUseAgreement() {
         </section>
 
         <section className="border rounded-2xl p-5">
-          <h2 className="font-semibold text-lg mb-2">4. Healing services &amp; spiritual modalities</h2>
+          <h2 className="font-semibold text-lg mb-2">4. Wellness services &amp; spiritual modalities</h2>
           <p className="mb-3">
-            Sessions including psychic readings, tarot, reiki, curandera work, mediumship, chakra balancing, sound healing, and similar offerings are for personal insight and wellness support.
+            Sessions including psychic readings, tarot, reiki, curandera work, mediumship, chakra balancing, sound wellness, and similar offerings are for personal insight and wellness support.
             You acknowledge that spiritual and energetic practices are subjective, cannot be scientifically verified by {VERTICAL.legalEntity}, and do not constitute licensed mental health treatment.
           </p>
           <p>
@@ -230,7 +230,7 @@ export default function CustomerUseAgreement() {
           <Link to="/agreements" className="underline text-blue-300">Terms of Service &amp; Legal Agreements</Link>,{' '}
           <Link to="/policies-procedures" className="underline text-blue-300">Policies &amp; Procedures</Link>, and{' '}
           <Link to="/faq" className="underline text-blue-300">FAQ</Link>.
-          You accept that all healing and apothecary transactions are with independent practitioners, not {VERTICAL.legalEntity}.
+          You accept that all wellness and apothecary transactions are with independent practitioners, not {VERTICAL.legalEntity}.
         </p>
       </div>
 

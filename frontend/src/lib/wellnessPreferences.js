@@ -54,9 +54,9 @@ export const PRACTITIONER_SPECIALTY_GROUPS = [
     label: 'Energy & bodywork',
     options: [
       'Reiki',
-      'Energy healing',
-      'Sound healing',
-      'Crystal healing',
+      'Energy work',
+      'Sound wellness',
+      'Crystal wellness',
       'Chakra balancing',
       'Massage therapy',
       'Reflexology',
@@ -64,7 +64,7 @@ export const PRACTITIONER_SPECIALTY_GROUPS = [
     ],
   },
   {
-    label: 'Traditional & ancestral healing',
+    label: 'Traditional & ancestral wellness',
     options: [
       'Curandera',
       'Curandero',
@@ -73,8 +73,8 @@ export const PRACTITIONER_SPECIALTY_GROUPS = [
       'Bruja',
       'Curanderismo',
       'Shamanic practitioner',
-      'Indigenous healer',
-      'Folk healer',
+      'Indigenous wellness guide',
+      'Folk practitioner',
     ],
   },
   {

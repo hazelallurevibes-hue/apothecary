@@ -6,7 +6,7 @@ import GoogleTranslatePanel from './GoogleTranslatePanel';
 import { getMainPageText, speakText, stopSpeaking } from '../lib/readAloud';
 
 const SITE_GUIDE = [
-  { title: 'Browse', body: 'Use Services to book healers, readers, and bodyworkers — or Apothecary for oils, incense, crystals, and ritual goods.' },
+  { title: 'Browse', body: 'Use Services to book practitioners, readers, and bodyworkers — or Apothecary for oils, incense, crystals, and ritual goods.' },
   { title: 'Set preferences', body: 'Wellness Preferences (Account Settings) hides allergens and helps practitioners understand your intentions.' },
   { title: 'Order', body: 'Add items to cart, book a session, and track everything under Orders.' },
   { title: 'Pre-orders', body: 'For custom requests, describe changes at checkout. The practitioner approves before fulfillment.' },

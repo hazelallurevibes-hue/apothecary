@@ -28,7 +28,7 @@ export default function Contact() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-4xl font-bold tracking-tight mb-2 heading-font text-[#4a1942]">Contact {VERTICAL.name}</h1>
       <p className="text-gray-600 mb-8">
-        We love our community and are passionate about supporting your holistic health journey. Reach out anytime.
+        We love our community and are passionate about supporting your holistic wellness journey. Reach out anytime.
       </p>
 
       <div className="bg-white border border-[#c9a227]/20 rounded-3xl p-8 space-y-6">

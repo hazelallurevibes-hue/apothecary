@@ -146,7 +146,7 @@ export default function CustomerSignUp({ onLogin }) {
 
   const finishSignup = (profileData) => {
     onLogin(profileData);
-    setMessage('Welcome to Hazel Allure — heal with intention, shop with spirit!');
+    setMessage('Welcome to Hazel Allure — wellness with intention, shop with spirit!');
   };
 
   const savePrefsAndFinish = async () => {

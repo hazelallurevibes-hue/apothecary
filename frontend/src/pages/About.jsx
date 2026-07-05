@@ -19,7 +19,7 @@ export default function About() {
           {VERTICAL.tagline}
         </h1>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-          Organic, vegan-friendly, natural products and holistic healing — rooted in generational wisdom and shared worldwide.
+          Organic, vegan-friendly, natural products and holistic wellness — rooted in generational wisdom and shared worldwide.
         </p>
       </header>
 
@@ -35,7 +35,7 @@ export default function About() {
           {VERTICAL.womanOwned.summary}
         </p>
         <p className="text-gray-700 leading-relaxed mb-4">
-          As a woman-owned business, we understand what it means to hold space for healing — in body, spirit, and community.
+          As a woman-owned business, we understand what it means to hold space for wellness — in body, spirit, and community.
           Every feature on this platform was designed with care: easy booking for seekers, dignified tools for practitioners,
           and a marketplace that honors diverse traditions without flattening them into trends.
         </p>
@@ -54,7 +54,7 @@ export default function About() {
           </li>
           <li className="flex gap-2 items-start">
             <span className="text-ha-rose shrink-0" aria-hidden="true">✦</span>
-            <span>Worldwide reach with a personal touch — healers and seekers connected with intention.</span>
+            <span>Worldwide reach with a personal touch — practitioners and seekers connected with intention.</span>
           </li>
         </ul>
       </section>
@@ -63,8 +63,8 @@ export default function About() {
         <div className="order-2 md:order-1 space-y-4 text-gray-700 leading-relaxed">
           <h2 className="text-2xl font-semibold text-ha-primary-dark heading-font">Our Story</h2>
           <p>
-            Our story begins with a deep-rooted passion for healing and a legacy of generational knowledge. Raised among
-            healers, our founder grew up learning the timeless wisdom of natural remedies and holistic health practices.
+            Our story begins with a deep-rooted passion for wellness and a legacy of generational knowledge. Raised among
+            practitioners, our founder grew up learning the timeless wisdom of natural remedies and holistic wellness practices.
           </p>
           <p>
             Driven by a desire to preserve and expand this knowledge, she has dedicated her life to gathering traditions
@@ -72,8 +72,8 @@ export default function About() {
             world.
           </p>
           <p>
-            {VERTICAL.name} is a space for learning, sharing, and healing together while supporting spiritual growth. We
-            honor the wisdom of the past as we build healthier futures — with a marketplace where seekers can book
+            {VERTICAL.name} is a space for learning, sharing, and growing together while supporting spiritual wellness. We
+            honor the wisdom of the past as we build brighter futures — with a marketplace where seekers can book
             practitioners and shop apothecary goods with intention.
           </p>
           <p className="text-sm text-gray-500">
@@ -103,7 +103,7 @@ export default function About() {
         <h2 className="text-2xl font-semibold mb-4 heading-font">What you&apos;ll find here</h2>
         <div className="grid sm:grid-cols-2 gap-6 text-sm leading-relaxed text-white/85">
           <div>
-            <h3 className="font-semibold text-ha-accent-soft mb-2">Healing Services</h3>
+            <h3 className="font-semibold text-ha-accent-soft mb-2">Wellness Services</h3>
             <p>Psychic readings, tarot, reiki, massage, yoga, acupuncture, curanderas, spiritual counselors, and practitioners from traditions worldwide.</p>
           </div>
           <div>
@@ -112,7 +112,7 @@ export default function About() {
           </div>
           <div>
             <h3 className="font-semibold text-ha-accent-soft mb-2">Worldwide &amp; inclusive</h3>
-            <p>Sangomas, babalawos, kahunas, TCM, Ayurveda, hijama, and more — we welcome healers and seekers across cultures.</p>
+            <p>Sangomas, babalawos, kahunas, TCM, Ayurveda, hijama, and more — we welcome practitioners and seekers across cultures.</p>
           </div>
           <div>
             <h3 className="font-semibold text-ha-accent-soft mb-2">Easy to use</h3>

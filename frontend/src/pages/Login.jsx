@@ -158,7 +158,7 @@ export default function Login({ onLogin, loading }) {
           </div>
           <h1 className="text-5xl font-bold tracking-tighter heading-font">{VERTICAL.name}</h1>
           <p className="text-gray-500 mt-2">{VERTICAL.tagline}</p>
-          <p className="text-gray-400 text-sm mt-1">Healing services, apothecary goods &amp; the Teaching Sanctum</p>
+          <p className="text-gray-400 text-sm mt-1">Wellness services, apothecary goods &amp; the Teaching Sanctum</p>
         </div>
 
         <div className="bg-white border rounded-3xl p-8 shadow-sm">

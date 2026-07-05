@@ -182,6 +182,6 @@ export const COURSE_CATEGORIES = [
   { id: 'tarot', label: 'Tarot & divination' },
   { id: 'wellness', label: 'Wellness & self-care' },
   { id: 'ritual', label: 'Ritual & ceremony' },
-  { id: 'business', label: 'Healer business' },
+  { id: 'business', label: 'Practitioner business' },
   { id: 'other', label: 'Other' },
 ];

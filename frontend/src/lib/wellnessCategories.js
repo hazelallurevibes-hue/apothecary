@@ -28,21 +28,21 @@ export const WELLNESS_SERVICE_CATEGORIES = [
   {
     id: 'reiki',
     label: 'Reiki, pranic & energy work',
-    description: 'Reiki, pranic healing, chakra balancing, and other energy traditions — supportive sessions from trained practitioners.',
+    description: 'Reiki, pranic energy work, chakra balancing, and other energy traditions — supportive sessions from trained practitioners.',
   },
   {
     id: 'energy_healing',
-    label: 'Energy healing & somatic wellness',
+    label: 'Energy work & somatic wellness',
     description: 'Hands-on and distance energy work, somatic release, and subtle-body practices from diverse lineages.',
   },
   {
     id: 'crystal_healing',
-    label: 'Crystal healing',
+    label: 'Crystal wellness',
     description: 'Crystal layouts, stone medicine, and mineral-based ritual support.',
   },
   {
     id: 'sound_healing',
-    label: 'Sound & drum healing',
+    label: 'Sound & vibrational wellness',
     description: 'Singing bowls, drums, tuning forks, and vibrational sound sessions.',
   },
   {
@@ -52,12 +52,12 @@ export const WELLNESS_SERVICE_CATEGORIES = [
   },
   {
     id: 'curandera',
-    label: 'Curanderismo & folk healing',
-    description: 'Curanderas, curanderos, and traditional folk healers — limpias, herbal ritual, and culturally rooted wellness.',
+    label: 'Curanderismo & folk wellness',
+    description: 'Curanderas, curanderos, and traditional folk practitioners — limpias, herbal ritual, and culturally rooted wellness.',
   },
   {
     id: 'spiritual_healer',
-    label: 'Spiritual healer',
+    label: 'Spiritual wellness guide',
     description: 'Faith-based, ancestral, and interfaith spiritual support and blessing work.',
   },
   {
@@ -282,14 +282,14 @@ export const CULTURAL_PRACTITIONER_HINTS = [
   'Herbalist',
   'Ayurvedic practitioner / Vaidya',
   'Traditional Chinese Medicine practitioner',
-  'Unani healer',
+  'Unani practitioner',
   'Sangoma',
   'Babalawo',
   'Kahuna',
   'Nganga',
   'Hijama practitioner',
   'Reiki master',
-  'Pranic healer',
+  'Pranic practitioner',
   'Energy worker',
   'Shamanic practitioner',
   'Doula & womb wellness guide',

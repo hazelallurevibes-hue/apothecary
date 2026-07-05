@@ -23,7 +23,7 @@ const MAJOR_ART = [
   { motif: 'Alchemy & patience', meaning: 'Blend opposites with steady care.', pattern: 'blend' },
   { motif: 'Shadow & attachment', meaning: 'Name what binds you to choose freedom.', pattern: 'chains' },
   { motif: 'Sudden revelation', meaning: 'Old structures fall — truth remains.', pattern: 'lightning' },
-  { motif: 'Hope & healing', meaning: 'Renewal after difficulty; keep faith.', pattern: 'constellation' },
+  { motif: 'Hope & renewal', meaning: 'Renewal after difficulty; keep faith.', pattern: 'constellation' },
   { motif: 'Dreams & mystery', meaning: 'Not all is visible — honor the unseen.', pattern: 'moonlit' },
   { motif: 'Joy & clarity', meaning: 'Warmth, vitality, and childlike wonder.', pattern: 'solar' },
   { motif: 'Awakening & call', meaning: 'Answer the summons to your higher path.', pattern: 'trumpet' },

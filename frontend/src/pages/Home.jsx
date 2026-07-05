@@ -88,7 +88,7 @@ function VendorHome({ liveStats }) {
       <div className="mb-8 rounded-3xl border border-[#c9a227]/30 bg-gradient-to-br from-[#f5f0e8] to-white p-10">
         <h1 className="text-4xl font-bold tracking-tight mb-3 heading-font text-[#4a1942]">Practitioner Dashboard</h1>
         <p className="text-gray-600 mb-6 max-w-xl">
-          Manage your storefront, healing services, apothecary goods, and grow your practice worldwide.
+          Manage your storefront, wellness services, apothecary goods, and grow your practice worldwide.
         </p>
         <div className="flex flex-wrap gap-3">
           <Link to="/vendor-dashboard" className="px-8 py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold">
@@ -105,7 +105,7 @@ function VendorHome({ liveStats }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/vendor-dashboard" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Add Listings</h3>
-          <p className="text-sm text-gray-600 mt-2">Healing sessions, readings, and apothecary products.</p>
+          <p className="text-sm text-gray-600 mt-2">Wellness sessions, readings, and apothecary products.</p>
         </Link>
         <Link to="/products" className="bg-white border border-[#c9a227]/30 rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Apothecary &amp; Goods</h3>
@@ -231,7 +231,7 @@ function CustomerHome({ user, liveStats }) {
             <div className="absolute bottom-6 left-6 text-sm font-medium tracking-tight">
               ORGANIC • VEGAN • NATURAL
               <br />
-              <span className="text-white/60 text-xs">— healers &amp; artisans worldwide</span>
+              <span className="text-white/60 text-xs">— practitioners &amp; artisans worldwide</span>
             </div>
           </div>
         </div>
@@ -276,7 +276,7 @@ function CustomerHome({ user, liveStats }) {
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link to="/top-vendors" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Top Practitioners</h3>
-          <p className="text-sm text-gray-600 mt-2">Discover trusted healers, readers, and artisans by rating.</p>
+          <p className="text-sm text-gray-600 mt-2">Discover trusted practitioners, readers, and artisans by rating.</p>
         </Link>
         <Link to="/services" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Wellness Services</h3>

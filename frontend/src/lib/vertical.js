@@ -8,8 +8,8 @@ export const VERTICAL = {
   id: 'hazelallure',
   name: 'Hazel Allure',
   legalEntity: 'Hazel Allure LLC',
-  tagline: 'Heal with intention. Shop with spirit.',
-  heroTitle: ['Ancient wisdom.', 'Modern healing.', 'Your path.'],
+  tagline: 'Wellness with intention. Shop with spirit.',
+  heroTitle: ['Ancient wisdom.', 'Modern wellness.', 'Your path.'],
   heroSubtitle:
     'Connect with psychics, homeopaths, herbalists, energy workers, curanderas, naturopathic practitioners, and artisans worldwide — book sessions and discover remedies, oils, incense, and apothecary goods made with care.',
   heroBadge: 'ORGANIC • VEGAN • NATURAL • WORLDWIDE',
@@ -39,9 +39,9 @@ export const VERTICAL = {
   /** Woman-owned business — branding + SEO */
   womanOwned: {
     badge: 'Woman-Owned Business',
-    headline: 'Built by a healer. Led with heart.',
+    headline: 'Built by a practitioner. Led with heart.',
     summary:
-      'Hazel Allure is a proudly woman-owned holistic wellness marketplace — founded by a healer raised among curanderas, herbalists, and energy workers, and dedicated to preserving traditions that deserve to thrive in the modern world.',
+      'Hazel Allure is a proudly woman-owned holistic wellness marketplace — founded by a practitioner raised among curanderas, herbalists, and energy workers, and dedicated to preserving traditions that deserve to thrive in the modern world.',
   },
 
   routes: {
@@ -93,7 +93,7 @@ export const VERTICAL = {
     platformDescription:
       'Hazel Allure is a technology platform connecting seekers with independent practitioners and artisans worldwide — homeopathy, herbalism, energy work, curanderismo, Ayurveda, naturopathic wellness, psychic readings, and more. Book sessions, shop apothecary goods, and explore the Teaching Sanctum. We provide listings, ordering, messaging, and discovery tools. We are not a healthcare provider and are not a party to your transactions.',
     seekerOnboardingTagline:
-      'Heal with intention. Discover practitioners across healing traditions, ritual goods, and courses made with care.',
+      'Wellness with intention. Discover practitioners across wellness traditions, ritual goods, and courses made with care.',
     seekerStepApothecary: 'Browse the Apothecary',
     seekerStepApothecaryHint: 'Homeopathic remedies, herbs, oils, incense, crystals, and ritual kits',
     seekerStepServices: 'Book a wellness session',
@@ -101,7 +101,7 @@ export const VERTICAL = {
     wellnessDisclaimer:
       'Hazel Allure does not provide medical advice, diagnosis, or treatment. Practitioner listings are for wellness and spiritual support only. Always consult a qualified healthcare professional for medical concerns.',
     inclusiveWellnessLine:
-      'Every tradition is welcome here — from homeopathic and naturopathic practitioners to curanderas, herbalists, energy workers, and ancestral healers worldwide.',
+      'Every tradition is welcome here — from homeopathic and naturopathic practitioners to curanderas, herbalists, energy workers, and ancestral wellness guides worldwide.',
     productSafetyNote:
       'Practitioners self-certify product quality and lawful sale. Hazel Allure does not inspect items, verify credentials, or guarantee outcomes. Wellness product descriptions must follow structure/function language — not disease treatment claims.',
     apothecaryCartTitle: 'Your Apothecary Cart',

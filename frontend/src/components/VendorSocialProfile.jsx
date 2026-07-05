@@ -408,7 +408,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
           onClick={() => scrollToTab('services')}
           className="flex-1 sm:flex-none min-w-[7rem] px-6 py-3 rounded-full font-semibold text-white text-sm shadow-sm hover:opacity-90 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
           style={{ backgroundColor: accent }}
-          aria-label="Book a healing session"
+          aria-label="Book a wellness session"
         >
           Book
         </button>
@@ -553,7 +553,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {services.length === 0 && (
-                <p className="text-gray-500 col-span-full text-center py-8">No healing services listed yet.</p>
+                <p className="text-gray-500 col-span-full text-center py-8">No wellness services listed yet.</p>
               )}
               {services.map((item) => (
                 <ListingCard key={item.id} item={item} vendor={vendor} itemType="menu" accent={accent} user={user} />
