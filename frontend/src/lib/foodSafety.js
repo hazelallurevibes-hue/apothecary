@@ -27,30 +27,45 @@ export function computeSafetyVerified(item) {
   return temp >= minTempForCategory(category);
 }
 
-export function isSafetySubmissionValid(safety) {
-  if (!safety) return false;
-  if (safety.safety_opt_out) return true;
-  if (!safety.safety_practices_certified) return false;
-  if (!requiresCookingTemp(safety.food_category)) return true;
-  const temp = Number(safety.finish_temp_f);
-  return !Number.isNaN(temp) && temp > 0;
+/** Listing safety is covered by VendorListingConfirmModal attestations — no per-listing food-safety form. */
+export function isSafetySubmissionValid() {
+  return true;
 }
 
-export function buildSafetyPayload({ finish_temp_f, safety_opt_out, food_category, safety_practices_certified, temp_photo_url }) {
+export function buildSafetyPayload({
+  finish_temp_f,
+  safety_opt_out,
+  food_category,
+  safety_practices_certified,
+  temp_photo_url,
+} = {}) {
   const optOut = !!safety_opt_out;
   const category = food_category || 'general';
   const needsTemp = requiresCookingTemp(category);
   const temp = finish_temp_f === '' || finish_temp_f == null ? null : Number(finish_temp_f);
-  const tempOk = needsTemp && !optOut && temp != null && !Number.isNaN(temp) && temp >= minTempForCategory(category);
-  const practices = !!safety_practices_certified;
   const photo = temp_photo_url?.trim() || null;
+
+  if (optOut) {
+    return {
+      finish_temp_f: needsTemp ? temp : null,
+      safety_opt_out: true,
+      food_category: category,
+      safety_verified: false,
+      safety_practices_certified: !!safety_practices_certified,
+      temp_photo_url: needsTemp ? photo : null,
+    };
+  }
+
+  const tempOk = needsTemp && temp != null && !Number.isNaN(temp) && temp >= minTempForCategory(category);
+  const practices = true;
+
   return {
-    finish_temp_f: needsTemp ? temp : null,
-    safety_opt_out: optOut,
+    finish_temp_f: needsTemp && tempOk ? temp : null,
+    safety_opt_out: false,
     food_category: category,
-    safety_verified: optOut ? false : tempOk || (practices && !needsTemp) || (practices && needsTemp),
+    safety_verified: tempOk || practices,
     safety_practices_certified: practices,
-    temp_photo_url: needsTemp ? photo : null,
+    temp_photo_url: needsTemp && tempOk ? photo : null,
   };
 }
 

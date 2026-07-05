@@ -13,9 +13,6 @@ import ListingLanguageDisclaimer from './ListingLanguageDisclaimer';
 import ServiceMediaField from './ServiceMediaField';
 import { EMPTY_THUMBNAIL } from '../lib/vendorListings';
 
-const EMPTY_MENU_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'general', safety_practices_certified: false, temp_photo_url: '' };
-const EMPTY_PRODUCE_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'raw_fresh', safety_practices_certified: false, temp_photo_url: '' };
-
 const STEP_LABELS = ['What are you listing?', 'Basics', 'Photo', 'Fulfillment'];
 
 const TOUCH_BTN =
@@ -45,7 +42,6 @@ export default function ListingQuickAdd({
   const [fulfillmentMode, setFulfillmentMode] = useState('pickup_and_shipping');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [allergens, setAllergens] = useState([]);
-  const [safety, setSafety] = useState({ ...EMPTY_MENU_SAFETY });
   const [options, setOptions] = useState([]);
   const [videoUrl, setVideoUrl] = useState('');
   const [mediaType, setMediaType] = useState('photo');
@@ -69,7 +65,6 @@ export default function ListingQuickAdd({
     setFulfillmentMode('pickup_and_shipping');
     setAdvancedOpen(false);
     setAllergens([]);
-    setSafety(isService ? { ...EMPTY_MENU_SAFETY } : { ...EMPTY_PRODUCE_SAFETY });
     setOptions([]);
     setVideoUrl('');
     setMediaType('photo');
@@ -80,7 +75,6 @@ export default function ListingQuickAdd({
   const setType = (type) => {
     setListingType(type);
     setCategory(type === 'service' ? 'psychic' : 'essential_oils');
-    setSafety(type === 'service' ? { ...EMPTY_MENU_SAFETY } : { ...EMPTY_PRODUCE_SAFETY });
     setError('');
   };
 
@@ -125,7 +119,6 @@ export default function ListingQuickAdd({
     fulfillment_mode: fulfillmentMode,
     thumbnail,
     allergens,
-    safety,
     options,
     videoUrl,
     mediaType,
@@ -173,7 +166,7 @@ export default function ListingQuickAdd({
           'Choose pickup, shipping, or external store checkout.',
         ]}
       >
-        Large buttons and step-by-step guidance — use Advanced options only when you need allergens, safety, or video.
+        Large buttons and step-by-step guidance — use Advanced options only when you need allergens, add-ons, or video.
       </EasyModeBanner>
 
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
@@ -298,13 +291,8 @@ export default function ListingQuickAdd({
             <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
               <ItemListingExtras
                 allergens={allergens}
-                safety={safety}
                 onAllergensChange={setAllergens}
-                onSafetyChange={setSafety}
                 disabled={busy}
-                user={user}
-                vendorId={vendorId}
-                safetyContext={isService ? 'menu' : 'produce'}
                 serviceMode={isService}
                 className="!mt-0 !pt-0 !border-0"
               />

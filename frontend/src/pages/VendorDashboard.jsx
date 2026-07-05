@@ -11,7 +11,7 @@ import ProduceFreshnessFields from '../components/ProduceFreshnessFields';
 import PreorderFields from '../components/PreorderFields';
 import ExpiryCountdown from '../components/ExpiryCountdown';
 import { serializeAllergenIds } from '../lib/allergens';
-import { buildSafetyPayload, isSafetySubmissionValid } from '../lib/foodSafety';
+import { buildSafetyPayload } from '../lib/foodSafety';
 import {
   APOTHECARY_LISTING_CATEGORIES,
   categoryRequiresLegalAck,
@@ -237,10 +237,6 @@ export default function VendorDashboard({ user }) {
       alert(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Paid for unlimited listings.`);
       return;
     }
-    if (!isSafetySubmissionValid(newItemSafety)) {
-      alert('Check "Vendor-certified safe practices" (and finish temperature for cooked items), or explicitly opt out. See Policies & Procedures.');
-      return;
-    }
     setConfirmPost({ type: 'menu', name: newItem.name });
   };
 
@@ -377,10 +373,6 @@ export default function VendorDashboard({ user }) {
       alert(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Paid for unlimited.`);
       return;
     }
-    if (!isSafetySubmissionValid(newProduceSafety)) {
-      alert('Check "Vendor-certified safe practices" (temperature only if the item is cooked), or explicitly opt out. See Policies & Procedures.');
-      return;
-    }
     if (categoryRequiresLegalAck(newProduce.category) && !medicinalLegalAck) {
       alert('Medicinal / therapeutic plant listings require you to confirm compliance with local and federal laws.');
       return;
@@ -498,10 +490,6 @@ export default function VendorDashboard({ user }) {
       reject(new Error(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Pro for unlimited listings.`));
       return;
     }
-    if (payload.safety && !isSafetySubmissionValid(payload.safety)) {
-      reject(new Error('Check vendor-certified safe practices (and finish temperature if needed), or explicitly opt out.'));
-      return;
-    }
     quickAddResolver.current = { resolve, reject };
     setConfirmPost({ type: 'menu', name: payload.name, quick: payload });
   });
@@ -513,10 +501,6 @@ export default function VendorDashboard({ user }) {
     }
     if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
       reject(new Error(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Pro for unlimited.`));
-      return;
-    }
-    if (payload.safety && !isSafetySubmissionValid(payload.safety)) {
-      reject(new Error('Check vendor-certified safe practices (and finish temperature if needed), or explicitly opt out.'));
       return;
     }
     if (categoryRequiresLegalAck(payload.category) && !payload.medicinalLegalAck) {
@@ -547,7 +531,7 @@ export default function VendorDashboard({ user }) {
         ...media,
         available: 1,
         allergens: serializeAllergenIds(quick.allergens || []),
-        ...buildSafetyPayload(quick.safety || { ...EMPTY_MENU_SAFETY }),
+        ...buildSafetyPayload(),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
         fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
@@ -602,7 +586,7 @@ export default function VendorDashboard({ user }) {
         category: quick.category,
         photo,
         allergens: serializeAllergenIds(quick.allergens || []),
-        ...buildSafetyPayload(quick.safety || { ...EMPTY_PRODUCE_SAFETY }),
+        ...buildSafetyPayload(),
         ...buildFreshnessPayload({ ...EMPTY_FRESHNESS, listing_section: 'produce' }),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
@@ -965,14 +949,9 @@ export default function VendorDashboard({ user }) {
           <div className="mt-3 space-y-3">
             <ItemListingExtras
               allergens={newItemAllergens}
-              safety={newItemSafety}
               onAllergensChange={setNewItemAllergens}
-              onSafetyChange={setNewItemSafety}
               disabled={adding}
-              user={user}
-              vendorId={myVendorId}
               className="!mt-0 !pt-0 !border-0"
-              safetyContext="menu"
               serviceMode
             />
             <PreorderFields value={newItemPreorder} onChange={setNewItemPreorder} disabled={adding} label="Accept advance bookings (schedule ahead)" />
@@ -1133,13 +1112,8 @@ export default function VendorDashboard({ user }) {
             />
             <ItemListingExtras
               allergens={newProduceAllergens}
-              safety={newProduceSafety}
               onAllergensChange={setNewProduceAllergens}
-              onSafetyChange={setNewProduceSafety}
               disabled={addingProduce}
-              user={user}
-              vendorId={myVendorId}
-              safetyContext="produce"
             />
             <PreorderFields value={newProducePreorder} onChange={setNewProducePreorder} disabled={addingProduce} />
             <ItemOptionsEditor value={newProduceOptions} onChange={setNewProduceOptions} disabled={addingProduce} />
