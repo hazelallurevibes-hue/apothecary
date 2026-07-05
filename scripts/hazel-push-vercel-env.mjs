@@ -69,6 +69,12 @@ const VARS = {
   VITE_STRIPE_PUBLISHABLE_KEY: process.env.STRIPE_PUBLISHABLE_KEY || process.env.VITE_STRIPE_PUBLISHABLE_KEY || local.VITE_STRIPE_PUBLISHABLE_KEY || '',
   VITE_GOOGLE_MAPS_API_KEY: process.env.VITE_GOOGLE_MAPS_API_KEY || local.VITE_GOOGLE_MAPS_API_KEY || '',
   VITE_SENTRY_DSN: process.env.VITE_SENTRY_DSN || local.VITE_SENTRY_DSN || prodLocal.VITE_SENTRY_DSN || '',
+  // Serverless API routes (sitemap, og-familiar) — not exposed to client bundle
+  SUPABASE_URL: process.env.SUPABASE_URL || local.VITE_SUPABASE_URL || hazel.supabase_url,
+  SUPABASE_ANON_KEY:
+    process.env.SUPABASE_ANON_KEY ||
+    local.VITE_SUPABASE_ANON_KEY ||
+    local.VITE_SUPABASE_PUBLISHABLE_KEY,
 };
 
 for (const [k, v] of Object.entries({ ...VARS })) {
