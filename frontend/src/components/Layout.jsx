@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from './CartContext';
 import NavDropdown from './NavDropdown';
@@ -10,14 +10,16 @@ import LanguageSwitcher from './LanguageSwitcher';
 import { useLocale } from '../i18n';
 import { useEasyMode } from '../lib/easyMode';
 import AccessibilityHub from './AccessibilityHub';
-import GuidanceCoach from './GuidanceCoach';
-import HiddenCats from './HiddenCats';
+
 import Magic8Ball from './Magic8Ball';
-import FamiliarCompanion from './FamiliarCompanion';
-import DailyFamiliarQuest from './DailyFamiliarQuest';
-import SeekerOathReaffirmModal from './SeekerOathReaffirmModal';
-import LoginStreakHandler from './LoginStreakHandler';
 import EasyModePrompt from './EasyModePrompt';
+
+const HiddenCats = lazy(() => import('./HiddenCats'));
+const FamiliarCompanion = lazy(() => import('./FamiliarCompanion'));
+const DailyFamiliarQuest = lazy(() => import('./DailyFamiliarQuest'));
+const SeekerOathReaffirmModal = lazy(() => import('./SeekerOathReaffirmModal'));
+const LoginStreakHandler = lazy(() => import('./LoginStreakHandler'));
+const GuidanceCoach = lazy(() => import('./GuidanceCoach'));
 import PageSeo from './PageSeo';
 import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl } from '../lib/vertical';
@@ -371,14 +373,16 @@ export default function Layout({ user, onLogout, children }) {
         {children}
       </main>
 
-      <HiddenCats user={user} />
-      <LoginStreakHandler user={user} />
-      <DailyFamiliarQuest user={user} />
-      <FamiliarCompanion user={user} />
-      <Magic8Ball />
-      <SeekerOathReaffirmModal user={user} />
+      <Magic8Ball user={user} />
+      <Suspense fallback={null}>
+        {user && <LoginStreakHandler user={user} />}
+        {user && <DailyFamiliarQuest user={user} />}
+        {user && <FamiliarCompanion user={user} />}
+        {user && <SeekerOathReaffirmModal user={user} />}
+        <HiddenCats user={user} />
+        <GuidanceCoach user={user} />
+      </Suspense>
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
-      <GuidanceCoach user={user} />
       <EasyModePrompt />
 
       <footer className="border-t border-ha-lavender/40 bg-white/90 backdrop-blur-sm mt-12 py-8 text-sm text-gray-500">

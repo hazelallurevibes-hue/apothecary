@@ -6,7 +6,8 @@
     { "source": "/farmers-market", "destination": "/products", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/googled5859dbcf06a1225.html", "destination": "/googled5859dbcf06a1225.html" },
+    { "source": "/((?!googled5859dbcf06a1225\\.html|assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

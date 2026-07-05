@@ -9,6 +9,7 @@ import DailyRitualCard from '../components/DailyRitualCard';
 import FirstVisitorGlow from '../components/FirstVisitorGlow';
 import DailyOracleCard from '../components/DailyOracleCard';
 import TarotCollectionPanel from '../components/TarotCollectionPanel';
+import HomeOracleTeaser from '../components/HomeOracleTeaser';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -236,6 +237,7 @@ function CustomerHome({ user, liveStats }) {
         </div>
       </FirstVisitorGlow>
 
+      <HomeOracleTeaser user={user} />
       <DailyOracleCard className="mb-6" />
 
       {user?.email && <DailyRitualCard user={user} />}
@@ -315,6 +317,7 @@ export default function Home({ user }) {
   const role = user?.role?.toLowerCase();
 
   useEffect(() => {
+    let active = true;
     const fetchLive = async () => {
       const [v, m, p, o] = await Promise.all([
         supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
@@ -322,13 +325,21 @@ export default function Home({ user }) {
         supabase.from('produce_items').select('*', { count: 'exact', head: true }).eq('approved', 1),
         supabase.from('orders').select('*', { count: 'exact', head: true }),
       ]);
+      if (!active) return;
       setLiveStats({
         vendors: v.count || 0,
         items: (m.count || 0) + (p.count || 0),
         orders: o.count || 0,
       });
     };
-    fetchLive();
+    const idle = window.requestIdleCallback
+      ? window.requestIdleCallback(() => fetchLive(), { timeout: 2500 })
+      : setTimeout(fetchLive, 100);
+    return () => {
+      active = false;
+      if (typeof idle === 'number') clearTimeout(idle);
+      else window.cancelIdleCallback?.(idle);
+    };
   }, []);
 
   if (role === 'admin') return <AdminHome user={user} liveStats={liveStats} />;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { fetchLoginStreak } from '../lib/loginStreakApi';
 import { TAROT_DECK, TAROT_DISCLAIMER } from '../lib/tarotDeck';
+import TarotCardFace from './TarotCardFace';
 
 export default function TarotCollectionPanel({ user, compact, className = '' }) {
   const [streak, setStreak] = useState(null);
@@ -39,29 +40,15 @@ export default function TarotCollectionPanel({ user, compact, className = '' }) 
         <p className="text-[10px] text-red-600 mt-2">{TAROT_DISCLAIMER}</p>
       </header>
       <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-        {TAROT_DECK.map((card) => {
-          const has = collected.has(card.id);
-          return (
-            <div
-              key={card.id}
-              title={has ? card.name : 'Not yet revealed'}
-              className={`aspect-[2/3] rounded-lg border text-center flex flex-col items-center justify-center p-1 transition ${
-                has
-                  ? 'bg-gradient-to-br from-[#2d1230] to-[#4a1942] text-white border-[#c9a227]/40 shadow-sm'
-                  : 'bg-gray-200/80 border-gray-300 text-transparent shadow-inner'
-              }`}
-            >
-              {has ? (
-                <>
-                  <span className="text-[8px] opacity-70">{card.arcana === 'major' ? '✦' : '◇'}</span>
-                  <span className="text-[7px] leading-tight font-medium line-clamp-3">{card.name}</span>
-                </>
-              ) : (
-                <span className="text-gray-400 text-lg" aria-hidden>?</span>
-              )}
-            </div>
-          );
-        })}
+        {TAROT_DECK.map((card) => (
+          <TarotCardFace
+            key={card.id}
+            card={card}
+            revealed={collected.has(card.id)}
+            size="sm"
+            className="w-full hover:scale-[1.03] transition-transform"
+          />
+        ))}
       </div>
     </section>
   );

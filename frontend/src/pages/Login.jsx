@@ -1,16 +1,18 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { signIn, resetPassword, finalizeSignupSession } from '../lib/auth';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
-import AuthCaptcha from '../components/AuthCaptcha';
+import Magic8Ball from '../components/Magic8Ball';
+
+const AuthCaptcha = lazy(() => import('../components/AuthCaptcha'));
+const GoogleLoginButton = lazy(() => import('../components/GoogleLoginButton'));
+const Auth0LoginButton = lazy(() => import('../components/Auth0LoginButton'));
 import HoneypotField from '../components/HoneypotField';
 import { enableTestAccounts, LIVE_TEST_ACCOUNTS, auth0Enabled, googleSignInEnabled } from '../lib/config';
-import Auth0LoginButton from '../components/Auth0LoginButton';
 import Auth0ErrorBanner from '../components/Auth0ErrorBanner';
-import GoogleLoginButton from '../components/GoogleLoginButton';
 import { useLocale } from '../i18n';
 import { VERTICAL } from '../lib/vertical';
 
@@ -30,6 +32,7 @@ export default function Login({ onLogin, loading }) {
   const [pendingUser, setPendingUser] = useState(null);
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [twoFAMsg, setTwoFAMsg] = useState('');
+  const [captchaReady, setCaptchaReady] = useState(false);
 
   const doRealLogin = async (em, pwd, { captchaToken, skipCaptcha } = {}) => {
     try {
@@ -55,6 +58,7 @@ export default function Login({ onLogin, loading }) {
     e.preventDefault();
     setMessage('');
     setMessageOk(false);
+    if (!captchaReady) setCaptchaReady(true);
     const gate = runSecureAuthChecks({
       honeypot,
       formStartedAt: formStartedAt.current,
@@ -145,13 +149,15 @@ export default function Login({ onLogin, loading }) {
 
               {(googleSignInEnabled || auth0Enabled) && (
                 <div className="mb-4 space-y-3">
-                  {googleSignInEnabled && <GoogleLoginButton disabled={loading} />}
-                  {auth0Enabled && (
-                    <>
-                      <Auth0ErrorBanner />
-                      <Auth0LoginButton disabled={loading} />
-                    </>
-                  )}
+                  <Suspense fallback={<div className="h-10 rounded-2xl bg-gray-100 animate-pulse" />}>
+                    {googleSignInEnabled && <GoogleLoginButton disabled={loading} />}
+                    {auth0Enabled && (
+                      <>
+                        <Auth0ErrorBanner />
+                        <Auth0LoginButton disabled={loading} />
+                      </>
+                    )}
+                  </Suspense>
                   <div className="flex items-center gap-3">
                     <div className="flex-1 h-px bg-gray-200" />
                     <span className="text-xs text-gray-400">{t('auth.orEmail')}</span>
@@ -167,6 +173,7 @@ export default function Login({ onLogin, loading }) {
                   placeholder="your@email.com" 
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  onFocus={() => setCaptchaReady(true)}
                   className="w-full border p-3.5 rounded-2xl text-sm" 
                   required 
                 />
@@ -197,12 +204,16 @@ export default function Login({ onLogin, loading }) {
                     )}
                   </>
                 )}
-                <AuthCaptcha
-                  ref={captcha.captchaRef}
-                  onSuccess={captcha.onCaptchaSuccess}
-                  onExpire={captcha.onCaptchaExpire}
-                  onError={captcha.onCaptchaError}
-                />
+                {captchaReady && (
+                  <Suspense fallback={<div className="h-[65px] rounded-2xl bg-gray-100 animate-pulse" />}>
+                    <AuthCaptcha
+                      ref={captcha.captchaRef}
+                      onSuccess={captcha.onCaptchaSuccess}
+                      onExpire={captcha.onCaptchaExpire}
+                      onError={captcha.onCaptchaError}
+                    />
+                  </Suspense>
+                )}
                 {captcha.captchaError && (
                   <p className="text-xs text-red-600">{captcha.captchaError}</p>
                 )}
@@ -297,6 +308,7 @@ export default function Login({ onLogin, loading }) {
           </div>
         </div>
       </div>
+      <Magic8Ball user={null} />
     </div>
   );
 }

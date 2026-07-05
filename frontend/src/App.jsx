@@ -84,11 +84,22 @@ import { EasyModeProvider } from './lib/easyMode';
 import { AchievementProvider } from './components/AchievementToast';
 import { STORAGE_KEYS } from './lib/storageKeys';
 
+function readCachedUser() {
+  try {
+    const cached = localStorage.getItem(STORAGE_KEYS.user);
+    if (cached) return JSON.parse(cached);
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 function AppCore({ auth0 = null }) {
   const auth0Enabled = !!auth0;
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(readCachedUser);
   const [loading, setLoading] = useState(false);
   const [auth0Ready, setAuth0Ready] = useState(!auth0Enabled);
+  const [sessionChecked, setSessionChecked] = useState(!auth0Enabled);
   const navigate = useNavigate();
   const auth0Synced = useRef(false);
   const callbackHandled = useRef(false);
@@ -99,9 +110,14 @@ function AppCore({ auth0 = null }) {
     const initSession = async () => {
       if (auth0Enabled && auth0?.isLoading) return;
       const profile = await restoreSession();
-      if (active && profile) {
-        setUser(profile);
-        setMonitoringUser(profile);
+      if (active) {
+        if (profile) {
+          setUser(profile);
+          setMonitoringUser(profile);
+        } else {
+          setUser(null);
+        }
+        setSessionChecked(true);
       }
       if (auth0Enabled && !auth0?.isLoading) setAuth0Ready(true);
     };
@@ -174,10 +190,18 @@ function AppCore({ auth0 = null }) {
         auth0Synced.current = false;
       }
       setAuth0Ready(true);
+      setSessionChecked(true);
     };
 
     syncAuth0();
   }, [auth0Enabled, auth0?.isAuthenticated, auth0?.isLoading, auth0?.user, navigate]);
+
+  useEffect(() => {
+    if (!auth0Enabled) return;
+    if (auth0?.isLoading) return;
+    setAuth0Ready(true);
+    setSessionChecked(true);
+  }, [auth0Enabled, auth0?.isLoading]);
 
   const login = async (userOrEmail) => {
     setLoading(true);
@@ -215,12 +239,8 @@ function AppCore({ auth0 = null }) {
     navigate('/login');
   };
 
-  if (!auth0Ready) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500">
-        Loading session…
-      </div>
-    );
+  if (!auth0Ready && !sessionChecked && !user) {
+    return <PageLoader />;
   }
 
   const roleHasAccess = (role, allowedRoles) => {
