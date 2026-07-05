@@ -8,10 +8,11 @@ import {
   isProPlan,
   planBadgeLabel,
 } from '../lib/plans';
-import { createProCheckout, getProPricing } from '../lib/proBillingApi';
+import { createProCheckout, getProPricing, openBillingPortal } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
 import ProBillingPlanPicker from '../components/ProBillingPlanPicker';
+import ProBenefitsHub from '../components/ProBenefitsHub';
 
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
@@ -20,6 +21,7 @@ export default function ProUpgrade({ user }) {
   const [billingInterval, setBillingInterval] = useState(billingDefault);
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [billingLoading, setBillingLoading] = useState(false);
   const [error, setError] = useState('');
 
   const customerCtx = getCustomerContext(user);
@@ -60,6 +62,20 @@ export default function ProUpgrade({ user }) {
     setLoading(false);
   };
 
+  const manageBilling = async () => {
+    if (!user?.email) return;
+    setBillingLoading(true);
+    try {
+      await openBillingPortal({
+        planType: vendorOnly ? 'vendor' : 'customer',
+        email: user.email,
+      });
+    } catch (e) {
+      setError(e.message || 'Could not open billing portal.');
+    }
+    setBillingLoading(false);
+  };
+
   const monthlyPrice = vendorOnly
     ? (pricing?.vendorMonthly || '29.99')
     : (pricing?.customerMonthly || '9.99');
@@ -78,8 +94,19 @@ export default function ProUpgrade({ user }) {
   const planFeatures = vendorOnly ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES;
   const alreadyPro = vendorOnly ? isVendorPro : isCustomerPro;
 
+  if (user && alreadyPro) {
+    return (
+      <ProBenefitsHub
+        planType={vendorOnly ? 'vendor' : 'customer'}
+        planLabel={vendorOnly ? planBadgeLabel(vendorCtx?.plan, 'vendor') : planBadgeLabel(customerCtx?.plan, 'customer')}
+        onManageBilling={manageBilling}
+        billingLoading={billingLoading}
+      />
+    );
+  }
+
   return (
-    <div className="max-w-3xl mx-auto animate-fade-in-up">
+    <div className="max-w-4xl mx-auto animate-fade-in-up">
       <div className="text-center mb-8">
         <div className="inline-block px-4 py-1.5 rounded-full bg-[#4a1942]/8 text-[#4a1942] text-xs font-semibold uppercase tracking-widest mb-4 border border-[#4a1942]/10">
           Hazel Allure Pro
@@ -95,18 +122,16 @@ export default function ProUpgrade({ user }) {
         </p>
       </div>
 
-      {!alreadyPro && (
-        <ProBillingPlanPicker
-          billingInterval={billingInterval}
-          onSelect={setBillingInterval}
-          monthlyPrice={monthlyPrice}
-          annualPrice={annualPrice}
-          annualSavings={annualSavings}
-          vendorOnly={vendorOnly}
-        />
-      )}
+      <ProBillingPlanPicker
+        billingInterval={billingInterval}
+        onSelect={setBillingInterval}
+        monthlyPrice={monthlyPrice}
+        annualPrice={annualPrice}
+        annualSavings={annualSavings}
+        vendorOnly={vendorOnly}
+      />
 
-      <div className={`glass-card p-6 sm:p-8 ${!alreadyPro ? 'animate-glow-pulse' : ''} border-2 border-[#4a1942]/12`}>
+      <div className="glass-card p-6 sm:p-8 animate-glow-pulse border-2 border-[#4a1942]/12">
         <div className="flex flex-wrap justify-between items-start gap-4 mb-6 pb-6 border-b border-[#4a1942]/8">
           <div>
             <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">{planLabel}</h2>
@@ -147,10 +172,6 @@ export default function ProUpgrade({ user }) {
 
         {!user ? (
           <Link to="/login" className="btn-primary w-full !py-3.5">Sign in to upgrade</Link>
-        ) : alreadyPro ? (
-          <Link to="/account-settings#billing" className="block w-full text-center py-3.5 border-2 border-[#4a1942] text-[#4a1942] rounded-2xl font-semibold hover:bg-[#4a1942]/5 transition">
-            Manage billing →
-          </Link>
         ) : (
           <button
             type="button"

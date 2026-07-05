@@ -84,6 +84,9 @@ export function ProSuccess({ user, onProfileUpdate }) {
         <Link to={dashboardPath} className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-medium">
           Go to dashboard
         </Link>
+        <Link to="/pro-upgrade" className="px-6 py-3 border rounded-2xl font-medium">
+          {isVendor ? 'Pro practitioner hub' : 'Pro member hub'}
+        </Link>
         <Link to={explorePath} className="px-6 py-3 border rounded-2xl font-medium">
           {isVendor ? 'Edit storefront' : 'Browse courses'}
         </Link>

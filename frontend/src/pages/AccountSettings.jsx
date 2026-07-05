@@ -342,22 +342,27 @@ export default function AccountSettings({ user, onProfileUpdate }) {
             </div>
           </div>
           {isProPlan(customerCtx.plan) ? (
-            <button
-              type="button"
-              disabled={billingLoading}
-              onClick={async () => {
-                setBillingLoading(true);
-                try {
-                  await openBillingPortal({ planType: 'customer', email: user.email });
-                } catch (e) {
-                  setStatus(e.message);
-                }
-                setBillingLoading(false);
-              }}
-              className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
-            >
-              Manage billing
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <Link to="/pro-upgrade" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
+                Pro benefits
+              </Link>
+              <button
+                type="button"
+                disabled={billingLoading}
+                onClick={async () => {
+                  setBillingLoading(true);
+                  try {
+                    await openBillingPortal({ planType: 'customer', email: user.email });
+                  } catch (e) {
+                    setStatus(e.message);
+                  }
+                  setBillingLoading(false);
+                }}
+                className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
+              >
+                Manage billing
+              </button>
+            </div>
           ) : (
             <Link to="/pro-upgrade?type=customer" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
               Be a Pro Member
@@ -383,22 +388,27 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               </div>
             </div>
             {isProPlan(vendorCtx.plan) ? (
-              <button
-                type="button"
-                disabled={billingLoading}
-                onClick={async () => {
-                  setBillingLoading(true);
-                  try {
-                    await openBillingPortal({ planType: 'vendor', email: user.email });
-                  } catch (e) {
-                    setStatus(e.message);
-                  }
-                  setBillingLoading(false);
-                }}
-                className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
-              >
-                Manage billing
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
+                  Pro benefits
+                </Link>
+                <button
+                  type="button"
+                  disabled={billingLoading}
+                  onClick={async () => {
+                    setBillingLoading(true);
+                    try {
+                      await openBillingPortal({ planType: 'vendor', email: user.email });
+                    } catch (e) {
+                      setStatus(e.message);
+                    }
+                    setBillingLoading(false);
+                  }}
+                  className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Manage billing
+                </button>
+              </div>
             ) : (
               <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium whitespace-nowrap">
                 Be a Pro Practitioner
