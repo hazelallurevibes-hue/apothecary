@@ -1,6 +1,6 @@
 import { SHELF_LIFE_PRESETS, STORAGE_METHODS, suggestGoodByDate } from '../lib/shelfLifePresets';
 
-export default function ProduceFreshnessFields({ value, onChange, disabled, isPlantsSection }) {
+export default function ProduceFreshnessFields({ value, onChange, disabled, isPlantsSection, apothecaryMode = true }) {
   const v = value || {};
 
   const set = (patch) => onChange({ ...v, ...patch });
@@ -24,16 +24,18 @@ export default function ProduceFreshnessFields({ value, onChange, disabled, isPl
 
   return (
     <div className="space-y-3 border rounded-2xl p-4 bg-green-50/50 border-green-100">
-      <div className="text-sm font-medium">Harvest &amp; freshness</div>
+      <div className="text-sm font-medium">{apothecaryMode ? 'Batch & shelf life' : 'Harvest & freshness'}</div>
       <p className="text-xs text-gray-500">
         {isPlantsSection
-          ? 'For plants and trees, note harvest/potting date and care instructions.'
-          : 'When was this harvested? Pick a shelf-life guide — customers see good-by dates on your listing.'}
+          ? 'For living plants, note potting date and care instructions.'
+          : apothecaryMode
+            ? 'When was this batch crafted or bottled? Shelf-life helps seekers know freshness for potions, salves, and ritual goods.'
+            : 'When was this harvested? Pick a shelf-life guide — customers see good-by dates on your listing.'}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-gray-600">Harvested / picked on</label>
+          <label className="text-xs text-gray-600">{apothecaryMode ? 'Crafted / bottled on' : 'Harvested / picked on'}</label>
           <input
             type="date"
             className="w-full border p-2.5 rounded-xl mt-1 text-sm"

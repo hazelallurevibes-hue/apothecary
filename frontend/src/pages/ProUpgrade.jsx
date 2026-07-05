@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  PAID_VENDOR_UPGRADE_FEATURES,
   PAID_CUSTOMER_UPGRADE_FEATURES,
+  PAID_VENDOR_UPGRADE_FEATURES,
   getCustomerContext,
   getVendorContext,
   isProPlan,
@@ -15,28 +15,23 @@ import ProSocialProof from '../components/ProSocialProof';
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
   const [searchParams] = useSearchParams();
-  const defaultType = searchParams.get('type') === 'vendor' ? 'vendor' : 'customer';
-  const [planType, setPlanType] = useState(defaultType);
-  const [billingInterval, setBillingInterval] = useState('monthly');
+  const billingDefault = searchParams.get('interval') === 'monthly' ? 'monthly' : 'annual';
+  const [billingInterval, setBillingInterval] = useState(billingDefault);
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const vendorCtx = getVendorContext(user);
   const customerCtx = getCustomerContext(user);
+  const vendorCtx = getVendorContext(user);
   const role = (user?.role || '').toLowerCase();
-  const canVendor = role === 'vendor' || role === 'admin' || !!vendorCtx?.isOwner;
-  const isVendorPro = vendorCtx && isProPlan(vendorCtx.plan);
+  const vendorOnly = searchParams.get('type') === 'vendor'
+    && (role === 'vendor' || role === 'admin' || !!vendorCtx?.isOwner);
   const isCustomerPro = customerCtx && isProPlan(customerCtx.plan);
+  const isVendorPro = vendorCtx && isProPlan(vendorCtx.plan);
 
   useEffect(() => {
     getProPricing().then(setPricing).catch(() => setPricing(null));
   }, []);
-
-  useEffect(() => {
-    if (searchParams.get('type') === 'vendor' && canVendor) setPlanType('vendor');
-    if (searchParams.get('type') === 'customer') setPlanType('customer');
-  }, [searchParams, canVendor]);
 
   const startCheckout = async () => {
     if (!user?.email) {
@@ -47,10 +42,10 @@ export default function ProUpgrade({ user }) {
     setError('');
     try {
       const { url } = await createProCheckout({
-        planType,
+        planType: vendorOnly ? 'vendor' : 'customer',
         billingInterval,
         email: user.email,
-        vendorId: vendorCtx?.vendorId,
+        vendorId: vendorOnly ? vendorCtx?.vendorId : undefined,
       });
       if (url) window.location.href = url;
       else setError('Checkout could not be started. Contact support.');
@@ -64,15 +59,23 @@ export default function ProUpgrade({ user }) {
     setLoading(false);
   };
 
-  const price =
-    billingInterval === 'annual'
-      ? (planType === 'vendor' ? pricing?.vendorAnnual : pricing?.customerAnnual) || (planType === 'vendor' ? '299.99' : '99.99')
-      : (planType === 'vendor' ? pricing?.vendorMonthly : pricing?.customerMonthly) || (planType === 'vendor' ? '29.99' : '9.99');
+  const monthlyPrice = vendorOnly
+    ? (pricing?.vendorMonthly || '29.99')
+    : (pricing?.customerMonthly || '9.99');
+  const annualPrice = vendorOnly
+    ? (pricing?.vendorAnnual || '299.99')
+    : (pricing?.customerAnnual || '99.99');
+  const price = billingInterval === 'annual' ? annualPrice : monthlyPrice;
+  const monthlyEquiv = billingInterval === 'annual'
+    ? (parseFloat(annualPrice) / 12).toFixed(2)
+    : null;
+  const annualSavings = (
+    parseFloat(monthlyPrice) * 12 - parseFloat(annualPrice)
+  ).toFixed(2);
 
-  const alreadyPro = planType === 'vendor' ? isVendorPro : isCustomerPro;
-
-  const practitionerLabel = 'Pro Practitioner';
-  const memberLabel = 'Pro Member';
+  const planLabel = vendorOnly ? 'Pro Practitioner' : 'Pro Member';
+  const planFeatures = vendorOnly ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES;
+  const alreadyPro = vendorOnly ? isVendorPro : isCustomerPro;
 
   return (
     <div className="max-w-3xl mx-auto animate-fade-in-up">
@@ -80,35 +83,31 @@ export default function ProUpgrade({ user }) {
         <div className="inline-block px-4 py-1.5 rounded-full bg-[#4a1942]/8 text-[#4a1942] text-xs font-semibold uppercase tracking-widest mb-4 border border-[#4a1942]/10">
           Hazel Allure Pro
         </div>
-        <h1 className="text-4xl md:text-5xl font-bold tracking-tight heading-font text-[#4a1942]">{t('pro.title')}</h1>
-        <p className="text-gray-600 mt-3 max-w-lg mx-auto leading-relaxed">{t('pro.subtitle')}</p>
+        <h1 className="text-4xl md:text-5xl font-bold tracking-tight heading-font text-[#4a1942]">
+          {vendorOnly ? 'Practitioner Pro' : t('pro.title')}
+        </h1>
+        <p className="text-gray-600 mt-3 max-w-lg mx-auto leading-relaxed">
+          {vendorOnly ? t('pro.upgrade.vendorDescription') : t('pro.subtitle')}
+        </p>
         <p className="text-sm text-[#6b7f6a] mt-2 max-w-md mx-auto font-medium">
           {t('pro.socialProof')}
         </p>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-2 mb-4" role="tablist" aria-label="Plan type">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={planType === 'customer'}
-          onClick={() => setPlanType('customer')}
-          className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition ${planType === 'customer' ? 'bg-[#4a1942] text-white shadow-md' : 'border border-[#4a1942]/15 hover:bg-white/80'}`}
-        >
-          {t('pro.member')}
-        </button>
-        {canVendor && (
+      {billingInterval === 'monthly' && (
+        <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#c9a227]/15 to-amber-50 border border-[#c9a227]/30 text-center">
+          <p className="text-sm font-semibold text-[#4a1942]">
+            Save about {formatCurrency(annualSavings)} per year with annual billing
+          </p>
           <button
             type="button"
-            role="tab"
-            aria-selected={planType === 'vendor'}
-            onClick={() => setPlanType('vendor')}
-            className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition ${planType === 'vendor' ? 'bg-[#4a1942] text-white shadow-md' : 'border border-[#4a1942]/15 hover:bg-white/80'}`}
+            onClick={() => setBillingInterval('annual')}
+            className="mt-2 text-sm font-bold text-[#4a1942] underline hover:no-underline"
           >
-            Pro Practitioner
+            Switch to yearly — {formatCurrency(annualPrice)}/yr ({formatCurrency((parseFloat(annualPrice) / 12).toFixed(2))}/mo)
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="flex justify-center gap-2 mb-6" role="group" aria-label="Billing interval">
         <button
@@ -121,35 +120,31 @@ export default function ProUpgrade({ user }) {
         <button
           type="button"
           onClick={() => setBillingInterval('annual')}
-          className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition ${billingInterval === 'annual' ? 'bg-[#2d1230] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
+          className={`px-5 py-2.5 rounded-2xl text-sm font-medium transition relative ${billingInterval === 'annual' ? 'bg-[#2d1230] text-white' : 'border border-gray-200 hover:bg-gray-50'}`}
         >
-          Annual <span className="text-xs opacity-80 ml-1">({t('pro.upgrade.annualNote')})</span>
+          Yearly
+          <span className="absolute -top-2 -right-2 text-[9px] bg-[#c9a227] text-[#1a0a18] px-1.5 py-0.5 rounded-full font-bold">
+            Best value
+          </span>
+          <span className="text-xs opacity-80 ml-1">({t('pro.upgrade.annualNote')})</span>
         </button>
       </div>
 
       <div className={`glass-card p-6 sm:p-8 ${!alreadyPro ? 'animate-glow-pulse' : ''} border-2 border-[#4a1942]/12`}>
-        {!alreadyPro && planType === 'vendor' && (
-          <p className="text-xs text-center text-[#4a1942]/70 font-medium mb-5 px-3 py-2 rounded-xl bg-[#c9a227]/10 border border-[#c9a227]/20">
-            {t('pro.upgrade.vendorHint')}
-          </p>
-        )}
-
         <div className="flex flex-wrap justify-between items-start gap-4 mb-6 pb-6 border-b border-[#4a1942]/8">
           <div>
-            <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">
-              {planType === 'vendor' ? practitionerLabel : memberLabel}
-            </h2>
+            <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">{planLabel}</h2>
             <p className="text-sm text-gray-600 mt-1.5 max-w-sm leading-relaxed">
-              {planType === 'vendor'
-                ? t('pro.upgrade.vendorDescription')
-                : t('pro.upgrade.memberDescription')}
+              {vendorOnly ? t('pro.upgrade.vendorHint') : t('pro.upgrade.memberDescription')}
             </p>
           </div>
           <div className="text-right shrink-0">
             <div className="text-4xl font-bold text-[#4a1942] heading-font">{formatCurrency(price)}</div>
             <div className="text-xs text-gray-500 mt-0.5">per {billingInterval === 'annual' ? 'year' : 'month'}</div>
-            {billingInterval === 'annual' && (
-              <div className="text-[10px] text-[#6b7f6a] font-medium mt-1">{t('pro.upgrade.annualNote')}</div>
+            {billingInterval === 'annual' && monthlyEquiv && (
+              <div className="text-[10px] text-[#6b7f6a] font-medium mt-1">
+                ≈ {formatCurrency(monthlyEquiv)}/mo · save {formatCurrency(annualSavings)}/yr
+              </div>
             )}
           </div>
         </div>
@@ -158,13 +153,13 @@ export default function ProUpgrade({ user }) {
           <div className="mb-5 px-4 py-3 bg-[#f5f0e8]/80 rounded-2xl text-sm border border-[#4a1942]/8">
             Current plan:{' '}
             <span className="font-semibold text-[#4a1942]">
-              {planType === 'vendor' ? planBadgeLabel(vendorCtx?.plan, 'vendor') : planBadgeLabel(customerCtx?.plan, 'customer')}
+              {vendorOnly ? planBadgeLabel(vendorCtx?.plan, 'vendor') : planBadgeLabel(customerCtx?.plan, 'customer')}
             </span>
           </div>
         )}
 
         <ul className="space-y-2.5 mb-6">
-          {(planType === 'vendor' ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES).map((f) => (
+          {planFeatures.map((f) => (
             <li key={f} className="text-sm text-gray-700 flex gap-2.5 items-start">
               <span className="text-[#c9a227] font-bold shrink-0" aria-hidden="true">✓</span>
               <span>{f}</span>
@@ -187,7 +182,11 @@ export default function ProUpgrade({ user }) {
             onClick={startCheckout}
             className="btn-primary w-full !py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Redirecting to Stripe…' : `Upgrade to ${planType === 'vendor' ? practitionerLabel : memberLabel}`}
+            {loading
+              ? 'Redirecting to Stripe…'
+              : billingInterval === 'annual'
+                ? `Go ${planLabel} yearly — ${formatCurrency(annualPrice)}/yr`
+                : `Go ${planLabel} monthly — ${formatCurrency(monthlyPrice)}/mo`}
           </button>
         )}
 

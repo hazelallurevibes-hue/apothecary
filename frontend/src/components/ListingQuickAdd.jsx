@@ -204,8 +204,8 @@ export default function ListingQuickAdd({
       {step === 1 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { id: 'service', icon: '🔮', title: 'Healing service', hint: 'Bookable sessions — Reiki, tarot, energy work, and more.' },
-            { id: 'product', icon: '🌿', title: 'Apothecary good', hint: 'Oils, incense, crystals, ritual kits, skincare, and artisan goods.' },
+            { id: 'service', icon: '🔮', title: 'Healing service', hint: 'Bookable sessions — tarot, Reiki, spellcraft, enchantments, energy work, and more.' },
+            { id: 'product', icon: '🧪', title: 'Apothecary product', hint: 'Potions, spells, enchanted goods, oils, incense, crystals, ritual kits, and salves.' },
           ].map((opt) => (
             <button
               key={opt.id}
@@ -286,7 +286,7 @@ export default function ListingQuickAdd({
           >
             <summary className={`${TOUCH_BTN} cursor-pointer list-none flex items-center justify-between gap-2 text-[#4a1942] border-0 min-h-[3rem] py-3`}>
               <span>Advanced options</span>
-              <span className="text-xs font-normal text-gray-500">Allergens, safety, options, video</span>
+              <span className="text-xs font-normal text-gray-500">{isService ? 'Options, video' : 'Batch info, options'}</span>
             </summary>
             <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-4">
               <ItemListingExtras
@@ -298,6 +298,7 @@ export default function ListingQuickAdd({
                 user={user}
                 vendorId={vendorId}
                 safetyContext={isService ? 'menu' : 'produce'}
+                serviceMode={isService}
                 className="!mt-0 !pt-0 !border-0"
               />
               <ItemOptionsEditor value={options} onChange={setOptions} disabled={busy} />

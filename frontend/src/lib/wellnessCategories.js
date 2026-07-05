@@ -141,6 +141,21 @@ export const WELLNESS_SERVICE_CATEGORIES = [
     description: 'Chakra assessment, alignment, and energy-center balancing sessions.',
   },
   {
+    id: 'spellcraft',
+    label: 'Spellcraft & ritual work',
+    description: 'Custom spellwork, candle rituals, intention setting, and ceremonial magic sessions.',
+  },
+  {
+    id: 'enchantment',
+    label: 'Enchantments & blessings',
+    description: 'Object blessings, home clearing, protection work, and sacred consecration services.',
+  },
+  {
+    id: 'divination',
+    label: 'Divination & oracle',
+    description: 'Runes, pendulum, scrying, and other divination modalities beyond tarot.',
+  },
+  {
     id: 'other_service',
     label: 'Other healing service',
     description: 'Any bookable wellness, ritual, or spiritual service not listed above.',
@@ -174,6 +189,21 @@ export const WELLNESS_PRODUCT_CATEGORIES = [
     id: 'potions',
     label: 'Potions, elixirs & tinctures',
     description: 'Small-batch elixirs, tinctures, and ritual potions — practitioners must comply with labeling and regional law.',
+  },
+  {
+    id: 'spells',
+    label: 'Spells & ritual kits (written)',
+    description: 'Spell scrolls, intention kits, ritual instructions, and ceremonial packages for personal practice.',
+  },
+  {
+    id: 'enchantments',
+    label: 'Enchanted goods',
+    description: 'Blessed candles, charged crystals, anointed tools, and consecrated ritual objects.',
+  },
+  {
+    id: 'salves',
+    label: 'Salves, balms & anointing blends',
+    description: 'Topical botanical salves, ritual balms, and anointing preparations for wellness craft.',
   },
   {
     id: 'homeopathic_remedies',

@@ -8,6 +8,9 @@ const CATEGORY_EMOJI = {
   incense: '🪔',
   candles: '🕯️',
   potions: '🧪',
+  spells: '📜',
+  enchantments: '✨',
+  salves: '🫙',
   homeopathic_remedies: '💧',
   herbal_remedies: '🍃',
   flower_essences: '🌺',
@@ -26,6 +29,9 @@ const CATEGORY_EMOJI = {
 /** Categories where practitioners must acknowledge labeling, regional law, and no disease claims */
 const LEGAL_ACK_IDS = new Set([
   'potions',
+  'spells',
+  'enchantments',
+  'salves',
   'apothecary',
   'homeopathic_remedies',
   'herbal_remedies',

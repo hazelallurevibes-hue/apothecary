@@ -33,7 +33,7 @@ export function TarotCardBack({ size = 'sm', className = '' }) {
   );
 }
 
-export default function TarotCardFace({ card, revealed = true, size = 'sm', className = '' }) {
+export default function TarotCardFace({ card, revealed = true, size = 'sm', className = '', onClick }) {
   const s = SIZES[size] || SIZES.sm;
 
   if (!revealed || !card) {
@@ -41,13 +41,19 @@ export default function TarotCardFace({ card, revealed = true, size = 'sm', clas
   }
 
   const art = getCardArt(card);
+  const interactive = typeof onClick === 'function';
 
-  return (
+  const inner = (
     <div
-      title={card.name}
-      className={`relative overflow-hidden border shadow-md flex flex-col items-center justify-between text-center text-white bg-gradient-to-br ${art.gradient} ${art.border} ${s.wrap} ${s.h} ${s.pad} ${className}`}
+      title={interactive ? `View ${card.name}` : card.name}
+      className={`relative overflow-hidden border shadow-md flex flex-col items-center justify-between text-center text-white bg-gradient-to-br ${art.gradient} ${art.border} ${s.wrap} ${s.h} ${s.pad} ${className} ${interactive ? 'cursor-pointer hover:shadow-lg hover:scale-[1.04] transition-all' : ''}`}
     >
       <OrnateCorners accent={art.accent} />
+      <div
+        className="absolute inset-0 opacity-[0.35] pointer-events-none"
+        style={{ backgroundImage: art.pattern }}
+        aria-hidden
+      />
       <div
         className="absolute inset-0 opacity-[0.12] pointer-events-none"
         style={{
@@ -55,6 +61,19 @@ export default function TarotCardFace({ card, revealed = true, size = 'sm', clas
         }}
         aria-hidden
       />
+      {art.frame === 'major' && (
+        <div
+          className="absolute inset-x-2 top-8 bottom-12 rounded-lg border border-white/10 flex items-center justify-center pointer-events-none"
+          style={{
+            background: `linear-gradient(160deg, ${art.accent}22, transparent 60%)`,
+          }}
+          aria-hidden
+        >
+          <span className={`${size === 'lg' ? 'text-5xl' : size === 'md' ? 'text-3xl' : 'text-xl'} drop-shadow-lg opacity-90`}>
+            {art.symbol}
+          </span>
+        </div>
+      )}
       <span className={`relative z-10 ${s.glyph} tracking-widest opacity-80 font-serif`} style={{ color: art.accent }}>
         {art.glyph}
       </span>
@@ -72,4 +91,14 @@ export default function TarotCardFace({ card, revealed = true, size = 'sm', clas
       )}
     </div>
   );
+
+  if (interactive) {
+    return (
+      <button type="button" onClick={onClick} className="block text-left p-0 border-0 bg-transparent" aria-label={`View ${card.name} card`}>
+        {inner}
+      </button>
+    );
+  }
+
+  return inner;
 }

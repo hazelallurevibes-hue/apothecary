@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom';
 import { fetchLoginStreak } from '../lib/loginStreakApi';
 import { TAROT_DECK, TAROT_DISCLAIMER } from '../lib/tarotDeck';
 import TarotCardFace from './TarotCardFace';
+import TarotCardDetailModal from './TarotCardDetailModal';
 
 export default function TarotCollectionPanel({ user, compact, className = '' }) {
   const [streak, setStreak] = useState(null);
+  const [selectedCard, setSelectedCard] = useState(null);
 
   useEffect(() => {
     if (!user?.email) return;
@@ -46,10 +48,12 @@ export default function TarotCollectionPanel({ user, compact, className = '' }) 
             card={card}
             revealed={collected.has(card.id)}
             size="sm"
-            className="w-full hover:scale-[1.03] transition-transform"
+            className="w-full"
+            onClick={collected.has(card.id) ? () => setSelectedCard(card) : undefined}
           />
         ))}
       </div>
+      <TarotCardDetailModal card={selectedCard} onClose={() => setSelectedCard(null)} />
     </section>
   );
 }

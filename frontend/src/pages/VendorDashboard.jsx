@@ -32,7 +32,7 @@ import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import UpgradeBanner from '../components/UpgradeBanner';
 import ThankYouComposer from '../components/ThankYouComposer';
-import FoodLabelFields from '../components/FoodLabelFields';
+
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
 import ItemOptionsEditor from '../components/ItemOptionsEditor';
@@ -276,7 +276,7 @@ export default function VendorDashboard({ user }) {
         if (error) throw error;
         resetMenuForm();
         await refreshVendorData();
-        alert('Menu item updated.');
+        alert('Healing service updated.');
         setAdding(false);
         return;
       }
@@ -719,7 +719,7 @@ export default function VendorDashboard({ user }) {
 
   const shareToSocial = (item, autoOpen = false) => {
     const productUrl = `${window.location.origin}/vendor/${user?.vendor}`;
-    const text = `${item.name} - $${item.price}\n${item.description}\nOrder now: ${productUrl}\n\n#Hazel Allure #LocalFood #${item.category}`;
+    const text = `${item.name} - $${item.price}\n${item.description}\nBook or shop: ${productUrl}\n\n#HazelAllure #HealingServices #Apothecary`;
     
     // Facebook Marketplace / Share - opens create + copies details
     const openFB = () => {
@@ -787,9 +787,9 @@ export default function VendorDashboard({ user }) {
     <div className="min-w-0 w-full max-w-full overflow-x-hidden">
       <div className="flex flex-col gap-4 mb-8 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div className="min-w-0">
-          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-2 break-words">Vendor Dashboard</h1>
+          <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-2 break-words">Practitioner Dashboard</h1>
           <p className="text-sm sm:text-base text-gray-600 break-words">
-            Live analytics for {user?.name} • Storefront #{myVendorId}
+            Healing services & apothecary for {user?.name} · Storefront #{myVendorId}
             <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 whitespace-nowrap inline-block mt-1 sm:mt-0">{planBadgeLabel(vendorPlan, 'vendor')}</span>
             {vendorCtx?.isEmployee && <span className="ml-1 text-xs text-amber-700">(employee)</span>}
           </p>
@@ -891,7 +891,7 @@ export default function VendorDashboard({ user }) {
             <div className="text-3xl shrink-0">🔮</div>
             <div className="min-w-0">
               <h3 className="font-bold text-xl sm:text-2xl heading-font text-[#4a1942]">Healing Services</h3>
-              <p className="text-sm text-gray-600">Bookable sessions — add a photo and YouTube/Vimeo preview so seekers trust your craft.</p>
+              <p className="text-sm text-gray-600">Tarot, Reiki, spellcraft, enchantments, energy work, and more — bookable sessions with photo or video preview.</p>
             </div>
           </div>
           <Link to="/services" className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8] shrink-0 self-start">
@@ -967,13 +967,9 @@ export default function VendorDashboard({ user }) {
               vendorId={myVendorId}
               className="!mt-0 !pt-0 !border-0"
               safetyContext="menu"
+              serviceMode
             />
-            {vendorCan(user, 'food_labels') ? (
-              <FoodLabelFields value={newItemFoodLabel} onChange={setNewItemFoodLabel} disabled={adding} />
-            ) : (
-              <p className="text-xs text-gray-500">Upgrade to Paid to add full food labels on prepared items.</p>
-            )}
-            <PreorderFields value={newItemPreorder} onChange={setNewItemPreorder} disabled={adding} label="Accept pre-orders (cook ahead)" />
+            <PreorderFields value={newItemPreorder} onChange={setNewItemPreorder} disabled={adding} label="Accept advance bookings (schedule ahead)" />
             <ItemOptionsEditor value={newItemOptions} onChange={setNewItemOptions} disabled={adding} />
             {vendorCan(user, 'international_storefront') ? (
               <div>
@@ -1224,7 +1220,7 @@ export default function VendorDashboard({ user }) {
           </div>
         )}
 
-        {myProduce.length === 0 && <div className="text-gray-500 text-sm">No listings yet. Add produce or plants above.</div>}
+        {myProduce.length === 0 && <div className="text-gray-500 text-sm">No apothecary products yet. Add potions, enchanted goods, oils, or ritual items above.</div>}
       </div>
 
       {/* Pricing Competitiveness Calculator - Advanced Analytics for Vendors */}
@@ -1304,7 +1300,7 @@ export default function VendorDashboard({ user }) {
       {/* Vendor-to-Vendor B2B Purchasing + Badge on YOUR page - fully featured */}
       <div className="mb-8 bg-white border rounded-3xl p-8">
         <h3 className="font-bold text-2xl mb-1">Buy from Other Vendors (B2B)</h3>
-        <p className="text-sm text-gray-600 mb-4">Purchase wholesale or overflow produce from peers. Choose to proudly display the seller's name + badge on <span className="font-medium">your public page</span> (great for transparency &amp; storytelling).</p>
+        <p className="text-sm text-gray-600 mb-4">Source apothecary goods or ritual supplies from fellow practitioners. Choose to display the seller&apos;s name and badge on <span className="font-medium">your public storefront</span> for transparency and collaboration.</p>
         
         <B2BPurchasePanel myVendorId={myVendorId} API={API} />
       </div>

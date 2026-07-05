@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TAROT_DISCLAIMER } from '../lib/tarotDeck';
+import { getCardArt } from '../lib/tarotArt';
 import TarotCardFace from './TarotCardFace';
 
 export default function DailyTarotFlop({ flop, onDismiss }) {
@@ -26,7 +27,8 @@ export default function DailyTarotFlop({ flop, onDismiss }) {
         <div className="flex justify-center mb-3">
           <TarotCardFace card={flop.newCard} revealed size="lg" className="shadow-2xl ring-2 ring-[#c9a227]/30" />
         </div>
-        <p className="text-xs text-gray-500 italic">{flop.newCard.vibe}</p>
+        <p className="text-sm font-medium text-[#4a1942] mt-2">{flop.newCard.name}</p>
+        <p className="text-xs text-gray-600 mt-2 leading-relaxed">{getCardArt(flop.newCard)?.meaning || flop.newCard.vibe}</p>
         <p className="text-[9px] text-red-600 mt-3">{TAROT_DISCLAIMER}</p>
         <button type="button" onClick={close} className="mt-4 w-full py-2.5 rounded-xl bg-[#4a1942] text-white text-sm">Continue</button>
       </div>
