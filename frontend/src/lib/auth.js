@@ -4,6 +4,7 @@ import { fetchEmployeeRecord } from './employeesApi';
 import { getAppUrl } from './appUrl';
 import { VERTICAL } from './vertical';
 import { STORAGE_KEYS } from './storageKeys';
+import { applySubscriptionProFlags, fetchActiveSubscriptionsForEmail } from './proStatus';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
@@ -16,6 +17,8 @@ function normalizeProfile(raw) {
     vendor_id: raw.vendor_id || raw.vendor || null,
     vendor_plan: raw.vendor_plan || 'free',
     customer_plan: raw.customer_plan || 'free',
+    customer_pro_active: !!raw.customer_pro_active,
+    vendor_pro_active: !!raw.vendor_pro_active,
     purchase_count: Number(raw.purchase_count) || 0,
     doordash_linked: !!raw.doordash_linked,
     ubereats_linked: !!raw.ubereats_linked,
@@ -35,13 +38,14 @@ async function enrichProfile(profile) {
 
   const { data: row } = await supabase
     .from('users')
-    .select('customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
+    .select('id, customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
     .ilike('email', profile.email.trim())
     .maybeSingle();
 
   if (row) {
     profile.customer_plan = row.customer_plan || profile.customer_plan;
     profile.purchase_count = Number(row.purchase_count) || 0;
+    profile.id = profile.id || row.id;
 
     if (row.avatar) profile.avatar = row.avatar;
     if (row.vendor_id) {
@@ -72,6 +76,13 @@ async function enrichProfile(profile) {
     profile.employee_vendor_id = emp.vendor_id;
     profile.employee_permissions = emp.permissions;
     profile.employee_vendor_plan = emp.vendor_plan;
+  }
+
+  try {
+    const subscriptions = await fetchActiveSubscriptionsForEmail(profile.email);
+    profile = applySubscriptionProFlags(profile, subscriptions);
+  } catch {
+    /* subscriptions optional */
   }
 
   return profile;

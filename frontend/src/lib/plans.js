@@ -150,9 +150,25 @@ export function vendorCan(user, permission) {
   return ctx.permissions.includes(permission);
 }
 
+export function getEffectiveCustomerPlan(user) {
+  if (!user) return 'free';
+  if ((user.role || '').toLowerCase() === 'admin') return 'paid';
+  if (isProPlan(user.customer_plan)) return user.customer_plan;
+  if (user.customer_pro_active) return 'paid';
+  return user.customer_plan || 'free';
+}
+
+export function getEffectiveVendorPlan(user) {
+  if (!user) return 'free';
+  if ((user.role || '').toLowerCase() === 'admin') return 'paid';
+  if (isProPlan(user.vendor_plan)) return user.vendor_plan;
+  if (user.vendor_pro_active) return 'paid';
+  return user.vendor_plan || 'free';
+}
+
 export function getCustomerContext(user) {
   if (!user) return null;
-  const plan = user.customer_plan || 'free';
+  const plan = getEffectiveCustomerPlan(user);
   const purchaseCount = Number(user.purchase_count) || 0;
   const perms = customerPermissionsForPlan(plan);
 

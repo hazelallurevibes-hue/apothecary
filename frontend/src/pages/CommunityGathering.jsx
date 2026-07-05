@@ -186,7 +186,7 @@ export default function CommunityGathering({ user }) {
           )}
           {activeTopic && (
             <>
-              {!canStart && <ProFeatureHint hintKey="community_post" />}
+              {!canStart && <ProFeatureHint hintKey="community_post" user={user} />}
               {canStart && user && (
                 <div className="rounded-2xl border border-[#4a1942]/10 p-4 bg-[#faf7f9] space-y-2">
                   <input

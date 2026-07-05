@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import ProfileAvatarFrame from './ProfileAvatarFrame';
 import ProFeatureHint from './ProFeatureHint';
 import { customerCan } from '../lib/plans';
+import { isProMemberPrefEnabled } from '../lib/proMemberPrefs';
 import {
   canUseProProfileFeatures,
   fetchProfileCustomization,
@@ -30,10 +31,14 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const [saving, setSaving] = useState(false);
   const [bannerUploading, setBannerUploading] = useState(false);
   const [message, setMessage] = useState('');
+  const [framePrefOn, setFramePrefOn] = useState(() => isProMemberPrefEnabled('profile_frame'));
+  const [bannerPrefOn, setBannerPrefOn] = useState(() => isProMemberPrefEnabled('profile_banner'));
 
   const isPro = canUseProProfileFeatures(user);
-  const canPin = customerCan(user, 'profile_custom');
+  const canPinFeatures = customerCan(user, 'profile_custom');
+  const canPin = canPinFeatures;
   const canShowcase = customerCan(user, 'showcase_achievements');
+  const canBanner = canPinFeatures && bannerPrefOn;
 
   useEffect(() => {
     if (!user?.email) return;
@@ -58,7 +63,17 @@ export default function ProfileCustomizer({ user, onUpdate }) {
       .catch(() => { setTarotCards(0); setScryingPermanent(false); });
   }, [user?.email]);
 
+  useEffect(() => {
+    const sync = () => {
+      setFramePrefOn(isProMemberPrefEnabled('profile_frame'));
+      setBannerPrefOn(isProMemberPrefEnabled('profile_banner'));
+    };
+    window.addEventListener('hazel-pro-prefs-changed', sync);
+    return () => window.removeEventListener('hazel-pro-prefs-changed', sync);
+  }, []);
+
   const scryingUnlocked = scryingPermanent || tarotCards >= SCRYING_FRAME_UNLOCK_CARDS;
+  const displayFrame = canPinFeatures && framePrefOn ? frame : 'none';
 
   const pinnedBadge = badges.find((b) => b.id === pinnedId);
 
@@ -71,7 +86,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
       const patch = {
         profile_bio: bio,
         profile_accent_color: isPro ? accent : '#4a1942',
-        profile_banner_url: canPin ? banner : null,
+        profile_banner_url: canBanner ? banner : null,
         profile_frame: frameToSave,
         pinned_student_badge_id: canPin ? pinnedId : null,
         showcase_achievements: canShowcase ? showcase : [],
@@ -89,7 +104,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
 
   const onBannerUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (!file || !canPin) return;
+    if (!file || !canBanner) return;
     setBannerUploading(true);
     setMessage('');
     try {
@@ -130,7 +145,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
         <ProfileAvatarFrame
           avatarUrl={user?.avatar}
           name={user?.name}
-          frameKey={frame}
+          frameKey={displayFrame}
           pinnedBadge={pinnedBadge}
           accentColor={accent}
           size="lg"
@@ -150,8 +165,15 @@ export default function ProfileCustomizer({ user, onUpdate }) {
         </div>
       </div>
 
-      {!canPin && <ProFeatureHint hintKey="profile_frame" />}
-      {!canPin && <ProFeatureHint hintKey="profile_banner" />}
+      {!isPro && <ProFeatureHint hintKey="profile_frame" user={user} />}
+      {!isPro && <ProFeatureHint hintKey="profile_banner" user={user} />}
+      {isPro && !framePrefOn && (
+        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+          Portrait frames are off in{' '}
+          <a href="#pro-member-prefs" className="underline font-medium">Pro preferences</a>
+          . Turn on &ldquo;Portrait frame&rdquo; to style your avatar.
+        </p>
+      )}
 
       {canPin && (
         <div className="grid sm:grid-cols-2 gap-4">
@@ -198,7 +220,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
       {badges.length > 0 && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">Pin a class honor beside your portrait</p>
-          {!canPin && <ProFeatureHint hintKey="student_badge_pin" />}
+          {!isPro && <ProFeatureHint hintKey="student_badge_pin" user={user} />}
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
@@ -225,7 +247,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
       {achievements.length > 0 && (
         <div>
           <p className="text-sm font-medium text-gray-700 mb-2">Discovered milestones (choose up to 6 to display)</p>
-          {!canShowcase && <ProFeatureHint hintKey="showcase_achievements" />}
+          {!isPro && <ProFeatureHint hintKey="showcase_achievements" user={user} />}
           <div className="flex flex-wrap gap-2">
             {achievements.map((id) => {
               const meta = getAchievementMeta(id);

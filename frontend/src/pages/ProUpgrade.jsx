@@ -8,6 +8,7 @@ import {
   isProPlan,
   planBadgeLabel,
 } from '../lib/plans';
+import { isCustomerProUser, isVendorProUser } from '../lib/proStatus';
 import { createProCheckout, getProPricing, openBillingPortal } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
@@ -29,8 +30,8 @@ export default function ProUpgrade({ user }) {
   const role = (user?.role || '').toLowerCase();
   const vendorOnly = searchParams.get('type') === 'vendor'
     && (role === 'vendor' || role === 'admin' || !!vendorCtx?.isOwner);
-  const isCustomerPro = customerCtx && isProPlan(customerCtx.plan);
-  const isVendorPro = vendorCtx && isProPlan(vendorCtx.plan);
+  const isCustomerPro = isCustomerProUser(user) || (customerCtx && isProPlan(customerCtx.plan));
+  const isVendorPro = isVendorProUser(user) || (vendorCtx && isProPlan(vendorCtx.plan));
 
   useEffect(() => {
     getProPricing().then(setPricing).catch(() => setPricing(null));

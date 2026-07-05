@@ -77,6 +77,7 @@ function PageLoader() {
 
 import { WHIMSY_LOADING, pickWhimsy } from './lib/whimsyMessages';
 import { getPostLoginPath, restoreSession, signOut, resolveProfile, ensureOAuthUserProfile } from './lib/auth';
+import { syncUserProStatus } from './lib/proStatus';
 import { mergeAuth0AllergenMetadata } from './lib/auth0MetadataSync';
 import { setMonitoringUser } from './lib/monitoring';
 import { supabase } from './lib/supabaseClient';
@@ -115,7 +116,11 @@ function AppCore({ auth0 = null }) {
 
     const initSession = async () => {
       if (auth0Enabled && auth0?.isLoading) return;
-      const profile = await restoreSession();
+      let profile = await restoreSession();
+      if (profile?.email) {
+        profile = await syncUserProStatus(profile);
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+      }
       if (active) {
         if (profile) {
           setUser(profile);
@@ -262,7 +267,7 @@ function AppCore({ auth0 = null }) {
     }
     const role = user.role.toLowerCase();
     if (!roleHasAccess(role, allowedRoles)) {
-      return <PermissionDenied />;
+      return <PermissionDenied user={user} />;
     }
     if (role !== 'admin') {
       const isVendorActor = role === 'vendor' || !!user.employee_vendor_id;
@@ -270,11 +275,11 @@ function AppCore({ auth0 = null }) {
         const ok =
           (role === 'customer' && customerCan(user, customerPermission)) ||
           (isVendorActor && vendorCan(user, vendorPermission));
-        if (!ok) return <PermissionDenied />;
+        if (!ok) return <PermissionDenied user={user} />;
       } else if (vendorPermission && isVendorActor && !vendorCan(user, vendorPermission)) {
-        return <PermissionDenied />;
+        return <PermissionDenied user={user} />;
       } else if (customerPermission && role === 'customer' && !customerCan(user, customerPermission)) {
-        return <PermissionDenied />;
+        return <PermissionDenied user={user} />;
       } else if (customerPermission && isVendorActor) {
         // vendors/employees skip customer permission checks
       }
@@ -345,7 +350,7 @@ function AppCore({ auth0 = null }) {
                 
                 {/* Customer Routes */}
                 <Route path="/customer-portal" element={
-                  <ProtectedRoute allowedRoles={['customer']}><CustomerPortal user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['customer']}><CustomerPortal user={user} onProfileUpdate={setUser} /></ProtectedRoute>
                 } />
                 <Route path="/orders" element={
                   <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']} customerPermission="track_orders">

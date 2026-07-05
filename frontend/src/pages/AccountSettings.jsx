@@ -18,6 +18,8 @@ import { fetchFoodPreferences, saveFoodPreferences, EMPTY_FOOD_PREFS } from '../
 import { STORAGE_KEYS } from '../lib/storageKeys';
 import LearningStyleChips from '../components/LearningStyleChips';
 import ProfileCustomizer from '../components/ProfileCustomizer';
+import ProMemberPreferences from '../components/ProMemberPreferences';
+import { isCustomerProUser } from '../lib/proStatus';
 import ConfessionBoothPanel from '../components/ConfessionBoothPanel';
 import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
 import { useSeoContext } from '../components/SeoContext';
@@ -308,6 +310,12 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         </div>
       )}
 
+      {(role === 'customer' || role === 'guest' || customerCtx) && isCustomerProUser(user) && (
+        <div className="mb-6">
+          <ProMemberPreferences />
+        </div>
+      )}
+
       {(role === 'customer' || role === 'guest' || customerCtx) && (
         <ConfessionBoothPanel user={user} />
       )}
@@ -341,7 +349,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
                 : `Buy, track orders, and link delivery apps. Ratings unlock after ${FREE_CUSTOMER_RATING_MIN_PURCHASES} purchases (${customerCtx.purchaseCount}/${FREE_CUSTOMER_RATING_MIN_PURCHASES}).`}
             </div>
           </div>
-          {isProPlan(customerCtx.plan) ? (
+          {isCustomerProUser(user) || isProPlan(customerCtx.plan) ? (
             <div className="flex flex-wrap gap-2">
               <Link to="/pro-upgrade" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
                 Pro benefits

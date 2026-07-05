@@ -231,7 +231,7 @@ export default function CourseCollegeHub({ user, course, enrolled, vendorName, p
               <button type="button" onClick={onEval} className="px-4 py-2 rounded-full bg-[#4a1942] text-white text-sm">Submit evaluation</button>
             </section>
           )}
-          {!canEval && enrolled && <ProFeatureHint hintKey="lesson_progress" />}
+          {!canEval && enrolled && <ProFeatureHint hintKey="lesson_progress" user={user} />}
 
           {enrolled && (
             <button type="button" onClick={printCert} disabled={printing} className="px-5 py-2.5 rounded-full border border-[#4a1942] text-[#4a1942] text-sm disabled:opacity-50">

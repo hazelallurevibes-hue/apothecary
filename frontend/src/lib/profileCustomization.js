@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
 import { uploadProfileBanner as uploadBannerToStorage } from './storageApi';
-import { isProPlan } from './plans';
+import { getEffectiveCustomerPlan, isProPlan } from './plans';
 
 export const SCRYING_FRAME_UNLOCK_CARDS = 39;
 
@@ -54,7 +54,7 @@ export async function uploadProfileBanner(file, user) {
 
 export function canUseProProfileFeatures(user) {
   if ((user?.role || '').toLowerCase() === 'admin') return true;
-  return isProPlan(user?.customer_plan);
+  return isProPlan(getEffectiveCustomerPlan(user));
 }
 
 export function frameClass(frameKey) {

@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import VideoEmbed from '../components/VideoEmbed';
-import { customerCan, getCustomerContext, isProPlan } from '../lib/plans';
+import { customerCan, getCustomerContext, isProPlan, getEffectiveCustomerPlan } from '../lib/plans';
+import { isCustomerProUser } from '../lib/proStatus';
 import ProFeatureHint from '../components/ProFeatureHint';
 import {
   completionPercent,
@@ -40,7 +41,7 @@ export default function CourseDetailPage({ user }) {
   const customerCtx = getCustomerContext(user);
   const canTrackProgress = customerCan(user, 'lesson_progress');
   const price = course ? coursePriceForCustomer(course, customerCtx?.plan) : 0;
-  const isPro = isProPlan(customerCtx?.plan);
+  const isPro = isCustomerProUser(user) || isProPlan(getEffectiveCustomerPlan(user));
 
   useEffect(() => {
     fetchCourseById(id).then(setCourse);
@@ -209,7 +210,7 @@ export default function CourseDetailPage({ user }) {
                   </p>
                 </>
               ) : (
-                <ProFeatureHint hintKey="lesson_progress" />
+                <ProFeatureHint hintKey="lesson_progress" user={user} />
               )}
             </div>
           )}

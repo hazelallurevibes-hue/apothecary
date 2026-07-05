@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser } from '../lib/ordersApi';
 import { getCustomerContext, isProPlan, planBadgeLabel } from '../lib/plans';
+import { isCustomerProUser } from '../lib/proStatus';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
+import ProMemberPreferences from '../components/ProMemberPreferences';
+import { isProMemberPrefEnabled } from '../lib/proMemberPrefs';
+import { STORAGE_KEYS } from '../lib/storageKeys';
+import { syncUserProStatus } from '../lib/proStatus';
 import LearningPathPanel from '../components/LearningPathPanel';
 import MySessionsPanel from '../components/MySessionsPanel';
 import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
@@ -15,19 +20,40 @@ if (API && !API.endsWith('/api')) {
   API = API.endsWith('/') ? API + 'api' : API + '/api';
 }
 
-export default function CustomerPortal({ user }) {
+export default function CustomerPortal({ user, onProfileUpdate }) {
+  const [portalUser, setPortalUser] = useState(user);
   const [recentOrders, setRecentOrders] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loyaltyPoints, setLoyaltyPoints] = useState(0); // earned via orders and reviews (live via Supabase when wired)
+  const [, setPrefsTick] = useState(0);
 
   const { cart, removeFromCart, total, clearCart } = useCart();
 
   useEffect(() => {
-    if (!user) return;
+    const onPrefs = () => setPrefsTick((n) => n + 1);
+    window.addEventListener('hazel-pro-prefs-changed', onPrefs);
+    return () => window.removeEventListener('hazel-pro-prefs-changed', onPrefs);
+  }, []);
 
-    const userId = user.id || 3;
+  useEffect(() => {
+    setPortalUser(user);
+  }, [user]);
+
+  useEffect(() => {
+    if (!user?.email) return;
+    syncUserProStatus(user).then((fresh) => {
+      setPortalUser(fresh);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(fresh));
+      onProfileUpdate?.(fresh);
+    }).catch(() => {});
+  }, [user?.email, onProfileUpdate]);
+
+  useEffect(() => {
+    if (!portalUser) return;
+
+    const userId = portalUser.id || 3;
 
     Promise.all([
       fetchOrdersForUser(user).catch(() => []),
@@ -41,10 +67,16 @@ export default function CustomerPortal({ user }) {
       setLoyaltyPoints(loy.points || 0);
       setLoading(false);
     });
-  }, [user]);
+  }, [portalUser]);
 
   const itemCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
-  const customerCtx = getCustomerContext(user);
+  const customerCtx = getCustomerContext(portalUser);
+  const isPro = isCustomerProUser(portalUser) || isProPlan(customerCtx?.plan);
+  const showOrders = isProMemberPrefEnabled('track_orders');
+  const showLoyalty = isProMemberPrefEnabled('loyalty');
+  const showFavorites = isProMemberPrefEnabled('favorites');
+  const showSupport = isProMemberPrefEnabled('priority_support');
+  const showExpress = isProMemberPrefEnabled('express_checkout');
 
   return (
     <div>
@@ -59,12 +91,12 @@ export default function CustomerPortal({ user }) {
         </div>
         <Link to={ACCOUNT_PROFILE_PATH} className="flex items-center gap-3 sm:text-right hover:opacity-90 transition self-start sm:self-auto">
           <img
-            src={user?.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(user?.email || 'guest')}`}
+            src={portalUser?.avatar || `https://i.pravatar.cc/150?u=${encodeURIComponent(portalUser?.email || 'guest')}`}
             alt=""
             className="w-10 h-10 rounded-2xl object-cover ring-1 ring-[#e8e4d9] shrink-0"
           />
           <div>
-            <div className="text-sm text-gray-500">Welcome back, <span className="font-semibold text-[#0f172a]">{user?.name}</span></div>
+            <div className="text-sm text-gray-500">Welcome back, <span className="font-semibold text-[#0f172a]">{portalUser?.name}</span></div>
             <div className={`text-xs font-medium ${isProPlan(customerCtx.plan) ? 'text-emerald-600' : 'text-gray-500'}`}>
               {planBadgeLabel(customerCtx.plan, 'customer')}
               {!isProPlan(customerCtx.plan) && !customerCtx.canRate && ` • ${customerCtx.purchasesUntilRating} purchases until ratings`}
@@ -74,11 +106,17 @@ export default function CustomerPortal({ user }) {
         </Link>
       </div>
 
-      <ProBenefitsStrip user={user} variant="customer" compact />
+      <ProBenefitsStrip user={portalUser} variant="customer" compact />
+
+      {isPro && (
+        <div className="mt-6">
+          <ProMemberPreferences />
+        </div>
+      )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
-        <LearningPathPanel user={user} compact />
-        <MySessionsPanel user={user} compact />
+        <LearningPathPanel user={portalUser} compact />
+        <MySessionsPanel user={portalUser} compact />
       </div>
 
       {/* Pro Quick Cart */}
@@ -119,10 +157,10 @@ export default function CustomerPortal({ user }) {
               >
                 Manage in Orders Page
               </Link>
+              {showExpress && (
               <button 
                 onClick={() => {
                   if (confirm('Place this order now?')) {
-                    // Quick place - in real would navigate or call placeOrder
                     alert(`Premium order for $${total.toFixed(2)} placed! (See full flow in /orders)`);
                     clearCart();
                   }
@@ -131,6 +169,7 @@ export default function CustomerPortal({ user }) {
               >
                 Quick Place Order (Premium)
               </button>
+              )}
             </div>
             <p className="text-[10px] text-center text-gray-400 mt-2">Premium members get priority kitchen slot + free express on orders &gt;$25</p>
           </>
@@ -138,7 +177,7 @@ export default function CustomerPortal({ user }) {
       </div>
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Recent Orders - now real data */}
+        {showOrders && (
         <Link to="/orders" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
           <h3 className="font-semibold mb-4 flex items-center gap-2">Recent Orders <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">LIVE</span></h3>
           {loading ? (
@@ -157,15 +196,18 @@ export default function CustomerPortal({ user }) {
           )}
           <span className="text-[#4a1942] text-xs mt-3 inline-block">View all orders &amp; current cart →</span>
         </Link>
+        )}
 
-        {/* Loyalty & Favorites */}
+        {showLoyalty && (
         <div className="bg-white border rounded-3xl p-6">
           <h3 className="font-semibold mb-2">Your Loyalty Points</h3>
           <div className="text-3xl font-bold text-amber-600">{loyaltyPoints} <span className="text-base">pts</span></div>
           <div className="text-xs text-amber-700">Earn 10 pts per $1 spent. 500 pts = $10 off next order!</div>
           <div className="mt-4 text-xs">Next reward at 500 pts • You're 65% there.</div>
         </div>
+        )}
 
+        {showFavorites && (
         <Link to="/favorites" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
           <h3 className="font-semibold mb-4 flex items-center gap-2">Favorite Vendors <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">PREMIUM</span></h3>
           {loading ? (
@@ -184,8 +226,9 @@ export default function CustomerPortal({ user }) {
           )}
           <span className="text-[#4a1942] text-xs mt-3 inline-block">View all favorites →</span>
         </Link>
+        )}
 
-        {/* Active Issues + Premium Support */}
+        {showSupport && (
         <Link to="/support" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
           <h3 className="font-semibold mb-4 flex items-center gap-2">Active Issues <span className="text-xs bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded">PREMIUM SUPPORT</span></h3>
           {loading ? (
@@ -204,6 +247,7 @@ export default function CustomerPortal({ user }) {
           )}
           <div className="mt-3 text-[10px] text-emerald-600">Premium: 24/7 priority response + dedicated account manager.</div>
         </Link>
+        )}
       </div>
 
       {/* Extra Premium Perk */}
