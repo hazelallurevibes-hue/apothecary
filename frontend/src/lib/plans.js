@@ -1,7 +1,7 @@
 /** Vendor & customer tier permissions for Hazel Allure */
 
 export const VENDOR_PERMISSIONS = {
-  sell: { label: 'Selling & listings', description: 'Add healing services and apothecary items' },
+  sell: { label: 'Selling & listings', description: 'Add wellness services and apothecary items' },
   bio_edit: { label: 'Bio editor', description: 'Edit store bio and slogan' },
   profile_editor: { label: 'Profile pictures', description: 'Logo and highlight photo' },
   ratings: { label: 'Ratings & reviews', description: 'View and respond to reviews' },
@@ -185,7 +185,7 @@ export function planBadgeLabel(plan, type = 'vendor') {
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = [
-  'Unlimited healing services & apothecary listings',
+  'Unlimited wellness services & apothecary listings',
   'YouTube & Vimeo video on every service — photo + video previews',
   'Member discounts — reward Pro seekers, incentivize upgrades',
   'Teaching Sanctum — sell courses & monetize your content',

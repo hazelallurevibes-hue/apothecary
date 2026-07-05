@@ -279,7 +279,7 @@ function CustomerHome({ user, liveStats }) {
           <p className="text-sm text-gray-600 mt-2">Discover trusted healers, readers, and artisans by rating.</p>
         </Link>
         <Link to="/services" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
-          <h3 className="font-semibold text-xl">Healing Services</h3>
+          <h3 className="font-semibold text-xl">Wellness Services</h3>
           <p className="text-sm text-gray-600 mt-2">Homeopathy, herbalism, energy work, psychic readings, Ayurveda, curanderismo, and more.</p>
         </Link>
         <Link to="/products" className="bg-white border border-[#c9a227]/30 rounded-3xl p-6 hover:shadow-sm transition block">

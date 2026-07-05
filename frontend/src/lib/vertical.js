@@ -61,7 +61,7 @@ export const VERTICAL = {
     apothecary: 'Apothecary',
     /** @deprecated use labels.apothecary */
     farmersMarket: 'Apothecary',
-    marketplace: 'Healing Services',
+    marketplace: 'Wellness Services',
     shopHero: 'Book a Session',
     exploreHero: 'Browse Apothecary →',
     courses: 'Teaching Sanctum',
@@ -96,8 +96,8 @@ export const VERTICAL = {
       'Heal with intention. Discover practitioners across healing traditions, ritual goods, and courses made with care.',
     seekerStepApothecary: 'Browse the Apothecary',
     seekerStepApothecaryHint: 'Homeopathic remedies, herbs, oils, incense, crystals, and ritual kits',
-    seekerStepServices: 'Book a healing session',
-    seekerStepServicesHint: 'Homeopathy, herbalism, energy work, psychic, curandera, Ayurveda, and more',
+    seekerStepServices: 'Book a wellness session',
+    seekerStepServicesHint: 'Tarot, Reiki, herbal consultation, energy work, psychic, curandera, Ayurveda, and more',
     wellnessDisclaimer:
       'Hazel Allure does not provide medical advice, diagnosis, or treatment. Practitioner listings are for wellness and spiritual support only. Always consult a qualified healthcare professional for medical concerns.',
     inclusiveWellnessLine:

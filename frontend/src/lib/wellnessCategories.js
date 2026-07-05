@@ -1,4 +1,4 @@
-/** Hazel Allure — healing services (bookable practitioners) */
+/** Hazel Allure — wellness services (bookable practitioners) */
 
 /** Platform-wide — not medical advice; practitioners set their own scope */
 export const WELLNESS_CATEGORY_DISCLAIMER =
@@ -157,8 +157,8 @@ export const WELLNESS_SERVICE_CATEGORIES = [
   },
   {
     id: 'other_service',
-    label: 'Other healing service',
-    description: 'Any bookable wellness, ritual, or spiritual service not listed above.',
+    label: 'Other wellness service',
+    description: 'Any bookable wellness, ritual, or spiritual support session not listed above.',
   },
 ];
 

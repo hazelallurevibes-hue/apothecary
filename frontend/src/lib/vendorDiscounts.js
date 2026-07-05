@@ -10,7 +10,7 @@ export const DISCOUNT_AUDIENCES = [
 
 export const DISCOUNT_APPLIES_TO = [
   { id: 'all', label: 'Everything' },
-  { id: 'services', label: 'Healing services only' },
+  { id: 'services', label: 'Wellness services only' },
   { id: 'products', label: 'Apothecary products only' },
   { id: 'courses', label: 'Courses only' },
 ];

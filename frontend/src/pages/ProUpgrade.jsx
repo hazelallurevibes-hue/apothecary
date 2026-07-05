@@ -196,7 +196,7 @@ export default function ProUpgrade({ user }) {
         </p>
       </div>
 
-      <ProSocialProof />
+      {!vendorOnly && <ProSocialProof memberOnly />}
     </div>
   );
 }

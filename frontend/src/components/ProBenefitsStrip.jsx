@@ -25,7 +25,7 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
   let planType = 'customer';
   if (variant === 'vendor') planType = 'vendor';
   else if (variant === 'customer') planType = 'customer';
-  else if (role === 'vendor' || vendorCtx?.isOwner) planType = 'vendor';
+  else if (variant !== 'customer' && (role === 'vendor' || vendorCtx?.isOwner)) planType = 'vendor';
   else planType = 'customer';
 
   const isPro =

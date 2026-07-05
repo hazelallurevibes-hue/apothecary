@@ -121,7 +121,7 @@ export default function Layout({ user, onLogout, children }) {
 
   const guestMenu = [
     { label: 'Top Practitioners', to: '/top-vendors' },
-    { label: 'Healing Services', to: '/services' },
+    { label: 'Wellness Services', to: '/services' },
     { label: 'Apothecary', to: '/products' },
     { label: 'FAQ', to: '/faq' },
     { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH },

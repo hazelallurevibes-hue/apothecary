@@ -43,6 +43,7 @@ import ServiceMediaField from '../components/ServiceMediaField';
 import VendorDiscountsPanel from '../components/VendorDiscountsPanel';
 import VendorListingRow from '../components/VendorListingRow';
 import ListingQuickAdd from '../components/ListingQuickAdd';
+import ListingLanguageDisclaimer from '../components/ListingLanguageDisclaimer';
 import { buildServiceMediaPayload } from '../lib/videoEmbed';
 import {
   EMPTY_THUMBNAIL,
@@ -233,7 +234,7 @@ export default function VendorDashboard({ user }) {
     if (!passesLaunchGate()) return;
     if (!newItem.name || !newItem.price || !myVendorId) return;
     if (!editMenuId && listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      alert(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to Paid for unlimited listings.`);
+      alert(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Paid for unlimited listings.`);
       return;
     }
     if (!isSafetySubmissionValid(newItemSafety)) {
@@ -276,7 +277,7 @@ export default function VendorDashboard({ user }) {
         if (error) throw error;
         resetMenuForm();
         await refreshVendorData();
-        alert('Healing service updated.');
+        alert('Wellness service updated.');
         setAdding(false);
         return;
       }
@@ -332,7 +333,7 @@ export default function VendorDashboard({ user }) {
   const duplicateMenuItem = async (item) => {
     if (!item || !myVendorId) return;
     if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      alert(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to add more.`);
+      alert(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to add more.`);
       return;
     }
     const copyName = `${item.name} (copy)`.slice(0, 120);
@@ -494,7 +495,7 @@ export default function VendorDashboard({ user }) {
       return;
     }
     if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      reject(new Error(`Free plan limit: ${listingLimits.menu} healing services. Upgrade to Pro for unlimited listings.`));
+      reject(new Error(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Pro for unlimited listings.`));
       return;
     }
     if (payload.safety && !isSafetySubmissionValid(payload.safety)) {
@@ -719,7 +720,7 @@ export default function VendorDashboard({ user }) {
 
   const shareToSocial = (item, autoOpen = false) => {
     const productUrl = `${window.location.origin}/vendor/${user?.vendor}`;
-    const text = `${item.name} - $${item.price}\n${item.description}\nBook or shop: ${productUrl}\n\n#HazelAllure #HealingServices #Apothecary`;
+    const text = `${item.name} - $${item.price}\n${item.description}\nBook or shop: ${productUrl}\n\n#HazelAllure #WellnessServices #Apothecary`;
     
     // Facebook Marketplace / Share - opens create + copies details
     const openFB = () => {
@@ -789,7 +790,7 @@ export default function VendorDashboard({ user }) {
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-2 break-words">Practitioner Dashboard</h1>
           <p className="text-sm sm:text-base text-gray-600 break-words">
-            Healing services & apothecary for {user?.name} · Storefront #{myVendorId}
+            Wellness services & apothecary for {user?.name} · Storefront #{myVendorId}
             <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 whitespace-nowrap inline-block mt-1 sm:mt-0">{planBadgeLabel(vendorPlan, 'vendor')}</span>
             {vendorCtx?.isEmployee && <span className="ml-1 text-xs text-amber-700">(employee)</span>}
           </p>
@@ -884,13 +885,13 @@ export default function VendorDashboard({ user }) {
         </a>
       </div>
 
-      {/* Healing services listings */}
+      {/* Wellness services listings */}
       <div id="add-menu" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-3 sm:p-8 min-w-0 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 min-w-0">
             <div className="text-3xl shrink-0">🔮</div>
             <div className="min-w-0">
-              <h3 className="font-bold text-xl sm:text-2xl heading-font text-[#4a1942]">Healing Services</h3>
+              <h3 className="font-bold text-xl sm:text-2xl heading-font text-[#4a1942]">Wellness Services</h3>
               <p className="text-sm text-gray-600">Tarot, Reiki, spellcraft, enchantments, energy work, and more — bookable sessions with photo or video preview.</p>
             </div>
           </div>
@@ -900,7 +901,7 @@ export default function VendorDashboard({ user }) {
         </div>
 
         <div className="bg-white rounded-2xl p-3 sm:p-6 border min-w-0 overflow-hidden">
-          <div className="font-semibold mb-3">{editMenuId ? 'Edit service' : 'Add healing service'}</div>
+          <div className="font-semibold mb-3">{editMenuId ? 'Edit service' : 'Add wellness service'}</div>
           {vendorCan(user, 'service_video') ? (
             <ServiceMediaField
               thumbnail={menuThumbnail}
@@ -956,6 +957,11 @@ export default function VendorDashboard({ user }) {
               ))}
             </select>
           </div>
+          <ListingLanguageDisclaimer
+            draftText={`${newItem.name} ${newItem.description}`}
+            variant="service"
+            className="mt-3"
+          />
           <div className="mt-3 space-y-3">
             <ItemListingExtras
               allergens={newItemAllergens}
@@ -1018,7 +1024,7 @@ export default function VendorDashboard({ user }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         <div id="menu-listings" className="bg-white border rounded-3xl p-4 sm:p-6">
-          <h3 className="font-semibold mb-4">Your healing services · Share to social</h3>
+          <h3 className="font-semibold mb-4">Your wellness services · Share to social</h3>
           {myMenu.length === 0 && <p className="text-gray-500 text-sm">No services yet. Add your first session above!</p>}
           {myMenu.map((item) => (
             <VendorListingRow
@@ -1117,6 +1123,11 @@ export default function VendorDashboard({ user }) {
             </select>
           </div>
           <textarea placeholder="Description, ingredients, ritual use, or artisan story" value={newProduce.description || newProduce.farm_story} onChange={e=>setNewProduce({...newProduce, description:e.target.value, farm_story:e.target.value})} className="mt-3 w-full border p-3 rounded-2xl h-20 min-w-0" />
+          <ListingLanguageDisclaimer
+            draftText={`${newProduce.name} ${newProduce.description}`}
+            variant="product"
+            className="mt-3"
+          />
           {categoryRequiresLegalAck(newProduce.category) && (
             <MedicinalPlantWarning showAck acknowledged={medicinalLegalAck} onAckChange={setMedicinalLegalAck} />
           )}

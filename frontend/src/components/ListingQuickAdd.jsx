@@ -9,6 +9,7 @@ import FulfillmentQuickPicker from './FulfillmentQuickPicker';
 import ItemListingExtras from './ItemListingExtras';
 import ItemOptionsEditor from './ItemOptionsEditor';
 import MedicinalPlantWarning from './MedicinalPlantWarning';
+import ListingLanguageDisclaimer from './ListingLanguageDisclaimer';
 import ServiceMediaField from './ServiceMediaField';
 import { EMPTY_THUMBNAIL } from '../lib/vendorListings';
 
@@ -204,7 +205,7 @@ export default function ListingQuickAdd({
       {step === 1 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[
-            { id: 'service', icon: '🔮', title: 'Healing service', hint: 'Bookable sessions — tarot, Reiki, spellcraft, enchantments, energy work, and more.' },
+            { id: 'service', icon: '🔮', title: 'Wellness service', hint: 'Bookable sessions — tarot, Reiki, spellcraft, enchantments, energy work, and more.' },
             { id: 'product', icon: '🧪', title: 'Apothecary product', hint: 'Potions, spells, enchanted goods, oils, incense, crystals, ritual kits, and salves.' },
           ].map((opt) => (
             <button
@@ -277,6 +278,12 @@ export default function ListingQuickAdd({
           </label>
           {isProduct && categoryRequiresLegalAck(category) && (
             <MedicinalPlantWarning showAck acknowledged={medicinalLegalAck} onAckChange={setMedicinalLegalAck} />
+          )}
+          {isService && (
+            <ListingLanguageDisclaimer draftText={name} variant="service" />
+          )}
+          {isProduct && (
+            <ListingLanguageDisclaimer draftText={name} variant="product" />
           )}
 
           <details
