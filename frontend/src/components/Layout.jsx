@@ -1,4 +1,5 @@
-import { useState, useMemo, useEffect, lazy, Suspense } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
+import { lazyWithRetry } from '../lib/lazyWithRetry';
 import { Link } from 'react-router-dom';
 import { useCart } from './CartContext';
 import NavDropdown from './NavDropdown';
@@ -14,12 +15,12 @@ import AccessibilityHub from './AccessibilityHub';
 import Magic8Ball from './Magic8Ball';
 import EasyModePrompt from './EasyModePrompt';
 
-const HiddenCats = lazy(() => import('./HiddenCats'));
-const FamiliarCompanion = lazy(() => import('./FamiliarCompanion'));
-const DailyFamiliarQuest = lazy(() => import('./DailyFamiliarQuest'));
-const SeekerOathReaffirmModal = lazy(() => import('./SeekerOathReaffirmModal'));
-const LoginStreakHandler = lazy(() => import('./LoginStreakHandler'));
-const GuidanceCoach = lazy(() => import('./GuidanceCoach'));
+const HiddenCats = lazyWithRetry(() => import('./HiddenCats'));
+const FamiliarCompanion = lazyWithRetry(() => import('./FamiliarCompanion'));
+const DailyFamiliarQuest = lazyWithRetry(() => import('./DailyFamiliarQuest'));
+const SeekerOathReaffirmModal = lazyWithRetry(() => import('./SeekerOathReaffirmModal'));
+const LoginStreakHandler = lazyWithRetry(() => import('./LoginStreakHandler'));
+const GuidanceCoach = lazyWithRetry(() => import('./GuidanceCoach'));
 import PageSeo from './PageSeo';
 import JsonLd from './JsonLd';
 import BreadcrumbNav from './BreadcrumbNav';

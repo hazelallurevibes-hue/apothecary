@@ -1,69 +1,70 @@
-import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
+import { lazyWithRetry, clearChunkReloadFlag } from './lib/lazyWithRetry';
 import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth0 } from '@auth0/auth0-react';
 import Layout from './components/Layout';
 import { CartProvider } from './components/CartContext';
 import Login from './pages/Login';
 
-const Home = lazy(() => import('./pages/Home'));
-const SignUp = lazy(() => import('./pages/SignUp'));
-const VendorSignUp = lazy(() => import('./pages/VendorSignUp'));
-const CustomerSignUp = lazy(() => import('./pages/CustomerSignUp'));
-const Dashboard = lazy(() => import('./pages/Dashboard'));
-const VendorDashboard = lazy(() => import('./pages/VendorDashboard'));
-const Marketplace = lazy(() => import('./pages/Marketplace'));
-const TopVendors = lazy(() => import('./pages/TopVendors'));
-const CustomerPortal = lazy(() => import('./pages/CustomerPortal'));
-const Orders = lazy(() => import('./pages/Orders'));
-const Favorites = lazy(() => import('./pages/Favorites'));
-const Support = lazy(() => import('./pages/Support'));
-const Invoices = lazy(() => import('./pages/Invoices'));
-const Documents = lazy(() => import('./pages/Documents'));
-const Tasks = lazy(() => import('./pages/Tasks'));
-const AdminPortal = lazy(() => import('./pages/UsersManagement'));
-const VendorProductPage = lazy(() => import('./pages/VendorProductPage'));
-const StorefrontSettings = lazy(() => import('./pages/StorefrontSettings'));
-const AccountSettings = lazy(() => import('./pages/AccountSettings'));
-const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
-const FAQ = lazy(() => import('./pages/FAQ'));
-const Sitemap = lazy(() => import('./pages/Sitemap'));
-const Contact = lazy(() => import('./pages/Contact'));
-const About = lazy(() => import('./pages/About'));
-const Agreements = lazy(() => import('./pages/Agreements'));
-const PoliciesProcedures = lazy(() => import('./pages/PoliciesProcedures'));
-const CustomerUseAgreement = lazy(() => import('./pages/CustomerUseAgreement'));
-const ApothecaryMarket = lazy(() => import('./pages/ApothecaryMarket'));
-const Messages = lazy(() => import('./pages/Messages'));
-const VendorEmailCampaigns = lazy(() => import('./pages/VendorEmailCampaigns'));
-const CampaignConfirmPage = lazy(() =>
+const Home = lazyWithRetry(() => import('./pages/Home'));
+const SignUp = lazyWithRetry(() => import('./pages/SignUp'));
+const VendorSignUp = lazyWithRetry(() => import('./pages/VendorSignUp'));
+const CustomerSignUp = lazyWithRetry(() => import('./pages/CustomerSignUp'));
+const Dashboard = lazyWithRetry(() => import('./pages/Dashboard'));
+const VendorDashboard = lazyWithRetry(() => import('./pages/VendorDashboard'));
+const Marketplace = lazyWithRetry(() => import('./pages/Marketplace'));
+const TopVendors = lazyWithRetry(() => import('./pages/TopVendors'));
+const CustomerPortal = lazyWithRetry(() => import('./pages/CustomerPortal'));
+const Orders = lazyWithRetry(() => import('./pages/Orders'));
+const Favorites = lazyWithRetry(() => import('./pages/Favorites'));
+const Support = lazyWithRetry(() => import('./pages/Support'));
+const Invoices = lazyWithRetry(() => import('./pages/Invoices'));
+const Documents = lazyWithRetry(() => import('./pages/Documents'));
+const Tasks = lazyWithRetry(() => import('./pages/Tasks'));
+const AdminPortal = lazyWithRetry(() => import('./pages/UsersManagement'));
+const VendorProductPage = lazyWithRetry(() => import('./pages/VendorProductPage'));
+const StorefrontSettings = lazyWithRetry(() => import('./pages/StorefrontSettings'));
+const AccountSettings = lazyWithRetry(() => import('./pages/AccountSettings'));
+const OnboardingFlow = lazyWithRetry(() => import('./pages/OnboardingFlow'));
+const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
+const Sitemap = lazyWithRetry(() => import('./pages/Sitemap'));
+const Contact = lazyWithRetry(() => import('./pages/Contact'));
+const About = lazyWithRetry(() => import('./pages/About'));
+const Agreements = lazyWithRetry(() => import('./pages/Agreements'));
+const PoliciesProcedures = lazyWithRetry(() => import('./pages/PoliciesProcedures'));
+const CustomerUseAgreement = lazyWithRetry(() => import('./pages/CustomerUseAgreement'));
+const ApothecaryMarket = lazyWithRetry(() => import('./pages/ApothecaryMarket'));
+const Messages = lazyWithRetry(() => import('./pages/Messages'));
+const VendorEmailCampaigns = lazyWithRetry(() => import('./pages/VendorEmailCampaigns'));
+const CampaignConfirmPage = lazyWithRetry(() =>
   import('./pages/CampaignOptIn').then((m) => ({ default: m.CampaignConfirmPage })));
-const EmailUnsubscribePage = lazy(() =>
+const EmailUnsubscribePage = lazyWithRetry(() =>
   import('./pages/CampaignOptIn').then((m) => ({ default: m.EmailUnsubscribePage })));
-const ListingDetailPage = lazy(() => import('./pages/ListingDetailPage'));
-const VendorVerification = lazy(() => import('./pages/VendorVerification'));
-const VendorSafetyAcceptance = lazy(() => import('./pages/VendorSafetyAcceptance'));
-const VendorEmailVerify = lazy(() => import('./pages/VendorEmailVerify'));
-const EmailVerifyPage = lazy(() => import('./pages/EmailVerifyPage'));
-const VendorTaxCenter = lazy(() => import('./pages/VendorTaxCenter'));
-const PickupConfirmPage = lazy(() => import('./pages/PickupConfirmPage'));
-const ProUpgrade = lazy(() => import('./pages/ProUpgrade'));
-const ProSuccess = lazy(() =>
+const ListingDetailPage = lazyWithRetry(() => import('./pages/ListingDetailPage'));
+const VendorVerification = lazyWithRetry(() => import('./pages/VendorVerification'));
+const VendorSafetyAcceptance = lazyWithRetry(() => import('./pages/VendorSafetyAcceptance'));
+const VendorEmailVerify = lazyWithRetry(() => import('./pages/VendorEmailVerify'));
+const EmailVerifyPage = lazyWithRetry(() => import('./pages/EmailVerifyPage'));
+const VendorTaxCenter = lazyWithRetry(() => import('./pages/VendorTaxCenter'));
+const PickupConfirmPage = lazyWithRetry(() => import('./pages/PickupConfirmPage'));
+const ProUpgrade = lazyWithRetry(() => import('./pages/ProUpgrade'));
+const ProSuccess = lazyWithRetry(() =>
   import('./pages/ProCheckoutResult').then((m) => ({ default: m.ProSuccess })));
-const ProCancel = lazy(() =>
+const ProCancel = lazyWithRetry(() =>
   import('./pages/ProCheckoutResult').then((m) => ({ default: m.ProCancel })));
-const CourseCatalog = lazy(() => import('./pages/CourseCatalog'));
-const CourseDetailPage = lazy(() => import('./pages/CourseDetailPage'));
-const VendorTeaching = lazy(() => import('./pages/VendorTeaching'));
-const CommunityGathering = lazy(() => import('./pages/CommunityGathering'));
-const VendorGathering = lazy(() => import('./pages/VendorGathering'));
-const SanctumStudentHub = lazy(() => import('./pages/SanctumStudentHub'));
-const VerifyCredential = lazy(() => import('./pages/VerifyCredential'));
-const TarotCollection = lazy(() => import('./pages/TarotCollection'));
-const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
-const ResetPassword = lazy(() => import('./pages/ResetPassword'));
-const LinkExpired = lazy(() => import('./pages/LinkExpired'));
-const PermissionDenied = lazy(() => import('./pages/PermissionDenied'));
-const NotFound = lazy(() => import('./pages/NotFound'));
+const CourseCatalog = lazyWithRetry(() => import('./pages/CourseCatalog'));
+const CourseDetailPage = lazyWithRetry(() => import('./pages/CourseDetailPage'));
+const VendorTeaching = lazyWithRetry(() => import('./pages/VendorTeaching'));
+const CommunityGathering = lazyWithRetry(() => import('./pages/CommunityGathering'));
+const VendorGathering = lazyWithRetry(() => import('./pages/VendorGathering'));
+const SanctumStudentHub = lazyWithRetry(() => import('./pages/SanctumStudentHub'));
+const VerifyCredential = lazyWithRetry(() => import('./pages/VerifyCredential'));
+const TarotCollection = lazyWithRetry(() => import('./pages/TarotCollection'));
+const ForgotPassword = lazyWithRetry(() => import('./pages/ForgotPassword'));
+const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
+const LinkExpired = lazyWithRetry(() => import('./pages/LinkExpired'));
+const PermissionDenied = lazyWithRetry(() => import('./pages/PermissionDenied'));
+const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
 
 function PageLoader() {
   return (
@@ -104,6 +105,10 @@ function AppCore({ auth0 = null }) {
   const navigate = useNavigate();
   const auth0Synced = useRef(false);
   const callbackHandled = useRef(false);
+
+  useEffect(() => {
+    clearChunkReloadFlag();
+  }, []);
 
   useEffect(() => {
     let active = true;

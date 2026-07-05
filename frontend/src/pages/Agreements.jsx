@@ -1,17 +1,25 @@
 // Consult qualified legal counsel for final review before production reliance.
 import { Link } from 'react-router-dom';
 import { VERTICAL } from '../lib/vertical';
+import AgreementsScrollHint from '../components/AgreementsScrollHint';
 
 export default function Agreements() {
   return (
-    <div className="max-w-4xl mx-auto pb-16">
+    <div className="max-w-4xl mx-auto pb-24">
+      <AgreementsScrollHint />
       <h1 className="text-4xl font-bold tracking-tight mb-2">Legal Agreements</h1>
-      <p className="text-sm text-gray-500 mb-8">
+      <p className="text-sm text-gray-500 mb-4">
         Binding terms for all {VERTICAL.name} users — seekers, practitioners, and artisans.{' '}
         {VERTICAL.legalEntity} · {VERTICAL.appUrl} · Effective June 2026. Subject to change at any time. Continued use constitutes acceptance.
       </p>
 
-      <nav className="flex flex-wrap gap-3 mb-8 text-sm">
+      <div className="mb-8 rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+        <strong className="font-semibold">Please read the full document.</strong>{' '}
+        This page is long — twelve sections plus a binding acknowledgment at the bottom.
+        Use the section links below to jump ahead, or scroll all the way down before you sign up or accept terms elsewhere on the site.
+      </div>
+
+      <nav className="flex flex-wrap gap-3 mb-8 text-sm" aria-label="Agreement sections">
         <a href="#terms" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Terms of Service</a>
         <a href="#privacy" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Privacy</a>
         <a href="#vendor" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Practitioner Agreement</a>

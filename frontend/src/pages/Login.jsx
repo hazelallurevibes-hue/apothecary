@@ -1,4 +1,5 @@
-import { useRef, useState, lazy, Suspense } from 'react';
+import { useRef, useState, Suspense } from 'react';
+import { lazyWithRetry } from '../lib/lazyWithRetry';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { signIn, resetPassword, finalizeSignupSession, completeMfaLogin, MfaRequiredError } from '../lib/auth';
@@ -8,9 +9,9 @@ import { isCaptchaEnabled } from '../lib/authSecurity';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import Magic8Ball from '../components/Magic8Ball';
 
-const AuthCaptcha = lazy(() => import('../components/AuthCaptcha'));
-const GoogleLoginButton = lazy(() => import('../components/GoogleLoginButton'));
-const Auth0LoginButton = lazy(() => import('../components/Auth0LoginButton'));
+const AuthCaptcha = lazyWithRetry(() => import('../components/AuthCaptcha'));
+const GoogleLoginButton = lazyWithRetry(() => import('../components/GoogleLoginButton'));
+const Auth0LoginButton = lazyWithRetry(() => import('../components/Auth0LoginButton'));
 import HoneypotField from '../components/HoneypotField';
 import PasswordInput from '../components/PasswordInput';
 import { enableTestAccounts, LIVE_TEST_ACCOUNTS, auth0Enabled, googleSignInEnabled } from '../lib/config';
