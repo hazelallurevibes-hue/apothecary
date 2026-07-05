@@ -13,11 +13,7 @@ const AuthCaptcha = forwardRef(function AuthCaptcha({ onSuccess, onExpire, onErr
   }));
 
   if (!isCaptchaEnabled()) {
-    return (
-      <p className={`text-[10px] text-amber-700 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 ${className}`}>
-        CAPTCHA not configured — set <code className="text-[9px]">VITE_TURNSTILE_SITE_KEY</code> and enable CAPTCHA in Supabase Auth.
-      </p>
-    );
+    return null;
   }
 
   return (

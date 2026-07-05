@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 import { signIn, resetPassword, finalizeSignupSession } from '../lib/auth';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
+import { isCaptchaEnabled } from '../lib/authSecurity';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import Magic8Ball from '../components/Magic8Ball';
 
@@ -241,7 +242,7 @@ export default function Login({ onLogin, loading }) {
                     )}
                   </>
                 )}
-                {captchaReady && (!isSignUp || signupRole === 'customer') && (
+                {isCaptchaEnabled() && captchaReady && (!isSignUp || signupRole === 'customer') && (
                   <Suspense fallback={<div className="h-[65px] rounded-2xl bg-gray-100 animate-pulse" />}>
                     <AuthCaptcha
                       ref={captcha.captchaRef}
@@ -251,7 +252,7 @@ export default function Login({ onLogin, loading }) {
                     />
                   </Suspense>
                 )}
-                {captcha.captchaError && (
+                {isCaptchaEnabled() && captcha.captchaError && (
                   <p className="text-xs text-red-600">{captcha.captchaError}</p>
                 )}
                 {isSignUp && signupRole === 'customer' && (

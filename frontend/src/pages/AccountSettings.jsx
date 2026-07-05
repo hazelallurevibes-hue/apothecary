@@ -24,6 +24,7 @@ import { useSeoContext } from '../components/SeoContext';
 import { fetchChosenFamiliar } from '../lib/familiarApi';
 import { fetchLoginStreak } from '../lib/loginStreakApi';
 import { getMoonPhase } from '../lib/seasonalSanctum';
+import { buildProfileSavePatch, updateUserProfile } from '../lib/userProfileUpdate';
 
 function familiarTierFromStreak(streak) {
   const n = streak?.current_streak || 0;
@@ -152,16 +153,16 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     if (!user?.email) return;
     setSaving(true);
     setStatus('');
-    const { error } = await supabase
-      .from('users')
-      .update({
+    const { error } = await updateUserProfile(
+      user.email,
+      buildProfileSavePatch({
         name,
         avatar,
         doordash_linked: doordash,
         ubereats_linked: ubereats,
         allergen_avoid: serializeAllergenIds(foodPrefs.allergen_avoid),
-      })
-      .ilike('email', user.email.trim());
+      }),
+    );
 
     setSaving(false);
     if (error) {

@@ -34,15 +34,14 @@ async function enrichProfile(profile) {
 
   const { data: row } = await supabase
     .from('users')
-    .select('customer_plan, purchase_count, doordash_linked, ubereats_linked, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
+    .select('customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
     .ilike('email', profile.email.trim())
     .maybeSingle();
 
   if (row) {
     profile.customer_plan = row.customer_plan || profile.customer_plan;
     profile.purchase_count = Number(row.purchase_count) || 0;
-    profile.doordash_linked = !!row.doordash_linked;
-    profile.ubereats_linked = !!row.ubereats_linked;
+
     if (row.avatar) profile.avatar = row.avatar;
     if (row.vendor_id) {
       profile.vendor_id = row.vendor_id;

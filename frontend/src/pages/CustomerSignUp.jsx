@@ -6,6 +6,7 @@ import { finalizeSignupSession, ensureOAuthUserProfile } from '../lib/auth';
 import GoogleLoginButton from '../components/GoogleLoginButton';
 import { googleSignInEnabled } from '../lib/config';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
+import { isCaptchaEnabled } from '../lib/authSecurity';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
@@ -274,14 +275,18 @@ export default function CustomerSignUp({ onLogin }) {
               <p className="text-xs text-red-600 mt-1">Passwords do not match.</p>
             )}
           </div>
-          <AuthCaptcha
-            ref={captcha.captchaRef}
-            onSuccess={captcha.onCaptchaSuccess}
-            onExpire={captcha.onCaptchaExpire}
-            onError={captcha.onCaptchaError}
-          />
-          {captcha.captchaError && (
-            <p className="text-xs text-red-600">{captcha.captchaError}</p>
+          {isCaptchaEnabled() && (
+            <>
+              <AuthCaptcha
+                ref={captcha.captchaRef}
+                onSuccess={captcha.onCaptchaSuccess}
+                onExpire={captcha.onCaptchaExpire}
+                onError={captcha.onCaptchaError}
+              />
+              {captcha.captchaError && (
+                <p className="text-xs text-red-600">{captcha.captchaError}</p>
+              )}
+            </>
           )}
           <label className="flex items-start gap-2 text-xs text-gray-600">
             <input
