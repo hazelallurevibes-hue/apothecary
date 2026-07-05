@@ -48,9 +48,12 @@ import ListingLanguageDisclaimer from '../components/ListingLanguageDisclaimer';
 import { buildServiceMediaPayload } from '../lib/videoEmbed';
 import {
   EMPTY_THUMBNAIL,
+  buildProduceItemPayload,
+  formatListingSaveError,
   menuItemToFormState,
   produceItemToFormState,
   resolveListingPhotoUrl,
+  saveProduceItemRecord,
 } from '../lib/vendorListings';
 import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
 import { VERTICAL } from '../lib/vertical';
@@ -382,66 +385,67 @@ export default function VendorDashboard({ user }) {
     setConfirmPost({ type: 'produce', name: newProduce.name });
   };
 
+  const finalizeProducePublish = async (added) => {
+    if (!added) return;
+    try {
+      await logListingAttestation({
+        vendorId: myVendorId,
+        userEmail: user?.email,
+        itemType: 'produce',
+        itemId: added.id,
+        itemName: added.name,
+      });
+    } catch (e) {
+      console.warn('listing attestation:', e);
+    }
+    try {
+      await markOnboardingStep(myVendorId, 'first_listing', true);
+    } catch (e) {
+      console.warn('onboarding step:', e);
+    }
+  };
+
   const addProduceItem = async () => {
     if (!newProduce.name || !newProduce.price || !myVendorId) return;
     setAddingProduce(true);
     const section = produceSection;
     try {
       const photo = await resolveListingPhotoUrl(produceThumbnail, user, myVendorId, 'produce');
-      const payload = {
-        vendor_id: myVendorId,
-        ...newProduce,
-        price: parseFloat(newProduce.price),
-        organic: Number(newProduce.organic) || 0,
+      const payload = buildProduceItemPayload({
+        vendorId: myVendorId,
+        produce: newProduce,
+        section,
+        allergens: newProduceAllergens,
+        safety: newProduceSafety,
+        freshness: newProduceFreshness,
+        preorder: newProducePreorder,
+        options: newProduceOptions,
         photo,
-        category: section === 'plants_trees' ? (newProduce.category || 'Plants') : newProduce.category,
-        allergens: serializeAllergenIds(newProduceAllergens),
-        ...buildSafetyPayload(newProduceSafety),
-        ...buildFreshnessPayload({ ...newProduceFreshness, listing_section: section }),
-        ...buildPreorderPayload(newProducePreorder),
-        item_options: normalizeOptionsForSave(newProduceOptions),
-        last_activity_at: new Date().toISOString(),
-        fulfillment_mode: newProduce.fulfillment_mode || 'pickup_and_shipping',
-      };
-
-      if (editProduceId) {
-        const { error } = await supabase.from('produce_items').update(payload).eq('id', editProduceId);
-        if (error) throw error;
-        resetProduceForm();
-        await refreshVendorData();
-        alert('Apothecary listing updated!');
-        setAddingProduce(false);
-        return;
-      }
-
-      const { data: added, error } = await supabase.from('produce_items').insert(payload).select().single();
-      if (!error && added) {
-        await logListingAttestation({
-          vendorId: myVendorId,
-          userEmail: user?.email,
-          itemType: 'produce',
-          itemId: added.id,
-          itemName: added.name,
-        });
-        await markOnboardingStep(myVendorId, 'first_listing', true);
-        resetProduceForm();
-        await refreshVendorData();
-        alert('Added to the Apothecary!');
-        setAddingProduce(false);
-        return;
-      }
-      const res = await fetch(`${API}/produce-items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
       });
-      if (res.ok) {
+
+      const { data: saved, error } = await saveProduceItemRecord(payload, { editId: editProduceId });
+      if (error) {
+        const res = await fetch(`${API}/produce-items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
+        }
         resetProduceForm();
         await refreshVendorData();
-        alert('Added to the Apothecary!');
+        alert(editProduceId ? 'Apothecary listing updated!' : 'Added to the Apothecary!');
+        setAddingProduce(false);
+        return;
       }
+
+      if (!editProduceId) await finalizeProducePublish(saved);
+      resetProduceForm();
+      await refreshVendorData();
+      alert(editProduceId ? 'Apothecary listing updated!' : 'Added to the Apothecary!');
     } catch (e) {
-      alert(editProduceId ? 'Failed to update listing.' : 'Failed to add apothecary item.');
+      alert(formatListingSaveError(e, editProduceId ? 'Failed to update listing.' : 'Failed to add apothecary item.'));
     }
     setAddingProduce(false);
   };
@@ -577,46 +581,40 @@ export default function VendorDashboard({ user }) {
     setAddingProduce(true);
     try {
       const photo = await resolveListingPhotoUrl(quick.thumbnail, user, myVendorId, 'produce');
-      const payload = {
-        vendor_id: myVendorId,
-        name: quick.name,
-        price: parseFloat(quick.price),
-        unit: quick.unit || 'each',
-        description: quick.description || '',
-        farm_story: quick.description || '',
-        organic: 0,
-        category: quick.category,
+      const payload = buildProduceItemPayload({
+        vendorId: myVendorId,
+        produce: {
+          name: quick.name,
+          price: quick.price,
+          unit: quick.unit || 'each',
+          description: quick.description || '',
+          farm_story: quick.description || '',
+          organic: 0,
+          category: quick.category,
+          fulfillment_mode: quick.fulfillment_mode,
+        },
+        section: 'produce',
+        allergens: quick.allergens || [],
+        freshness: { ...EMPTY_FRESHNESS, listing_section: 'produce' },
+        options: quick.options || [],
         photo,
-        allergens: serializeAllergenIds(quick.allergens || []),
-        ...buildSafetyPayload(),
-        ...buildFreshnessPayload({ ...EMPTY_FRESHNESS, listing_section: 'produce' }),
-        item_options: normalizeOptionsForSave(quick.options || []),
-        last_activity_at: new Date().toISOString(),
-        fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
-      };
+      });
 
-      const { data: added, error } = await supabase.from('produce_items').insert(payload).select().single();
-      if (!error && added) {
-        await logListingAttestation({
-          vendorId: myVendorId,
-          userEmail: user?.email,
-          itemType: 'produce',
-          itemId: added.id,
-          itemName: added.name,
+      const { data: added, error } = await saveProduceItemRecord(payload);
+      if (error) {
+        const res = await fetch(`${API}/produce-items`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         });
-        await markOnboardingStep(myVendorId, 'first_listing', true);
+        if (!res.ok) throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
         await refreshVendorData();
         return;
       }
-      const res = await fetch(`${API}/produce-items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) throw new Error('Failed to add apothecary item.');
+      await finalizeProducePublish(added);
       await refreshVendorData();
     } catch (e) {
-      throw new Error(e?.message || 'Failed to add apothecary item.');
+      throw new Error(formatListingSaveError(e, 'Failed to add apothecary item.'));
     } finally {
       setAddingProduce(false);
     }

@@ -1,5 +1,4 @@
--- Pickup + shipping fulfillment modes — run in Supabase SQL editor
--- Same as supabase/migrations/20260709110000_fulfillment_pickup_shipping.sql
+-- Drop legacy fulfillment_check constraints that block pickup_and_shipping / shipping
 
 UPDATE public.menu_items
 SET fulfillment_mode = 'pickup_and_shipping'

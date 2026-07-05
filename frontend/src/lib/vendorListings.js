@@ -1,10 +1,14 @@
-import { parseAllergenIds } from './allergens';
+import { parseAllergenIds, serializeAllergenIds } from './allergens';
 import { parseFoodLabelFromItem } from './foodLabels';
-import { parseItemOptions } from './itemOptions';
+import { buildSafetyPayload } from './foodSafety';
+import { parseItemOptions, normalizeOptionsForSave } from './itemOptions';
 import { DEFAULT_LISTING_PHOTO, resolveListingPhoto } from './listingPhotos';
+import { buildFreshnessPayload, buildPreorderPayload } from './shelfLifePresets';
+import { legacyFulfillmentModeForDb, isFulfillmentConstraintError, normalizeFulfillmentMode } from './internationalStorefront';
 import { parseGalleryPhotos } from './videoEmbed';
 import { compressImage } from './imageCompress';
 import { uploadListingThumbnail } from './storageApi';
+import { supabase } from './supabaseClient';
 
 export const EMPTY_THUMBNAIL = { url: '', file: null, preview: '' };
 
@@ -101,4 +105,73 @@ export async function resolveListingPhotoUrl(thumbnail, user, vendorId, kind) {
   }
   const existing = (thumbnail?.url || '').trim();
   return existing || DEFAULT_LISTING_PHOTO;
+}
+
+export function buildProduceItemPayload({
+  vendorId,
+  produce,
+  section = 'produce',
+  allergens = [],
+  safety = null,
+  freshness = {},
+  preorder = {},
+  options = [],
+  photo,
+}) {
+  const description = (produce.description || produce.farm_story || '').trim();
+  return {
+    vendor_id: vendorId,
+    name: produce.name?.trim(),
+    price: parseFloat(produce.price),
+    unit: produce.unit || 'each',
+    description,
+    farm_story: (produce.farm_story || description).trim(),
+    organic: Number(produce.organic) || 0,
+    category: section === 'plants_trees' ? (produce.category || 'Plants') : produce.category,
+    photo,
+    approved: 1,
+    allergens: serializeAllergenIds(allergens),
+    ...buildSafetyPayload(safety || {}),
+    ...buildFreshnessPayload({ ...freshness, listing_section: section }),
+    ...buildPreorderPayload(preorder),
+    item_options: normalizeOptionsForSave(options),
+    last_activity_at: new Date().toISOString(),
+    fulfillment_mode: normalizeFulfillmentMode(produce.fulfillment_mode),
+  };
+}
+
+export function formatListingSaveError(error, fallback = 'Could not save listing.') {
+  if (!error) return fallback;
+  const msg = error.message || String(error);
+  if (isFulfillmentConstraintError(error)) {
+    return 'Fulfillment mode was rejected by the database. Run 27_fulfillment_pickup_shipping.sql in Supabase, or pick Local pickup / External store only.';
+  }
+  if (msg.includes('row-level security') || msg.includes('RLS')) {
+    return 'Permission denied — sign in as the practitioner owner or run FIX_VENDOR_LISTING_CRUD.sql in Supabase.';
+  }
+  return msg.length > 180 ? `${msg.slice(0, 180)}…` : msg;
+}
+
+export async function saveProduceItemRecord(payload, { editId = null } = {}) {
+  const attempt = async (body) => {
+    if (editId) {
+      return supabase.from('produce_items').update(body).eq('id', editId).select().single();
+    }
+    return supabase.from('produce_items').insert(body).select().single();
+  };
+
+  let { data, error } = await attempt(payload);
+  if (!error) return { data, error: null };
+
+  if (isFulfillmentConstraintError(error)) {
+    const legacyPayload = {
+      ...payload,
+      fulfillment_mode: legacyFulfillmentModeForDb(payload.fulfillment_mode),
+    };
+    const retry = await attempt(legacyPayload);
+    if (!retry.error) return retry;
+    error = retry.error;
+  }
+
+  return { data: null, error };
 }

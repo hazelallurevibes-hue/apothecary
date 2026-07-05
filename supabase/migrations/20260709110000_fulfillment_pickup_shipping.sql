@@ -12,7 +12,9 @@ ALTER TABLE public.menu_items ALTER COLUMN fulfillment_mode SET DEFAULT 'pickup_
 ALTER TABLE public.produce_items ALTER COLUMN fulfillment_mode SET DEFAULT 'pickup_and_shipping';
 
 ALTER TABLE public.menu_items DROP CONSTRAINT IF EXISTS menu_items_fulfillment_mode_check;
+ALTER TABLE public.menu_items DROP CONSTRAINT IF EXISTS menu_items_fulfillment_check;
 ALTER TABLE public.produce_items DROP CONSTRAINT IF EXISTS produce_items_fulfillment_mode_check;
+ALTER TABLE public.produce_items DROP CONSTRAINT IF EXISTS produce_items_fulfillment_check;
 
 ALTER TABLE public.menu_items
   ADD CONSTRAINT menu_items_fulfillment_mode_check

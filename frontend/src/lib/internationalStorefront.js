@@ -79,6 +79,19 @@ export function normalizeFulfillmentMode(mode) {
   return mode;
 }
 
+/** Map UI fulfillment modes to values accepted by legacy DB check constraints. */
+export function legacyFulfillmentModeForDb(mode) {
+  const normalized = normalizeFulfillmentMode(mode);
+  if (normalized === 'pickup_only' || normalized === 'external_only') return normalized;
+  return 'hazelallure';
+}
+
+export function isFulfillmentConstraintError(error) {
+  if (!error) return false;
+  const msg = String(error.message || '').toLowerCase();
+  return error.code === '23514' || msg.includes('fulfillment') || msg.includes('check constraint');
+}
+
 export function fulfillmentModesForListing({ isPro = false } = {}) {
   return isPro ? [...FULFILLMENT_MODES_CORE, ...FULFILLMENT_MODES_PRO] : [...FULFILLMENT_MODES_CORE];
 }

@@ -1,5 +1,5 @@
--- Pickup + shipping fulfillment modes — run in Supabase SQL editor
--- Same as supabase/migrations/20260709110000_fulfillment_pickup_shipping.sql
+-- Fix overlapping fulfillment CHECK constraints (run if apothecary inserts fail)
+-- Older migrations used produce_items_fulfillment_check; migration 27 only dropped *_fulfillment_mode_check.
 
 UPDATE public.menu_items
 SET fulfillment_mode = 'pickup_and_shipping'
