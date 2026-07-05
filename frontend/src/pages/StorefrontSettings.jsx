@@ -167,7 +167,7 @@ export default function StorefrontSettings({ user }) {
       } else if (kind === 'banner') {
         setBanners((prev) => [...prev, url].slice(0, 6));
       }
-      setMessage(`${kind} uploaded — click Save Changes to publish.`);
+      setMessage(`${kind === 'logo' ? 'Logo' : kind === 'highlight' ? 'Highlight photo' : 'Banner'} uploaded — click Save Changes to publish.`);
     } catch (e) {
       setMessage(e.message);
     }
@@ -394,6 +394,7 @@ export default function StorefrontSettings({ user }) {
               <p className="text-xs text-gray-500 mb-4">
                 Personal account photo?{' '}
                 <Link to="/account-settings#profile" className="text-[#4a1942] hover:underline">Edit in Account Settings →</Link>
+                <span className="block mt-1 text-[10px] text-gray-400">JPEG, PNG, or WebP up to 15 MB (auto-resized on upload)</span>
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>

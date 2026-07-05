@@ -28,6 +28,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const [tarotCards, setTarotCards] = useState(0);
   const [scryingPermanent, setScryingPermanent] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [bannerUploading, setBannerUploading] = useState(false);
   const [message, setMessage] = useState('');
 
   const isPro = canUseProProfileFeatures(user);
@@ -89,11 +90,16 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const onBannerUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !canPin) return;
+    setBannerUploading(true);
+    setMessage('');
     try {
       const url = await uploadProfileBanner(file, user);
       setBanner(url);
+      setMessage('Banner uploaded — click Save profile studio to apply.');
     } catch (err) {
-      setMessage(err.message);
+      setMessage(err.message || 'Banner upload failed.');
+    } finally {
+      setBannerUploading(false);
     }
   };
 
@@ -155,7 +161,8 @@ export default function ProfileCustomizer({ user, onUpdate }) {
           </label>
           <label className="text-sm block">
             Banner image
-            <input type="file" accept="image/*" onChange={onBannerUpload} className="mt-1 text-xs w-full" />
+            <input type="file" accept="image/*" onChange={onBannerUpload} disabled={bannerUploading} className="mt-1 text-xs w-full" />
+            <span className="text-[10px] text-gray-400">{bannerUploading ? 'Uploading…' : 'Up to 15 MB, auto-resized'}</span>
           </label>
           <div className="sm:col-span-2">
             <p className="text-sm text-gray-600 mb-2">Portrait frame</p>

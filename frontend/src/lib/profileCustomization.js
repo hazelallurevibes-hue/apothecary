@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { uploadProfileAvatar } from './storageApi';
+import { uploadProfileBanner as uploadBannerToStorage } from './storageApi';
 import { isProPlan } from './plans';
 
 export const SCRYING_FRAME_UNLOCK_CARDS = 39;
@@ -49,7 +49,7 @@ export async function saveProfileCustomization(email, patch) {
 }
 
 export async function uploadProfileBanner(file, user) {
-  return uploadProfileAvatar(file, user);
+  return uploadBannerToStorage(file, user);
 }
 
 export function canUseProProfileFeatures(user) {

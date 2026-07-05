@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { STOREFRONT_SETTINGS_PATH } from '../lib/profileRoutes';
-import { uploadProfileAvatar } from '../lib/storageApi';
+import { uploadProfileAvatar, persistUserAvatar } from '../lib/storageApi';
 import {
   FREE_CUSTOMER_RATING_MIN_PURCHASES,
   getCustomerContext,
@@ -226,12 +226,14 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const handleAvatarUpload = async (file) => {
     if (!file) return;
     setUploading(true);
+    setStatus('');
     try {
       const url = await uploadProfileAvatar(file, user);
       setAvatar(url);
-      setStatus('Photo uploaded — click Save Profile to apply.');
+      await persistUserAvatar(user, url, onProfileUpdate);
+      setStatus('Profile picture saved.');
     } catch (e) {
-      setStatus(e.message);
+      setStatus(e.message || 'Upload failed. Try a smaller JPEG or PNG.');
     }
     setUploading(false);
   };
@@ -408,6 +410,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
             </label>
             <div>
               <div className="text-sm font-medium">Profile picture</div>
+              <p className="text-[10px] text-gray-400">JPEG, PNG, or WebP up to 15 MB (auto-resized)</p>
               <label className="text-xs text-[#4a1942] cursor-pointer hover:underline">
                 {uploading ? 'Uploading…' : 'Click photo or upload new'}
                 <input
