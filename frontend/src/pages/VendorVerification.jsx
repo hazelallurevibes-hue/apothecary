@@ -8,6 +8,8 @@ import {
   submitIdentityVerification,
   submitPermitVerification,
 } from '../lib/verificationApi';
+import { fetchPlatformSettings } from '../lib/platformSettingsApi';
+import { validateLegalName } from '../lib/adminApi';
 import UpgradeBanner from '../components/UpgradeBanner';
 import { markOnboardingStep } from '../lib/onboardingApi';
 
@@ -17,13 +19,27 @@ export default function VendorVerification({ user }) {
   const [identity, setIdentity] = useState(null);
   const [permits, setPermits] = useState([]);
   const [urls, setUrls] = useState({ front: '', back: '', selfie: '' });
+  const [legalName, setLegalName] = useState('');
+  const [legalNameConfirm, setLegalNameConfirm] = useState(false);
+  const [requireLegalName, setRequireLegalName] = useState(true);
+  const [requireIdBack, setRequireIdBack] = useState(true);
   const [message, setMessage] = useState('');
   const [uploading, setUploading] = useState('');
   const canPermit = vendorCan(user, 'permit_verify');
 
   useEffect(() => {
+    fetchPlatformSettings().then((s) => {
+      setRequireLegalName(s.require_legal_name_on_id !== 'false');
+      setRequireIdBack(s.require_id_back_with_legal_name === 'true');
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!vendorId) return;
-    fetchIdentityVerification(vendorId).then(setIdentity).catch(() => {});
+    fetchIdentityVerification(vendorId).then((row) => {
+      setIdentity(row);
+      if (row?.legal_name) setLegalName(row.legal_name);
+    }).catch(() => {});
     fetchPermitVerifications(vendorId).then(setPermits).catch(() => {});
   }, [vendorId]);
 
@@ -48,18 +64,39 @@ export default function VendorVerification({ user }) {
 
   const submitIdentity = async () => {
     if (!urls.front || !urls.selfie) {
-      setMessage('Upload ID front and selfie at minimum.');
+      setMessage('Upload ID front and a selfie holding your ID.');
       return;
+    }
+    if (requireIdBack && !urls.back) {
+      setMessage('Upload the back of your ID — your legal name must be visible.');
+      return;
+    }
+    if (requireLegalName) {
+      const err = validateLegalName(legalName);
+      if (err) {
+        setMessage(err);
+        return;
+      }
+      if (!legalNameConfirm) {
+        setMessage('Confirm that your legal name matches your government ID exactly.');
+        return;
+      }
     }
     try {
       const row = await submitIdentityVerification(vendorId, {
         idFrontUrl: urls.front,
         idBackUrl: urls.back || null,
         selfieUrl: urls.selfie,
+        legalName: requireLegalName ? legalName.trim() : null,
       });
       setIdentity(row);
-      await markOnboardingStep(vendorId, 'id_verification', true).catch(() => {});
-      setMessage('Identity submitted for admin review. You can post your first listing once approved (or if admin has pre-approved your account).');
+      if (row?.status === 'approved') {
+        await markOnboardingStep(vendorId, 'id_verification', true).catch(() => {});
+        setMessage('Identity verified — you can post your first listing when other launch steps are complete.');
+      } else {
+        await markOnboardingStep(vendorId, 'id_verification', false).catch(() => {});
+        setMessage('Identity submitted for admin review. You can post your first listing once your ID is approved.');
+      }
     } catch (e) {
       setMessage(e.message);
     }
@@ -71,17 +108,54 @@ export default function VendorVerification({ user }) {
 
   return (
     <div className="max-w-2xl">
-      <h1 className="text-3xl font-bold mb-2">Vendor verification</h1>
-      <p className="text-gray-600 mb-6">Photo ID builds customer trust. Documents are admin-only and never shown publicly.</p>
+      <h1 className="text-3xl font-bold mb-2">Practitioner verification</h1>
+      <p className="text-gray-600 mb-6">
+        Photo ID builds seeker trust. Documents are admin-only and never shown publicly.
+        {requireLegalName ? ' Enter the name exactly as printed on your government-issued ID.' : ''}
+      </p>
       <UpgradeBanner plan={ctx?.plan} compact />
 
       <div className="bg-white border rounded-3xl p-6 mb-6 space-y-4">
-        <h2 className="font-semibold">Photo ID (all vendors)</h2>
-        <p className="text-xs text-gray-500">Status: <strong>{identity?.status || 'not submitted'}</strong></p>
+        <h2 className="font-semibold">Photo ID (all practitioners)</h2>
+        <p className="text-xs text-gray-500">
+          Status: <strong>{identity?.status || 'not submitted'}</strong>
+          {identity?.legal_name ? <> · Legal name on file: <strong>{identity.legal_name}</strong></> : null}
+        </p>
+
+        {requireLegalName && (
+          <div className="space-y-3 p-4 bg-[#f5f0e8]/60 border border-[#4a1942]/10 rounded-2xl">
+            <label className="block text-sm">
+              <span className="font-medium text-[#4a1942]">Legal name on government ID</span>
+              <span className="block text-xs text-gray-500 mt-0.5">First, middle, and last name exactly as printed — not your business or display name.</span>
+              <input
+                type="text"
+                value={legalName}
+                onChange={(e) => setLegalName(e.target.value)}
+                placeholder="e.g. Jane Marie Smith"
+                className="mt-2 w-full border rounded-xl px-3 py-2 text-sm"
+                autoComplete="name"
+              />
+            </label>
+            <label className="flex items-start gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={legalNameConfirm}
+                onChange={(e) => setLegalNameConfirm(e.target.checked)}
+                className="mt-0.5"
+              />
+              <span>I confirm this is my full legal name as shown on the ID I am uploading, and the photos are clear and unaltered.</span>
+            </label>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          {['id-front', 'id-back', 'selfie'].map((kind) => (
+          {[
+            { kind: 'id-front', label: 'ID front' },
+            { kind: 'id-back', label: requireIdBack ? 'ID back (required)' : 'ID back (optional)' },
+            { kind: 'selfie', label: 'Selfie with ID' },
+          ].map(({ kind, label }) => (
             <label key={kind} className="border rounded-xl p-3 cursor-pointer">
-              <span className="text-xs font-medium block mb-2">{kind}</span>
+              <span className="text-xs font-medium block mb-2">{label}</span>
               <input type="file" accept="image/*" disabled={!!uploading} onChange={(e) => handleUpload(e.target.files?.[0], kind)} />
             </label>
           ))}
@@ -95,7 +169,7 @@ export default function VendorVerification({ user }) {
         <h2 className="font-semibold">Business &amp; practice permits</h2>
         {!canPermit ? (
           <p className="text-sm text-gray-600">
-            Paid vendors can upload permits for a verified badge. <Link to="/account-settings" className="text-[#4a1942] underline">Upgrade</Link>
+            Pro practitioners can upload permits for a verified badge. <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] underline">Upgrade</Link>
           </p>
         ) : (
           <>

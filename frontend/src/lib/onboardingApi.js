@@ -113,8 +113,10 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
   } catch {
     identity = null;
   }
-  if (vendor?.identity_verified || ['pending', 'approved'].includes(identity?.status)) {
+  if (vendor?.identity_verified || identity?.status === 'approved') {
     updates.id_verification = true;
+  } else if (identity?.status === 'pending') {
+    updates.id_verification = false;
   }
 
   if (menuCount + produceCount > 0) updates.first_listing = true;

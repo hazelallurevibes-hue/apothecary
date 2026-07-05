@@ -10,8 +10,14 @@ export async function canInteractWithProviders(user) {
 }
 
 /** Steps that block a practitioner from selling / posting their first listing. */
-export function getVendorSellBlockers(launchSteps = {}) {
-  return ['verify_email', 'safety_policies', 'id_verification'].filter((id) => !launchSteps[id]);
+export function getVendorSellBlockers(launchSteps = {}, { identityVerified = false, requireApprovedId = true } = {}) {
+  const blockers = ['verify_email', 'safety_policies'].filter((id) => !launchSteps[id]);
+  if (requireApprovedId) {
+    if (!identityVerified) blockers.push('id_verification');
+  } else if (!launchSteps.id_verification) {
+    blockers.push('id_verification');
+  }
+  return blockers;
 }
 
 export function vendorSellBlockerMessage(launchSteps = {}) {

@@ -159,6 +159,7 @@ export default function Layout({ user, onLogout, children }) {
 
   const adminMenu = [
     { label: '📊 Admin Portal', to: '/users?tab=overview' },
+    { label: '⚡ Automation', to: '/users?tab=automation' },
     { label: '✏️ Edit Profile', to: ACCOUNT_PROFILE_PATH },
     { label: '👥 Users', to: '/users?tab=users' },
     { label: '🔮 Practitioners', to: '/users?tab=vendors' },
@@ -167,6 +168,7 @@ export default function Layout({ user, onLogout, children }) {
     { label: '📋 Compliance', to: '/users?tab=compliance' },
     { label: '📦 Orders', to: '/users?tab=orders' },
     { label: '✨ Content', to: '/users?tab=content' },
+    { label: '💳 Pro Payments', to: '/users?tab=pro-payments' },
     { label: '⚙️ Settings', to: '/users?tab=settings' },
   ];
 

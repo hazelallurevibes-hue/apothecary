@@ -8,11 +8,21 @@ import { fetchCampaignsByStatus, reviewCampaign, invokeSendCampaign } from '../l
 import { fetchPlatformSettings, updatePlatformSettings } from '../lib/platformSettingsApi';
 import { fetchListingAttestations, attestationsToCsv, downloadCsv } from '../lib/attestationsApi';
 import { VENDOR_LISTING_ATTESTATIONS } from '../lib/vendorListingAgreement';
-import { fetchPendingVerifications, reviewIdentity, reviewPermit } from '../lib/verificationApi';
+import { fetchPendingVerifications } from '../lib/verificationApi';
+import {
+  approveVendorWithLog,
+  fetchAdminActionLog,
+  reviewIdentityWithLog,
+  reviewPermitWithLog,
+  setUserAccountStatus,
+} from '../lib/adminApi';
+import { ADMIN_TABS } from '../lib/adminTools';
 import PlatformEmailSettings from '../components/PlatformEmailSettings';
 import AdminProPayments from '../components/AdminProPayments';
 import AdminVendorBadgePanel from '../components/AdminVendorBadgePanel';
 import AdminCommunityModerationPanel from '../components/AdminCommunityModerationPanel';
+import AdminCommandCenter from '../components/AdminCommandCenter';
+import AdminAutomationPanel from '../components/AdminAutomationPanel';
 import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
@@ -46,6 +56,8 @@ export default function AdminPortal({ user, onLogout }) {
   const [adminMessage, setAdminMessage] = useState('');
   const [escalations, setEscalations] = useState([]);
   const [pendingVerifications, setPendingVerifications] = useState({ identity: [], permits: [] });
+  const [adminActionLog, setAdminActionLog] = useState([]);
+  const [rejectNotes, setRejectNotes] = useState({});
 
   const loadAllData = async () => {
     setLoading(true);
@@ -145,15 +157,29 @@ export default function AdminPortal({ user, onLogout }) {
     }
   };
 
+  const loadAdminLog = async () => {
+    try {
+      const rows = await fetchAdminActionLog({ limit: 15 });
+      setAdminActionLog(rows);
+    } catch {
+      setAdminActionLog([]);
+    }
+  };
+
+  const refreshAdminData = () => {
+    loadAllData();
+    loadReports();
+    loadCampaigns();
+    loadAttestations();
+    loadSettings();
+    loadEscalations();
+    loadVerifications();
+    loadAdminLog();
+  };
+
   useEffect(() => { 
     if (user?.role === 'admin') {
-      loadAllData();
-      loadReports();
-      loadCampaigns();
-      loadAttestations();
-      loadSettings();
-      loadEscalations();
-      loadVerifications();
+      refreshAdminData();
     }
   }, [user]);
 
@@ -187,8 +213,21 @@ export default function AdminPortal({ user, onLogout }) {
   };
 
   const approveVendor = async (id) => {
-    await supabase.from('vendors').update({ status: 'approved' }).eq('id', id);
-    loadAllData();
+    await approveVendorWithLog(id, user?.email);
+    setAdminMessage(`Practitioner #${id} approved.`);
+    refreshAdminData();
+  };
+
+  const pendingVendorIds = vendors.filter((v) => v.status === 'pending').map((v) => v.id);
+  const pendingIdentityVendorIds = (pendingVerifications.identity || []).map((r) => r.vendor_id);
+  const pendingPermitIds = (pendingVerifications.permits || []).map((r) => r.id);
+  const suspendedUsers = users.filter((u) => u.account_status === 'suspended').length;
+  const commandCounts = {
+    verificationQueue: (pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0),
+    pendingReports: listingReports.length,
+    pendingCampaigns: pendingCampaigns.length,
+    escalations: escalations.length,
+    suspendedUsers,
   };
 
   const toggleContent = async (table, id, currentApproved) => {
@@ -259,17 +298,18 @@ export default function AdminPortal({ user, onLogout }) {
         )}
         <div className="space-y-1 text-sm">
           {[
-            { key: 'overview', label: '📊 Overview & Analytics' },
-            { key: 'users', label: '👥 User Management' },
-            { key: 'vendors', label: '🏪 Vendor Management' },
-            { key: 'verification', label: `🪪 ID & Permits${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0) ? ` (${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)})` : ''}` },
-            { key: 'campaigns', label: `📧 Email Campaigns${pendingCampaigns.length ? ` (${pendingCampaigns.length})` : ''}` },
-            { key: 'compliance', label: `📋 Compliance${listingReports.length ? ` (${listingReports.length})` : ''}` },
-            { key: 'orders', label: '📦 Orders & Transactions' },
-            { key: 'content', label: '🍽️ Content Management' },
-            { key: 'email', label: '📬 Site Email' },
-            { key: 'pro-payments', label: '💳 Pro Payments' },
-            { key: 'settings', label: '⚙️ Platform Settings' },
+            { key: 'overview', label: `${ADMIN_TABS.overview.icon} ${ADMIN_TABS.overview.label}` },
+            { key: 'automation', label: `${ADMIN_TABS.automation.icon} Automation` },
+            { key: 'users', label: `${ADMIN_TABS.users.icon} User Management` },
+            { key: 'vendors', label: `${ADMIN_TABS.vendors.icon} Practitioners` },
+            { key: 'verification', label: `${ADMIN_TABS.verification.icon}${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0) ? ` (${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)})` : ''}` },
+            { key: 'campaigns', label: `${ADMIN_TABS.campaigns.icon}${pendingCampaigns.length ? ` (${pendingCampaigns.length})` : ''}` },
+            { key: 'compliance', label: `${ADMIN_TABS.compliance.icon}${listingReports.length ? ` (${listingReports.length})` : ''}` },
+            { key: 'orders', label: `${ADMIN_TABS.orders.icon} Orders` },
+            { key: 'content', label: `${ADMIN_TABS.content.icon} Content` },
+            { key: 'email', label: `${ADMIN_TABS.email.icon} Site Email` },
+            { key: 'pro-payments', label: `${ADMIN_TABS.proPayments.icon} Pro Payments` },
+            { key: 'settings', label: `${ADMIN_TABS.settings.icon} Settings` },
           ].map(item => (
             <button
               key={item.key}
@@ -292,82 +332,47 @@ export default function AdminPortal({ user, onLogout }) {
             <h1 className="text-3xl font-bold tracking-tight">Admin Control Center</h1>
             <p className="text-gray-600">Welcome back, {user?.name}. Complete oversight of the Hazel Allure community.</p>
           </div>
-          <button onClick={loadAllData} className="text-xs px-3 py-1 border rounded-2xl hover:bg-gray-50">Refresh Data</button>
+          <button onClick={refreshAdminData} className="text-xs px-3 py-1 border rounded-2xl hover:bg-gray-50">Refresh all</button>
         </div>
+        {adminMessage && (
+          <p className="mb-4 text-sm text-gray-800 bg-[#f5f0e8] border border-[#c9a227]/30 rounded-2xl px-4 py-3">{adminMessage}</p>
+        )}
         {loading && <div className="text-center py-8 text-gray-500">Loading real-time admin data from Supabase...</div>}
 
         {!loading && activeTab === 'overview' && (
-          <div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
-              <div className="bg-white border rounded-3xl p-4"><div className="text-sm text-gray-500">Total Users</div><div className="text-3xl font-semibold mt-1">{analytics.totalUsers}</div></div>
-              <div className="bg-white border rounded-3xl p-4"><div className="text-sm text-gray-500">Active Vendors</div><div className="text-3xl font-semibold mt-1">{analytics.totalVendors}</div></div>
-              <div className="bg-white border rounded-3xl p-4"><div className="text-sm text-gray-500">Total Orders</div><div className="text-3xl font-semibold mt-1">{analytics.totalOrders}</div></div>
-              <div className="bg-white border rounded-3xl p-4"><div className="text-sm text-gray-500">Pending Vendors</div><div className="text-3xl font-semibold mt-1 text-amber-600">{analytics.pendingVendors}</div></div>
-              <button type="button" onClick={() => changeTab('campaigns')} className="bg-white border rounded-3xl p-4 text-left hover:border-[#4a1942]">
-                <div className="text-sm text-gray-500">Campaigns awaiting approval</div>
-                <div className="text-3xl font-semibold mt-1 text-amber-600">{pendingCampaigns.length}</div>
-              </button>
-              <button type="button" onClick={() => changeTab('compliance')} className="bg-white border rounded-3xl p-4 text-left hover:border-[#4a1942]">
-                <div className="text-sm text-gray-500">Pending safety reports</div>
-                <div className="text-3xl font-semibold mt-1 text-red-600">{listingReports.length}</div>
-              </button>
-            </div>
+          <AdminCommandCenter
+            analytics={analytics}
+            counts={commandCounts}
+            onNavigateTab={changeTab}
+            recentActivity={analytics.recentActivity}
+            recentAdminLog={adminActionLog}
+          />
+        )}
 
-            <div className="bg-white border rounded-3xl p-6 mb-6">
-              <h3 className="font-semibold mb-4">Platform Health</h3>
-              {renderBar('Users', analytics.totalUsers, Math.max(analytics.totalUsers, 50))}
-              {renderBar('Vendors', analytics.totalVendors, Math.max(analytics.totalVendors, 20))}
-              {renderBar('Orders', analytics.totalOrders, Math.max(analytics.totalOrders, 100))}
-            </div>
+        {!loading && activeTab === 'automation' && settingsDraft && (
+          <AdminAutomationPanel
+            settings={settingsDraft}
+            onSettingsChange={(next) => {
+              setSettingsDraft(next);
+              setPlatformSettings(next);
+            }}
+            pendingCounts={{
+              identity: pendingVerifications.identity?.length || 0,
+              vendors: pendingVendorIds.length,
+              campaigns: pendingCampaigns.length,
+            }}
+            pendingVendorIds={pendingVendorIds}
+            pendingIdentityVendorIds={pendingIdentityVendorIds}
+            pendingPermitIds={pendingPermitIds}
+            adminEmail={user?.email}
+            onMessage={setAdminMessage}
+            onRefresh={refreshAdminData}
+          />
+        )}
 
-            <div className="bg-white border rounded-3xl p-6">
-              <h3 className="font-semibold mb-4">Recent Live Activity</h3>
-              <div className="space-y-2 text-sm">
-                {analytics.recentActivity.length ? analytics.recentActivity.map((act, i) => <div key={i}>• {act}</div>) : <div>No recent activity.</div>}
-              </div>
-              <p className="text-xs text-gray-400 mt-3">Data updates in real time from Supabase.</p>
-            </div>
-
-            <div className="bg-white border rounded-3xl p-6 mt-6">
-              <h3 className="font-semibold mb-4">Admin hub — quick links</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-                {[
-                  { key: 'users', label: 'Users' },
-                  { key: 'vendors', label: 'Vendors' },
-                  { key: 'verification', label: 'ID & Permits' },
-                  { key: 'campaigns', label: 'Campaigns' },
-                  { key: 'compliance', label: 'Compliance' },
-                  { key: 'orders', label: 'Orders' },
-                  { key: 'content', label: 'Content' },
-                  { key: 'email', label: 'Site Email' },
-                  { key: 'pro-payments', label: 'Pro Payments' },
-                  { key: 'settings', label: 'Settings' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => changeTab(item.key)}
-                    className="text-left px-3 py-2 border rounded-2xl hover:border-[#4a1942] hover:bg-blue-50/50"
-                  >
-                    {item.label}
-                  </button>
-                ))}
-                <a
-                  href="https://dashboard.stripe.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-left px-3 py-2 border rounded-2xl hover:border-[#4a1942] text-[#4a1942]"
-                >
-                  Stripe Dashboard ↗
-                </a>
-                <Link to={ACCOUNT_PROFILE_PATH} className="text-left px-3 py-2 border rounded-2xl hover:border-[#4a1942]">
-                  Edit admin profile
-                </Link>
-                <Link to="/pro-upgrade" className="text-left px-3 py-2 border rounded-2xl hover:border-[#4a1942]">
-                  Pro upgrade page
-                </Link>
-              </div>
-            </div>
+        {!loading && activeTab === 'automation' && !settingsDraft && (
+          <div className="bg-white border rounded-3xl p-6">
+            <p className="text-sm text-gray-500">Run platform admin SQL migrations to enable automation controls.</p>
           </div>
         )}
 
@@ -392,15 +397,22 @@ export default function AdminPortal({ user, onLogout }) {
                 <option value="guest">Guest</option>
               </select>
             </div>
+            <div className="mb-4 flex flex-wrap gap-2 text-xs">
+              <button type="button" onClick={() => changeTab('automation')} className="px-3 py-1.5 border rounded-xl hover:border-[#4a1942]">Automation hub →</button>
+              <button type="button" onClick={() => changeTab('pro-payments')} className="px-3 py-1.5 border rounded-xl hover:border-[#4a1942]">Grant Pro →</button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead><tr className="text-left border-b"><th className="py-2">Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+                <thead><tr className="text-left border-b"><th className="py-2">Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody>
-                  {filteredUsers.map(u => (
+                  {filteredUsers.map(u => {
+                    const acctStatus = u.account_status || 'active';
+                    return (
                     <tr key={u.id} className="border-b">
                       <td className="py-2">{u.name}</td>
                       <td>{u.email}</td>
                       <td><span className="bg-gray-100 px-2 py-0.5 rounded text-xs">{u.role}</span></td>
+                      <td><span className={`px-2 py-0.5 rounded text-xs ${acctStatus === 'suspended' ? 'bg-red-100 text-red-800' : 'bg-emerald-50 text-emerald-800'}`}>{acctStatus}</span></td>
                       <td className="space-x-1">
                         <select value={u.role} onChange={e=>updateUser(u.id, {role: e.target.value})} className="text-xs border p-1 rounded">
                           <option value="admin">Admin</option>
@@ -408,12 +420,32 @@ export default function AdminPortal({ user, onLogout }) {
                           <option value="customer">Customer</option>
                           <option value="guest">Guest</option>
                         </select>
-                        <button onClick={()=>updateUser(u.id, {status: u.status === 'active' ? 'suspended' : 'active'})} className="text-xs px-2 py-1 border rounded hover:bg-gray-50">
-                          {u.status === 'active' ? 'Suspend' : 'Activate'}
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const next = acctStatus === 'suspended' ? 'active' : 'suspended';
+                            try {
+                              await setUserAccountStatus(u.id, next, user?.email);
+                              setAdminMessage(next === 'suspended' ? `Suspended ${u.email}` : `Activated ${u.email}`);
+                              refreshAdminData();
+                            } catch (e) {
+                              setAdminMessage(e.message);
+                            }
+                          }}
+                          className="text-xs px-2 py-1 border rounded hover:bg-gray-50"
+                        >
+                          {acctStatus === 'suspended' ? 'Activate' : 'Suspend'}
                         </button>
+                        {u.role === 'customer' && (
+                          <Link to="/customer-portal" className="text-xs text-[#4a1942] underline ml-1">Portal</Link>
+                        )}
+                        {u.role === 'vendor' && u.vendor_id && (
+                          <Link to={`/vendor/${u.vendor_id}`} className="text-xs text-[#4a1942] underline ml-1">Store</Link>
+                        )}
                       </td>
                     </tr>
-                  ))}
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -421,36 +453,52 @@ export default function AdminPortal({ user, onLogout }) {
         )}
 
         {!loading && activeTab === 'vendors' && (
-          <div className="bg-white border rounded-3xl p-6">
-            <h3 className="font-semibold mb-4">Vendor Management &amp; Approvals</h3>
-            <div className="space-y-2">
-              {vendors.map(v => (
-                <div key={v.id} className="border p-4 rounded-2xl space-y-3">
-                  <div className="flex flex-wrap justify-between items-start gap-3">
-                    <div className="min-w-0">
-                      <div className="font-medium">{v.name}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {v.category} • <span className={v.status === 'approved' ? 'text-green-600' : 'text-amber-600'}>{v.status}</span>
-                        {v.featured_rank ? ` • Spotlight #${v.featured_rank}` : ''}
-                      </div>
-                      <PractitionerBadges vendor={v} compact className="mt-2" max={5} />
-                    </div>
-                    <div className="flex flex-wrap gap-2 justify-end">
-                      <Link to={`/vendor/${v.id}`} className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">View storefront</Link>
-                      {v.status !== 'approved' && <button onClick={() => approveVendor(v.id)} className="px-3 py-1 bg-emerald-600 text-white text-sm rounded-2xl">Approve</button>}
-                      <button
-                        type="button"
-                        onClick={() => supabase.from('vendors').update({ email_campaigns_enabled: v.email_campaigns_enabled === false }).eq('id', v.id).then(() => loadAllData())}
-                        className="px-3 py-1 border text-sm rounded-2xl"
-                      >
-                        {v.email_campaigns_enabled === false ? 'Enable campaigns' : 'Disable campaigns'}
-                      </button>
-                      <button onClick={() => supabase.from('vendors').update({status: v.status === 'approved' ? 'suspended' : 'approved'}).eq('id', v.id).then(() => loadAllData())} className="px-3 py-1 border text-sm rounded-2xl">Toggle Status</button>
-                    </div>
-                  </div>
-                  <AdminVendorBadgePanel vendor={v} onSaved={loadAllData} />
+          <div className="space-y-6">
+            {pendingVendorIds.length > 0 && (
+              <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 flex flex-wrap justify-between items-center gap-3">
+                <div>
+                  <div className="font-semibold text-amber-950">{pendingVendorIds.length} practitioner(s) awaiting approval</div>
+                  <p className="text-sm text-amber-900/80">Review below or use Automation → bulk approve.</p>
                 </div>
-              ))}
+                <button type="button" onClick={() => changeTab('automation')} className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm">Open automation →</button>
+              </div>
+            )}
+            <div className="bg-white border rounded-3xl p-6">
+              <h3 className="font-semibold mb-4">Practitioner management &amp; approvals</h3>
+              <div className="space-y-2">
+                {vendors.map(v => (
+                  <div key={v.id} className={`border p-4 rounded-2xl space-y-3 ${v.status === 'pending' ? 'border-amber-300 bg-amber-50/30' : ''}`}>
+                    <div className="flex flex-wrap justify-between items-start gap-3">
+                      <div className="min-w-0">
+                        <div className="font-medium">{v.name}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {v.email || 'no email'} • {v.category} •{' '}
+                          <span className={v.status === 'approved' ? 'text-green-600' : 'text-amber-600'}>{v.status}</span>
+                          {v.identity_verified ? ' • ID ✓' : ' • ID pending'}
+                          {v.featured_rank ? ` • Spotlight #${v.featured_rank}` : ''}
+                        </div>
+                        <PractitionerBadges vendor={v} compact className="mt-2" max={5} />
+                      </div>
+                      <div className="flex flex-wrap gap-2 justify-end">
+                        <Link to={`/vendor/${v.id}`} className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">Storefront</Link>
+                        <Link to="/vendor-dashboard" className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">Dashboard</Link>
+                        <button type="button" onClick={() => changeTab('verification')} className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">ID queue</button>
+                        <button type="button" onClick={() => changeTab('pro-payments')} className="px-3 py-1 border text-sm rounded-2xl hover:bg-gray-50">Pro</button>
+                        {v.status !== 'approved' && <button type="button" onClick={() => approveVendor(v.id)} className="px-3 py-1 bg-emerald-600 text-white text-sm rounded-2xl">Approve</button>}
+                        <button
+                          type="button"
+                          onClick={() => supabase.from('vendors').update({ email_campaigns_enabled: v.email_campaigns_enabled === false }).eq('id', v.id).then(() => refreshAdminData())}
+                          className="px-3 py-1 border text-sm rounded-2xl"
+                        >
+                          {v.email_campaigns_enabled === false ? 'Enable campaigns' : 'Disable campaigns'}
+                        </button>
+                        <button type="button" onClick={() => supabase.from('vendors').update({ status: v.status === 'approved' ? 'suspended' : 'approved' }).eq('id', v.id).then(() => refreshAdminData())} className="px-3 py-1 border text-sm rounded-2xl">Toggle status</button>
+                      </div>
+                    </div>
+                    <AdminVendorBadgePanel vendor={v} onSaved={refreshAdminData} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -524,22 +572,76 @@ export default function AdminPortal({ user, onLogout }) {
 
         {!loading && activeTab === 'verification' && (
           <div className="space-y-6">
+            <div className="flex flex-wrap gap-2 text-sm">
+              <button type="button" onClick={() => changeTab('automation')} className="px-4 py-2 border rounded-2xl hover:border-[#4a1942]">Automation &amp; auto-approve →</button>
+              <button type="button" onClick={() => changeTab('vendors')} className="px-4 py-2 border rounded-2xl hover:border-[#4a1942]">Practitioner list →</button>
+            </div>
             <div className="bg-white border rounded-3xl p-6">
-              <h3 className="font-semibold mb-4">Photo ID verifications</h3>
+              <div className="flex flex-wrap justify-between items-center gap-3 mb-4">
+                <h3 className="font-semibold">Photo ID verifications</h3>
+                {pendingIdentityVendorIds.length > 0 && (
+                  <button type="button" onClick={() => changeTab('automation')} className="text-xs px-3 py-1.5 bg-emerald-600 text-white rounded-xl">
+                    Bulk approve all ({pendingIdentityVendorIds.length})
+                  </button>
+                )}
+              </div>
               {pendingVerifications.identity?.length === 0 ? (
-                <p className="text-sm text-gray-500">No pending ID reviews.</p>
+                <p className="text-sm text-gray-500">No pending ID reviews. Enable auto-approve in Automation if you trust uploads.</p>
               ) : (
                 pendingVerifications.identity.map((row) => (
                   <div key={row.vendor_id} className="border rounded-2xl p-4 mb-3 text-sm">
-                    <div className="font-medium">{row.vendors?.name || `Vendor ${row.vendor_id}`}</div>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {row.id_front_url && <a href={row.id_front_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs">ID front</a>}
-                      {row.id_back_url && <a href={row.id_back_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs">ID back</a>}
-                      {row.selfie_url && <a href={row.selfie_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs">Selfie</a>}
+                    <div className="flex flex-wrap justify-between gap-2">
+                      <div>
+                        <div className="font-medium">{row.vendors?.name || `Practitioner ${row.vendor_id}`}</div>
+                        <div className="text-xs text-gray-500 mt-0.5">{row.vendors?.email} • vendor status: {row.vendors?.status || 'unknown'}</div>
+                        {row.legal_name && (
+                          <div className="mt-2 px-3 py-2 bg-[#4a1942]/5 border border-[#4a1942]/15 rounded-xl">
+                            <span className="text-[10px] uppercase tracking-wide text-gray-500">Legal name on ID</span>
+                            <div className="font-semibold text-[#4a1942]">{row.legal_name}</div>
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-2 items-start">
+                        <Link to={`/vendor/${row.vendor_id}`} className="text-xs px-2 py-1 border rounded-lg">Storefront</Link>
+                        <button type="button" onClick={() => changeTab('vendors')} className="text-xs px-2 py-1 border rounded-lg">Vendor tools</button>
+                      </div>
                     </div>
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {row.id_front_url && <a href={row.id_front_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs px-2 py-1 border rounded-lg">ID front ↗</a>}
+                      {row.id_back_url && <a href={row.id_back_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs px-2 py-1 border rounded-lg">ID back ↗</a>}
+                      {row.selfie_url && <a href={row.selfie_url} target="_blank" rel="noreferrer" className="text-[#4a1942] underline text-xs px-2 py-1 border rounded-lg">Selfie ↗</a>}
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Reject reason (optional)"
+                      className="mt-3 w-full border rounded-xl px-3 py-1.5 text-xs"
+                      value={rejectNotes[`id-${row.vendor_id}`] || ''}
+                      onChange={(e) => setRejectNotes((prev) => ({ ...prev, [`id-${row.vendor_id}`]: e.target.value }))}
+                    />
                     <div className="flex gap-2 mt-3">
-                      <button type="button" onClick={async () => { await reviewIdentity(row.vendor_id, { status: 'approved' }); loadVerifications(); loadAllData(); }} className="text-xs px-3 py-1 bg-emerald-600 text-white rounded-xl">Approve</button>
-                      <button type="button" onClick={async () => { await reviewIdentity(row.vendor_id, { status: 'rejected', adminNotes: 'Rejected' }); loadVerifications(); }} className="text-xs px-3 py-1 border rounded-xl">Reject</button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await reviewIdentityWithLog(row.vendor_id, { status: 'approved', adminNotes: 'Approved by admin' }, user?.email);
+                          setAdminMessage(`ID approved for ${row.vendors?.name || row.vendor_id}`);
+                          refreshAdminData();
+                        }}
+                        className="text-xs px-3 py-1 bg-emerald-600 text-white rounded-xl"
+                      >
+                        Approve ID
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const note = rejectNotes[`id-${row.vendor_id}`] || 'Rejected — please resubmit clear photos and legal name matching your ID.';
+                          await reviewIdentityWithLog(row.vendor_id, { status: 'rejected', adminNotes: note }, user?.email);
+                          setAdminMessage(`ID rejected for ${row.vendors?.name || row.vendor_id}`);
+                          refreshAdminData();
+                        }}
+                        className="text-xs px-3 py-1 border rounded-xl"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
                 ))
@@ -553,10 +655,36 @@ export default function AdminPortal({ user, onLogout }) {
                 pendingVerifications.permits.map((row) => (
                   <div key={row.id} className="border rounded-2xl p-4 mb-3 text-sm">
                     <div className="font-medium">{row.vendors?.name} — {row.permit_type}</div>
-                    <a href={row.document_url} target="_blank" rel="noreferrer" className="text-xs text-[#4a1942] underline">View document</a>
+                    <a href={row.document_url} target="_blank" rel="noreferrer" className="text-xs text-[#4a1942] underline">View document ↗</a>
+                    <input
+                      type="text"
+                      placeholder="Reject reason (optional)"
+                      className="mt-3 w-full border rounded-xl px-3 py-1.5 text-xs"
+                      value={rejectNotes[`permit-${row.id}`] || ''}
+                      onChange={(e) => setRejectNotes((prev) => ({ ...prev, [`permit-${row.id}`]: e.target.value }))}
+                    />
                     <div className="flex gap-2 mt-3">
-                      <button type="button" onClick={async () => { await reviewPermit(row.id, { status: 'approved' }); loadVerifications(); loadAllData(); }} className="text-xs px-3 py-1 bg-emerald-600 text-white rounded-xl">Approve</button>
-                      <button type="button" onClick={async () => { await reviewPermit(row.id, { status: 'rejected' }); loadVerifications(); }} className="text-xs px-3 py-1 border rounded-xl">Reject</button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await reviewPermitWithLog(row.id, { status: 'approved', adminNotes: 'Approved' }, user?.email);
+                          refreshAdminData();
+                        }}
+                        className="text-xs px-3 py-1 bg-emerald-600 text-white rounded-xl"
+                      >
+                        Approve
+                      </button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const note = rejectNotes[`permit-${row.id}`] || 'Permit rejected — upload a clearer document.';
+                          await reviewPermitWithLog(row.id, { status: 'rejected', adminNotes: note }, user?.email);
+                          refreshAdminData();
+                        }}
+                        className="text-xs px-3 py-1 border rounded-xl"
+                      >
+                        Reject
+                      </button>
                     </div>
                   </div>
                 ))
@@ -799,6 +927,7 @@ export default function AdminPortal({ user, onLogout }) {
             <h3 className="font-semibold mb-2">Your admin profile</h3>
             <p className="text-sm text-gray-600 mb-4">Update your name and profile photo used across the site header.</p>
             <div className="flex flex-wrap gap-2 mb-4 text-sm">
+              <button type="button" onClick={() => changeTab('automation')} className="px-3 py-1.5 border rounded-xl hover:bg-gray-50">Automation hub</button>
               <button type="button" onClick={() => changeTab('pro-payments')} className="px-3 py-1.5 border rounded-xl hover:bg-gray-50">Pro Payments</button>
               <button type="button" onClick={() => changeTab('overview')} className="px-3 py-1.5 border rounded-xl hover:bg-gray-50">Admin hub</button>
               <a href="https://dashboard.stripe.com" target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 border rounded-xl hover:bg-gray-50 text-[#4a1942]">Stripe ↗</a>

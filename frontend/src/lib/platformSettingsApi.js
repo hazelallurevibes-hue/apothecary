@@ -29,6 +29,13 @@ const DEFAULTS = {
   hearth_strike_post_ban: '3',
   hearth_warning_days: '30',
   hearth_show_community_banner: 'true',
+  auto_approve_vendor_signup: 'false',
+  auto_approve_id_verification: 'false',
+  auto_approve_permit_verification: 'false',
+  require_legal_name_on_id: 'true',
+  require_id_back_with_legal_name: 'true',
+  tie_vendor_approval_to_id: 'false',
+  auto_hide_listing_on_escalation: 'true',
   ...EMAIL_SETTING_DEFAULTS,
 };
 

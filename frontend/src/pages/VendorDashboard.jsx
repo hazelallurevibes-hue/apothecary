@@ -194,8 +194,8 @@ export default function VendorDashboard({ user }) {
       return false;
     }
 
-    if (requireIdBeforeListing && !vendorIdentityVerified && !launchSteps.id_verification) {
-      alert('Photo ID verification is required before your first listing. Complete it under Vendor Verification.');
+    if (requireIdBeforeListing && !vendorIdentityVerified) {
+      alert('Photo ID must be admin-approved before your first listing. Complete verification under ID Verification — pending review is not enough.');
       return false;
     }
     return true;
