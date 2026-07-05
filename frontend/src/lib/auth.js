@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { assertMfaComplete, completeMfaSignIn, MfaRequiredError } from './twoFactorApi';
 import { fetchEmployeeRecord } from './employeesApi';
 import { getAppUrl } from './appUrl';
 import { VERTICAL } from './vertical';
@@ -124,6 +125,7 @@ async function fetchBackendProfile(email) {
 }
 
 export { mapAuthError } from './signupFlow';
+export { MfaRequiredError } from './twoFactorApi';
 
 export async function signInWithGoogle(redirectPath = '/login') {
   const path = redirectPath.startsWith('/') ? redirectPath : `/${redirectPath}`;
@@ -235,6 +237,7 @@ export async function signIn(email, password, { captchaToken } = {}) {
     throw new Error(authError.message || 'Sign in failed. Check Supabase credentials or start the local backend for testing.');
   }
 
+  await assertMfaComplete(normalizedEmail);
   return resolveProfile(normalizedEmail, authData.user?.id);
 }
 
@@ -274,6 +277,12 @@ export async function restoreSession() {
 export async function signOut() {
   localStorage.removeItem(STORAGE_KEYS.user);
   await supabase.auth.signOut();
+}
+
+/** Finish sign-in after password + authenticator code. */
+export async function completeMfaLogin(email, factorId, code) {
+  await completeMfaSignIn(factorId, code);
+  return resolveProfile(email.trim().toLowerCase());
 }
 
 /** After signup with an active session, resolve app profile for auto-login. */

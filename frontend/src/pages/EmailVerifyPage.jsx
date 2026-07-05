@@ -32,7 +32,7 @@ export default function EmailVerifyPage({ user }) {
     setSending(true);
     setMessage('');
     try {
-      await resendVerificationEmail(user.email);
+      await resendVerificationEmail(user.email, { role: 'customer' });
       setMessage('Verification email sent — check your inbox and spam folder.');
     } catch (e) {
       setMessage(e.message || 'Could not send email. Try logging out and back in.');

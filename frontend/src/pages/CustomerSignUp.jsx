@@ -7,6 +7,7 @@ import GoogleLoginButton from '../components/GoogleLoginButton';
 import { googleSignInEnabled } from '../lib/config';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { isCaptchaEnabled } from '../lib/authSecurity';
+import { sendSignupConfirmationEmail } from '../lib/emailVerification';
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
@@ -100,6 +101,7 @@ export default function CustomerSignUp({ onLogin }) {
     try {
       const signup = await registerAuthUser(email, password, {
         captchaToken: captcha.captchaToken,
+        role: 'customer',
       });
 
       const { data: profile, error: rpcError } = await supabase.rpc('submit_customer_signup', {
@@ -125,9 +127,14 @@ export default function CustomerSignUp({ onLogin }) {
         setStep('prefs');
         setMessage('Account created! Share your wellness preferences (optional).');
       } else {
+        const confirm = signup.needsEmailConfirmation
+          ? await sendSignupConfirmationEmail(signup.email, { role: 'customer' })
+          : null;
         setMessage(
           signup.needsEmailConfirmation
-            ? 'Account created! Check your email to confirm, then sign in at /login.'
+            ? confirm?.sent
+              ? `Account created! We sent a confirmation link to ${signup.email} — check inbox and spam, then sign in.`
+              : `Account created! Confirmation email could not be sent (${confirm?.error || 'try Resend on the verification banner'}). You can still use Resend after signing in.`
             : 'Account created! You can sign in at /login.',
         );
       }

@@ -32,7 +32,7 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
     setSending(true);
     setMessage('');
     try {
-      await resendVerificationEmail(user.email);
+      await resendVerificationEmail(user.email, { role: isVendor ? 'vendor' : 'customer' });
       setMessage('Verification email sent — check your inbox and spam folder.');
     } catch (e) {
       setMessage(e.message || 'Could not send email. Try again shortly.');

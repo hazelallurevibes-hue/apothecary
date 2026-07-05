@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getAppUrl } from './appUrl';
+import { getEmailVerifyRedirect } from './emailVerification';
 
 export const MIN_PASSWORD_LENGTH = 6;
 
@@ -41,13 +42,13 @@ export function mapAuthError(error) {
  * Create Supabase Auth user (sends at most one confirmation email).
  * Profile RPCs run as anon — no follow-up signIn call (that was causing extra auth churn).
  */
-export async function registerAuthUser(email, password, { captchaToken } = {}) {
+export async function registerAuthUser(email, password, { captchaToken, role = 'customer' } = {}) {
   const normalizedEmail = email.trim().toLowerCase();
   const redirectBase =
     typeof window !== 'undefined' ? window.location.origin : getAppUrl();
 
   const options = {
-    emailRedirectTo: `${redirectBase}/login`,
+    emailRedirectTo: getEmailVerifyRedirect(role) || `${redirectBase}/email-verify`,
   };
   if (captchaToken) options.captchaToken = captchaToken;
 

@@ -25,6 +25,13 @@ import { fetchChosenFamiliar } from '../lib/familiarApi';
 import { fetchLoginStreak } from '../lib/loginStreakApi';
 import { getMoonPhase } from '../lib/seasonalSanctum';
 import { buildProfileSavePatch, updateUserProfile } from '../lib/userProfileUpdate';
+import {
+  enrollTotp,
+  verifyTotpEnrollment,
+  unenrollTotp,
+  hasVerifiedTotp,
+  listTotpFactors,
+} from '../lib/twoFactorApi';
 
 function familiarTierFromStreak(streak) {
   const n = streak?.current_streak || 0;
@@ -39,7 +46,15 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const [avatar, setAvatar] = useState(user?.avatar || '');
   const [doordash, setDoordash] = useState(!!user?.doordash_linked);
   const [ubereats, setUbereats] = useState(!!user?.ubereats_linked);
-  const [twoFA, setTwoFA] = useState({ enabled: !!user?.two_factor_enabled, secret: '', otpauth: '', token: '' });
+  const [twoFA, setTwoFA] = useState({
+    enabled: false,
+    factorId: '',
+    qrCode: '',
+    secret: '',
+    uri: '',
+    token: '',
+  });
+  const [stylesStatus, setStylesStatus] = useState('');
   const [status, setStatus] = useState('');
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -49,7 +64,6 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const [billingLoading, setBillingLoading] = useState(false);
   const [learningStyles, setLearningStyles] = useState([]);
   const [stylesSaving, setStylesSaving] = useState(false);
-  const API = import.meta.env.VITE_API_URL || '/api';
   const { setPageSeo } = useSeoContext();
 
   useEffect(() => {
@@ -96,57 +110,103 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     fetchMySubscriptions(user.email).then(setSubscriptions).catch(() => setSubscriptions([]));
   }, [user?.email]);
 
+  useEffect(() => {
+    if (!user?.email) return;
+    (async () => {
+      try {
+        const verified = await hasVerifiedTotp();
+        const factors = verified ? await listTotpFactors() : [];
+        setTwoFA((prev) => ({
+          ...prev,
+          enabled: verified,
+          factorId: factors[0]?.id || '',
+          qrCode: verified ? '' : prev.qrCode,
+          secret: verified ? '' : prev.secret,
+          uri: verified ? '' : prev.uri,
+        }));
+      } catch {
+        setTwoFA((prev) => ({ ...prev, enabled: false }));
+      }
+    })();
+  }, [user?.email]);
+
   const customerCtx = getCustomerContext(user);
   const vendorCtx = getVendorContext(user);
   const role = (user?.role || '').toLowerCase();
 
   const setup2FA = async () => {
-    if (!user?.id) return alert('Login required');
+    if (!user?.email) return;
+    setStatus('');
     try {
-      const res = await fetch(`${API}/2fa/setup`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id }),
+      const data = await enrollTotp('Hazel Allure authenticator');
+      setTwoFA({
+        enabled: false,
+        factorId: data.id,
+        qrCode: data.totp?.qr_code || '',
+        secret: data.totp?.secret || '',
+        uri: data.totp?.uri || '',
+        token: '',
       });
-      const data = await res.json();
-      setTwoFA({ ...twoFA, secret: data.secret, otpauth: data.otpauth, enabled: false });
-      setStatus('Scan the otpauth link in your authenticator app.');
-    } catch {
-      setStatus('2FA setup failed (backend offline?)');
+      setStatus('Scan the QR code or copy the secret into your authenticator app, then enter the 6-digit code.');
+    } catch (e) {
+      setStatus(e.message || '2FA setup failed. Sign out and back in, then try again.');
     }
   };
 
   const verify2FA = async () => {
-    if (!twoFA.token || twoFA.token.length < 6 || !user?.id) return;
+    if (!twoFA.factorId || !twoFA.token || twoFA.token.length < 6) return;
+    setStatus('');
     try {
-      const res = await fetch(`${API}/2fa/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ user_id: user.id, token: twoFA.token }),
+      await verifyTotpEnrollment(twoFA.factorId, twoFA.token);
+      setTwoFA({
+        enabled: true,
+        factorId: twoFA.factorId,
+        qrCode: '',
+        secret: '',
+        uri: '',
+        token: '',
       });
-      const data = await res.json();
-      if (data.success) {
-        setTwoFA({ ...twoFA, enabled: true });
-        setStatus('2FA enabled for this account.');
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
-        saved.two_factor_enabled = 1;
-        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(saved));
-      } else {
-        setStatus('Invalid code. Try again.');
-      }
-    } catch {
-      setStatus('Verify error');
+      setStatus('2FA enabled — you will need your authenticator app at next sign-in.');
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
+      saved.two_factor_enabled = 1;
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(saved));
+    } catch (e) {
+      setStatus(e.message || 'Invalid code. Try again.');
     }
   };
 
   const disable2FA = async () => {
-    await fetch(`${API}/2fa/disable`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ user_id: user.id }),
-    });
-    setTwoFA({ enabled: false, secret: '', otpauth: '', token: '' });
-    setStatus('2FA disabled.');
+    if (!twoFA.factorId) return;
+    setStatus('');
+    try {
+      await unenrollTotp(twoFA.factorId);
+      setTwoFA({ enabled: false, factorId: '', qrCode: '', secret: '', uri: '', token: '' });
+      setStatus('2FA disabled.');
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEYS.user) || '{}');
+      saved.two_factor_enabled = 0;
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(saved));
+    } catch (e) {
+      setStatus(e.message || 'Could not disable 2FA.');
+    }
+  };
+
+  const handleLearningStylesChange = async (nextStyles) => {
+    setLearningStyles(nextStyles);
+    if (!user?.email) return;
+    setStylesSaving(true);
+    setStylesStatus('');
+    try {
+      await savePreferredLearningStyles(user.email, nextStyles);
+      setStylesStatus(
+        nextStyles.length
+          ? 'Learning styles saved — course recommendations will match your path.'
+          : 'Learning styles cleared.',
+      );
+    } catch (e) {
+      setStylesStatus(e.message || 'Could not save learning styles.');
+    } finally {
+      setStylesSaving(false);
+    }
   };
 
   const saveProfile = async () => {
@@ -211,19 +271,6 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     setPrefsSaving(false);
   };
 
-  const saveLearningStylesPrefs = async () => {
-    if (!user?.email) return;
-    setStylesSaving(true);
-    setStatus('');
-    try {
-      await savePreferredLearningStyles(user.email, learningStyles);
-      setStatus('Learning styles saved — course recommendations will match your path.');
-    } catch (e) {
-      setStatus(e.message);
-    }
-    setStylesSaving(false);
-  };
-
   const handleAvatarUpload = async (file) => {
     if (!file) return;
     setUploading(true);
@@ -273,17 +320,14 @@ export default function AccountSettings({ user, onProfileUpdate }) {
           </p>
           <LearningStyleChips
             value={learningStyles}
-            onChange={setLearningStyles}
+            onChange={handleLearningStylesChange}
             label="Your learning styles (VARK+)"
           />
-          <button
-            type="button"
-            onClick={saveLearningStylesPrefs}
-            disabled={stylesSaving}
-            className="mt-4 px-5 py-2.5 bg-[#4a1942] text-white rounded-xl text-sm min-h-[44px] disabled:opacity-60"
-          >
-            {stylesSaving ? 'Saving…' : 'Save learning styles'}
-          </button>
+          {(stylesSaving || stylesStatus) && (
+            <p className={`mt-3 text-sm ${stylesStatus?.includes('Could not') ? 'text-red-600' : 'text-[#4a1942]'}`}>
+              {stylesSaving ? 'Saving…' : stylesStatus}
+            </p>
+          )}
         </div>
       )}
 
@@ -480,21 +524,29 @@ export default function AccountSettings({ user, onProfileUpdate }) {
           </div>
         </div>
 
-        {!twoFA.enabled && !twoFA.otpauth && (
+        {!twoFA.enabled && !twoFA.factorId && (
           <button type="button" onClick={setup2FA} className="px-8 py-3 bg-black text-white rounded-3xl font-semibold">
             Set Up 2FA
           </button>
         )}
 
-        {twoFA.otpauth && (
+        {!twoFA.enabled && twoFA.factorId && (
           <div className="mt-4 p-4 bg-gray-50 border rounded-2xl text-sm">
-            <div className="font-medium">1. Scan or copy into your authenticator app:</div>
-            <div className="font-mono break-all mt-1 text-xs bg-white p-2 border rounded">{twoFA.otpauth}</div>
+            <div className="font-medium">1. Scan this QR code in your authenticator app:</div>
+            {twoFA.qrCode && (
+              <img src={twoFA.qrCode} alt="2FA QR code" className="mt-2 w-40 h-40 rounded-xl border bg-white" />
+            )}
+            {twoFA.secret && (
+              <p className="mt-2 text-xs text-gray-600">
+                Or enter secret manually: <code className="bg-white px-1 py-0.5 rounded border">{twoFA.secret}</code>
+              </p>
+            )}
             <div className="mt-3">2. Enter the 6-digit code:</div>
             <input
               value={twoFA.token}
-              onChange={(e) => setTwoFA({ ...twoFA, token: e.target.value })}
+              onChange={(e) => setTwoFA({ ...twoFA, token: e.target.value.replace(/\D/g, '') })}
               maxLength={6}
+              inputMode="numeric"
               className="mt-1 w-40 border p-3 font-mono rounded-2xl tracking-[6px]"
               placeholder="123456"
             />

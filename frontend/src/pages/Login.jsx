@@ -1,7 +1,7 @@
 import { useRef, useState, lazy, Suspense } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { signIn, resetPassword, finalizeSignupSession } from '../lib/auth';
+import { signIn, resetPassword, finalizeSignupSession, completeMfaLogin, MfaRequiredError } from '../lib/auth';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { isCaptchaEnabled } from '../lib/authSecurity';
@@ -43,6 +43,13 @@ export default function Login({ onLogin, loading }) {
       onLogin(profile);
       captcha.resetCaptcha();
     } catch (e) {
+      if (e instanceof MfaRequiredError) {
+        setNeeds2FA(true);
+        setPendingUser({ email: e.email || em, factorId: e.factorId });
+        setMessageOk(false);
+        setMessage('');
+        return;
+      }
       console.error('Login error:', e);
       setMessageOk(false);
       setMessage(mapAuthError(e) || e.message || 'Login failed. Check your email/password and try again.');
@@ -50,11 +57,24 @@ export default function Login({ onLogin, loading }) {
     }
   };
 
-  const submit2FA = () => {
-    if (!pendingUser?.email) return;
-    if (twoFactorToken.length < 6) { setTwoFAMsg('Enter full 6-digit code'); return; }
-    doRealLogin(pendingUser.email, twoFactorToken);
-    setTimeout(() => { setNeeds2FA(false); setTwoFactorToken(''); }, 600);
+  const submit2FA = async () => {
+    if (!pendingUser?.email || !pendingUser?.factorId) return;
+    if (twoFactorToken.length < 6) {
+      setTwoFAMsg('Enter the full 6-digit code from your authenticator app.');
+      return;
+    }
+    setTwoFAMsg('');
+    try {
+      const profile = await completeMfaLogin(pendingUser.email, pendingUser.factorId, twoFactorToken);
+      onLogin(profile);
+      setNeeds2FA(false);
+      setTwoFactorToken('');
+      setPendingUser(null);
+      captcha.resetCaptcha();
+    } catch (e) {
+      setTwoFAMsg(e.message || 'Invalid code. Try again.');
+      captcha.resetCaptcha();
+    }
   };
 
   const handleAuth = async (e) => {
@@ -78,6 +98,7 @@ export default function Login({ onLogin, loading }) {
         if (passwordError) throw new Error(passwordError);
         const signup = await registerAuthUser(email, password, {
           captchaToken: captcha.captchaToken,
+          role: signupRole === 'vendor' ? 'vendor' : 'customer',
         });
         const displayName = signup.email.split('@')[0] || 'Seeker';
         const { error: rpcError } = await supabase.rpc('submit_customer_signup', {
@@ -319,7 +340,7 @@ export default function Login({ onLogin, loading }) {
               <button onClick={submit2FA} className="mt-3 w-full py-3 bg-emerald-700 text-white rounded-3xl font-semibold">Verify Code &amp; Sign In</button>
               <button onClick={()=>{setNeeds2FA(false); setTwoFactorToken(''); setPendingUser(null);}} className="mt-2 w-full text-xs text-gray-500">Cancel / Use different account</button>
               {twoFAMsg && <div className="mt-3 text-xs text-center text-emerald-600">{twoFAMsg}</div>}
-              <div className="text-[10px] text-center text-gray-400 mt-4">Enter any 6-digit code if 2FA is enabled for the account in Supabase.</div>
+              <div className="text-[10px] text-center text-gray-400 mt-4">Open your authenticator app (Google Authenticator, 1Password, etc.) and enter the current 6-digit code.</div>
             </div>
           )}
 
