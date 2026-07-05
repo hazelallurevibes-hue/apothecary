@@ -1,5 +1,5 @@
 import { useRef, useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { finalizeSignupSession, ensureOAuthUserProfile } from '../lib/auth';
@@ -16,13 +16,15 @@ import {
   allIntegrityChecked,
 } from '../lib/vendorIntegrityPledge';
 import { logVendorIntegrityAcceptance } from '../lib/vendorIntegrityApi';
+import PasswordInput from '../components/PasswordInput';
 
 export default function VendorSignUp({ onLogin }) {
+  const [searchParams] = useSearchParams();
   const formStartedAt = useRef(Date.now());
   const [businessName, setBusinessName] = useState('');
   const [specialtyChoice, setSpecialtyChoice] = useState('');
   const [specialtyOther, setSpecialtyOther] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => searchParams.get('email') || '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
@@ -228,26 +230,23 @@ export default function VendorSignUp({ onLogin }) {
                 type="email"
                 required
               />
-              <input
+              <PasswordInput
                 placeholder="Password (min 6 characters)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full border p-3.5 rounded-2xl"
-                type="password"
                 minLength={6}
                 autoComplete="new-password"
-                required
+                inputClassName="text-base"
               />
               <div>
-                <input
+                <PasswordInput
                   placeholder="Confirm password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`w-full border p-3.5 rounded-2xl ${passwordsMismatch ? 'border-red-400' : ''}`}
-                  type="password"
                   minLength={6}
                   autoComplete="new-password"
-                  required
+                  error={passwordsMismatch}
+                  inputClassName="text-base"
                 />
                 {passwordsMismatch && (
                   <p className="text-xs text-red-600 mt-1">Passwords do not match.</p>
@@ -306,6 +305,10 @@ export default function VendorSignUp({ onLogin }) {
           )}
         </form>
         <p className="text-center mt-4 text-sm text-gray-500">
+          Joining as a seeker instead?{' '}
+          <Link to="/customer-signup" className="text-[#4a1942] font-medium hover:underline">Member sign up</Link>
+        </p>
+        <p className="text-center mt-2 text-sm text-gray-500">
           Already have an account? <Link to="/login" className="text-[#4a1942]">Log in</Link>
         </p>
         <p className="text-center text-xs text-gray-500 mt-3">Applications are reviewed by admins. You will be notified when approved.</p>

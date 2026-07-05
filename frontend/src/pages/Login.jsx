@@ -11,6 +11,7 @@ const AuthCaptcha = lazy(() => import('../components/AuthCaptcha'));
 const GoogleLoginButton = lazy(() => import('../components/GoogleLoginButton'));
 const Auth0LoginButton = lazy(() => import('../components/Auth0LoginButton'));
 import HoneypotField from '../components/HoneypotField';
+import PasswordInput from '../components/PasswordInput';
 import { enableTestAccounts, LIVE_TEST_ACCOUNTS, auth0Enabled, googleSignInEnabled } from '../lib/config';
 import Auth0ErrorBanner from '../components/Auth0ErrorBanner';
 import { useLocale } from '../i18n';
@@ -25,6 +26,7 @@ export default function Login({ onLogin, loading }) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [honeypot, setHoneypot] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
+  const [signupRole, setSignupRole] = useState('customer');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [message, setMessage] = useState('');
   const [messageOk, setMessageOk] = useState(false);
@@ -137,7 +139,9 @@ export default function Login({ onLogin, loading }) {
         </div>
 
         <div className="bg-white border rounded-3xl p-8 shadow-sm">
-          <h2 className="font-semibold text-xl mb-6 text-center">{t('auth.signIn')}</h2>
+          <h2 className="font-semibold text-xl mb-6 text-center">
+            {isSignUp ? 'Create your account' : t('auth.signIn')}
+          </h2>
 
           {!needs2FA && (
             <>
@@ -177,34 +181,67 @@ export default function Login({ onLogin, loading }) {
                   className="w-full border p-3.5 rounded-2xl text-sm" 
                   required 
                 />
-                <input 
-                  type="password" 
-                  placeholder={isSignUp ? 'Password (min 6 characters)' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full border p-3.5 rounded-2xl text-sm"
-                  minLength={isSignUp ? 6 : undefined}
-                  autoComplete={isSignUp ? 'new-password' : 'current-password'}
-                  required 
-                />
                 {isSignUp && (
+                  <div className="grid grid-cols-2 gap-2 p-1 bg-gray-100 rounded-2xl" role="group" aria-label="Account type">
+                    <button
+                      type="button"
+                      onClick={() => setSignupRole('customer')}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition ${signupRole === 'customer' ? 'bg-white text-[#4a1942] shadow-sm' : 'text-gray-500 hover:text-[#4a1942]'}`}
+                    >
+                      Seeker (Member)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSignupRole('vendor')}
+                      className={`py-2.5 px-3 rounded-xl text-xs font-semibold transition ${signupRole === 'vendor' ? 'bg-white text-[#4a1942] shadow-sm' : 'text-gray-500 hover:text-[#4a1942]'}`}
+                    >
+                      Practitioner
+                    </button>
+                  </div>
+                )}
+
+                {isSignUp && signupRole === 'vendor' ? (
+                  <div className="rounded-2xl border border-[#c9a227]/30 bg-[#faf7f9] p-4 space-y-3">
+                    <p className="text-sm text-gray-600">
+                      Practitioner sign-up includes your practice details and an integrity pledge. Continue on the full application form.
+                    </p>
+                    <Link
+                      to={email ? `/vendor-signup?email=${encodeURIComponent(email)}` : '/vendor-signup'}
+                      className="block w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold text-center text-sm hover:bg-[#2d1230] transition"
+                    >
+                      Continue as Practitioner
+                    </Link>
+                    <p className="text-[10px] text-center text-gray-400">
+                      Or use the <Link to="/signup" className="underline text-[#4a1942]">sign-up chooser</Link>
+                    </p>
+                  </div>
+                ) : (
                   <>
-                    <input
-                      type="password"
-                      placeholder="Confirm password"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      className={`w-full border p-3.5 rounded-2xl text-sm ${confirmPassword && password !== confirmPassword ? 'border-red-400' : ''}`}
-                      minLength={6}
-                      autoComplete="new-password"
-                      required
+                    <PasswordInput
+                      placeholder={isSignUp ? 'Password (min 6 characters)' : 'Password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      minLength={isSignUp ? 6 : undefined}
+                      autoComplete={isSignUp ? 'new-password' : 'current-password'}
                     />
-                    {confirmPassword && password !== confirmPassword && (
-                      <p className="text-xs text-red-600">Passwords do not match.</p>
+                    {isSignUp && (
+                      <>
+                        <PasswordInput
+                          placeholder="Confirm password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          minLength={6}
+                          autoComplete="new-password"
+                          error={confirmPassword.length > 0 && password !== confirmPassword}
+                        />
+                        {confirmPassword && password !== confirmPassword && (
+                          <p className="text-xs text-red-600 -mt-1">Passwords do not match.</p>
+                        )}
+                      </>
                     )}
                   </>
                 )}
-                {captchaReady && (
+                {captchaReady && (!isSignUp || signupRole === 'customer') && (
                   <Suspense fallback={<div className="h-[65px] rounded-2xl bg-gray-100 animate-pulse" />}>
                     <AuthCaptcha
                       ref={captcha.captchaRef}
@@ -217,7 +254,7 @@ export default function Login({ onLogin, loading }) {
                 {captcha.captchaError && (
                   <p className="text-xs text-red-600">{captcha.captchaError}</p>
                 )}
-                {isSignUp && (
+                {isSignUp && signupRole === 'customer' && (
                   <label className="flex items-start gap-2 text-xs text-gray-600">
                     <input 
                       type="checkbox" 
@@ -231,17 +268,20 @@ export default function Login({ onLogin, loading }) {
                     </span>
                   </label>
                 )}
-                <button 
-                  type="submit"
-                  disabled={loading || (isSignUp && (!agreedToTerms || (confirmPassword && password !== confirmPassword)))}
-                  className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold disabled:opacity-70"
-                >
-                  {loading ? t('auth.processing') : (isSignUp ? t('auth.signUp') : t('auth.signInBtn'))}
-                </button>
+                {(!isSignUp || signupRole === 'customer') && (
+                  <button
+                    type="submit"
+                    disabled={loading || (isSignUp && (!agreedToTerms || (confirmPassword && password !== confirmPassword)))}
+                    className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold disabled:opacity-70"
+                  >
+                    {loading ? t('auth.processing') : (isSignUp ? t('auth.signUp') : t('auth.signInBtn'))}
+                  </button>
+                )}
                 <button 
                   type="button"
                   onClick={() => {
                     setIsSignUp(!isSignUp);
+                    setSignupRole('customer');
                     setAgreedToTerms(false);
                     setConfirmPassword('');
                     captcha.resetCaptcha();
