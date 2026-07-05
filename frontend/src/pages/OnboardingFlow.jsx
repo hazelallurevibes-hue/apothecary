@@ -6,7 +6,7 @@ import {
   markOnboardingStep,
   onboardingProgress,
 } from '../lib/onboardingApi';
-import { getVendorContext } from '../lib/plans';
+import { getVendorContext, isCustomerPro } from '../lib/plans';
 import { VERTICAL } from '../lib/vertical';
 
 export default function OnboardingFlow({ user }) {
@@ -42,19 +42,21 @@ export default function OnboardingFlow({ user }) {
           <StepRow n={1} title="Wellness preferences" hint="Allergens, intentions, and what you avoid" to="/account-settings#wellness-prefs" />
           <StepRow n={2} title={VERTICAL.copy.seekerStepApothecary} hint={VERTICAL.copy.seekerStepApothecaryHint} to="/products" />
           <StepRow n={3} title={VERTICAL.copy.seekerStepServices} hint={VERTICAL.copy.seekerStepServicesHint} to="/services" />
-          <div className="mt-6 p-5 rounded-2xl bg-gradient-to-br from-[#4a1942]/8 to-[#c9a227]/10 border border-[#c9a227]/25">
-            <p className="text-xs uppercase tracking-widest text-[#4a1942]/60 font-semibold">Pro Member · best value</p>
-            <h3 className="text-lg font-bold text-[#4a1942] mt-1">Unlock the full seeker experience</h3>
-            <p className="text-sm text-gray-600 mt-2">
-              Yearly Pro saves about 17% — familiar evolution, tarot path perks, priority support, and more.
-            </p>
-            <Link
-              to="/pro-upgrade"
-              className="mt-4 inline-block w-full text-center py-3 bg-[#4a1942] text-white rounded-2xl font-semibold hover:bg-[#2d1230] transition"
-            >
-              View Pro Member plans →
-            </Link>
-          </div>
+          {!isCustomerPro(user) && (
+            <div className="mt-6 p-5 rounded-2xl bg-gradient-to-br from-[#4a1942]/8 to-[#c9a227]/10 border border-[#c9a227]/25">
+              <p className="text-xs uppercase tracking-widest text-[#4a1942]/60 font-semibold">Pro Member · best value</p>
+              <h3 className="text-lg font-bold text-[#4a1942] mt-1">Unlock the full seeker experience</h3>
+              <p className="text-sm text-gray-600 mt-2">
+                Yearly Pro saves about 17% — familiar evolution, tarot path perks, priority support, and more.
+              </p>
+              <Link
+                to="/pro-upgrade?type=customer"
+                className="mt-4 inline-block w-full text-center py-3 bg-[#4a1942] text-white rounded-2xl font-semibold hover:bg-[#2d1230] transition"
+              >
+                View Pro Member plans →
+              </Link>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => navigate('/account-settings#wellness-prefs')}

@@ -243,7 +243,7 @@ function CustomerHome({ user, liveStats }) {
       {user?.email && <DailyRitualCard user={user} />}
       {user?.email && <TarotCollectionPanel user={user} compact className="mb-6" />}
 
-      <ProBenefitsStrip user={user} variant="customer" />
+      {user && <ProBenefitsStrip user={user} variant="auto" />}
 
       <FeaturedPractitioners limit={3} />
 

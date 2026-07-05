@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../i18n';
-import { getCustomerContext, getVendorContext, isProPlan } from '../lib/plans';
-import { isCustomerProUser, isVendorProUser } from '../lib/proStatus';
+import { getCustomerContext, getVendorContext, isCustomerPro, isProPlan, isVendorPro } from '../lib/plans';
 import ProMemberActiveStrip from './ProMemberActiveStrip';
+import ProVendorActiveStrip from './ProVendorActiveStrip';
 
 const CUSTOMER_BENEFIT_KEYS = [
   'pro.benefit.discounts',
@@ -32,13 +32,15 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
 
   const isPro =
     planType === 'vendor'
-      ? isVendorProUser(user) || (vendorCtx && isProPlan(vendorCtx.plan))
-      : isCustomerProUser(user) || (customerCtx && isProPlan(customerCtx.plan));
+      ? isVendorPro(user)
+      : isCustomerPro(user);
 
   if (isPro && planType === 'customer') {
     return <ProMemberActiveStrip compact={compact} />;
   }
-  if (isPro) return null;
+  if (isPro && planType === 'vendor') {
+    return <ProVendorActiveStrip compact={compact} />;
+  }
 
   const benefitKeys = planType === 'vendor' ? VENDOR_BENEFIT_KEYS : CUSTOMER_BENEFIT_KEYS;
   const upgradePath = `/pro-upgrade?type=${planType}`;

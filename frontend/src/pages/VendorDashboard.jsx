@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { fetchVendorAnalytics } from '../lib/vendorAnalytics';
-import { getVendorContext, isPaidVendor, planBadgeLabel, vendorCan } from '../lib/plans';
+import { getVendorContext, isPaidVendor, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
 import RatingAlertsPanel from '../components/RatingAlertsPanel';
 import VendorCustomerInsights from '../components/VendorCustomerInsights';
 import VendorNotificationsPanel from '../components/VendorNotificationsPanel';
@@ -31,6 +31,7 @@ import {
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import UpgradeBanner from '../components/UpgradeBanner';
+import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import ThankYouComposer from '../components/ThankYouComposer';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
@@ -109,6 +110,7 @@ export default function VendorDashboard({ user }) {
   const vendorCtx = getVendorContext(user);
   const myVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
   const vendorPlan = vendorCtx?.plan || 'free';
+  const isProPractitioner = isVendorPro(user);
 
   const refreshVendorData = useCallback(async () => {
     if (!myVendorId) {
@@ -775,7 +777,13 @@ export default function VendorDashboard({ user }) {
           <h1 className="text-2xl sm:text-4xl font-bold tracking-tight mb-2 break-words">Practitioner Dashboard</h1>
           <p className="text-sm sm:text-base text-gray-600 break-words">
             Wellness services & apothecary for {user?.name} · Storefront #{myVendorId}
-            <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-gray-100 whitespace-nowrap inline-block mt-1 sm:mt-0">{planBadgeLabel(vendorPlan, 'vendor')}</span>
+            <span className={`ml-2 text-xs font-semibold px-2.5 py-0.5 rounded-full whitespace-nowrap inline-block mt-1 sm:mt-0 ${
+              isProPractitioner
+                ? 'bg-gradient-to-r from-[#c9a227]/25 to-emerald-100 text-[#2d1230] border border-[#c9a227]/40'
+                : 'bg-gray-100 text-gray-700'
+            }`}>
+              {planBadgeLabel(vendorPlan, 'vendor')}
+            </span>
             {vendorCtx?.isEmployee && <span className="ml-1 text-xs text-amber-700">(employee)</span>}
           </p>
         </div>
@@ -801,7 +809,11 @@ export default function VendorDashboard({ user }) {
         user={user}
       />
 
-      <UpgradeBanner plan={vendorPlan} />
+      {isProPractitioner ? (
+        <ProVendorActiveStrip compact />
+      ) : (
+        <UpgradeBanner plan={vendorPlan} user={user} />
+      )}
 
       {myMenu.length + myProduce.length === 0 && nextIncompleteStep(launchSteps) && (
         <div className="mb-4 text-sm bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2">

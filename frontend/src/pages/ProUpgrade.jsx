@@ -5,10 +5,11 @@ import {
   PAID_VENDOR_UPGRADE_FEATURES,
   getCustomerContext,
   getVendorContext,
+  isCustomerPro,
   isProPlan,
+  isVendorPro,
   planBadgeLabel,
 } from '../lib/plans';
-import { isCustomerProUser, isVendorProUser } from '../lib/proStatus';
 import { createProCheckout, getProPricing, openBillingPortal } from '../lib/proBillingApi';
 import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
@@ -30,8 +31,8 @@ export default function ProUpgrade({ user }) {
   const role = (user?.role || '').toLowerCase();
   const vendorOnly = searchParams.get('type') === 'vendor'
     && (role === 'vendor' || role === 'admin' || !!vendorCtx?.isOwner);
-  const isCustomerPro = isCustomerProUser(user) || (customerCtx && isProPlan(customerCtx.plan));
-  const isVendorPro = isVendorProUser(user) || (vendorCtx && isProPlan(vendorCtx.plan));
+  const isCustomerProActive = isCustomerPro(user);
+  const isVendorProActive = isVendorPro(user);
 
   useEffect(() => {
     getProPricing().then(setPricing).catch(() => setPricing(null));
@@ -93,7 +94,7 @@ export default function ProUpgrade({ user }) {
 
   const planLabel = vendorOnly ? 'Pro Practitioner' : 'Pro Member';
   const planFeatures = vendorOnly ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES;
-  const alreadyPro = vendorOnly ? isVendorPro : isCustomerPro;
+  const alreadyPro = vendorOnly ? isVendorProActive : isCustomerProActive;
 
   if (user && alreadyPro) {
     return (

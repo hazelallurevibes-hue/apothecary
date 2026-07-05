@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { dismissHint, isHintDismissed, PRO_HINTS, proUpgradePath } from '../lib/proFeatureHints';
-import { isCustomerProUser, isVendorProUser } from '../lib/proStatus';
+import { isCustomerPro, isVendorPro } from '../lib/plans';
 
 const FEATURE_LINKS = {
   community_post: '/gathering',
@@ -19,7 +19,7 @@ export default function ProFeatureHint({ hintKey, className = '', user }) {
   if (!hint || isHintDismissed(hintKey)) return null;
 
   const isPro =
-    hint.plan === 'vendor' ? isVendorProUser(user) : isCustomerProUser(user);
+    hint.plan === 'vendor' ? isVendorPro(user) : isCustomerPro(user);
 
   if (isPro) {
     const featureLink = FEATURE_LINKS[hintKey] || '/pro-upgrade';
@@ -40,10 +40,10 @@ export default function ProFeatureHint({ hintKey, className = '', user }) {
             Open feature →
           </Link>
           <Link
-            to="/pro-upgrade"
+            to={hint.plan === 'vendor' ? '/pro-upgrade?type=vendor' : '/pro-upgrade?type=customer'}
             className="text-xs text-[#4a1942] font-medium underline"
           >
-            Pro hub
+            Your Pro hub
           </Link>
           <button
             type="button"

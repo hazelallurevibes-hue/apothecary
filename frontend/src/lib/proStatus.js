@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { isProPlan } from './plans';
+import { getEffectiveCustomerPlan, getEffectiveVendorPlan, isProPlan } from './plans';
 
 const ACTIVE_STATUSES = new Set(['active', 'trialing']);
 
@@ -86,13 +86,13 @@ export async function syncUserProStatus(profile) {
 export function isCustomerProUser(user) {
   if (!user) return false;
   if ((user.role || '').toLowerCase() === 'admin') return true;
-  return isProPlan(user.customer_plan) || !!user.customer_pro_active;
+  return isProPlan(getEffectiveCustomerPlan(user));
 }
 
 export function isVendorProUser(user) {
   if (!user) return false;
   if ((user.role || '').toLowerCase() === 'admin') return true;
-  return isProPlan(user.vendor_plan) || !!user.vendor_pro_active;
+  return isProPlan(getEffectiveVendorPlan(user));
 }
 
 /** Compare pro-related fields — avoid parent re-renders when nothing changed. */

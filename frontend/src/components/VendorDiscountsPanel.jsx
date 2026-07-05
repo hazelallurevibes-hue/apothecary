@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { vendorCan } from '../lib/plans';
+import { isVendorPro, vendorCan } from '../lib/plans';
 import {
   DISCOUNT_APPLIES_TO,
   DISCOUNT_AUDIENCES,
@@ -45,9 +45,11 @@ export default function VendorDiscountsPanel({ user, vendorId }) {
         <p className="text-sm text-gray-600 mt-2">
           Pro Practitioners can run automatic discounts for Pro Members and free seekers — maximize revenue and loyalty.
         </p>
-        <Link to="/pro-upgrade?type=vendor" className="inline-block mt-4 px-5 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium">
-          Upgrade to Pro →
-        </Link>
+        {!isVendorPro(user) && (
+          <Link to="/pro-upgrade?type=vendor" className="inline-block mt-4 px-5 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium">
+            Upgrade to Pro →
+          </Link>
+        )}
       </div>
     );
   }

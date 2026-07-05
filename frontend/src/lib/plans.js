@@ -103,9 +103,10 @@ export function getVendorContext(user) {
   const role = (user.role || '').toLowerCase();
   if (role === 'admin') {
     const vendorId = user.vendor_id || user.vendor;
+    const plan = getEffectiveVendorPlan(user);
     return {
       vendorId,
-      plan: user.vendor_plan || 'paid',
+      plan: isProPlan(plan) ? plan : 'paid',
       permissions: PAID_VENDOR_PERMISSIONS,
       isOwner: true,
       isEmployee: false,
@@ -129,7 +130,7 @@ export function getVendorContext(user) {
 
   if (role === 'vendor') {
     const vendorId = user.vendor_id || user.vendor;
-    const plan = user.vendor_plan || 'free';
+    const plan = getEffectiveVendorPlan(user);
     return {
       vendorId,
       plan,
@@ -198,6 +199,20 @@ export function planBadgeLabel(plan, type = 'vendor') {
     return type === 'vendor' ? 'Pro Practitioner' : 'Pro Member';
   }
   return type === 'vendor' ? 'Free Practitioner' : 'Free Member';
+}
+
+/** True when the signed-in user has an active Pro Practitioner plan. */
+export function isVendorPro(user) {
+  if (!user) return false;
+  if ((user.role || '').toLowerCase() === 'admin') return true;
+  return isProPlan(getEffectiveVendorPlan(user));
+}
+
+/** True when the signed-in user has an active Pro Member plan. */
+export function isCustomerPro(user) {
+  if (!user) return false;
+  if ((user.role || '').toLowerCase() === 'admin') return true;
+  return isProPlan(getEffectiveCustomerPlan(user));
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = [

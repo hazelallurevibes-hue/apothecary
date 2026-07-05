@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchVendorPreferenceInsights } from '../lib/foodPreferences';
-import { vendorCan } from '../lib/plans';
+import { isVendorPro, vendorCan } from '../lib/plans';
 import { Link } from 'react-router-dom';
 import HelpTip from './HelpTip';
 
@@ -20,7 +20,9 @@ export default function VendorCustomerInsights({ user, vendorId }) {
     return (
       <div className="bg-gray-50 border border-dashed rounded-3xl p-6 text-sm text-gray-600">
         <strong>Pro Practitioner:</strong> See what seekers in your area prefer and avoid (anonymous aggregates).
-        <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium ml-1 underline">Upgrade →</Link>
+        {!isVendorPro(user) && (
+          <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium ml-1 underline">Upgrade →</Link>
+        )}
       </div>
     );
   }

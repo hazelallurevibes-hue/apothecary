@@ -7,7 +7,9 @@ import {
   FREE_CUSTOMER_RATING_MIN_PURCHASES,
   getCustomerContext,
   getVendorContext,
+  isCustomerPro,
   isProPlan,
+  isVendorPro,
   planBadgeLabel,
 } from '../lib/plans';
 import { fetchMySubscriptions, openBillingPortal } from '../lib/proBillingApi';
@@ -19,7 +21,7 @@ import { STORAGE_KEYS } from '../lib/storageKeys';
 import LearningStyleChips from '../components/LearningStyleChips';
 import ProfileCustomizer from '../components/ProfileCustomizer';
 import ProMemberPreferences from '../components/ProMemberPreferences';
-import { isCustomerProUser } from '../lib/proStatus';
+
 import ConfessionBoothPanel from '../components/ConfessionBoothPanel';
 import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
 import { useSeoContext } from '../components/SeoContext';
@@ -305,7 +307,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         </div>
       )}
 
-      {(role === 'customer' || role === 'guest' || customerCtx) && isCustomerProUser(user) && (
+      {(role === 'customer' || role === 'guest' || customerCtx) && isCustomerPro(user) && (
         <div className="mb-6">
           <ProMemberPreferences />
         </div>
@@ -335,19 +337,30 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       )}
 
       {(role === 'customer' || role === 'guest') && customerCtx && (
-        <div className="mb-6 p-4 border rounded-3xl bg-white flex flex-wrap justify-between items-center gap-3">
+        <div className={`mb-6 p-5 sm:p-6 rounded-3xl flex flex-wrap justify-between items-center gap-3 ${
+          isCustomerPro(user)
+            ? 'border-2 border-[#c9a227]/35 bg-gradient-to-br from-[#f5f0e8] via-white to-[#4a1942]/5'
+            : 'border bg-white'
+        }`}>
           <div>
-            <div className="font-semibold">{planBadgeLabel(customerCtx.plan, 'customer')}</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-semibold">{planBadgeLabel(customerCtx.plan, 'customer')}</span>
+              {isCustomerPro(user) && (
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Active
+                </span>
+              )}
+            </div>
             <div className="text-sm text-gray-600 mt-1">
-              {isProPlan(customerCtx.plan)
-                ? 'Full access including ratings, favorites, and loyalty.'
+              {isCustomerPro(user)
+                ? 'Your Pro Member perks are active — discounts, favorites, loyalty, profile studio, and more.'
                 : `Buy, track orders, and link delivery apps. Ratings unlock after ${FREE_CUSTOMER_RATING_MIN_PURCHASES} purchases (${customerCtx.purchaseCount}/${FREE_CUSTOMER_RATING_MIN_PURCHASES}).`}
             </div>
           </div>
-          {isCustomerProUser(user) || isProPlan(customerCtx.plan) ? (
+          {isCustomerPro(user) ? (
             <div className="flex flex-wrap gap-2">
-              <Link to="/pro-upgrade" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
-                Pro benefits
+              <Link to="/pro-upgrade?type=customer" className="text-sm px-4 py-2 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-2xl font-semibold hover:bg-[#fff9eb]">
+                Your Pro hub
               </Link>
               <button
                 type="button"
@@ -371,7 +384,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               Be a Pro Member
             </Link>
           )}
-          {!isProPlan(customerCtx.plan) && !customerCtx.canRate && (
+          {!isCustomerPro(user) && !customerCtx.canRate && (
             <div className="text-xs bg-amber-50 text-amber-800 px-3 py-2 rounded-2xl w-full sm:w-auto">
               {customerCtx.purchasesUntilRating} purchases to rate
             </div>
@@ -380,20 +393,31 @@ export default function AccountSettings({ user, onProfileUpdate }) {
       )}
 
       {vendorCtx && !vendorCtx.isEmployee && (
-        <div className="mb-6 p-4 border rounded-3xl bg-white">
+        <div className={`mb-6 p-5 sm:p-6 rounded-3xl ${
+          isVendorPro(user)
+            ? 'border-2 border-[#c9a227]/35 bg-gradient-to-br from-[#2d1230]/5 via-[#f5f0e8] to-white'
+            : 'border bg-white'
+        }`}>
           <div className="flex flex-wrap justify-between items-start gap-3">
             <div>
-              <div className="font-semibold">{planBadgeLabel(vendorCtx.plan, 'vendor')}</div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold">{planBadgeLabel(vendorCtx.plan, 'vendor')}</span>
+                {isVendorPro(user) && (
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#c9a227] bg-[#c9a227]/15 px-2 py-0.5 rounded-full border border-[#c9a227]/30">
+                    Active
+                  </span>
+                )}
+              </div>
               <div className="text-sm text-gray-600 mt-1">
-                {isProPlan(vendorCtx.plan)
-                  ? 'Full storefront customization, analytics, and unlimited employees.'
+                {isVendorPro(user)
+                  ? 'Unlimited listings, Teaching Sanctum, campaigns, analytics, international storefront, and full team tools.'
                   : 'Selling, bio, profile editor, ratings, and 1 employee seat.'}
               </div>
             </div>
-            {isProPlan(vendorCtx.plan) ? (
+            {isVendorPro(user) ? (
               <div className="flex flex-wrap gap-2">
-                <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
-                  Pro benefits
+                <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-2xl font-semibold hover:bg-[#fff9eb]">
+                  Your Pro hub
                 </Link>
                 <button
                   type="button"

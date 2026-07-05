@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { vendorCan, getVendorContext } from '../lib/plans';
+import { vendorCan, getVendorContext, isVendorPro } from '../lib/plans';
 import { supabase } from '../lib/supabaseClient';
 import ServiceMediaField from '../components/ServiceMediaField';
 import ListingThumbnailField from '../components/ListingThumbnailField';
@@ -143,9 +143,11 @@ export default function VendorTeaching({ user }) {
         <p className="text-gray-600 mt-4 max-w-md mx-auto">
           Pro Practitioners monetize courses — herbalism, tarot, ritual craft, spiritual business — with YouTube &amp; Vimeo lessons.
         </p>
-        <Link to="/pro-upgrade?type=vendor" className="inline-block mt-8 px-8 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">
-          Unlock Pro Teaching →
-        </Link>
+        {!isVendorPro(user) && (
+          <Link to="/pro-upgrade?type=vendor" className="inline-block mt-8 px-8 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">
+            Unlock Pro Teaching →
+          </Link>
+        )}
       </div>
     );
   }

@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { uploadVendorAsset } from '../lib/storageApi';
-import { getVendorContext, planBadgeLabel, vendorCan } from '../lib/plans';
+import { getVendorContext, isProPlan, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
 import EmployeeManagement from '../components/EmployeeManagement';
 import UpgradeBanner from '../components/UpgradeBanner';
+import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import { PickupHoursEditor, InPersonEventsEditor } from '../components/PickupScheduleEditor';
 import { parsePickupHours, parseInPersonEvents } from '../lib/pickupSchedule';
 import CheckoutUpsellsEditor from '../components/CheckoutUpsellsEditor';
@@ -35,7 +36,8 @@ export default function StorefrontSettings({ user }) {
   const ctx = getVendorContext(user);
   const vendorId = ctx?.vendorId;
   const plan = ctx?.plan || 'free';
-  const isPaid = plan === 'paid';
+  const isPaid = isProPlan(plan);
+  const isProPractitioner = isVendorPro(user);
 
   const [vendor, setVendor] = useState(null);
   const [banners, setBanners] = useState([]);
@@ -225,7 +227,11 @@ export default function StorefrontSettings({ user }) {
         </span>
       </div>
 
-      <UpgradeBanner plan={plan} />
+      {isProPractitioner ? (
+        <ProVendorActiveStrip compact />
+      ) : (
+        <UpgradeBanner plan={plan} user={user} />
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white border rounded-3xl p-8 space-y-5">
@@ -608,8 +614,10 @@ export default function StorefrontSettings({ user }) {
           />
         ) : (
           <p className="text-sm text-gray-600">
-            Pro vendors can link Amazon, eBay, WooCommerce, or Shopify for international orders, set regional sell rules, and list carrier-restricted items.
-            <Link to="/pro-upgrade" className="text-[#4a1942] font-medium ml-1 underline">Upgrade to Pro →</Link>
+            Pro practitioners can link Amazon, eBay, WooCommerce, or Shopify for international orders, set regional sell rules, and list carrier-restricted items.
+            {!isProPractitioner && (
+              <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium ml-1 underline">Upgrade to Pro →</Link>
+            )}
           </p>
         )}
       </div>

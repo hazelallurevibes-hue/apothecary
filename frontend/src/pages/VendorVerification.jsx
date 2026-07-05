@@ -11,6 +11,8 @@ import {
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 import { validateLegalName } from '../lib/adminApi';
 import UpgradeBanner from '../components/UpgradeBanner';
+import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
+import { isVendorPro } from '../lib/plans';
 import { markOnboardingStep } from '../lib/onboardingApi';
 
 export default function VendorVerification({ user }) {
@@ -113,7 +115,11 @@ export default function VendorVerification({ user }) {
         Photo ID builds seeker trust. Documents are admin-only and never shown publicly.
         {requireLegalName ? ' Enter the name exactly as printed on your government-issued ID.' : ''}
       </p>
-      <UpgradeBanner plan={ctx?.plan} compact />
+      {isVendorPro(user) ? (
+        <ProVendorActiveStrip compact />
+      ) : (
+        <UpgradeBanner plan={ctx?.plan} user={user} compact />
+      )}
 
       <div className="bg-white border rounded-3xl p-6 mb-6 space-y-4">
         <h2 className="font-semibold">Photo ID (all practitioners)</h2>
@@ -169,7 +175,10 @@ export default function VendorVerification({ user }) {
         <h2 className="font-semibold">Business &amp; practice permits</h2>
         {!canPermit ? (
           <p className="text-sm text-gray-600">
-            Pro practitioners can upload permits for a verified badge. <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] underline">Upgrade</Link>
+            Pro practitioners can upload permits for a verified badge.
+            {!isVendorPro(user) && (
+              <> <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] underline">Upgrade to Pro</Link></>
+            )}
           </p>
         ) : (
           <>

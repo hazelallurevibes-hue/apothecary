@@ -1,11 +1,11 @@
 import { Link } from 'react-router-dom';
-import { PAID_VENDOR_UPGRADE_FEATURES, isProPlan, planBadgeLabel } from '../lib/plans';
+import { PAID_VENDOR_UPGRADE_FEATURES, isProPlan, isVendorPro, planBadgeLabel } from '../lib/plans';
 import { useLocale } from '../i18n';
 
-export default function UpgradeBanner({ plan, compact = false }) {
+export default function UpgradeBanner({ plan, compact = false, user = null }) {
   const { t } = useLocale();
 
-  if (isProPlan(plan)) return null;
+  if (isProPlan(plan) || isVendorPro(user)) return null;
 
   if (compact) {
     return (

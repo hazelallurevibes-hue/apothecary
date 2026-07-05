@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { getVendorContext, planBadgeLabel, vendorCan } from '../lib/plans';
+import { getVendorContext, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
 import {
   buildStorefrontUrl,
   createCampaignDraft,
@@ -167,9 +167,11 @@ export default function VendorEmailCampaigns({ user }) {
             <li>• Templates for market, menu, and seasonal promos</li>
             <li>• Open/click tracking via Resend webhooks</li>
           </ul>
-          <p className="text-sm text-gray-500">
-            <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium underline">Be a Pro Practitioner</Link> to unlock email campaigns.
-          </p>
+          {!isVendorPro(user) && (
+            <p className="text-sm text-gray-500">
+              <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium underline">Be a Pro Practitioner</Link> to unlock email campaigns.
+            </p>
+          )}
           <Link to="/account-settings" className="inline-block mt-4 text-[#4a1942] underline text-sm">Account Settings →</Link>
         </div>
       </div>
