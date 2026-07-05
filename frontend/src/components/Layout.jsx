@@ -398,6 +398,7 @@ export default function Layout({ user, onLogout, children }) {
             <Link to="/about">{t('footer.about')}</Link>
             <Link to="/contact">{t('footer.contact')}</Link>
             <Link to="/faq">{t('footer.faq')}</Link>
+            <Link to="/sitemap">Site Map</Link>
             <a href={blogUrl('/alluring-news')} target="_blank" rel="noopener noreferrer">Alluring News</a>
             <Link to="/agreements">{t('footer.terms')}</Link>
             <Link to="/policies-procedures">{t('footer.policies')}</Link>

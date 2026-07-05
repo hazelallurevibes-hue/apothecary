@@ -26,6 +26,7 @@ const StorefrontSettings = lazy(() => import('./pages/StorefrontSettings'));
 const AccountSettings = lazy(() => import('./pages/AccountSettings'));
 const OnboardingFlow = lazy(() => import('./pages/OnboardingFlow'));
 const FAQ = lazy(() => import('./pages/FAQ'));
+const Sitemap = lazy(() => import('./pages/Sitemap'));
 const Contact = lazy(() => import('./pages/Contact'));
 const About = lazy(() => import('./pages/About'));
 const Agreements = lazy(() => import('./pages/Agreements'));
@@ -406,6 +407,7 @@ function AppCore({ auth0 = null }) {
                 <Route path="/pro/cancel" element={<ProCancel />} />
                 <Route path="/onboarding" element={<OnboardingFlow user={user} />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/sitemap" element={<Sitemap />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/agreements" element={<Agreements />} />

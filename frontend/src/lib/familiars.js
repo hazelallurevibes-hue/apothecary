@@ -1,5 +1,7 @@
 /** Spirit familiars — cosmetic companions, entertainment only */
 
+import { getFamiliarPalette } from './familiarArt';
+
 export const FAMILIARS = {
   owl: {
     id: 'owl',
@@ -118,7 +120,9 @@ export const FAMILIARS = {
 export const FAMILIAR_LIST = Object.values(FAMILIARS);
 
 export function getFamiliar(id) {
-  return FAMILIARS[id] || null;
+  const f = FAMILIARS[id];
+  if (!f) return null;
+  return { ...f, palette: getFamiliarPalette(id) };
 }
 
 export function pickFamiliarWhisper(id) {
@@ -127,7 +131,7 @@ export function pickFamiliarWhisper(id) {
   const extras = [
     f.whisper,
     `${f.name} blinks slowly. No further comment.`,
-    `${f.emoji} The familiar approves — entertainment only.`,
+    `${f.name} approves — entertainment only.`,
   ];
   return extras[Math.floor(Math.random() * extras.length)];
 }

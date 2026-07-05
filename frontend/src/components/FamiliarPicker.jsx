@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FAMILIAR_LIST } from '../lib/familiars';
+import FamiliarPortrait from './FamiliarPortrait';
 import { getLunarFamiliarPresentation } from '../lib/lunarFamiliar';
 import { getMoonPhase } from '../lib/seasonalSanctum';
 import { fetchChosenFamiliar, saveChosenFamiliar } from '../lib/familiarApi';
@@ -66,7 +67,7 @@ export default function FamiliarPicker({ user, onUpdate }) {
             className={`rounded-2xl border p-3 text-left transition ${chosen === f.id ? 'border-[#4a1942] bg-[#4a1942]/5' : 'border-gray-200 hover:border-[#4a1942]/30'}`}
             title={f.trait}
           >
-            <span className="text-2xl">{f.emoji}</span>
+            <FamiliarPortrait id={f.id} size="sm" ariaLabel={f.name} />
             <p className="text-xs font-medium mt-2 text-[#2d1230]">{f.name}</p>
             <p className="text-[10px] text-gray-400 line-clamp-2">{f.trait}</p>
           </button>

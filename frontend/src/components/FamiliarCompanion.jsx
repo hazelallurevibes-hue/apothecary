@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { pickFamiliarWhisper } from '../lib/familiars';
+import FamiliarPortrait from './FamiliarPortrait';
 import { fetchChosenFamiliar } from '../lib/familiarApi';
 import { getLunarFamiliarPresentation } from '../lib/lunarFamiliar';
 
@@ -29,15 +30,12 @@ export default function FamiliarCompanion({ user }) {
       <button
         type="button"
         onClick={speak}
-        className="hover:scale-110 transition-transform drop-shadow-md rounded-full"
-        style={{
-          transform: `scale(${familiar.scale})`,
-          filter: `drop-shadow(0 0 6px ${familiar.glow})`,
-        }}
+        className="hover:scale-110 transition-transform rounded-full"
+        style={{ transform: `scale(${familiar.scale})` }}
         aria-label={`${familiar.name} familiar — ${familiar.mood}`}
         title={`${familiar.trait} · ${familiar.moonPhase}: ${familiar.mood}`}
       >
-        <span className="text-2xl">{familiar.emoji}</span>
+        <FamiliarPortrait id={familiarId} size="md" glow={familiar.glow} ariaLabel={familiar.name} />
       </button>
       <span className="text-[8px] text-[#4a1942]/50 whitespace-nowrap">{familiar.moonEmoji} {familiar.mood}</span>
       {whisper && (
