@@ -21,6 +21,9 @@ const SeekerOathReaffirmModal = lazy(() => import('./SeekerOathReaffirmModal'));
 const LoginStreakHandler = lazy(() => import('./LoginStreakHandler'));
 const GuidanceCoach = lazy(() => import('./GuidanceCoach'));
 import PageSeo from './PageSeo';
+import JsonLd from './JsonLd';
+import BreadcrumbNav from './BreadcrumbNav';
+import { SeoProvider } from './SeoContext';
 import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl } from '../lib/vertical';
 import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
@@ -167,8 +170,10 @@ export default function Layout({ user, onLogout, children }) {
   ];
 
   return (
+    <SeoProvider>
     <div className="min-h-screen">
       <PageSeo />
+      <JsonLd />
       <nav className="bg-white/92 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-50 shadow-sm shadow-ha-primary/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
@@ -370,6 +375,7 @@ export default function Layout({ user, onLogout, children }) {
       </nav>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-6 md:py-10 min-w-0 w-full overflow-x-hidden">
+        <BreadcrumbNav className="mb-4 md:mb-6" />
         {children}
       </main>
 
@@ -408,5 +414,6 @@ export default function Layout({ user, onLogout, children }) {
         </div>
       </footer>
     </div>
+    </SeoProvider>
   );
 }

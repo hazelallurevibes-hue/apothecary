@@ -91,7 +91,29 @@ export const ROUTE_SEO = {
     title: `Become a Practitioner | ${VERTICAL.name}`,
     description: 'Apply to list healing services, apothecary goods, and courses on our woman-owned holistic wellness marketplace.',
   },
+  '/sitemap': {
+    title: `Site Map | ${VERTICAL.name}`,
+    description: 'Browse all public pages on Hazel Allure — healing services, apothecary, courses, practitioners, and platform policies.',
+  },
+  '/tarot-collection': {
+    title: `Tarot Collection | ${VERTICAL.name}`,
+    description: 'Your personal tarot card collection from daily login streaks — mystical keepsakes for entertainment only.',
+  },
+  '/account-settings': {
+    title: `Account Settings | ${VERTICAL.name}`,
+    description: 'Manage your seeker or practitioner profile, spirit familiar, billing, and platform preferences on Hazel Allure.',
+  },
 };
+
+/** Normalize pathname for SEO lookups */
+export function normalizePath(pathname) {
+  return pathname.split('?')[0].replace(/\/$/, '') || '/';
+}
+
+export function absoluteUrl(path = '/') {
+  const p = path === '/' ? '' : path;
+  return `${SEO_BRAND.canonicalBase}${p}`;
+}
 
 export function resolveSeo(pathname) {
   const path = pathname.split('?')[0].replace(/\/$/, '') || '/';
@@ -138,4 +160,182 @@ export function organizationJsonLd() {
       },
     ],
   };
+}
+
+export function webSiteJsonLd() {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SEO_BRAND.siteName,
+    url: SEO_BRAND.canonicalBase,
+    description: SEO_BRAND.tagline,
+    publisher: {
+      '@type': 'Organization',
+      name: VERTICAL.legalEntity,
+      logo: LOGO_IMG,
+    },
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SEO_BRAND.canonicalBase}/services?q={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  };
+}
+
+/** @param {{ name: string, path: string }[]} items */
+export function breadcrumbJsonLd(items) {
+  if (!items?.length) return null;
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: items.map((item, index) => ({
+      '@type': 'ListItem',
+      position: index + 1,
+      name: item.name,
+      item: absoluteUrl(item.path),
+    })),
+  };
+}
+
+/** Build visible + schema breadcrumb trail for nested routes */
+export function buildBreadcrumbTrail(pathname, context = {}) {
+  const path = normalizePath(pathname);
+  const items = [{ name: 'Home', path: '/' }];
+  if (path === '/') return items;
+
+  if (path.startsWith('/listing/')) {
+    const segments = path.split('/');
+    const type = context.listingType || segments[2] || 'menu';
+    const isApothecary = type === 'produce';
+    items.push({
+      name: isApothecary ? VERTICAL.labels.apothecary : VERTICAL.labels.marketplace,
+      path: isApothecary ? VERTICAL.routes.productsMarket : VERTICAL.routes.servicesMarket,
+    });
+    items.push({ name: context.listingName || 'Listing', path });
+    return items;
+  }
+
+  if (path.startsWith('/courses/')) {
+    items.push({ name: VERTICAL.labels.courses, path: VERTICAL.routes.courses });
+    items.push({ name: context.courseTitle || 'Course', path });
+    return items;
+  }
+
+  if (path.startsWith('/vendor/')) {
+    items.push({ name: VERTICAL.labels.vendors, path: VERTICAL.routes.topPractitioners });
+    items.push({ name: context.vendorName || VERTICAL.labels.vendor, path });
+    return items;
+  }
+
+  const seo = resolveSeo(path);
+  const label = seo.title.split(/[—|]/)[0].trim() || seo.title;
+  items.push({ name: label, path });
+  return items;
+}
+
+export function localBusinessJsonLd(vendor) {
+  if (!vendor) return null;
+  const json = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: vendor.name,
+    description: vendor.bio || undefined,
+    image: vendor.highlight_photo || undefined,
+    url: absoluteUrl(`/vendor/${vendor.id}`),
+    telephone: vendor.phone || undefined,
+  };
+  if (vendor.city || vendor.state) {
+    json.address = {
+      '@type': 'PostalAddress',
+      addressLocality: vendor.city || undefined,
+      addressRegion: vendor.state || undefined,
+    };
+  }
+  if (vendor.avg_rating) {
+    json.aggregateRating = {
+      '@type': 'AggregateRating',
+      ratingValue: Number(vendor.avg_rating),
+      reviewCount: Number(vendor.review_count) || 0,
+    };
+  }
+  return json;
+}
+
+export function productJsonLd(listing, { vendor, itemType } = {}) {
+  if (!listing) return null;
+  const isService = itemType === 'menu';
+  const json = {
+    '@context': 'https://schema.org',
+    '@type': isService ? 'Service' : 'Product',
+    name: listing.name,
+    description: listing.description || listing.ingredients || undefined,
+    image: listing.photo || undefined,
+    url: absoluteUrl(`/listing/${itemType || 'menu'}/${listing.id}`),
+  };
+  if (listing.price != null) {
+    json.offers = {
+      '@type': 'Offer',
+      price: Number(listing.price),
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/InStock',
+    };
+    if (vendor?.name) {
+      json.offers.seller = { '@type': 'Organization', name: vendor.name };
+    }
+  }
+  if (vendor?.name) {
+    json.brand = { '@type': 'Brand', name: vendor.name };
+  }
+  return json;
+}
+
+export function courseJsonLd(course) {
+  if (!course) return null;
+  const providerName = course.vendors?.name || VERTICAL.name;
+  const json = {
+    '@context': 'https://schema.org',
+    '@type': 'Course',
+    name: course.title,
+    description: course.description || undefined,
+    image: course.cover_photo || undefined,
+    url: absoluteUrl(`/courses/${course.id}`),
+    provider: {
+      '@type': 'Organization',
+      name: providerName,
+    },
+  };
+  if (course.price != null) {
+    json.offers = {
+      '@type': 'Offer',
+      price: Number(course.price),
+      priceCurrency: 'USD',
+    };
+  }
+  return json;
+}
+
+/** Resolve Open Graph / Twitter card image for a route */
+export function resolveOgImage(pathname, context = {}) {
+  const path = normalizePath(pathname);
+
+  if (context.image) return context.image;
+  if (context.listing?.photo) return context.listing.photo;
+  if (context.course?.cover_photo) return context.course.cover_photo;
+  if (context.vendor?.highlight_photo) return context.vendor.highlight_photo;
+
+  if (path === '/tarot-collection') {
+    return `${SEO_BRAND.canonicalBase}/api/og-familiar?id=owl&tier=2&mood=tarot`;
+  }
+
+  if (path === '/account-settings' && context.familiarId) {
+    const tier = Math.min(3, Math.max(0, Number(context.familiarTier) || 0));
+    const params = new URLSearchParams({
+      id: context.familiarId,
+      tier: String(tier),
+    });
+    if (context.familiarMood) params.set('mood', context.familiarMood);
+    return `${SEO_BRAND.canonicalBase}/api/og-familiar?${params}`;
+  }
+
+  return SEO_BRAND.defaultImage;
 }

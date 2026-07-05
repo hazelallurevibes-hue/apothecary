@@ -6,6 +6,16 @@ export default function Sitemap() {
   return (
     <div className="max-w-3xl mx-auto pb-16">
       <h1 className="text-4xl font-bold tracking-tight text-[#4a1942] mb-2">Site map</h1>
+      <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+        <strong>For Google Search Console:</strong> submit{' '}
+        <a
+          href={`${SITEMAP_BASE_URL}/sitemap.xml`}
+          className="font-semibold text-[#4a1942] underline"
+        >
+          {SITEMAP_BASE_URL}/sitemap.xml
+        </a>{' '}
+        (not this HTML page at <code className="text-xs">/sitemap</code>).
+      </div>
       <p className="text-gray-600 mb-2">
         Browse all public pages on {VERTICAL.name}. Machine-readable map:{' '}
         <a href={`${SITEMAP_BASE_URL}/sitemap.xml`} className="text-[#4a1942] underline">

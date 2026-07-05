@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { resolveSeo, SEO_BRAND } from '../lib/seo';
+import { resolveSeo, resolveOgImage, SEO_BRAND } from '../lib/seo';
+import { useSeoContext } from './SeoContext';
 
 function upsertMeta(attr, key, content) {
   if (!content) return;
@@ -27,13 +28,16 @@ function upsertLink(rel, href) {
 /** Syncs document title and meta tags to the current route — connects branding to SEO. */
 export default function PageSeo() {
   const { pathname } = useLocation();
+  const { pageSeo } = useSeoContext();
 
   useEffect(() => {
+    const ctx = pageSeo || (typeof window !== 'undefined' ? window.__HA_SEO__ : null) || {};
     const seo = resolveSeo(pathname);
-    const title = seo.title || `${SEO_BRAND.siteName} — ${SEO_BRAND.tagline}`;
-    const description = seo.description || SEO_BRAND.tagline;
-    const canonical = `${SEO_BRAND.canonicalBase}${pathname === '/' ? '' : pathname}`;
-    const image = SEO_BRAND.defaultImage;
+    const title = ctx.title || seo.title || `${SEO_BRAND.siteName} — ${SEO_BRAND.tagline}`;
+    const description = ctx.description || seo.description || SEO_BRAND.tagline;
+    const canonical = `${SEO_BRAND.canonicalBase}${pathname === '/' ? '' : pathname.split('?')[0]}`;
+    const image = resolveOgImage(pathname, ctx);
+    const ogType = ctx.ogType || (ctx.course || ctx.listing ? 'product' : 'website');
 
     document.title = title;
 
@@ -44,13 +48,13 @@ export default function PageSeo() {
     upsertMeta('property', 'og:url', canonical);
     upsertMeta('property', 'og:image', image);
     upsertMeta('property', 'og:site_name', SEO_BRAND.siteName);
-    upsertMeta('property', 'og:type', 'website');
+    upsertMeta('property', 'og:type', ogType);
     upsertMeta('name', 'twitter:card', 'summary_large_image');
     upsertMeta('name', 'twitter:title', title);
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
     upsertLink('canonical', canonical);
-  }, [pathname]);
+  }, [pathname, pageSeo]);
 
   return null;
 }

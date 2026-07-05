@@ -18,6 +18,7 @@ import { getMarketplaceCategoryLabel } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VideoEmbed from '../components/VideoEmbed';
 import { VERTICAL } from '../lib/vertical';
+import { useSeoContext } from '../components/SeoContext';
 
 export default function ListingDetailPage({ user }) {
   const { type, id } = useParams();
@@ -25,7 +26,7 @@ export default function ListingDetailPage({ user }) {
   const table = itemType === 'menu' ? 'menu_items' : 'produce_items';
   const [item, setItem] = useState(null);
   const [vendor, setVendor] = useState(null);
-
+  const { setPageSeo } = useSeoContext();
 
   useEffect(() => {
     const load = async () => {
@@ -38,6 +39,23 @@ export default function ListingDetailPage({ user }) {
     };
     load();
   }, [table, id]);
+
+  useEffect(() => {
+    if (!item) return undefined;
+    const desc = item.description || item.ingredients || `View ${item.name} on ${VERTICAL.name}.`;
+    setPageSeo({
+      listing: item,
+      listingType: itemType,
+      listingName: item.name,
+      vendor,
+      vendorName: vendor?.name,
+      image: item.photo,
+      title: `${item.name} | ${VERTICAL.name}`,
+      description: desc.slice(0, 160),
+      ogType: itemType === 'menu' ? 'product' : 'product',
+    });
+    return () => setPageSeo({});
+  }, [item, vendor, itemType, setPageSeo]);
 
   if (!item) {
     return <div className="p-8 text-gray-500">Loading listing…</div>;

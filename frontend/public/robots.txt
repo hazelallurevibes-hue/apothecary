@@ -1,4 +1,6 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://apothecary.hazelallure.com/sitemap.xml
+# Sitemap index lists this app (apothecary) + main blog site (hazelallure.com).
+# For Google Search Console on this property, you may also submit /sitemap.xml directly.
+Sitemap: https://apothecary.hazelallure.com/sitemap-index.xml

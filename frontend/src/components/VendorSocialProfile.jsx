@@ -131,7 +131,7 @@ function CourseCard({ course }) {
   );
 }
 
-export default function VendorSocialProfile({ vendorId, user }) {
+export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
   const [searchParams, setSearchParams] = useSearchParams();
   const [vendor, setVendor] = useState(null);
   const [services, setServices] = useState([]);
@@ -197,6 +197,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
 
       const v = applySabbaticalExpiry(vendorRes.data || { id: vendorId, name: VERTICAL.copy.practitionerFallback, bio: '' });
       setVendor(v);
+      onSeoData?.({ vendor: v });
       setServices(servicesRes.data || []);
       setApothecary(apothecaryRes.data || []);
       setCourses(courseRows || []);
@@ -215,7 +216,7 @@ export default function VendorSocialProfile({ vendorId, user }) {
       setLoading(false);
     };
     load();
-  }, [vendorId]);
+  }, [vendorId, onSeoData]);
 
   useEffect(() => {
     if (banners.length <= 1) return undefined;

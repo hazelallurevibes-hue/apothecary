@@ -177,6 +177,8 @@ export default function ApothecaryMarket({ user }) {
         items: cartLines,
         deliveryMethod,
         userName: user?.name,
+        userEmail: user?.email,
+        familiarId: user?.chosen_familiar || null,
         source: 'Hazel Allure Apothecary',
       });
       clearCart();

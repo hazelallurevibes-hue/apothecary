@@ -169,6 +169,8 @@ export default function Marketplace({ user }) {
         items: menuLines,
         deliveryMethod: chosenDelivery,
         userName: user?.name,
+        userEmail: user?.email,
+        familiarId: user?.chosen_familiar || null,
         source: 'Hazel Allure Marketplace',
       });
       clearCart();

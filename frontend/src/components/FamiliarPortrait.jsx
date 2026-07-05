@@ -1,4 +1,7 @@
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { getFamiliarPalette, PORTRAIT_SIZES } from '../lib/familiarArt';
+import { getTierPresentation } from '../lib/familiarEvolution';
 
 function gradStops(colors, offset = [0, 0.55, 1]) {
   return colors.map((c, i) => (
@@ -6,8 +9,62 @@ function gradStops(colors, offset = [0, 0.55, 1]) {
   ));
 }
 
-function PortraitShell({ id, palette, children, glow }) {
+function TierOrnaments({ tier, uid, palette }) {
+  const pres = getTierPresentation(tier);
+  if (!pres.ornament) return null;
+
+  const gold = '#c9a227';
+  const plum = '#4a1942';
+
+  if (pres.ringStyle === 'bound') {
+    return (
+      <>
+        {[0, 90, 180, 270].map((deg) => (
+          <circle
+            key={deg}
+            cx={50 + 47 * Math.cos((deg * Math.PI) / 180)}
+            cy={50 + 47 * Math.sin((deg * Math.PI) / 180)}
+            r="1.8"
+            fill={gold}
+            opacity="0.85"
+          />
+        ))}
+        <circle cx="50" cy="50" r="48.5" fill="none" stroke={palette.accent} strokeWidth="0.75" opacity="0.5" strokeDasharray="4 6" />
+      </>
+    );
+  }
+
+  if (pres.ringStyle === 'archmage') {
+    return (
+      <>
+        <circle cx="50" cy="50" r="48.5" fill="none" stroke={gold} strokeWidth="1" opacity="0.7" strokeDasharray="2 4" />
+        {[0, 60, 120, 180, 240, 300].map((deg) => (
+          <line
+            key={deg}
+            x1={50 + 44 * Math.cos((deg * Math.PI) / 180)}
+            y1={50 + 44 * Math.sin((deg * Math.PI) / 180)}
+            x2={50 + 49 * Math.cos((deg * Math.PI) / 180)}
+            y2={50 + 49 * Math.sin((deg * Math.PI) / 180)}
+            stroke={plum}
+            strokeWidth="1.2"
+            opacity="0.65"
+          />
+        ))}
+        <circle cx="50" cy="4" r="2" fill={gold} opacity="0.9" />
+        <circle cx="50" cy="96" r="1.5" fill={palette.accent} opacity="0.8" />
+      </>
+    );
+  }
+
+  return null;
+}
+
+function PortraitShell({ id, palette, children, glow, tier = 0 }) {
   const uid = `fp-${id}`;
+  const pres = getTierPresentation(tier);
+  const ringColor = pres.ringStyle === 'base' ? palette.ring : '#c9a227';
+  const glowFilter = glow || pres.glowStrength > 1.1;
+
   return (
     <>
       <defs>
@@ -27,21 +84,41 @@ function PortraitShell({ id, palette, children, glow }) {
           <circle cx="50" cy="50" r="46" />
         </clipPath>
         <filter id={`${uid}-glow`} x="-30%" y="-30%" width="160%" height="160%">
-          <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <feGaussianBlur stdDeviation={2.5 * pres.glowStrength} result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
+        {pres.ringStyle !== 'base' && (
+          <radialGradient id={`${uid}-tier-glow`} cx="50%" cy="50%" r="50%">
+            <stop offset="70%" stopColor="#c9a227" stopOpacity="0" />
+            <stop offset="100%" stopColor="#c9a227" stopOpacity="0.35" />
+          </radialGradient>
+        )}
       </defs>
-      <circle cx="50" cy="50" r="49" fill="none" stroke={palette.ring} strokeWidth="1.5" opacity="0.85" />
-      <circle cx="50" cy="50" r="47.5" fill="none" stroke={palette.accent} strokeWidth="0.5" opacity="0.35" />
-      <g clipPath={`url(#${uid}-clip)`} filter={glow ? `url(#${uid}-glow)` : undefined}>
+      {pres.ringStyle !== 'base' && (
+        <circle cx="50" cy="50" r="49.5" fill={`url(#${uid}-tier-glow)`} opacity="0.8" />
+      )}
+      <circle
+        cx="50"
+        cy="50"
+        r="49"
+        fill="none"
+        stroke={ringColor}
+        strokeWidth={pres.ringWidth}
+        opacity={pres.ringOpacity}
+      />
+      {pres.accentRing && (
+        <circle cx="50" cy="50" r="47.5" fill="none" stroke={palette.accent} strokeWidth="0.75" opacity="0.55" />
+      )}
+      <g clipPath={`url(#${uid}-clip)`} filter={glowFilter ? `url(#${uid}-glow)` : undefined}>
         <rect width="100" height="100" fill={`url(#${uid}-bg)`} />
         <circle cx="72" cy="26" r="14" fill={`url(#${uid}-moon)`} opacity="0.9" />
         {children}
         <rect width="100" height="100" fill={`url(#${uid}-vignette)`} />
       </g>
+      <TierOrnaments tier={tier} uid={uid} palette={palette} />
     </>
   );
 }
@@ -350,6 +427,7 @@ const PORTRAIT_RENDERERS = {
 export default function FamiliarPortrait({
   id,
   size = 'sm',
+  tier = 0,
   glow,
   className = '',
   ariaLabel,
@@ -358,8 +436,14 @@ export default function FamiliarPortrait({
   const palette = getFamiliarPalette(id);
   const Renderer = PORTRAIT_RENDERERS[id];
   const dim = PORTRAIT_SIZES[size] || PORTRAIT_SIZES.sm;
+  const pres = getTierPresentation(tier);
 
   if (!Renderer) return null;
+
+  const glowColor = glow || (pres.glowStrength > 1.1 ? 'rgba(201,162,39,0.45)' : null);
+  const dropShadow = glowColor
+    ? `drop-shadow(0 0 ${6 + pres.tier * 2}px ${glowColor})`
+    : undefined;
 
   return (
     <svg
@@ -369,11 +453,42 @@ export default function FamiliarPortrait({
       className={`block ${className}`}
       role="img"
       aria-label={ariaLabel}
-      style={glow ? { filter: `drop-shadow(0 0 8px ${glow})` } : undefined}
+      style={dropShadow ? { filter: dropShadow } : undefined}
     >
-      <PortraitShell id={id} palette={palette} glow={!!glow}>
+      <PortraitShell id={id} palette={palette} glow={!!glowColor} tier={tier}>
         <Renderer p={palette} />
       </PortraitShell>
     </svg>
   );
+}
+
+/** Raw SVG string for grimoire slips and share cards — no React runtime at export time. */
+export function familiarPortraitMarkup(id, tier = 0, size = 'sm') {
+  if (!id || !PORTRAIT_RENDERERS[id]) return '';
+  const dim = PORTRAIT_SIZES[size] || PORTRAIT_SIZES.sm;
+  const familiar = PORTRAIT_RENDERERS[id];
+  const palette = getFamiliarPalette(id);
+  const pres = getTierPresentation(tier);
+  const glowColor = pres.glowStrength > 1.1 ? 'rgba(201,162,39,0.45)' : null;
+  const style = glowColor ? ` style="filter:drop-shadow(0 0 ${6 + pres.tier * 2}px ${glowColor})"` : '';
+
+  return renderToStaticMarkup(
+    createElement(
+      'svg',
+      {
+        width: dim,
+        height: dim,
+        viewBox: '0 0 100 100',
+        xmlns: 'http://www.w3.org/2000/svg',
+        role: 'img',
+        'aria-label': id,
+        dangerouslySetInnerHTML: undefined,
+      },
+      createElement(
+        PortraitShell,
+        { id, palette, glow: !!glowColor, tier },
+        createElement(familiar, { p: palette }),
+      ),
+    ),
+  ).replace('<svg', `<svg${style}`);
 }

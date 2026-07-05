@@ -1,13 +1,17 @@
 {
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run sitemap && vite build",
   "outputDirectory": "dist",
   "framework": "vite",
   "redirects": [
     { "source": "/farmers-market", "destination": "/products", "permanent": true }
   ],
   "rewrites": [
+    { "source": "/sitemap.xml", "destination": "/api/sitemap" },
+    { "source": "/sitemap-index.xml", "destination": "/api/sitemap-index" },
+    { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/googled5859dbcf06a1225.html", "destination": "/googled5859dbcf06a1225.html" },
-    { "source": "/((?!googled5859dbcf06a1225\\.html|sitemap\\.xml|robots\\.txt|assets/).*)", "destination": "/index.html" }
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
@@ -19,6 +23,18 @@
         { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
         { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         { "key": "Content-Security-Policy", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co https://*.auth0.com https://*.us.auth0.com https://*.eu.auth0.com https://*.sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com https://challenges.cloudflare.com wss://*.supabase.co; frame-src https://*.auth0.com https://*.us.auth0.com https://challenges.cloudflare.com https://www.youtube.com https://www.youtube-nocookie.com https://player.twitch.tv https://rumble.com https://*.rumble.com; font-src 'self' data:;" }
+      ]
+    },
+    {
+      "source": "/sitemap.xml",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
+      ]
+    },
+    {
+      "source": "/api/sitemap",
+      "headers": [
+        { "key": "Content-Type", "value": "application/xml; charset=utf-8" }
       ]
     }
   ]

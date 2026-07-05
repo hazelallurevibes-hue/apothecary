@@ -20,6 +20,18 @@ import LearningStyleChips from '../components/LearningStyleChips';
 import ProfileCustomizer from '../components/ProfileCustomizer';
 import ConfessionBoothPanel from '../components/ConfessionBoothPanel';
 import { fetchUserLearningProfile, savePreferredLearningStyles } from '../lib/learningPathApi';
+import { useSeoContext } from '../components/SeoContext';
+import { fetchChosenFamiliar } from '../lib/familiarApi';
+import { fetchLoginStreak } from '../lib/loginStreakApi';
+import { getMoonPhase } from '../lib/seasonalSanctum';
+
+function familiarTierFromStreak(streak) {
+  const n = streak?.current_streak || 0;
+  if (n >= 30) return 3;
+  if (n >= 14) return 2;
+  if (n >= 7) return 1;
+  return 0;
+}
 
 export default function AccountSettings({ user, onProfileUpdate }) {
   const [name, setName] = useState(user?.name || '');
@@ -37,6 +49,29 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const [learningStyles, setLearningStyles] = useState([]);
   const [stylesSaving, setStylesSaving] = useState(false);
   const API = import.meta.env.VITE_API_URL || '/api';
+  const { setPageSeo } = useSeoContext();
+
+  useEffect(() => {
+    if (!user?.email) return undefined;
+    let cancelled = false;
+    (async () => {
+      const [familiarId, streak] = await Promise.all([
+        fetchChosenFamiliar(user.email).catch(() => user?.chosen_familiar || null),
+        fetchLoginStreak(user.email).catch(() => null),
+      ]);
+      if (cancelled) return;
+      const moon = getMoonPhase();
+      setPageSeo({
+        familiarId: familiarId || undefined,
+        familiarTier: familiarTierFromStreak(streak),
+        familiarMood: moon.name,
+      });
+    })();
+    return () => {
+      cancelled = true;
+      setPageSeo({});
+    };
+  }, [user?.email, user?.chosen_familiar, setPageSeo]);
 
   useEffect(() => {
     if (!user?.email) return;

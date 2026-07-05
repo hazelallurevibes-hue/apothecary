@@ -85,6 +85,8 @@ export default function Orders({ user }) {
         items: cart,
         deliveryMethod,
         userName: user?.name,
+        userEmail: user?.email,
+        familiarId: user?.chosen_familiar || null,
         source: 'Hazel Allure Orders',
       });
       clearCart();

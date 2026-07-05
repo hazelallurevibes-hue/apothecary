@@ -21,6 +21,8 @@ import { LEARNING_STYLES, formatDeliverySummary } from '../lib/teachingStudio';
 import CourseCollegeHub from '../components/CourseCollegeHub';
 import CohortRoomPanel from '../components/CohortRoomPanel';
 import { checkPrerequisites } from '../lib/sanctumAdvancedApi';
+import { useSeoContext } from '../components/SeoContext';
+import { VERTICAL } from '../lib/vertical';
 
 export default function CourseDetailPage({ user }) {
   const { id } = useParams();
@@ -33,6 +35,7 @@ export default function CourseDetailPage({ user }) {
   const [toast, setToast] = useState('');
   const [completedLessons, setCompletedLessons] = useState(new Set());
   const [prereqMet, setPrereqMet] = useState(true);
+  const { setPageSeo } = useSeoContext();
 
   const customerCtx = getCustomerContext(user);
   const canTrackProgress = customerCan(user, 'lesson_progress');
@@ -71,6 +74,19 @@ export default function CourseDetailPage({ user }) {
       setSearchParams(next, { replace: true });
     }
   }, [searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (!course) return undefined;
+    setPageSeo({
+      course,
+      courseTitle: course.title,
+      image: course.cover_photo,
+      title: `${course.title} — ${VERTICAL.labels.courses} | ${VERTICAL.name}`,
+      description: (course.description || `Enroll in ${course.title} on ${VERTICAL.name}.`).slice(0, 160),
+      ogType: 'product',
+    });
+    return () => setPageSeo({});
+  }, [course, setPageSeo]);
 
   const handleEnroll = async () => {
     if (!user?.email) {
