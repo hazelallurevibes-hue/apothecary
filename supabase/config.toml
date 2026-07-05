@@ -9,10 +9,29 @@ site_url = "https://apothecary.hazelallure.com"
 additional_redirect_urls = [
   "https://apothecary.hazelallure.com/**",
   "https://apothecary.hazelallure.com/login",
+  "https://apothecary.hazelallure.com/email-verify",
+  "https://apothecary.hazelallure.com/vendor-email-verify",
   "http://localhost:5173/**",
   "http://localhost:5173/login",
+  "http://localhost:5173/email-verify",
+  "http://localhost:5173/vendor-email-verify",
   "https://apothecary-two.vercel.app/**",
 ]
+
+# Custom SMTP via Resend (signup / password-reset). Secret in backend/.env.resend.local
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = true
+
+[auth.email.smtp]
+enabled = true
+host = "smtp.resend.com"
+port = 465
+user = "resend"
+pass = "env(RESEND_API_KEY)"
+admin_email = "noreply@hazelallure.com"
+sender_name = "Hazel Allure"
 enable_signup = true
 enable_manual_linking = true
 

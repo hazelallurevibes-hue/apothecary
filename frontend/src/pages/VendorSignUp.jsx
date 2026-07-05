@@ -7,7 +7,7 @@ import GoogleLoginButton from '../components/GoogleLoginButton';
 import { googleSignInEnabled } from '../lib/config';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { isCaptchaEnabled } from '../lib/authSecurity';
-import { sendSignupConfirmationEmail } from '../lib/emailVerification';
+
 import { useAuthCaptcha } from '../hooks/useAuthCaptcha';
 import AuthCaptcha from '../components/AuthCaptcha';
 import HoneypotField from '../components/HoneypotField';
@@ -118,11 +118,8 @@ export default function VendorSignUp({ onLogin }) {
             p_email: applicantEmail,
           });
           if (rpcError) throw rpcError;
-          const confirm = await sendSignupConfirmationEmail(applicantEmail, { role: 'vendor' });
           setMessage(
-            confirm.sent
-              ? `Application saved! We sent a confirmation link to ${applicantEmail} — check inbox and spam, then sign in. Admin will approve your practitioner status after that.`
-              : `Application saved! Confirmation email could not be sent (${confirm.error || 'use Resend after sign-in'}). Sign in when ready — admin will approve after email verify.`,
+            `Application saved! We sent a confirmation link to ${applicantEmail} — check inbox and spam, then sign in. Use Resend on the verification page if it does not arrive. Admin will approve your practitioner status after that.`,
           );
           captcha.resetCaptcha();
           return;

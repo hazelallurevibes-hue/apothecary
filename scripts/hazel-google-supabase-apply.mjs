@@ -57,8 +57,12 @@ const headers = {
 const redirectUrls = [
   `${APP_URL}/**`,
   `${APP_URL}/login`,
+  `${APP_URL}/email-verify`,
+  `${APP_URL}/vendor-email-verify`,
   'http://localhost:5173/**',
   'http://localhost:5173/login',
+  'http://localhost:5173/email-verify',
+  'http://localhost:5173/vendor-email-verify',
   'https://apothecary-two.vercel.app/**',
 ];
 

@@ -43,7 +43,14 @@ export default function PlatformEmailSettings({ settings, onSaved, user }) {
       await sendTestSiteEmail(user.email);
       setMessage(`Test email sent to ${user.email}. Check inbox (and spam).`);
     } catch (e) {
-      setMessage(e.message || 'Test send failed — verify Resend domain + RESEND_API_KEY.');
+      const msg = e.message || '';
+      if (msg.includes('RESEND_API_KEY')) {
+        setMessage(
+          'RESEND_API_KEY is not set in Supabase. Run: node scripts/hazel-email-setup.mjs (needs Resend API key + Supabase access token).',
+        );
+      } else {
+        setMessage(msg || 'Test send failed — verify hazelallure.com in Resend Domains and set RESEND_API_KEY in Supabase edge secrets.');
+      }
     }
     setTesting(false);
   };

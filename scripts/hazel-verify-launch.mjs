@@ -102,6 +102,30 @@ for (const fn of ['create-pro-checkout', 'create-course-checkout', 'create-sessi
   console.log(`${icon} ${fn}: ${status}`);
 }
 
+console.log('\nEmail (Resend):');
+try {
+  const emailRes = await fetch(`${url}/functions/v1/send-test-email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${key}`,
+    },
+    body: JSON.stringify({ to: 'probe@hazelallure.com' }),
+  });
+  const emailBody = await emailRes.json().catch(() => ({}));
+  if (emailRes.status === 503 && emailBody.error?.includes('RESEND_API_KEY')) {
+    console.log('✗ RESEND_API_KEY: NOT SET — run scripts/hazel-email-setup.mjs');
+  } else if (emailRes.status === 502) {
+    console.log('✗ Resend API error (check domain verification):', emailBody.error?.slice?.(0, 120) || emailRes.status);
+  } else if (emailRes.ok && emailBody.ok) {
+    console.log('✓ RESEND_API_KEY: configured');
+  } else {
+    console.log(`? send-test-email: HTTP ${emailRes.status}`, emailBody.error || '');
+  }
+} catch (e) {
+  console.log('✗ email probe:', e.message);
+}
+
 const missing = tableResults.filter((r) => r.status === 'MISSING');
 console.log('\n' + '═'.repeat(60));
 if (missing.length) {
