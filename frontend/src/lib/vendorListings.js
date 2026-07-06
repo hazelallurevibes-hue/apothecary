@@ -138,20 +138,88 @@ export function buildProduceItemPayload({
   };
 }
 
+function isRlsError(error) {
+  const msg = (error?.message || String(error)).toLowerCase();
+  return msg.includes('row-level security') || msg.includes('rls') || error?.code === '42501';
+}
+
+export async function hasSupabaseWriteSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+  return !!session?.access_token;
+}
+
 export function formatListingSaveError(error, fallback = 'Could not save listing.') {
   if (!error) return fallback;
   const msg = error.message || String(error);
   if (isFulfillmentConstraintError(error)) {
     return 'Fulfillment mode was rejected by the database. Run 27_fulfillment_pickup_shipping.sql in Supabase, or pick Local pickup / External store only.';
   }
-  if (msg.includes('row-level security') || msg.includes('RLS')) {
-    return 'Permission denied — sign in as the practitioner owner or run FIX_VENDOR_LISTING_CRUD.sql in Supabase.';
+  if (isRlsError(error)) {
+    return 'Permission denied — sign in again with email/password or Google, or run FIX_VENDOR_LISTING_INSERT.sql in Supabase.';
+  }
+  if (msg.toLowerCase().includes('not authorized to manage listings')) {
+    return 'Your account is not linked to a practitioner profile. Sign out, sign back in, or contact support.';
   }
   return msg.length > 180 ? `${msg.slice(0, 180)}…` : msg;
 }
 
-export async function saveProduceItemRecord(payload, { editId = null } = {}) {
-  const attempt = async (body) => {
+async function saveProduceViaRpc(payload, { editId = null, userEmail = null } = {}) {
+  const email = userEmail?.trim().toLowerCase();
+  if (!email) return { data: null, error: { message: 'Sign in required to publish listings.' } };
+
+  const row = stripBpiciusListingFields(payload);
+  const rpcName = editId ? 'update_vendor_produce_listing' : 'insert_vendor_produce_listing';
+  const args = editId
+    ? { p_email: email, p_edit_id: editId, p_payload: row }
+    : { p_email: email, p_payload: row };
+
+  const { data, error } = await supabase.rpc(rpcName, args);
+  if (error) return { data: null, error };
+  return { data, error: null };
+}
+
+async function saveMenuViaRpc(payload, { editId = null, userEmail = null } = {}) {
+  const email = userEmail?.trim().toLowerCase();
+  if (!email) return { data: null, error: { message: 'Sign in required to publish listings.' } };
+
+  const row = stripBpiciusListingFields(payload);
+  const rpcName = editId ? 'update_vendor_menu_listing' : 'insert_vendor_menu_listing';
+  const args = editId
+    ? { p_email: email, p_edit_id: editId, p_payload: row }
+    : { p_email: email, p_payload: row };
+
+  const { data, error } = await supabase.rpc(rpcName, args);
+  if (error) return { data: null, error };
+  return { data, error: null };
+}
+
+export async function saveMenuItemRecord(payload, { editId = null, userEmail = null, preferRpc = false } = {}) {
+  const attemptDirect = async (body) => {
+    const row = stripBpiciusListingFields(body);
+    if (editId) {
+      return supabase.from('menu_items').update(row).eq('id', editId).select().single();
+    }
+    return supabase.from('menu_items').insert(row).select().single();
+  };
+
+  if (preferRpc || !(await hasSupabaseWriteSession())) {
+    const rpcResult = await saveMenuViaRpc(payload, { editId, userEmail });
+    if (!rpcResult.error) return rpcResult;
+  }
+
+  let { data, error } = await attemptDirect(payload);
+  if (!error) return { data, error: null };
+
+  if (isRlsError(error) && userEmail) {
+    const rpcResult = await saveMenuViaRpc(payload, { editId, userEmail });
+    if (!rpcResult.error) return rpcResult;
+  }
+
+  return { data: null, error };
+}
+
+export async function saveProduceItemRecord(payload, { editId = null, userEmail = null, preferRpc = false } = {}) {
+  const attemptDirect = async (body) => {
     const row = stripBpiciusListingFields(body);
     if (editId) {
       return supabase.from('produce_items').update(row).eq('id', editId).select().single();
@@ -159,7 +227,12 @@ export async function saveProduceItemRecord(payload, { editId = null } = {}) {
     return supabase.from('produce_items').insert(row).select().single();
   };
 
-  let { data, error } = await attempt(payload);
+  if (preferRpc || !(await hasSupabaseWriteSession())) {
+    const rpcResult = await saveProduceViaRpc(payload, { editId, userEmail });
+    if (!rpcResult.error) return rpcResult;
+  }
+
+  let { data, error } = await attemptDirect(payload);
   if (!error) return { data, error: null };
 
   if (isFulfillmentConstraintError(error)) {
@@ -167,9 +240,17 @@ export async function saveProduceItemRecord(payload, { editId = null } = {}) {
       ...payload,
       fulfillment_mode: legacyFulfillmentModeForDb(payload.fulfillment_mode),
     };
-    const retry = await attempt(legacyPayload);
+    const retry = await attemptDirect(legacyPayload);
     if (!retry.error) return retry;
     error = retry.error;
+  }
+
+  if (isRlsError(error) && userEmail) {
+    const rpcPayload = isFulfillmentConstraintError(error)
+      ? { ...payload, fulfillment_mode: legacyFulfillmentModeForDb(payload.fulfillment_mode) }
+      : payload;
+    const rpcResult = await saveProduceViaRpc(rpcPayload, { editId, userEmail });
+    if (!rpcResult.error) return rpcResult;
   }
 
   return { data: null, error };

@@ -53,6 +53,7 @@ import {
   menuItemToFormState,
   produceItemToFormState,
   resolveListingPhotoUrl,
+  saveMenuItemRecord,
   saveProduceItemRecord,
 } from '../lib/vendorListings';
 import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
@@ -114,6 +115,10 @@ export default function VendorDashboard({ user }) {
   const myVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
   const vendorPlan = vendorCtx?.plan || 'free';
   const isProPractitioner = isVendorPro(user);
+  const listingSaveOpts = {
+    userEmail: user?.email,
+    preferRpc: user?.auth_provider === 'auth0',
+  };
 
   const refreshVendorData = useCallback(async () => {
     if (!myVendorId) {
@@ -288,8 +293,12 @@ export default function VendorDashboard({ user }) {
 
       const menuRow = stripBpiciusListingFields(payload);
 
+      const { data: added, error } = await saveMenuItemRecord(menuRow, {
+        editId: editMenuId,
+        ...listingSaveOpts,
+      });
+
       if (editMenuId) {
-        const { error } = await supabase.from('menu_items').update(menuRow).eq('id', editMenuId);
         if (error) throw error;
         resetMenuForm();
         await refreshVendorData();
@@ -297,8 +306,6 @@ export default function VendorDashboard({ user }) {
         setAdding(false);
         return;
       }
-
-      const { data: added, error } = await supabase.from('menu_items').insert(menuRow).select().single();
       if (!error && added) {
         try {
           await logListingAttestation({
@@ -322,21 +329,9 @@ export default function VendorDashboard({ user }) {
         setAdding(false);
         return;
       }
-      const res = await fetch(`${API}/menu-items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuRow),
-      });
-      if (res.ok) {
-        const item = await res.json();
-        resetMenuForm();
-        await refreshVendorData();
-        shareToSocial(item, true);
-      } else {
-        alert('Failed to add item. Check Supabase RLS or start the local backend.');
-      }
+      throw new Error(formatListingSaveError(error, 'Failed to add service.'));
     } catch (e) {
-      alert(editMenuId ? 'Failed to update item.' : 'Failed to add item.');
+      alert(formatListingSaveError(e, editMenuId ? 'Failed to update item.' : 'Failed to add item.'));
     }
     setAdding(false);
   };
@@ -445,21 +440,12 @@ export default function VendorDashboard({ user }) {
         photo,
       });
 
-      const { data: saved, error } = await saveProduceItemRecord(payload, { editId: editProduceId });
+      const { data: saved, error } = await saveProduceItemRecord(payload, {
+        editId: editProduceId,
+        ...listingSaveOpts,
+      });
       if (error) {
-        const res = await fetch(`${API}/produce-items`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) {
-          throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
-        }
-        resetProduceForm();
-        await refreshVendorData();
-        alert(editProduceId ? 'Apothecary listing updated!' : 'Added to the Apothecary!');
-        setAddingProduce(false);
-        return;
+        throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
       }
 
       if (!editProduceId) await finalizeProducePublish(saved);
@@ -565,8 +551,11 @@ export default function VendorDashboard({ user }) {
       };
 
       const menuRow = stripBpiciusListingFields(payload);
-      const { data: added, error } = await supabase.from('menu_items').insert(menuRow).select().single();
-      if (!error && added) {
+      const { data: added, error } = await saveMenuItemRecord(menuRow, listingSaveOpts);
+      if (error) {
+        throw new Error(formatListingSaveError(error, 'Failed to add service.'));
+      }
+      if (added) {
         try {
           await logListingAttestation({
             vendorId: myVendorId,
@@ -585,22 +574,9 @@ export default function VendorDashboard({ user }) {
         }
         await refreshVendorData();
         shareToSocial(added, true);
-        return;
-      }
-      const res = await fetch(`${API}/menu-items`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(menuRow),
-      });
-      if (res.ok) {
-        const item = await res.json();
-        await refreshVendorData();
-        shareToSocial(item, true);
-      } else {
-        throw new Error('Failed to add service. Check Supabase RLS or start the local backend.');
       }
     } catch (e) {
-      throw new Error(e?.message || 'Failed to add service.');
+      throw new Error(formatListingSaveError(e, 'Failed to add service.'));
     } finally {
       setAdding(false);
     }
@@ -630,16 +606,9 @@ export default function VendorDashboard({ user }) {
         photo,
       });
 
-      const { data: added, error } = await saveProduceItemRecord(payload);
+      const { data: added, error } = await saveProduceItemRecord(payload, listingSaveOpts);
       if (error) {
-        const res = await fetch(`${API}/produce-items`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
-        await refreshVendorData();
-        return;
+        throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
       }
       await finalizeProducePublish(added);
       await refreshVendorData();
