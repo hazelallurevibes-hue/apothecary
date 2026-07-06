@@ -11,7 +11,7 @@ import ProduceFreshnessFields from '../components/ProduceFreshnessFields';
 import PreorderFields from '../components/PreorderFields';
 import ExpiryCountdown from '../components/ExpiryCountdown';
 import { serializeAllergenIds } from '../lib/allergens';
-import { buildSafetyPayload } from '../lib/foodSafety';
+import { stripBpiciusListingFields } from '../lib/foodSafety';
 import {
   APOTHECARY_LISTING_CATEGORIES,
   categoryRequiresLegalAck,
@@ -175,6 +175,16 @@ export default function VendorDashboard({ user }) {
   }, [myVendorId, myMenu.length, myProduce.length, user]);
 
   useEffect(() => {
+    if (loadingData) return;
+    const hash = window.location.hash?.replace('#', '');
+    if (hash === 'listing-quick-add') {
+      window.requestAnimationFrame(() => {
+        document.getElementById('listing-quick-add')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  }, [loadingData]);
+
+  useEffect(() => {
     if (!myVendorId) return undefined;
     const channel = supabase
       .channel(`vendor-${myVendorId}-live`)
@@ -193,8 +203,12 @@ export default function VendorDashboard({ user }) {
     const blockers = ['verify_email', 'safety_policies', 'id_verification'].filter((id) => !launchSteps[id]);
     if (blockers.length) {
       const step = VENDOR_ONBOARDING_STEPS.find((s) => s.id === blockers[0]);
+      const stepNum = VENDOR_ONBOARDING_STEPS.findIndex((s) => s.id === blockers[0]) + 1;
+      const extra = blockers[0] === 'verify_email'
+        ? ' Use the yellow banner above to resend your confirmation email.'
+        : '';
       alert(
-        `Complete launch checklist step ${VENDOR_ONBOARDING_STEPS.findIndex((s) => s.id === blockers[0]) + 1} first: ${step?.label || blockers[0]}.`
+        `Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.${extra}`
       );
       return false;
     }
@@ -265,7 +279,6 @@ export default function VendorDashboard({ user }) {
         ...media,
         available: 1,
         allergens: serializeAllergenIds(newItemAllergens),
-        ...buildSafetyPayload(newItemSafety),
         ...buildPreorderPayload(newItemPreorder),
         ...(vendorCan(user, 'food_labels') ? buildFoodLabelPayload(newItemFoodLabel) : {}),
         item_options: normalizeOptionsForSave(newItemOptions),
@@ -273,8 +286,10 @@ export default function VendorDashboard({ user }) {
         fulfillment_mode: newItem.fulfillment_mode || 'pickup_and_shipping',
       };
 
+      const menuRow = stripBpiciusListingFields(payload);
+
       if (editMenuId) {
-        const { error } = await supabase.from('menu_items').update(payload).eq('id', editMenuId);
+        const { error } = await supabase.from('menu_items').update(menuRow).eq('id', editMenuId);
         if (error) throw error;
         resetMenuForm();
         await refreshVendorData();
@@ -283,16 +298,24 @@ export default function VendorDashboard({ user }) {
         return;
       }
 
-      const { data: added, error } = await supabase.from('menu_items').insert(payload).select().single();
+      const { data: added, error } = await supabase.from('menu_items').insert(menuRow).select().single();
       if (!error && added) {
-        await logListingAttestation({
-          vendorId: myVendorId,
-          userEmail: user?.email,
-          itemType: 'menu',
-          itemId: added.id,
-          itemName: added.name,
-        });
-        await markOnboardingStep(myVendorId, 'first_listing', true);
+        try {
+          await logListingAttestation({
+            vendorId: myVendorId,
+            userEmail: user?.email,
+            itemType: 'menu',
+            itemId: added.id,
+            itemName: added.name,
+          });
+        } catch (e) {
+          console.warn('listing attestation:', e);
+        }
+        try {
+          await markOnboardingStep(myVendorId, 'first_listing', true);
+        } catch (e) {
+          console.warn('onboarding step:', e);
+        }
         resetMenuForm();
         await refreshVendorData();
         shareToSocial(added, true);
@@ -302,7 +325,7 @@ export default function VendorDashboard({ user }) {
       const res = await fetch(`${API}/menu-items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(menuRow),
       });
       if (res.ok) {
         const item = await res.json();
@@ -340,13 +363,13 @@ export default function VendorDashboard({ user }) {
     const copyName = `${item.name} (copy)`.slice(0, 120);
     const { id, created_at, ...rest } = item;
     try {
-      const { error } = await supabase.from('menu_items').insert({
+      const { error } = await supabase.from('menu_items').insert(stripBpiciusListingFields({
         ...rest,
         name: copyName,
         vendor_id: myVendorId,
         approved: 1,
         last_activity_at: new Date().toISOString(),
-      });
+      }));
       if (error) throw error;
       await refreshVendorData();
       alert('Duplicated — edit the copy as needed.');
@@ -416,7 +439,6 @@ export default function VendorDashboard({ user }) {
         produce: newProduce,
         section,
         allergens: newProduceAllergens,
-        safety: newProduceSafety,
         freshness: newProduceFreshness,
         preorder: newProducePreorder,
         options: newProduceOptions,
@@ -472,13 +494,13 @@ export default function VendorDashboard({ user }) {
     const copyName = `${item.name} (copy)`.slice(0, 120);
     const { id, created_at, ...rest } = item;
     try {
-      const { error } = await supabase.from('produce_items').insert({
+      const { error } = await supabase.from('produce_items').insert(stripBpiciusListingFields({
         ...rest,
         name: copyName,
         vendor_id: myVendorId,
         approved: 1,
         last_activity_at: new Date().toISOString(),
-      });
+      }));
       if (error) throw error;
       await refreshVendorData();
       alert('Duplicated — edit the copy as needed.');
@@ -537,22 +559,30 @@ export default function VendorDashboard({ user }) {
         ...media,
         available: 1,
         allergens: serializeAllergenIds(quick.allergens || []),
-        ...buildSafetyPayload(),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
         fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
       };
 
-      const { data: added, error } = await supabase.from('menu_items').insert(payload).select().single();
+      const menuRow = stripBpiciusListingFields(payload);
+      const { data: added, error } = await supabase.from('menu_items').insert(menuRow).select().single();
       if (!error && added) {
-        await logListingAttestation({
-          vendorId: myVendorId,
-          userEmail: user?.email,
-          itemType: 'menu',
-          itemId: added.id,
-          itemName: added.name,
-        });
-        await markOnboardingStep(myVendorId, 'first_listing', true);
+        try {
+          await logListingAttestation({
+            vendorId: myVendorId,
+            userEmail: user?.email,
+            itemType: 'menu',
+            itemId: added.id,
+            itemName: added.name,
+          });
+        } catch (e) {
+          console.warn('listing attestation:', e);
+        }
+        try {
+          await markOnboardingStep(myVendorId, 'first_listing', true);
+        } catch (e) {
+          console.warn('onboarding step:', e);
+        }
         await refreshVendorData();
         shareToSocial(added, true);
         return;
@@ -560,7 +590,7 @@ export default function VendorDashboard({ user }) {
       const res = await fetch(`${API}/menu-items`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(menuRow),
       });
       if (res.ok) {
         const item = await res.json();

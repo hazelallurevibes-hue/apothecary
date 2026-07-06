@@ -90,9 +90,14 @@ export default function VendorOnboardingChecklist({ vendorId, menuCount = 0, pro
                     {step.label}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">{step.description}</div>
+                  {!checked && step.id === 'verify_email' && (
+                    <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-2 py-1.5 mt-2">
+                      Check your inbox and spam folder, then use <strong>Resend email</strong> on the banner above if needed.
+                    </p>
+                  )}
                   {!checked && (
                     <Link to={step.path} className="text-xs text-[#4a1942] font-medium mt-2 inline-block hover:underline">
-                      Go →
+                      {step.id === 'first_listing' ? 'Open quick add →' : 'Go →'}
                     </Link>
                   )}
                 </div>

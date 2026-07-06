@@ -31,7 +31,7 @@ export const VENDOR_ONBOARDING_STEPS = [
     id: 'first_listing',
     label: 'Post your first listing',
     description: 'Add a wellness service or apothecary listing — this is the final launch step.',
-    path: '/vendor-dashboard#add-menu',
+    path: '/vendor-dashboard#listing-quick-add',
     icon: '📋',
     autoOnly: true,
   },
@@ -100,7 +100,9 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
 
   if (user) {
     const emailOk = await checkEmailVerified(user);
-    if (emailOk) updates.verify_email = true;
+    updates.verify_email = !!emailOk;
+  } else {
+    updates.verify_email = false;
   }
 
   if (vendor?.safety_policies_accepted_at || steps.safety_policies) {
@@ -123,7 +125,7 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
 
   if (vendor?.bio || vendor?.stream_platform) updates.storefront = true;
 
-  const changed = VENDOR_ONBOARDING_STEPS.some((s) => updates[s.id] && !steps[s.id]);
+  const changed = VENDOR_ONBOARDING_STEPS.some((s) => !!updates[s.id] !== !!steps[s.id]);
   if (changed) {
     await supabase.from('vendors').update({ onboarding_completed: updates }).eq('id', vendorId);
   }

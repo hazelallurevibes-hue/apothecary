@@ -1,6 +1,6 @@
 import { parseAllergenIds, serializeAllergenIds } from './allergens';
 import { parseFoodLabelFromItem } from './foodLabels';
-import { buildSafetyPayload } from './foodSafety';
+import { stripBpiciusListingFields } from './foodSafety';
 import { parseItemOptions, normalizeOptionsForSave } from './itemOptions';
 import { DEFAULT_LISTING_PHOTO, resolveListingPhoto } from './listingPhotos';
 import { buildFreshnessPayload, buildPreorderPayload } from './shelfLifePresets';
@@ -112,7 +112,6 @@ export function buildProduceItemPayload({
   produce,
   section = 'produce',
   allergens = [],
-  safety = null,
   freshness = {},
   preorder = {},
   options = [],
@@ -131,7 +130,6 @@ export function buildProduceItemPayload({
     photo,
     approved: 1,
     allergens: serializeAllergenIds(allergens),
-    ...buildSafetyPayload(safety || {}),
     ...buildFreshnessPayload({ ...freshness, listing_section: section }),
     ...buildPreorderPayload(preorder),
     item_options: normalizeOptionsForSave(options),
@@ -154,10 +152,11 @@ export function formatListingSaveError(error, fallback = 'Could not save listing
 
 export async function saveProduceItemRecord(payload, { editId = null } = {}) {
   const attempt = async (body) => {
+    const row = stripBpiciusListingFields(body);
     if (editId) {
-      return supabase.from('produce_items').update(body).eq('id', editId).select().single();
+      return supabase.from('produce_items').update(row).eq('id', editId).select().single();
     }
-    return supabase.from('produce_items').insert(body).select().single();
+    return supabase.from('produce_items').insert(row).select().single();
   };
 
   let { data, error } = await attempt(payload);

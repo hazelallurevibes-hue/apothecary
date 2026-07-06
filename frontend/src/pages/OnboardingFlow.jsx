@@ -4,6 +4,7 @@ import {
   VENDOR_ONBOARDING_STEPS,
   autoDetectOnboarding,
   markOnboardingStep,
+  nextIncompleteStep,
   onboardingProgress,
 } from '../lib/onboardingApi';
 import { getVendorContext, isCustomerPro } from '../lib/plans';
@@ -124,10 +125,21 @@ export default function OnboardingFlow({ user }) {
 
         <button
           type="button"
-          onClick={() => navigate('/vendor-dashboard')}
+          onClick={() => {
+            const next = nextIncompleteStep(steps);
+            if (next?.path) {
+              navigate(next.path);
+              return;
+            }
+            navigate('/vendor-dashboard#listing-quick-add');
+          }}
           className="mt-8 w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold"
         >
-          {percent >= 100 ? 'Go to dashboard' : 'Continue in dashboard'}
+          {percent >= 100
+            ? 'Go to quick add listing'
+            : nextIncompleteStep(steps)?.id === 'first_listing'
+              ? 'Continue — quick add listing'
+              : 'Continue in dashboard'}
         </button>
       </div>
     </div>

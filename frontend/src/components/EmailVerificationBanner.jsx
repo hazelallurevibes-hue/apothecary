@@ -118,7 +118,7 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
             {sending ? 'Sending…' : 'Resend email'}
           </button>
           <Link
-            to="/verify-email"
+            to={isVendor ? '/vendor-email-verify' : '/verify-email'}
             className="px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl text-sm font-medium text-center hover:bg-white"
           >
             Verification page →

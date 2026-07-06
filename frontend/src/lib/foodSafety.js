@@ -27,46 +27,31 @@ export function computeSafetyVerified(item) {
   return temp >= minTempForCategory(category);
 }
 
+/** Bpicius food-safety columns — not used on Hazel Allure apothecary listings. */
+export const BPICIUS_SAFETY_COLUMNS = [
+  'finish_temp_f',
+  'safety_opt_out',
+  'food_category',
+  'safety_verified',
+  'safety_practices_certified',
+  'temp_photo_url',
+];
+
 /** Listing safety is covered by VendorListingConfirmModal attestations — no per-listing food-safety form. */
 export function isSafetySubmissionValid() {
   return true;
 }
 
-export function buildSafetyPayload({
-  finish_temp_f,
-  safety_opt_out,
-  food_category,
-  safety_practices_certified,
-  temp_photo_url,
-} = {}) {
-  const optOut = !!safety_opt_out;
-  const category = food_category || 'general';
-  const needsTemp = requiresCookingTemp(category);
-  const temp = finish_temp_f === '' || finish_temp_f == null ? null : Number(finish_temp_f);
-  const photo = temp_photo_url?.trim() || null;
+/** Returns {} so inserts/updates never reference optional Bpicius safety columns. */
+export function buildSafetyPayload() {
+  return {};
+}
 
-  if (optOut) {
-    return {
-      finish_temp_f: needsTemp ? temp : null,
-      safety_opt_out: true,
-      food_category: category,
-      safety_verified: false,
-      safety_practices_certified: !!safety_practices_certified,
-      temp_photo_url: needsTemp ? photo : null,
-    };
-  }
-
-  const tempOk = needsTemp && temp != null && !Number.isNaN(temp) && temp >= minTempForCategory(category);
-  const practices = true;
-
-  return {
-    finish_temp_f: needsTemp && tempOk ? temp : null,
-    safety_opt_out: false,
-    food_category: category,
-    safety_verified: tempOk || practices,
-    safety_practices_certified: practices,
-    temp_photo_url: needsTemp && tempOk ? photo : null,
-  };
+export function stripBpiciusListingFields(payload) {
+  if (!payload || typeof payload !== 'object') return payload;
+  const next = { ...payload };
+  for (const key of BPICIUS_SAFETY_COLUMNS) delete next[key];
+  return next;
 }
 
 export function getSafetyDisplay(item) {
