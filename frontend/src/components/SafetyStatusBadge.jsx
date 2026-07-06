@@ -1,8 +1,8 @@
 import { getSafetyDisplay } from '../lib/foodSafety';
-import { VERTICAL } from '../lib/vertical';
+import { verticalFeature } from '../lib/vertical';
 
 export default function SafetyStatusBadge({ item, className = '', compact = false }) {
-  if (VERTICAL.id === 'hazelallure') return null;
+  if (!verticalFeature('foodSafety')) return null;
 
   const info = getSafetyDisplay(item);
   const verified = info.status === 'verified';

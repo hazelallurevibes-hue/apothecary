@@ -26,7 +26,7 @@ import JsonLd from './JsonLd';
 import BreadcrumbNav from './BreadcrumbNav';
 import { SeoProvider } from './SeoContext';
 import WomanOwnedBadge from './WomanOwnedBadge';
-import { VERTICAL, blogUrl } from '../lib/vertical';
+import { VERTICAL, blogUrl, verticalFeature } from '../lib/vertical';
 import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
 
 const LOGO_IMG =
@@ -407,6 +407,9 @@ export default function Layout({ user, onLogout, children }) {
             <Link to="/about">{t('footer.about')}</Link>
             <Link to="/contact">{t('footer.contact')}</Link>
             <Link to="/faq">{t('footer.faq')}</Link>
+            {verticalFeature('seoLiterature') && (
+              <Link to="/learn">Guides</Link>
+            )}
             <Link to="/sitemap">Site Map</Link>
             <a href={blogUrl('/alluring-news')} target="_blank" rel="noopener noreferrer">Alluring News</a>
             <Link to="/agreements">{t('footer.terms')}</Link>

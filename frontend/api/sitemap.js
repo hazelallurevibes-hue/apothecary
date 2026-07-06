@@ -1,6 +1,6 @@
 /** Vercel serverless — dynamic XML sitemap (static + Supabase vendors/courses) */
 
-const BASE = 'https://apothecary.hazelallure.com';
+const BASE = (process.env.VITE_APP_URL || process.env.FRONTEND_URL || 'https://apothecary.hazelallure.com').replace(/\/$/, '');
 
 const STATIC_ENTRIES = [
   { path: '/', changefreq: 'daily', priority: '1.0' },
@@ -17,10 +17,17 @@ const STATIC_ENTRIES = [
   { path: '/contact', changefreq: 'monthly', priority: '0.6' },
   { path: '/faq', changefreq: 'monthly', priority: '0.6' },
   { path: '/sitemap', changefreq: 'monthly', priority: '0.4' },
+  { path: '/learn', changefreq: 'weekly', priority: '0.7' },
   { path: '/agreements', changefreq: 'monthly', priority: '0.5' },
   { path: '/policies-procedures', changefreq: 'monthly', priority: '0.5' },
   { path: '/customer-use-agreement', changefreq: 'monthly', priority: '0.5' },
 ];
+
+const VERTICAL_ID = (process.env.VITE_VERTICAL_ID || 'hazelallure').toLowerCase();
+const LITERATURE_SLUGS = {
+  bpicius: ['farm-to-table', 'food-safety-home-kitchen', 'sell-at-farmers-markets', 'local-food-worldwide'],
+  hazelallure: ['holistic-wellness-basics', 'natural-apothecary-guide', 'worldwide-wellness-traditions'],
+};
 
 function escapeXml(str) {
   return String(str)
@@ -82,7 +89,13 @@ export default async function handler(req, res) {
   try {
     const today = new Date().toISOString().slice(0, 10);
 
-    const staticUrls = STATIC_ENTRIES.map((entry) =>
+    const literatureEntries = (LITERATURE_SLUGS[VERTICAL_ID] || []).map((slug) => ({
+      path: `/learn/${slug}`,
+      changefreq: 'monthly',
+      priority: '0.65',
+    }));
+
+    const staticUrls = [...STATIC_ENTRIES, ...literatureEntries].map((entry) =>
       urlEntry(`${BASE}${entry.path}`, today, entry.changefreq, entry.priority),
     );
 

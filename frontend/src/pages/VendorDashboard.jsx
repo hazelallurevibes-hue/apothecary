@@ -32,6 +32,8 @@ import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import UpgradeBanner from '../components/UpgradeBanner';
 import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
+import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
+import AdvertisingAccountBadge from '../components/AdvertisingAccountBadge';
 import ThankYouComposer from '../components/ThankYouComposer';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
@@ -840,6 +842,11 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
       <VendorDiscountsPanel user={user} vendorId={myVendorId} />
+      <div className="mb-6 flex items-center gap-2">
+        <AdvertisingAccountBadge plan={vendorPlan} type="vendor" />
+        <span className="text-xs text-gray-500">Account visibility tier</span>
+      </div>
+      <AdReinvestmentPanel user={user} analytics={analytics} vendorPlan={vendorPlan} />
       <div className="mb-8">
         <VendorCustomerInsights user={user} vendorId={myVendorId} />
       </div>

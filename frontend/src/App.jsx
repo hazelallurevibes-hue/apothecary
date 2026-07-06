@@ -65,6 +65,8 @@ const ResetPassword = lazyWithRetry(() => import('./pages/ResetPassword'));
 const LinkExpired = lazyWithRetry(() => import('./pages/LinkExpired'));
 const PermissionDenied = lazyWithRetry(() => import('./pages/PermissionDenied'));
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'));
+const SeoLiteratureHub = lazyWithRetry(() => import('./pages/SeoLiteratureHub'));
+const SeoLiteratureArticle = lazyWithRetry(() => import('./pages/SeoLiteratureArticle'));
 
 function PageLoader() {
   return (
@@ -439,6 +441,8 @@ function AppCore({ auth0 = null }) {
                 <Route path="/onboarding" element={<OnboardingFlow user={user} />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/sitemap" element={<Sitemap />} />
+                <Route path="/learn" element={<SeoLiteratureHub />} />
+                <Route path="/learn/:slug" element={<SeoLiteratureArticle />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/agreements" element={<Agreements />} />

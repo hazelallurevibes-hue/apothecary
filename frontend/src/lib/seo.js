@@ -1,99 +1,81 @@
-import { VERTICAL } from './vertical';
+import { VERTICAL, verticalFeature } from './vertical';
+import { getLiteratureArticle, literatureSeoForArticle } from './seoLiterature';
+import { SUPPORTED_LOCALES } from '../i18n';
 
-const LOGO_IMG =
-  'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:600,cg:true';
+const LOGO_IMG = VERTICAL.seo?.logo || VERTICAL.appUrl;
 
 export const SEO_BRAND = {
   siteName: VERTICAL.name,
   tagline: VERTICAL.tagline,
-  canonicalBase: VERTICAL.appUrl,
+  canonicalBase: import.meta.env.VITE_APP_URL || VERTICAL.appUrl,
   defaultImage: LOGO_IMG,
-  defaultKeywords: [
-    'woman-owned business',
-    'holistic wellness',
-    'natural apothecary',
-    'spiritual wellness',
-    'psychic readings',
-    'reiki',
-    'curandera',
-    'essential oils',
-    'herbal remedies',
-    'energy work',
-    'Hazel Allure',
-    'New Mexico wellness',
-  ].join(', '),
+  defaultKeywords: VERTICAL.seo?.defaultKeywords || VERTICAL.name,
 };
 
-/** Per-route title + description for search and social sharing */
-export const ROUTE_SEO = {
-  '/': {
-    title: `${VERTICAL.name} — Woman-Owned Holistic Wellness & Natural Apothecary`,
-    description:
-      'Book psychics, practitioners, curanderas, and holistic wellness guides worldwide. Shop essential oils, incense, and apothecary goods from a woman-owned spiritual wellness marketplace.',
+const SHARED_ROUTE_SEO = {
+  '/': VERTICAL.seo?.routes?.['/'] || {
+    title: `${VERTICAL.name} — ${VERTICAL.tagline}`,
+    description: VERTICAL.copy.platformDescription,
   },
-  '/about': {
-    title: `About ${VERTICAL.name} — Woman-Owned Wellness Marketplace`,
-    description:
-      'Meet the woman-owned team behind Hazel Allure. Generational wellness wisdom, worldwide practitioners, and a curated apothecary rooted in intention and care.',
+  '/about': VERTICAL.seo?.routes?.['/about'] || {
+    title: `About ${VERTICAL.name}`,
+    description: VERTICAL.copy.platformDescription,
   },
-  '/services': {
-    title: `Wellness Services — Book Practitioners | ${VERTICAL.name}`,
-    description:
-      'Book homeopathy, reiki, psychic readings, curandera sessions, Ayurveda, energy work, and holistic wellness services from independent practitioners worldwide.',
+  '/services': VERTICAL.seo?.routes?.['/services'] || {
+    title: `${VERTICAL.labels.servicesMarket} | ${VERTICAL.name}`,
+    description: VERTICAL.copy.platformDescription,
   },
   '/marketplace': {
-    title: `Wellness Services Marketplace | ${VERTICAL.name}`,
-    description:
-      'Discover and book holistic wellness sessions — tarot, massage, acupuncture, spiritual counseling, and traditions from cultures around the world.',
+    title: `${VERTICAL.labels.marketplace} | ${VERTICAL.name}`,
+    description: VERTICAL.copy.platformDescription,
   },
-  '/products': {
-    title: `Natural Apothecary — Oils, Herbs & Ritual Goods | ${VERTICAL.name}`,
-    description:
-      'Shop organic essential oils, incense, crystals, herbal remedies, ritual kits, and artisan apothecary goods from independent practitioners.',
+  '/products': VERTICAL.seo?.routes?.['/products'] || {
+    title: `${VERTICAL.labels.productsMarket} | ${VERTICAL.name}`,
+    description: VERTICAL.copy.platformDescription,
   },
   '/courses': {
-    title: `Teaching Sanctum — Holistic Courses | ${VERTICAL.name}`,
-    description:
-      'Enroll in courses on herbalism, tarot, ritual craft, and spiritual wellness from Pro practitioners in the Hazel Allure Teaching Sanctum.',
+    title: `${VERTICAL.labels.courses} | ${VERTICAL.name}`,
+    description: `Explore courses and lessons from Pro ${VERTICAL.labels.vendors.toLowerCase()}s on ${VERTICAL.name}.`,
   },
   '/top-vendors': {
-    title: `Top Practitioners & Artisans | ${VERTICAL.name}`,
-    description:
-      'Explore top-rated practitioners, psychics, herbalists, and apothecary artisans trusted by the Hazel Allure community.',
+    title: `Top ${VERTICAL.labels.vendors} | ${VERTICAL.name}`,
+    description: `Explore top-rated ${VERTICAL.labels.vendors.toLowerCase()}s trusted by the ${VERTICAL.name} community.`,
   },
   '/faq': {
-    title: `FAQ — ${VERTICAL.name} Holistic Marketplace`,
-    description:
-      'Answers about booking wellness services, apothecary purchases, practitioner verification, wellness disclaimers, and platform policies.',
+    title: `FAQ — ${VERTICAL.name}`,
+    description: `Answers about ${VERTICAL.labels.marketplace.toLowerCase()}, ${VERTICAL.labels.productsMarket.toLowerCase()}, verification, and platform policies.`,
   },
   '/contact': {
     title: `Contact ${VERTICAL.name}`,
-    description:
-      'Reach our woman-owned team for support, practitioner inquiries, or questions about holistic services and apothecary orders.',
+    description: `Reach our team for support, ${VERTICAL.labels.vendor.toLowerCase()} inquiries, or questions about orders on ${VERTICAL.name}.`,
   },
   '/agreements': {
     title: `Legal Agreements | ${VERTICAL.name}`,
-    description: 'Terms of service, privacy summary, practitioner operating agreement, and platform legal policies for Hazel Allure users.',
+    description: `Terms of service, privacy summary, and platform legal policies for ${VERTICAL.name} users.`,
   },
   '/customer-use-agreement': {
-    title: `Seeker Use Agreement | ${VERTICAL.name}`,
-    description: 'Binding terms for seekers booking wellness services, purchasing apothecary goods, and enrolling in Teaching Sanctum courses.',
+    title: `${VERTICAL.labels.customer} Use Agreement | ${VERTICAL.name}`,
+    description: `Binding terms for ${VERTICAL.labels.customer.toLowerCase()}s using ${VERTICAL.name}.`,
   },
   '/policies-procedures': {
     title: `Policies & Procedures | ${VERTICAL.name}`,
-    description: 'Comprehensive platform policies for wellness-service bookings, apothecary marketplace, verification, and user safety.',
+    description: `Comprehensive platform policies for ${VERTICAL.labels.marketplace.toLowerCase()}, verification, and user safety.`,
   },
-  '/pro-upgrade': {
+  '/learn': VERTICAL.seo?.routes?.['/learn'] || {
+    title: `Guides & Resources | ${VERTICAL.name}`,
+    description: VERTICAL.copy.platformDescription,
+  },
+  '/pro-upgrade': VERTICAL.seo?.routes?.['/pro-upgrade'] || {
     title: `Pro Membership — ${VERTICAL.name}`,
-    description: 'Unlock Pro benefits for seekers and practitioners — discounts, teaching tools, and premium marketplace features.',
+    description: `Unlock Pro benefits on ${VERTICAL.name} — premium marketplace features for ${VERTICAL.labels.vendors.toLowerCase()} and ${VERTICAL.labels.customer.toLowerCase()}s.`,
   },
   '/vendor-signup': {
-    title: `Become a Practitioner | ${VERTICAL.name}`,
-    description: 'Apply to list wellness services, apothecary goods, and courses on our woman-owned holistic wellness marketplace.',
+    title: `Become a ${VERTICAL.labels.vendor} | ${VERTICAL.name}`,
+    description: `Apply to list on ${VERTICAL.name} — ${VERTICAL.labels.servicesMarket.toLowerCase()} and ${VERTICAL.labels.productsMarket.toLowerCase()}.`,
   },
   '/sitemap': {
     title: `Site Map | ${VERTICAL.name}`,
-    description: 'Browse all public pages on Hazel Allure — wellness services, apothecary, courses, practitioners, and platform policies.',
+    description: `Browse all public pages on ${VERTICAL.name} — marketplace, guides, policies, and signup.`,
   },
   '/tarot-collection': {
     title: `Tarot Collection | ${VERTICAL.name}`,
@@ -101,9 +83,12 @@ export const ROUTE_SEO = {
   },
   '/account-settings': {
     title: `Account Settings | ${VERTICAL.name}`,
-    description: 'Manage your seeker or practitioner profile, spirit familiar, billing, and platform preferences on Hazel Allure.',
+    description: `Manage your ${VERTICAL.labels.customer.toLowerCase()} or ${VERTICAL.labels.vendor.toLowerCase()} profile, billing, and platform preferences on ${VERTICAL.name}.`,
   },
 };
+
+/** Per-route title + description for search and social sharing */
+export const ROUTE_SEO = SHARED_ROUTE_SEO;
 
 /** Normalize pathname for SEO lookups */
 export function normalizePath(pathname) {
@@ -118,20 +103,37 @@ export function absoluteUrl(path = '/') {
 export function resolveSeo(pathname) {
   const path = pathname.split('?')[0].replace(/\/$/, '') || '/';
   if (ROUTE_SEO[path]) return ROUTE_SEO[path];
+  if (path.startsWith('/learn/')) {
+    const slug = path.replace('/learn/', '');
+    const article = getLiteratureArticle(slug);
+    if (article) return literatureSeoForArticle(article);
+    return ROUTE_SEO['/learn'] || ROUTE_SEO['/'];
+  }
   if (path.startsWith('/courses/')) return ROUTE_SEO['/courses'];
   if (path.startsWith('/vendor/')) {
     return {
-      title: `Practitioner Storefront | ${VERTICAL.name}`,
-      description: 'Browse wellness services and apothecary goods from an independent Hazel Allure practitioner.',
+      title: `${VERTICAL.labels.vendor} Storefront | ${VERTICAL.name}`,
+      description: `Browse ${VERTICAL.labels.servicesMarket.toLowerCase()} and ${VERTICAL.labels.productsMarket.toLowerCase()} from an independent ${VERTICAL.name} ${VERTICAL.labels.vendor.toLowerCase()}.`,
     };
   }
   if (path.startsWith('/listing/')) {
     return {
       title: `Listing Details | ${VERTICAL.name}`,
-      description: 'View details, pricing, and booking options for this wellness service or apothecary item.',
+      description: `View details, pricing, and ordering options for this ${VERTICAL.labels.marketplace.toLowerCase()} listing.`,
     };
   }
   return ROUTE_SEO['/'];
+}
+
+/** hreflang alternates for worldwide SEO */
+export function hreflangLinks(pathname = '/') {
+  if (!verticalFeature('hreflang')) return [];
+  const path = pathname.split('?')[0] || '/';
+  const base = SEO_BRAND.canonicalBase;
+  return SUPPORTED_LOCALES.map((loc) => ({
+    hreflang: loc.code,
+    href: `${base}${path === '/' ? '' : path}?lang=${loc.code}`,
+  }));
 }
 
 export function organizationJsonLd() {
@@ -148,15 +150,15 @@ export function organizationJsonLd() {
     sameAs: [VERTICAL.social.instagram, VERTICAL.social.tiktok, VERTICAL.social.youtube, VERTICAL.siteUrl],
     slogan: VERTICAL.tagline,
     additionalProperty: [
-      {
-        '@type': 'PropertyValue',
-        name: 'Business ownership',
-        value: 'Woman-owned business',
-      },
+      ...(VERTICAL.womanOwned
+        ? [{ '@type': 'PropertyValue', name: 'Business ownership', value: VERTICAL.womanOwned.badge }]
+        : []),
       {
         '@type': 'PropertyValue',
         name: 'Industry',
-        value: 'Holistic wellness and natural apothecary marketplace',
+        value: verticalFeature('farmersMarketMode')
+          ? 'Local food and farmers market marketplace'
+          : 'Holistic wellness and natural apothecary marketplace',
       },
     ],
   };

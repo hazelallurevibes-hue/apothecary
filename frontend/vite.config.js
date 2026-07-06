@@ -8,12 +8,17 @@ export default defineConfig(({ mode }) => {
   const auth0Enabled =
     env.VITE_AUTH0_ENABLED === 'true' ||
     (auth0Domain && auth0ClientId && env.VITE_AUTH0_ENABLED !== 'false')
-  const appUrl = (env.VITE_APP_URL || 'https://apothecary.hazelallure.com').replace(/\/$/, '')
+  const verticalId = (env.VITE_VERTICAL_ID || 'hazelallure').toLowerCase()
+  const defaultAppUrl = verticalId === 'bpicius'
+    ? 'https://bpicius.com'
+    : 'https://apothecary.hazelallure.com'
+  const appUrl = (env.VITE_APP_URL || defaultAppUrl).replace(/\/$/, '')
 
   return {
   plugins: [react()],
   envPrefix: ['VITE_', 'AUTH0_'],
   define: {
+    'import.meta.env.VITE_VERTICAL_ID': JSON.stringify(verticalId),
     'import.meta.env.VITE_APP_URL': JSON.stringify(appUrl),
     'import.meta.env.VITE_AUTH0_DOMAIN': JSON.stringify(auth0Domain),
     'import.meta.env.VITE_AUTH0_CLIENT_ID': JSON.stringify(auth0ClientId),

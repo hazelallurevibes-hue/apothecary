@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { resolveSeo, resolveOgImage, SEO_BRAND } from '../lib/seo';
+import { resolveSeo, resolveOgImage, SEO_BRAND, hreflangLinks } from '../lib/seo';
+import { advertisingAccountMeta } from '../lib/plans';
 import { useSeoContext } from './SeoContext';
 
 function upsertMeta(attr, key, content) {
@@ -54,6 +55,25 @@ export default function PageSeo() {
     upsertMeta('name', 'twitter:description', description);
     upsertMeta('name', 'twitter:image', image);
     upsertLink('canonical', canonical);
+
+    document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
+    hreflangLinks(pathname).forEach(({ hreflang, href }) => {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'alternate');
+      link.setAttribute('hreflang', hreflang);
+      link.setAttribute('href', href);
+      document.head.appendChild(link);
+    });
+    const xDefault = document.createElement('link');
+    xDefault.setAttribute('rel', 'alternate');
+    xDefault.setAttribute('hreflang', 'x-default');
+    xDefault.setAttribute('href', canonical);
+    document.head.appendChild(xDefault);
+
+    if (ctx.adAccountPlan) {
+      upsertMeta('name', 'account-tier', ctx.adAccountPlan);
+      upsertMeta('property', 'og:account-tier', advertisingAccountMeta(ctx.adAccountPlan, ctx.adAccountType || 'vendor'));
+    }
   }, [pathname, pageSeo]);
 
   return null;

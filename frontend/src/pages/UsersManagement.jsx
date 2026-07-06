@@ -23,6 +23,7 @@ import AdminVendorBadgePanel from '../components/AdminVendorBadgePanel';
 import AdminCommunityModerationPanel from '../components/AdminCommunityModerationPanel';
 import AdminCommandCenter from '../components/AdminCommandCenter';
 import AdminAutomationPanel from '../components/AdminAutomationPanel';
+import AdminAdvertisingPanel from '../components/AdminAdvertisingPanel';
 import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
@@ -299,17 +300,18 @@ export default function AdminPortal({ user, onLogout }) {
         <div className="space-y-1 text-sm">
           {[
             { key: 'overview', label: `${ADMIN_TABS.overview.icon} ${ADMIN_TABS.overview.label}` },
-            { key: 'automation', label: `${ADMIN_TABS.automation.icon} Automation` },
-            { key: 'users', label: `${ADMIN_TABS.users.icon} User Management` },
-            { key: 'vendors', label: `${ADMIN_TABS.vendors.icon} Practitioners` },
+            { key: 'automation', label: `${ADMIN_TABS.automation.icon} ${ADMIN_TABS.automation.label}` },
+            { key: 'users', label: `${ADMIN_TABS.users.icon} ${ADMIN_TABS.users.label}` },
+            { key: 'vendors', label: `${ADMIN_TABS.vendors.icon} ${ADMIN_TABS.vendors.label}` },
             { key: 'verification', label: `${ADMIN_TABS.verification.icon}${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0) ? ` (${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)})` : ''}` },
+            ...(ADMIN_TABS.advertising ? [{ key: 'advertising', label: `${ADMIN_TABS.advertising.icon} ${ADMIN_TABS.advertising.label}` }] : []),
             { key: 'campaigns', label: `${ADMIN_TABS.campaigns.icon}${pendingCampaigns.length ? ` (${pendingCampaigns.length})` : ''}` },
             { key: 'compliance', label: `${ADMIN_TABS.compliance.icon}${listingReports.length ? ` (${listingReports.length})` : ''}` },
-            { key: 'orders', label: `${ADMIN_TABS.orders.icon} Orders` },
-            { key: 'content', label: `${ADMIN_TABS.content.icon} Content` },
-            { key: 'email', label: `${ADMIN_TABS.email.icon} Site Email` },
-            { key: 'pro-payments', label: `${ADMIN_TABS.proPayments.icon} Pro Payments` },
-            { key: 'settings', label: `${ADMIN_TABS.settings.icon} Settings` },
+            { key: 'orders', label: `${ADMIN_TABS.orders.icon} ${ADMIN_TABS.orders.label}` },
+            { key: 'content', label: `${ADMIN_TABS.content.icon} ${ADMIN_TABS.content.label}` },
+            { key: 'email', label: `${ADMIN_TABS.email.icon} ${ADMIN_TABS.email.label}` },
+            { key: 'pro-payments', label: `${ADMIN_TABS.proPayments.icon} ${ADMIN_TABS.proPayments.label}` },
+            { key: 'settings', label: `${ADMIN_TABS.settings.icon} ${ADMIN_TABS.settings.label}` },
           ].map(item => (
             <button
               key={item.key}
@@ -374,6 +376,10 @@ export default function AdminPortal({ user, onLogout }) {
           <div className="bg-white border rounded-3xl p-6">
             <p className="text-sm text-gray-500">Run platform admin SQL migrations to enable automation controls.</p>
           </div>
+        )}
+
+        {!loading && activeTab === 'advertising' && (
+          <AdminAdvertisingPanel vendors={vendors} />
         )}
 
         {!loading && activeTab === 'pro-payments' && (

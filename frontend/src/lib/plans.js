@@ -1,4 +1,6 @@
-/** Vendor & customer tier permissions for Hazel Allure */
+import { VERTICAL, verticalFeature } from './vertical';
+
+/** Vendor & customer tier permissions — labels adapt per vertical */
 
 export const VENDOR_PERMISSIONS = {
   sell: { label: 'Selling & listings', description: 'Add wellness services and apothecary items' },
@@ -195,10 +197,23 @@ export function customerCan(user, permission) {
 }
 
 export function planBadgeLabel(plan, type = 'vendor') {
+  const cfg = VERTICAL.plans || {};
   if (isProPlan(plan)) {
-    return type === 'vendor' ? 'Pro Practitioner' : 'Pro Member';
+    return type === 'vendor' ? (cfg.vendorProLabel || 'Pro') : (cfg.customerProLabel || 'Pro');
   }
-  return type === 'vendor' ? 'Free Practitioner' : 'Free Member';
+  return type === 'vendor' ? (cfg.vendorFreeLabel || 'Free') : (cfg.customerFreeLabel || 'Free');
+}
+
+export function advertisingAccountMeta(plan, type = 'vendor') {
+  const cfg = VERTICAL.plans?.advertising || {};
+  if (isProPlan(plan)) return cfg.proAccountMeta || `${planBadgeLabel(plan, type)} — promoted account`;
+  return cfg.freeAccountMeta || `${planBadgeLabel(plan, type)} — organic discovery`;
+}
+
+export function advertisingAccountBadge(plan, type = 'vendor') {
+  const cfg = VERTICAL.plans?.advertising || {};
+  if (isProPlan(plan)) return cfg.proBadge || 'Pro promoted';
+  return cfg.freeBadge || 'Organic listing';
 }
 
 /** True when the signed-in user has an active Pro Practitioner plan. */
@@ -215,30 +230,18 @@ export function isCustomerPro(user) {
   return isProPlan(getEffectiveCustomerPlan(user));
 }
 
-export const PAID_VENDOR_UPGRADE_FEATURES = [
-  'Unlimited wellness services & apothecary listings',
-  'YouTube & Vimeo video on every service — photo + video previews',
-  'Member discounts — reward Pro seekers, incentivize upgrades',
-  'Teaching Sanctum — sell courses & monetize your content',
-  'Pro Member pricing on courses (dual price tiers)',
-  'Seeker wellness preference insights in your area',
-  'International storefront links & shipping rules',
-  'Email campaigns, banners & elegant theme',
-  'Revenue analytics — reinvest into advertising',
-  'Checkout upsells & full team tools',
-  'Upload credentials & issue digital student honors',
-  'Practitioner lounge — peer threads & Sanctum craft',
-];
+export const PAID_VENDOR_UPGRADE_FEATURES = VERTICAL.plans?.paidVendorFeatures || [];
 
-export const PAID_CUSTOMER_UPGRADE_FEATURES = [
-  'Practitioner member discounts at checkout',
-  'Pro member pricing on Teaching Sanctum courses',
-  'Ratings after qualifying purchases',
-  'Favorites for vendors and items',
-  'Loyalty points — earn and redeem',
-  'Priority support tickets',
-  'Premium express checkout',
-  'Profile studio — banner, frames, pinned class honors',
-  'Start threads in The Hearth gathering',
-  'Sanctum lesson progress & achievement shelf',
-];
+export const PAID_CUSTOMER_UPGRADE_FEATURES = VERTICAL.plans?.paidCustomerFeatures || [];
+
+/** Filter vendor permissions that do not apply to the active vertical */
+export function vendorPermissionsForVertical(plan) {
+  const perms = vendorPermissionsForPlan(plan);
+  if (verticalFeature('apothecaryMode')) {
+    return perms.filter((p) => p !== 'food_labels' || verticalFeature('foodSafety'));
+  }
+  if (!verticalFeature('foodSafety')) {
+    return perms;
+  }
+  return perms;
+}

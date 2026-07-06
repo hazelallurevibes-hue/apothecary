@@ -1,12 +1,20 @@
-/** Admin portal tab keys and deep links — single source for nav + command center. */
+/** Admin portal tab keys and deep links — vertical-aware, no cross-brand mixing */
+
+import { VERTICAL, verticalFeature } from './vertical';
+
+const vendorLabel = VERTICAL.labels.vendor;
+const vendorPlural = VERTICAL.labels.vendors;
 
 export const ADMIN_TABS = {
   overview: { key: 'overview', label: 'Overview', icon: '📊', path: '/users?tab=overview' },
   users: { key: 'users', label: 'Users', icon: '👥', path: '/users?tab=users' },
-  vendors: { key: 'vendors', label: 'Practitioners', icon: '🔮', path: '/users?tab=vendors' },
+  vendors: { key: 'vendors', label: vendorPlural, icon: verticalFeature('farmersMarketMode') ? '🌾' : '🔮', path: '/users?tab=vendors' },
   verification: { key: 'verification', label: 'ID & Permits', icon: '🪪', path: '/users?tab=verification' },
   automation: { key: 'automation', label: 'Automation', icon: '⚡', path: '/users?tab=automation' },
   campaigns: { key: 'campaigns', label: 'Campaigns', icon: '📧', path: '/users?tab=campaigns' },
+  ...(verticalFeature('adReinvestment')
+    ? { advertising: { key: 'advertising', label: 'Advertising', icon: '📣', path: '/users?tab=advertising' } }
+    : {}),
   compliance: { key: 'compliance', label: 'Compliance', icon: '📋', path: '/users?tab=compliance' },
   orders: { key: 'orders', label: 'Orders', icon: '📦', path: '/users?tab=orders' },
   content: { key: 'content', label: 'Content', icon: '✨', path: '/users?tab=content' },
@@ -23,12 +31,13 @@ export const ADMIN_EXTERNAL_LINKS = [
 ];
 
 export const ADMIN_SITE_LINKS = [
-  { label: 'Marketplace', to: '/services' },
-  { label: 'Apothecary', to: '/products' },
+  { label: VERTICAL.labels.marketplace, to: '/services' },
+  { label: VERTICAL.labels.productsMarket, to: '/products' },
   { label: 'The Hearth', to: '/gathering' },
   { label: 'Pro upgrade page', to: '/pro-upgrade' },
-  { label: 'Vendor verification', to: '/vendor-verification' },
+  { label: `${vendorLabel} verification`, to: '/vendor-verification' },
   { label: 'Onboarding flow', to: '/onboarding' },
+  ...(verticalFeature('seoLiterature') ? [{ label: 'SEO guides', to: '/learn' }] : []),
   { label: 'FAQ', to: '/faq' },
   { label: 'Policies', to: '/policies-procedures' },
 ];
@@ -36,8 +45,8 @@ export const ADMIN_SITE_LINKS = [
 export const AUTOMATION_SETTING_KEYS = [
   {
     key: 'auto_approve_vendor_signup',
-    label: 'Auto-approve practitioner signups',
-    desc: 'New practitioner applications go live immediately — no manual vendor approval.',
+    label: `Auto-approve ${vendorLabel.toLowerCase()} signups`,
+    desc: `New ${vendorLabel.toLowerCase()} applications go live immediately — no manual approval.`,
     group: 'approvals',
   },
   {
@@ -49,7 +58,9 @@ export const AUTOMATION_SETTING_KEYS = [
   {
     key: 'auto_approve_permit_verification',
     label: 'Auto-approve permit uploads',
-    desc: 'Business & practice permits are approved on upload.',
+    desc: verticalFeature('foodSafety')
+      ? 'Food business & kitchen permits approved on upload.'
+      : 'Business & practice permits are approved on upload.',
     group: 'approvals',
   },
   {
@@ -61,14 +72,14 @@ export const AUTOMATION_SETTING_KEYS = [
   },
   {
     key: 'tie_vendor_approval_to_id',
-    label: 'Tie vendor approval to approved ID',
-    desc: 'When a practitioner ID is approved, also approve their vendor account if still pending.',
+    label: `Tie ${vendorLabel.toLowerCase()} approval to approved ID`,
+    desc: `When a ${vendorLabel.toLowerCase()} ID is approved, also approve their vendor account if still pending.`,
     group: 'workflow',
   },
   {
     key: 'require_legal_name_on_id',
     label: 'Require legal name on government ID',
-    desc: 'Practitioners must enter the full name exactly as printed on their ID.',
+    desc: `${vendorPlural} must enter the full name exactly as printed on their ID.`,
     group: 'verification',
   },
   {
@@ -80,7 +91,7 @@ export const AUTOMATION_SETTING_KEYS = [
   {
     key: 'require_id_before_listing',
     label: 'Block first listing until ID is approved',
-    desc: 'Practitioners cannot post until admin approves their photo ID (not just submitted).',
+    desc: `${vendorPlural} cannot post until admin approves their photo ID (not just submitted).`,
     group: 'verification',
   },
   {

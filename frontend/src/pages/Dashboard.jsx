@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
+import { vendorCan } from '../lib/plans';
 
 export default function Dashboard({ user }) {
   const [vendors, setVendors] = useState([]);
@@ -66,6 +68,11 @@ export default function Dashboard({ user }) {
   };
 
   const maxStatus = Math.max(...Object.values(statusCounts), 1);
+
+  const role = (user?.role || '').toLowerCase();
+  if (role === 'vendor' && !vendorCan(user, 'analytics')) {
+    return <Navigate to="/vendor-dashboard" replace />;
+  }
 
   return (
     <div>
