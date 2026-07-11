@@ -242,6 +242,7 @@ export default function Marketplace({ user }) {
         vendors={vendors}
         loading={vendorsLoading}
         onNearbyVendors={(ids) => setNearbyVendorIds(ids?.length ? ids : null)}
+        searchQuery={search}
       />
 
       {profileAllergens.length > 0 && (

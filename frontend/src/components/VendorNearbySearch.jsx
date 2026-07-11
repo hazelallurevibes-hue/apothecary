@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { haversineMiles, vendorLocationBlob, vendorLocationLabel } from '../lib/geoUtils';
 import { formatStars } from '../lib/reviewsApi';
 import PractitionerBadges from './PractitionerBadges';
+import VendorMap, { vendorsWithinRadius } from './VendorMap';
+import GooglePlacesResults from './GooglePlacesResults';
 
 const RADIUS_OPTIONS = [
   { mi: 10, km: 16 },
@@ -11,15 +13,17 @@ const RADIUS_OPTIONS = [
   { mi: 100, km: 160 },
 ];
 
-export default function VendorNearbySearch({ vendors = [], loading = false, onNearbyVendors }) {
+export default function VendorNearbySearch({ vendors = [], loading = false, onNearbyVendors, searchQuery = '' }) {
   const [userCoords, setUserCoords] = useState(null);
   const [locating, setLocating] = useState(false);
   const [locError, setLocError] = useState('');
   const [radiusMi, setRadiusMi] = useState(25);
   const [textLocation, setTextLocation] = useState('');
   const [useKm, setUseKm] = useState(false);
+  const [googlePlaces, setGooglePlaces] = useState([]);
 
   const locatedVendors = vendors.filter((v) => v.latitude != null && v.longitude != null);
+  const mapVendors = userCoords ? vendorsWithinRadius(vendors, userCoords, radiusMi) : locatedVendors.slice(0, 12);
 
   const nearby = userCoords
     ? locatedVendors
@@ -150,6 +154,10 @@ export default function VendorNearbySearch({ vendors = [], loading = false, onNe
         </p>
       )}
 
+      {(userCoords || mapVendors.length > 0) && (
+        <VendorMap vendors={mapVendors} places={googlePlaces} userCoords={userCoords} />
+      )}
+
       {loading && <p className="text-sm text-gray-500">Loading practitioners…</p>}
 
       {!loading && userCoords && nearby.length === 0 && (
@@ -193,6 +201,12 @@ export default function VendorNearbySearch({ vendors = [], loading = false, onNe
           ))}
         </div>
       )}
+
+      <GooglePlacesResults
+        query={searchQuery}
+        coords={userCoords}
+        onPlacesChange={setGooglePlaces}
+      />
     </div>
   );
 }

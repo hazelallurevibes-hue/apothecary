@@ -26,6 +26,8 @@ import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import { VERTICAL } from '../lib/vertical';
 import { WELLNESS_MARKET_FILTERS } from '../lib/wellnessPreferences';
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
+import VendorNearbySearch from '../components/VendorNearbySearch';
+import { fetchVendorsWithRatings } from '../lib/reviewsApi';
 
 export default function ApothecaryMarket({ user }) {
   const { requireVerification } = useProviderInteractionGate(user);
@@ -43,6 +45,9 @@ export default function ApothecaryMarket({ user }) {
   const [loading, setLoading] = useState(true);
   const [marketTab, setMarketTab] = useState('all');
   const [vendorNames, setVendorNames] = useState({});
+  const [vendors, setVendors] = useState([]);
+  const [vendorsLoading, setVendorsLoading] = useState(true);
+  const [nearbyVendorIds, setNearbyVendorIds] = useState(null);
   const [profileAllergens, setProfileAllergens] = useState([]);
   const navigate = useNavigate();
 
@@ -86,6 +91,14 @@ export default function ApothecaryMarket({ user }) {
     loadItems();
   }, []);
 
+  useEffect(() => {
+    setVendorsLoading(true);
+    fetchVendorsWithRatings()
+      .then(setVendors)
+      .catch(() => setVendors([]))
+      .finally(() => setVendorsLoading(false));
+  }, []);
+
   const filtered = filterItemsByAllergenAvoid(
     filterActiveListings(items).filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -98,7 +111,9 @@ export default function ApothecaryMarket({ user }) {
         marketTab === 'all' ||
         (marketTab === 'goods' && !item.is_preorder) ||
         (marketTab === 'preorders' && item.is_preorder);
-      return matchesSearch && matchesCategory && matchesOrganic && matchesDietary && matchesSeasonal && matchesTab;
+      const matchesLocation =
+        !nearbyVendorIds?.length || nearbyVendorIds.includes(Number(item.vendor_id));
+      return matchesSearch && matchesCategory && matchesOrganic && matchesDietary && matchesSeasonal && matchesTab && matchesLocation;
     }),
     profileAllergens,
   );
@@ -195,6 +210,14 @@ export default function ApothecaryMarket({ user }) {
     <div className="max-w-6xl mx-auto">
       <CauldronCancelToast />
       <BloodMoonBanner />
+
+      <VendorNearbySearch
+        vendors={vendors}
+        loading={vendorsLoading}
+        onNearbyVendors={(ids) => setNearbyVendorIds(ids?.length ? ids : null)}
+        searchQuery={search}
+      />
+
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>
           <div className="inline-flex items-center gap-2 px-4 py-1 bg-[#f5f0e8] text-[#4a1942] border border-[#c9a227]/30 rounded-full text-sm font-medium mb-2">
