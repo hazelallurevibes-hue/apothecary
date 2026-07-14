@@ -5,12 +5,17 @@ export const HAZEL_URL = (import.meta.env.VITE_HAZEL_URL || 'https://apothecary.
   '',
 );
 
+const MAGIC_ORIGIN =
+  typeof window !== 'undefined' ? window.location.origin : 'https://magic.hazelallure.com';
+
 export const HAZEL_LINKS = {
   home: () => `${HAZEL_URL}/`,
   login: (next) =>
-    `${HAZEL_URL}/login${next ? `?next=${encodeURIComponent(next)}` : ''}`,
-  signup: () => `${HAZEL_URL}/customer-signup?utm_source=magic&utm_medium=sanctum`,
+    `${HAZEL_URL}/login${next ? `?next=${encodeURIComponent(next)}` : `?next=${encodeURIComponent(MAGIC_ORIGIN)}`}`,
+  signup: () =>
+    `${HAZEL_URL}/customer-signup?utm_source=magic&utm_medium=sanctum&next=${encodeURIComponent(MAGIC_ORIGIN)}`,
   proUpgrade: () => `${HAZEL_URL}/pro-upgrade?type=customer&utm_source=magic`,
   account: () => `${HAZEL_URL}/account-settings?utm_source=magic`,
   marketplace: () => `${HAZEL_URL}/products?utm_source=magic`,
+  magicAuth: () => '/auth',
 };

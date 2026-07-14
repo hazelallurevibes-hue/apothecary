@@ -14,7 +14,10 @@ const ANSWERS = [
   { text: 'MAYBE', tone: 'text-amber-800 bg-amber-50' },
 ];
 
-const MAGIC_URL = import.meta.env.VITE_MAGIC_URL || 'https://magic.hazelallure.com';
+const MAGIC_URL = (import.meta.env.VITE_MAGIC_URL || 'https://magic.hazelallure.com').replace(
+  /\/$/,
+  '',
+);
 
 /**
  * Sanctum sphere (Magic 8) + Heaven/Hell coin flip.

@@ -7,11 +7,14 @@ import Coach from './pages/Coach';
 import Hearth from './pages/Hearth';
 import Settings from './pages/Settings';
 import Widget from './pages/Widget';
+import Auth from './pages/Auth';
+import AuthCallback from './pages/AuthCallback';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/widget" element={<Widget />} />
+      <Route path="/auth/callback" element={<AuthCallback />} />
       <Route
         path="/*"
         element={
@@ -23,6 +26,7 @@ export default function App() {
               <Route path="/coach" element={<Coach />} />
               <Route path="/hearth" element={<Hearth />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/auth" element={<Auth />} />
             </Routes>
           </Layout>
         }

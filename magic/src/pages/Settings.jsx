@@ -36,12 +36,24 @@ export default function Settings() {
           </>
         ) : (
           <>
-            <p className="text-[#4a1942]/70">Sign up and billing live on Hazel Allure.</p>
-            <a href={HAZEL_LINKS.signup()} className="btn-primary block text-center">
-              Create account
+            <p className="text-[#4a1942]/70">
+              Same account as the apothecary. Sign in here or create an account on Hazel Allure.
+            </p>
+            <a href="/auth" className="btn-primary block text-center">
+              Sign in on Magic Sanctum
             </a>
-            <a href={HAZEL_LINKS.login('https://magic.hazelallure.com')} className="btn-secondary block text-center">
-              Sign in
+            <a href={HAZEL_LINKS.signup()} className="btn-secondary block text-center">
+              Create account on Hazel Allure
+            </a>
+            <a
+              href={HAZEL_LINKS.login(
+                typeof window !== 'undefined'
+                  ? `${window.location.origin}/settings`
+                  : 'https://magic.hazelallure.com/settings',
+              )}
+              className="text-xs underline text-center block text-[#4a1942]/60"
+            >
+              Full apothecary login (Google, etc.)
             </a>
           </>
         )}
