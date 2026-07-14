@@ -5,6 +5,8 @@ import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
 import { translatePet, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
+import ShareBar from '../components/ShareBar';
+import { unlockAchievement } from '../lib/achievements';
 
 export default function Pet() {
   const [hope, setHope] = useState('');
@@ -74,7 +76,7 @@ export default function Pet() {
               <button
                 type="button"
                 className="btn-primary w-full"
-                onClick={() =>
+                onClick={() => {
                   setOut(
                     translatePet({
                       hope,
@@ -82,8 +84,9 @@ export default function Pet() {
                       durationHint: fileMeta?.size,
                       freePeek: peek,
                     }),
-                  )
-                }
+                  );
+                  unlockAchievement('first_familiar');
+                }}
               >
                 {peek ? 'Peek a translation' : 'Whisper it'}
               </button>
@@ -101,6 +104,7 @@ export default function Pet() {
                 <p className="text-xs text-[#4a1942]/70">{out.hopeLine}</p>
                 <p className="text-[10px] text-[#4a1942]/40">Library: {out.librarySize} phrases</p>
                 <p className="text-[10px] text-red-600">{out.disclaimer || DISCLAIMER}</p>
+                <ShareBar title="Familiar Whisperer" text={`My familiar said: “${out.translation}”`} />
               </div>
             )}
 

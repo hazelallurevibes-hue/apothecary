@@ -14,6 +14,7 @@ import GuideHub from './pages/GuideHub';
 import Legal from './pages/Legal';
 import FreePlayground from './pages/FreePlayground';
 import DailyOracle from './pages/DailyOracle';
+import Dashboard from './pages/Dashboard';
 
 export default function App() {
   return (
@@ -26,6 +27,7 @@ export default function App() {
           <Layout>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/hearth-court" element={<Settler />} />
               <Route path="/settler" element={<Navigate to="/hearth-court" replace />} />
               <Route path="/familiar" element={<Pet />} />

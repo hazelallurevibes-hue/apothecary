@@ -29,6 +29,8 @@ export default defineConfig({
         display_override: ['window-controls-overlay', 'standalone', 'browser'],
       },
       workbox: {
+        // Fortune + content libraries exceed default 2 MiB precache limit
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,json}'],
         navigateFallback: '/index.html',
         runtimeCaching: [
@@ -46,6 +48,7 @@ export default defineConfig({
           },
         ],
       },
+      chunkSizeWarningLimit: 2500,
     }),
   ],
 });

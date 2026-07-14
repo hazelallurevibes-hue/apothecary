@@ -7,9 +7,11 @@ import { BRAND, DISCLAIMER } from '../lib/brand';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
 import JsonLd from '../components/JsonLd';
+import ShareBar from '../components/ShareBar';
+import { unlockAchievement } from '../lib/achievements';
 
 export default function Home() {
-  const { isPremium, can } = useAuth();
+  const { isPremium, can, user } = useAuth();
   const [mode, setMode] = useState('classic');
   const [q, setQ] = useState('');
   const [result, setResult] = useState(null);
@@ -26,6 +28,7 @@ export default function Home() {
       setTimeout(() => {
         setCoin(flipCoin());
         setFlipping(false);
+        unlockAchievement('first_coin');
       }, 900);
       return;
     }
@@ -35,9 +38,11 @@ export default function Home() {
     }
     setCoin(null);
     setResult(askOracle(q, mode === 'reverse' ? 'reverse' : 'classic'));
+    unlockAchievement('first_sphere');
   };
 
   const tools = [
+    { name: 'Dashboard', emoji: '⭐', tagline: user ? 'Fortune, chart, photo' : 'Sign in for daily fortune', path: '/dashboard', pro: false, count: 'You' },
     { ...BRAND.settler, path: BRAND.settler.route, count: `${stats.settlerCliff || '2k+'} notes` },
     { ...BRAND.pet, path: BRAND.pet.route, count: `${stats.petPhrases || '2k+'} phrases` },
     { ...BRAND.coach, path: BRAND.coach.route, count: `${stats.coachEntries || '2k+'} insights` },
@@ -178,6 +183,27 @@ export default function Home() {
           >
             {result.text}
           </div>
+        )}
+
+        {(result || coin) && (
+          <ShareBar
+            title={mode === 'coin' ? 'Heaven & Ember' : 'Sanctum Sphere'}
+            text={
+              mode === 'coin'
+                ? coin === 'yes'
+                  ? 'Heaven-scape says YES'
+                  : 'Hell-scape says NO'
+                : `Sphere says: ${result?.text}`
+            }
+          />
+        )}
+
+        {user && (
+          <p className="mt-3 text-center text-xs">
+            <Link to="/dashboard" className="underline font-semibold text-[#4a1942]">
+              Open dashboard for daily cookie fortune + celestial chart →
+            </Link>
+          </p>
         )}
 
         <p className="mt-3 text-[10px] text-center text-red-600">{DISCLAIMER}</p>

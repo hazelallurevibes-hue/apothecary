@@ -7,13 +7,14 @@ import { BRAND } from '../lib/brand';
 
 const NAV = [
   { to: '/', label: 'Sphere', icon: '⑧' },
+  { to: '/dashboard', label: 'You', icon: '⭐' },
   { to: '/hearth-court', label: 'Court', icon: '⚖' },
   { to: '/familiar', label: 'Familiar', icon: '🐾' },
   { to: '/before-the-storm', label: 'Storm', icon: '🕯' },
   { to: '/cauldron', label: 'Cauldron', icon: '🔥' },
   { to: '/free', label: 'Free', icon: '🎁' },
   { to: '/guides', label: 'Guides', icon: '📖' },
-  { to: '/settings', label: 'You', icon: '⚙' },
+  { to: '/settings', label: 'Set', icon: '⚙' },
 ];
 
 export default function Layout({ children }) {

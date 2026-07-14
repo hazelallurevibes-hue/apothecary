@@ -5,6 +5,8 @@ import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
 import { coachArgument, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
+import ShareBar from '../components/ShareBar';
+import { unlockAchievement } from '../lib/achievements';
 
 const SITUATIONS = [
   'chores', 'money', 'in-laws', 'plans', 'tone of voice', 'lateness', 'phones at dinner',
@@ -85,9 +87,10 @@ export default function Coach() {
               <button
                 type="button"
                 className="btn-primary w-full"
-                onClick={() =>
-                  setOut(coachArgument({ situation, stage, detail, freePeek: peek }))
-                }
+                onClick={() => {
+                  setOut(coachArgument({ situation, stage, detail, freePeek: peek }));
+                  unlockAchievement('first_storm');
+                }}
               >
                 {peek ? 'Peek one card' : 'Draw insight'}
               </button>
@@ -114,6 +117,10 @@ export default function Coach() {
                   </div>
                 )}
                 <p className="text-[10px] text-red-600">{out.disclaimer || DISCLAIMER}</p>
+                <ShareBar
+                  title="Before the Storm"
+                  text={`${out.primary.opener} ${out.primary.insight}`}
+                />
               </div>
             )}
 

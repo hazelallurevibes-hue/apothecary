@@ -535,6 +535,57 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         </div>
       </div>
 
+      <div id="celestial" className="bg-white border rounded-3xl p-6 sm:p-8 mb-6 scroll-mt-24">
+        <div className="font-semibold text-xl mb-1">Celestial &amp; Chinese chart</div>
+        <p className="text-sm text-gray-600 mb-4">
+          Magic Sanctum stores your birthday for Western sun sign, Chinese animal year, and daily fortunes.
+          Seal your chart on Magic — it can sync here when the profile columns are enabled.
+        </p>
+        {(user?.western_sign || user?.chinese_animal || user?.date_of_birth) ? (
+          <div className="grid sm:grid-cols-3 gap-3 text-sm">
+            <div className="rounded-2xl border border-[#c9a227]/30 bg-[#f5f0e8]/60 p-4">
+              <div className="text-xs uppercase text-gray-500">Western</div>
+              <div className="font-semibold text-[#4a1942]">{user.western_sign || '—'}</div>
+            </div>
+            <div className="rounded-2xl border border-[#c9a227]/30 bg-[#f5f0e8]/60 p-4">
+              <div className="text-xs uppercase text-gray-500">Chinese year</div>
+              <div className="font-semibold text-[#4a1942]">
+                {user.chinese_animal || '—'}
+                {user.chinese_element ? ` · ${user.chinese_element}` : ''}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-[#c9a227]/30 bg-[#f5f0e8]/60 p-4">
+              <div className="text-xs uppercase text-gray-500">Birthday</div>
+              <div className="font-semibold text-[#4a1942]">{user.date_of_birth || '—'}</div>
+              {user.life_path_number != null && (
+                <div className="text-xs text-gray-500 mt-1">Life path {user.life_path_number}</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">
+            No chart on file yet. Open{' '}
+            <a
+              href="https://magic.hazelallure.com/dashboard"
+              className="text-[#4a1942] underline font-medium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Magic Sanctum dashboard
+            </a>{' '}
+            → enter date of birth → Seal chart.
+          </p>
+        )}
+        <a
+          href="https://magic.hazelallure.com/dashboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex mt-4 text-sm font-semibold text-[#4a1942] underline"
+        >
+          Daily fortune &amp; achievements on Magic →
+        </a>
+      </div>
+
       <div className="bg-white border rounded-3xl p-8">
         <div className="flex items-center justify-between mb-4">
           <div>

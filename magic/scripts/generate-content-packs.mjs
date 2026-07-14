@@ -421,6 +421,7 @@ const BASE = 'https://magic.hazelallure.com';
 const today = new Date().toISOString().slice(0, 10);
 const staticPaths = [
   ['/', '1.0', 'daily'],
+  ['/dashboard', '0.85', 'daily'],
   ['/hearth-court', '0.9', 'weekly'],
   ['/familiar', '0.9', 'weekly'],
   ['/before-the-storm', '0.9', 'weekly'],
