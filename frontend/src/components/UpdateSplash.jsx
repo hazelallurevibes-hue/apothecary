@@ -1,139 +1,145 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { APP_VERSION, SEEN_VERSION_KEY, UPDATE_SPLASH } from '../lib/appVersion';
 
+const RELOAD_GUARD_KEY = 'ha_auto_update_at';
+const RELOAD_GUARD_MS = 25_000;
+
 /**
- * Full-screen splash when a new app version is available (version.json).
- * Works for website visitors and home-screen installs using the web manifest.
+ * Auto-updates once when version.json is newer than the running bundle.
+ * Avoids repeated “Update now” clicks after multi-deploys / cached shells.
  */
 export default function UpdateSplash() {
-  const [open, setOpen] = useState(false);
+  const [phase, setPhase] = useState('idle'); // idle | updating
   const [remote, setRemote] = useState(null);
-  const [updating, setUpdating] = useState(false);
-
-  const markSeen = useCallback((version) => {
-    try {
-      localStorage.setItem(SEEN_VERSION_KEY, version || APP_VERSION);
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  const applyUpdate = useCallback(async () => {
-    setUpdating(true);
-    const ver = remote?.version || APP_VERSION;
-    markSeen(ver);
-    // Clear caches when possible so SPA shell reloads fresh assets
-    try {
-      if ('caches' in window) {
-        const keys = await caches.keys();
-        await Promise.all(keys.map((k) => caches.delete(k)));
-      }
-    } catch {
-      /* ignore */
-    }
-    window.location.reload();
-  }, [markSeen, remote]);
-
-  const dismiss = useCallback(() => {
-    markSeen(remote?.version || APP_VERSION);
-    setOpen(false);
-  }, [markSeen, remote]);
+  const ran = useRef(false);
 
   useEffect(() => {
+    if (ran.current) return;
+    ran.current = true;
+
     let cancelled = false;
-    (async () => {
+
+    const markSeen = (version) => {
       try {
-        const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled || !data?.version) return;
-        setRemote(data);
-        const seen = localStorage.getItem(SEEN_VERSION_KEY);
-        if (seen !== data.version) {
-          setOpen(true);
+        localStorage.setItem(SEEN_VERSION_KEY, version || APP_VERSION);
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const recentlyReloaded = () => {
+      try {
+        const t = Number(sessionStorage.getItem(RELOAD_GUARD_KEY) || 0);
+        return t > 0 && Date.now() - t < RELOAD_GUARD_MS;
+      } catch {
+        return false;
+      }
+    };
+
+    const setReloadGuard = () => {
+      try {
+        sessionStorage.setItem(RELOAD_GUARD_KEY, String(Date.now()));
+      } catch {
+        /* ignore */
+      }
+    };
+
+    const clearCaches = async () => {
+      try {
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map((k) => caches.delete(k)));
         }
       } catch {
-        /* offline — skip */
+        /* ignore */
       }
+    };
+
+    const applyUpdate = async (targetVersion) => {
+      if (cancelled) return;
+      if (recentlyReloaded()) {
+        markSeen(APP_VERSION);
+        setPhase('idle');
+        return;
+      }
+      setPhase('updating');
+      setReloadGuard();
+      markSeen(targetVersion || APP_VERSION);
+      await clearCaches();
+      window.setTimeout(() => {
+        if (cancelled) return;
+        const url = new URL(window.location.href);
+        url.searchParams.set('_v', targetVersion || APP_VERSION);
+        url.searchParams.set('_t', String(Date.now()));
+        window.location.replace(url.toString());
+      }, 600);
+    };
+
+    (async () => {
+      if (recentlyReloaded()) {
+        markSeen(APP_VERSION);
+        try {
+          const url = new URL(window.location.href);
+          if (url.searchParams.has('_v') || url.searchParams.has('_t')) {
+            url.searchParams.delete('_v');
+            url.searchParams.delete('_t');
+            window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+          }
+        } catch {
+          /* ignore */
+        }
+        return;
+      }
+
+      let data = null;
+      try {
+        const res = await fetch(`/version.json?t=${Date.now()}`, { cache: 'no-store' });
+        if (res.ok) data = await res.json();
+      } catch {
+        /* offline */
+      }
+      if (cancelled) return;
+      if (data?.version) setRemote(data);
+
+      const remoteVer = data?.version;
+      if (!remoteVer || remoteVer === APP_VERSION) {
+        markSeen(APP_VERSION);
+        return;
+      }
+
+      await applyUpdate(remoteVer);
     })();
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  useEffect(() => {
-    try {
-      const seen = localStorage.getItem(SEEN_VERSION_KEY);
-      if (seen && seen !== APP_VERSION) {
-        setOpen(true);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  if (phase !== 'updating') return null;
 
-  if (!open) return null;
-
-  const title = remote?.title || UPDATE_SPLASH.title;
-  const message = remote?.message || UPDATE_SPLASH.message;
-  const highlights = remote?.highlights?.length ? remote.highlights : UPDATE_SPLASH.highlights;
   const version = remote?.version || APP_VERSION;
+  const title = remote?.title || UPDATE_SPLASH.title;
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#2d1230]/70 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ha-update-splash-title"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#2d1230]/75 backdrop-blur-sm"
+      role="status"
+      aria-live="polite"
+      aria-label="Updating app"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl overflow-hidden border border-[#c9a227]/35">
-        <div className="bg-gradient-to-br from-[#4a1942] via-[#6b3a62] to-[#b76e79] px-6 pt-8 pb-6 text-white relative overflow-hidden">
-          <div
-            className="absolute inset-0 opacity-25 pointer-events-none"
-            style={{
-              background: 'radial-gradient(circle at 85% 15%, rgba(201,162,39,0.6), transparent 45%)',
-            }}
-          />
-          <p className="text-xs font-black uppercase tracking-widest text-[#e8dcc8] relative">
-            Hazel Allure Apothecary
-          </p>
-          <h2 id="ha-update-splash-title" className="heading-font font-bold text-2xl mt-1 leading-tight relative">
-            {title}
-          </h2>
-          <p className="text-sm text-white/90 mt-2 leading-relaxed relative">{message}</p>
-          <p className="text-[10px] font-bold text-[#e8dcc8]/90 mt-3 relative">v{version}</p>
+      <div className="w-full max-w-sm rounded-2xl bg-white shadow-2xl overflow-hidden border border-[#c9a227]/35 text-center">
+        <div className="bg-gradient-to-br from-[#4a1942] via-[#6b3a62] to-[#b76e79] px-6 py-8 text-white">
+          <p className="text-xs font-black uppercase tracking-widest text-[#e8dcc8]">Hazel Allure</p>
+          <h2 className="heading-font font-bold text-xl mt-2">Updating…</h2>
+          <p className="text-sm text-white/90 mt-2">Loading v{version} automatically — one moment.</p>
+          <p className="text-[10px] text-[#e8dcc8]/90 mt-4 animate-pulse">{title}</p>
         </div>
-        <div className="px-6 py-5">
-          {highlights?.length > 0 && (
-            <ul className="space-y-2 mb-5">
-              {highlights.map((h) => (
-                <li key={h} className="flex gap-2 text-sm text-[#2d1230]/80">
-                  <span className="text-[#c9a227] shrink-0 font-black">✓</span>
-                  <span>{h}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <button
-              type="button"
-              disabled={updating}
-              onClick={applyUpdate}
-              className="flex-1 text-sm py-3 rounded-xl font-semibold text-white bg-[#4a1942] hover:bg-[#2d1230] disabled:opacity-50 transition"
-            >
-              {updating ? 'Updating…' : 'Update now'}
-            </button>
-            <button
-              type="button"
-              disabled={updating}
-              onClick={dismiss}
-              className="flex-1 text-sm py-3 rounded-xl font-semibold border border-[#4a1942]/25 text-[#4a1942] hover:bg-[#4a1942]/5 disabled:opacity-50 transition"
-            >
-              Later
-            </button>
+        <div className="px-6 py-4">
+          <div className="h-1.5 rounded-full bg-[#4a1942]/10 overflow-hidden">
+            <div className="h-full w-1/2 rounded-full bg-gradient-to-r from-[#4a1942] to-[#c9a227] animate-pulse" />
           </div>
-          <p className="text-[11px] text-[#4a1942]/45 mt-3 text-center">
-            Refresh loads the newest marketplace code. Works on web and home-screen installs.
+          <p className="text-[11px] text-[#4a1942]/45 mt-3">
+            One automatic update per version — no repeated taps.
           </p>
         </div>
       </div>

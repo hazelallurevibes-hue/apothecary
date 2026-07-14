@@ -1,11 +1,11 @@
 {
-  "version": "1.6.0",
-  "buildId": "2026-07-14T22:31:34.708Z",
-  "title": "Familiars & cards gleam brighter",
-  "message": "Animated spirit familiars, foil tarot cards, and richer achievement unlocks — same woman-owned polish throughout.",
+  "version": "1.6.1",
+  "buildId": "2026-07-14T22:54:43.727Z",
+  "title": "One automatic update",
+  "message": "New versions apply once automatically — no repeated upgrade clicks.",
   "highlights": [
-    "Living familiar portraits (float, blink, wing flutter)",
-    "Foil-sheen tarot cards with ornate frames",
-    "Version v1.6.0 ready to install"
+    "Auto-update when version.json is newer",
+    "Reload guard prevents update loops",
+    "Version v1.6.1"
   ]
 }

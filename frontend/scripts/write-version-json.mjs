@@ -11,17 +11,16 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.HA_APP_VERSION || pkg.version || '1.6.0';
+const APP_VERSION = process.env.HA_APP_VERSION || pkg.version || '1.6.1';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'Familiars & cards gleam brighter',
-  message:
-    'Animated spirit familiars, foil tarot cards, and richer achievement unlocks — same woman-owned polish throughout.',
+  title: 'One automatic update',
+  message: 'New versions apply once automatically — no repeated upgrade clicks.',
   highlights: [
-    'Living familiar portraits (float, blink, wing flutter)',
-    'Foil-sheen tarot cards with ornate frames',
-    `Version v${APP_VERSION} ready to install`,
+    'Auto-update when version.json is newer',
+    'Reload guard prevents update loops',
+    `Version v${APP_VERSION}`,
   ],
 };
 
