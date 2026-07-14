@@ -151,14 +151,21 @@ export async function hasSupabaseWriteSession() {
 export function formatListingSaveError(error, fallback = 'Could not save listing.') {
   if (!error) return fallback;
   const msg = error.message || String(error);
+  const lower = msg.toLowerCase();
   if (isFulfillmentConstraintError(error)) {
-    return 'Fulfillment mode was rejected by the database. Run 27_fulfillment_pickup_shipping.sql in Supabase, or pick Local pickup / External store only.';
+    return 'Fulfillment mode was rejected by the database. Run supabase/hazel-sql-to-run/28_fix_fulfillment_constraints.sql (or 27_fulfillment_pickup_shipping.sql), then try Pickup or shipping again.';
+  }
+  if (lower.includes('column') && lower.includes('available')) {
+    return 'Listing schema mismatch (available vs availability) — refresh the app and try again. If it persists, redeploy the latest apothecary build.';
   }
   if (isRlsError(error)) {
-    return 'Permission denied — sign in again with email/password or Google, or run FIX_VENDOR_LISTING_INSERT.sql in Supabase.';
+    return 'Permission denied — sign in again with email/password or Google, confirm your account is linked to a vendor, or run FIX_VENDOR_LISTING_INSERT.sql in Supabase.';
   }
-  if (msg.toLowerCase().includes('not authorized to manage listings')) {
+  if (lower.includes('not authorized to manage listings')) {
     return 'Your account is not linked to a practitioner profile. Sign out, sign back in, or contact support.';
+  }
+  if (lower.includes('function') && lower.includes('insert_vendor')) {
+    return 'Publish RPC missing — run FIX_VENDOR_LISTING_INSERT.sql in the Supabase SQL editor, then retry.';
   }
   return msg.length > 180 ? `${msg.slice(0, 180)}…` : msg;
 }
@@ -202,17 +209,50 @@ export async function saveMenuItemRecord(payload, { editId = null, userEmail = n
     return supabase.from('menu_items').insert(row).select().single();
   };
 
+  // Prefer RPC when no real Supabase session (e.g. Auth0 hybrid) or caller asked for it
   if (preferRpc || !(await hasSupabaseWriteSession())) {
     const rpcResult = await saveMenuViaRpc(payload, { editId, userEmail });
     if (!rpcResult.error) return rpcResult;
+    // continue to direct + retries so users still get a clear error path
   }
 
   let { data, error } = await attemptDirect(payload);
   if (!error) return { data, error: null };
 
-  if (isRlsError(error) && userEmail) {
-    const rpcResult = await saveMenuViaRpc(payload, { editId, userEmail });
+  // Unknown-column errors (e.g. legacy "available") — strip and retry once
+  const msg = String(error?.message || '').toLowerCase();
+  if (msg.includes('column') && (msg.includes('available') || msg.includes('does not exist'))) {
+    const cleaned = stripBpiciusListingFields({ ...payload, availability: payload.availability || 'In stock' });
+    delete cleaned.available;
+    const retry = await attemptDirect(cleaned);
+    if (!retry.error) return retry;
+    error = retry.error;
+  }
+
+  if (isFulfillmentConstraintError(error)) {
+    const legacyPayload = {
+      ...payload,
+      fulfillment_mode: legacyFulfillmentModeForDb(payload.fulfillment_mode),
+      availability: payload.availability || 'In stock',
+    };
+    delete legacyPayload.available;
+    const retry = await attemptDirect(legacyPayload);
+    if (!retry.error) return retry;
+    error = retry.error;
+  }
+
+  if (userEmail && (isRlsError(error) || isFulfillmentConstraintError(error) || msg.includes('column'))) {
+    const rpcPayload = {
+      ...payload,
+      availability: payload.availability || 'In stock',
+      fulfillment_mode: isFulfillmentConstraintError(error)
+        ? legacyFulfillmentModeForDb(payload.fulfillment_mode)
+        : payload.fulfillment_mode,
+    };
+    delete rpcPayload.available;
+    const rpcResult = await saveMenuViaRpc(rpcPayload, { editId, userEmail });
     if (!rpcResult.error) return rpcResult;
+    return { data: null, error: rpcResult.error || error };
   }
 
   return { data: null, error };

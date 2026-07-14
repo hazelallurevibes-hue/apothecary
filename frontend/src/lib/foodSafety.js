@@ -37,6 +37,16 @@ export const BPICIUS_SAFETY_COLUMNS = [
   'temp_photo_url',
 ];
 
+/** Client-only / wrong-schema keys that break PostgREST inserts if sent. */
+export const INVALID_LISTING_COLUMNS = [
+  'available', // schema uses availability TEXT, not available boolean
+  'thumbnail',
+  'medicinalLegalAck',
+  'quick',
+  'file',
+  'preview',
+];
+
 /** Listing safety is covered by VendorListingConfirmModal attestations — no per-listing food-safety form. */
 export function isSafetySubmissionValid() {
   return true;
@@ -51,6 +61,17 @@ export function stripBpiciusListingFields(payload) {
   if (!payload || typeof payload !== 'object') return payload;
   const next = { ...payload };
   for (const key of BPICIUS_SAFETY_COLUMNS) delete next[key];
+  for (const key of INVALID_LISTING_COLUMNS) delete next[key];
+  // Map legacy boolean "available" → schema column "availability"
+  if (payload.available != null && next.availability == null) {
+    next.availability =
+      payload.available === 0 || payload.available === false || payload.available === '0'
+        ? 'Out of stock'
+        : 'In stock';
+  }
+  if (next.fulfillment_mode === 'bpicius' || next.fulfillment_mode === 'hazelallure') {
+    next.fulfillment_mode = 'pickup_and_shipping';
+  }
   return next;
 }
 

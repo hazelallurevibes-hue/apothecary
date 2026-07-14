@@ -17,9 +17,8 @@ export function saveLocalProfile(profile) {
 }
 
 export function setDobAndBuild({ dob, name, birthTime } = {}) {
-  const celestial = buildCelestialProfile(dob, name);
+  const celestial = buildCelestialProfile(dob, name, birthTime || '');
   if (!celestial) throw new Error('Enter a valid date of birth (YYYY-MM-DD).');
-  if (birthTime) celestial.birthTime = birthTime;
   celestial.blurb = profileBlurb(celestial);
   return saveLocalProfile(celestial);
 }

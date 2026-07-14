@@ -128,7 +128,40 @@ export function parseDob(iso) {
   return date;
 }
 
-export function buildCelestialProfile(dobIso, birthName = '') {
+/** Approximate rising sign from local birth time (entertainment — not full chart). */
+function risingSignApprox(month, day, birthTime) {
+  if (!birthTime || !/^\d{1,2}:\d{2}/.test(birthTime)) return null;
+  const [hh, mm] = birthTime.split(':').map(Number);
+  const minutes = (hh % 24) * 60 + (mm || 0);
+  // Rough: sun sign offset by ~one sign per 2 hours from 6am
+  const sun = westernSign(month, day);
+  const sunIdx = WESTERN.findIndex((s) => s.name === sun.name);
+  const offset = Math.floor(((minutes - 360 + 1440) % 1440) / 120); // from 6:00
+  const rise = WESTERN[(sunIdx + offset + WESTERN.length) % WESTERN.length];
+  return { sign: rise.name, symbol: rise.symbol, element: rise.element, approx: true };
+}
+
+/** Simple moon phase 0–7 for a UTC date */
+export function moonPhaseForDate(date = new Date()) {
+  const lp = 2551443; // synodic month seconds approx
+  const newMoon = Date.UTC(2000, 0, 6, 18, 14, 0);
+  const phase = ((date.getTime() - newMoon) / 1000) % lp;
+  const idx = Math.floor((phase / lp) * 8) % 8;
+  const names = [
+    'New Moon',
+    'Waxing Crescent',
+    'First Quarter',
+    'Waxing Gibbous',
+    'Full Moon',
+    'Waning Gibbous',
+    'Last Quarter',
+    'Waning Crescent',
+  ];
+  const emojis = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'];
+  return { name: names[idx], emoji: emojis[idx], index: idx };
+}
+
+export function buildCelestialProfile(dobIso, birthName = '', birthTime = '') {
   const date = parseDob(dobIso);
   if (!date) return null;
   const month = date.getMonth() + 1;
@@ -138,13 +171,16 @@ export function buildCelestialProfile(dobIso, birthName = '') {
   const celtic = celticTree(month, day);
   const mayan = mayanToneSeal(date);
   const lifePath = lifePathNumber(date);
+  const rising = risingSignApprox(month, day, birthTime);
   return {
     dob: dobIso.slice(0, 10),
+    birthTime: birthTime || null,
     western: {
       sign: western.name,
       symbol: western.symbol,
       element: western.element,
     },
+    rising,
     chinese: {
       animal: chinese.animal,
       emoji: chinese.emoji,
@@ -157,6 +193,36 @@ export function buildCelestialProfile(dobIso, birthName = '') {
     lifePath,
     birthName: (birthName || '').slice(0, 40),
     computedAt: new Date().toISOString(),
+  };
+}
+
+/** Weekly lunar report for Pro seekers (client-side, no email infra required yet) */
+export function weeklyLunarReport(celestial, now = new Date()) {
+  const moon = moonPhaseForDate(now);
+  const week = Math.floor(now.getTime() / (7 * 86400000));
+  const themes = [
+    'rest and soft boundaries',
+    'honest conversations',
+    'creative experiments',
+    'body-first care',
+    'clearing clutter',
+    'gentle ambition',
+    'gratitude practice',
+    'quiet courage',
+  ];
+  const theme = themes[week % themes.length];
+  const sign = celestial?.western?.sign || 'seeker';
+  const animal = celestial?.chinese?.animal || 'familiar';
+  return {
+    weekId: week,
+    moon,
+    title: `${moon.emoji} Weekly lunar note`,
+    body: `This week’s sky leans ${moon.name.toLowerCase()}. As a ${sign} with ${animal} year energy, favor ${theme}. One clear request beats three half-finished plans.`,
+    focus: theme,
+    risingNote: celestial?.rising
+      ? `Rising ~${celestial.rising.symbol} ${celestial.rising.sign} (approx from birth time) — lead with that room’s vibe.`
+      : 'Add birth time on your chart for an approximate rising note.',
+    disclaimer: 'Entertainment only — not astrology consulting or medical advice.',
   };
 }
 
@@ -173,5 +239,6 @@ function lifePathNumber(date) {
 
 export function profileBlurb(profile) {
   if (!profile) return '';
-  return `${profile.western.symbol} ${profile.western.sign} · ${profile.chinese.emoji} ${profile.chinese.animal} (${profile.chinese.element}) · Life path ${profile.lifePath}`;
+  const rise = profile.rising ? ` · Rising ~${profile.rising.symbol} ${profile.rising.sign}` : '';
+  return `${profile.western.symbol} ${profile.western.sign}${rise} · ${profile.chinese.emoji} ${profile.chinese.animal} (${profile.chinese.element}) · Life path ${profile.lifePath}`;
 }

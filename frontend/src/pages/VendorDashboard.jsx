@@ -119,7 +119,9 @@ export default function VendorDashboard({ user }) {
   const isProPractitioner = isVendorPro(user);
   const listingSaveOpts = {
     userEmail: user?.email,
-    preferRpc: user?.auth_provider === 'auth0',
+    // Auth0 hybrid often lacks a Supabase JWT for RLS — RPC uses security definer.
+    // Also prefer RPC as fallback chain inside save* when direct insert fails.
+    preferRpc: user?.auth_provider === 'auth0' || !user?.authId,
   };
 
   const refreshVendorData = useCallback(async () => {
@@ -284,7 +286,7 @@ export default function VendorDashboard({ user }) {
         category: newItem.category,
         time_made: newItem.time_made,
         ...media,
-        available: 1,
+        availability: 'In stock',
         allergens: serializeAllergenIds(newItemAllergens),
         ...buildPreorderPayload(newItemPreorder),
         ...(vendorCan(user, 'food_labels') ? buildFoodLabelPayload(newItemFoodLabel) : {}),
@@ -545,7 +547,7 @@ export default function VendorDashboard({ user }) {
         category: quick.category,
         time_made: quick.time_made || '60 min',
         ...media,
-        available: 1,
+        availability: 'In stock',
         allergens: serializeAllergenIds(quick.allergens || []),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
@@ -1495,8 +1497,19 @@ export default function VendorDashboard({ user }) {
             if (t === 'menu') await (quick ? addQuickMenuItem(quick) : addMenuItem());
             else if (t === 'produce') await (quick ? addQuickProduceItem(quick) : addProduceItem());
             quickAddResolver.current?.resolve();
+            if (!quick) {
+              // Full form path uses alerts inside add*; success is enough
+            } else {
+              // Quick-add success toast
+              // ListingQuickAdd clears wizard on resolve
+            }
           } catch (e) {
-            quickAddResolver.current?.reject(e);
+            const message = formatListingSaveError(e, 'Could not publish listing.');
+            if (quickAddResolver.current) {
+              quickAddResolver.current.reject(new Error(message));
+            } else {
+              alert(message);
+            }
           } finally {
             quickAddResolver.current = null;
           }

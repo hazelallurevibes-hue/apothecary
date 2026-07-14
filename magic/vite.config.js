@@ -3,6 +3,23 @@ import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
+  build: {
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('@supabase')) return 'vendor-supabase';
+            if (id.includes('react-dom') || id.includes('react-router') || id.includes('node_modules/react/')) {
+              return 'vendor-react';
+            }
+          }
+          if (id.includes('data/generated/packs')) return 'content-packs';
+          if (id.includes('data/generated/fortunes')) return 'content-fortunes';
+        },
+      },
+    },
+  },
   plugins: [
     react(),
     VitePWA({

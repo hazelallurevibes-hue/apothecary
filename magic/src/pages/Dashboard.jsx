@@ -19,6 +19,8 @@ import {
   formatHistoryLine,
   recordHistory,
 } from '../lib/historyStore';
+import { weeklyLunarReport } from '../lib/celestial';
+import { syncHistoryToCloud, pullHistoryFromCloud } from '../lib/cloudHistory';
 
 const TABS = [
   { id: 'home', label: 'Today' },
@@ -35,8 +37,10 @@ export default function Dashboard() {
   const setTab = (id) => setParams(id === 'home' ? {} : { tab: id });
   const [celestial, setCelestial] = useState(() => loadLocalProfile());
   const [dob, setDob] = useState(() => loadLocalProfile()?.dob || '');
+  const [birthTime, setBirthTime] = useState(() => loadLocalProfile()?.birthTime || '');
   const [name, setName] = useState(() => loadLocalProfile()?.birthName || user?.name || '');
   const [fortune, setFortune] = useState(null);
+  const [lunar, setLunar] = useState(null);
   const [xp, setXp] = useState(() => loadXp());
   const [achievements, setAchievements] = useState(() => unlockedList());
   const [history, setHistory] = useState(() => loadHistory());
@@ -59,6 +63,7 @@ export default function Dashboard() {
       celestial,
     });
     setFortune(daily);
+    setLunar(weeklyLunarReport(celestial));
     noteFortuneStreak();
     unlockAchievement('first_fortune');
     setXp(loadXp());
@@ -75,19 +80,27 @@ export default function Dashboard() {
       });
       setHistory(loadHistory());
     }
-  }, [user?.id, celestial?.dob]);
+    // cloud history merge + push
+    (async () => {
+      await pullHistoryFromCloud(user.authId || user.id);
+      setHistory(loadHistory());
+      await syncHistoryToCloud(user.authId || user.id, user.email);
+    })();
+  }, [user?.id, celestial?.dob, celestial?.birthTime]);
 
   const saveDob = async () => {
     setErr('');
     setMsg('');
     try {
-      const profile = setDobAndBuild({ dob, name });
+      const profile = setDobAndBuild({ dob, name, birthTime });
       setCelestial(profile);
+      setLunar(weeklyLunarReport(profile));
       unlockAchievement('dob_set');
       setAchievements(unlockedList());
       setXp(loadXp());
       if (user?.email) {
         const res = await syncProfileToSupabase(user.email, profile, user.avatar);
+        await syncHistoryToCloud(user.authId || user.id, user.email);
         setMsg(
           res.ok
             ? 'Chart sealed + synced to your Hazel profile.'
@@ -328,6 +341,26 @@ export default function Dashboard() {
             Add your birthday under Chart for celestial + Chinese year personalization.
           </p>
         )}
+        {lunar && (
+          <div className="rounded-xl border border-[#4a1942]/10 bg-[#4a1942]/[0.04] p-3 text-sm">
+            <p className="text-[10px] font-black uppercase tracking-widest text-[#c9a227]">
+              {lunar.title}
+              {isPremium ? '' : ' · free peek'}
+            </p>
+            <p className="mt-1 text-[#4a1942]/85">
+              {isPremium ? lunar.body : `${String(lunar.body).slice(0, 120)}…`}
+            </p>
+            {isPremium && lunar.risingNote && (
+              <p className="text-xs text-[#4a1942]/60 mt-2">{lunar.risingNote}</p>
+            )}
+            {!isPremium && (
+              <a href={HAZEL_LINKS.proUpgrade()} className="text-xs underline font-semibold mt-2 inline-block">
+                Unlock full weekly lunar note with Pro
+              </a>
+            )}
+            <p className="text-[10px] text-red-600 mt-2">{lunar.disclaimer}</p>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2 text-xs">
           <Link to="/hearth-court" className="btn-secondary py-1.5 px-3">
             Hearth Court
@@ -364,6 +397,15 @@ export default function Dashboard() {
           onChange={(e) => setDob(e.target.value)}
           max={new Date().toISOString().slice(0, 10)}
         />
+        <label className="block text-xs text-[#4a1942]/60">
+          Birth time (optional — approximate rising)
+          <input
+            className="input mt-1"
+            type="time"
+            value={birthTime}
+            onChange={(e) => setBirthTime(e.target.value)}
+          />
+        </label>
         <button type="button" className="btn-primary w-full" onClick={saveDob}>
           Seal chart
         </button>
@@ -377,6 +419,11 @@ export default function Dashboard() {
               </p>
             </div>
             <div className="rounded-xl bg-[#4a1942]/5 p-3">
+              <p className="font-bold text-[#4a1942]">Rising (approx)</p>
+              <p className="text-2xl">{celestial.rising?.symbol || '—'}</p>
+              <p>{celestial.rising ? `${celestial.rising.sign} · ${celestial.rising.element}` : 'Add birth time'}</p>
+            </div>
+            <div className="rounded-xl bg-[#4a1942]/5 p-3">
               <p className="font-bold text-[#4a1942]">Chinese</p>
               <p className="text-2xl">{celestial.chinese.emoji}</p>
               <p>
@@ -385,11 +432,8 @@ export default function Dashboard() {
               <p className="text-[10px] opacity-70">{celestial.chinese.trait}</p>
             </div>
             <div className="rounded-xl bg-[#4a1942]/5 p-3">
-              <p className="font-bold">Celtic</p>
+              <p className="font-bold">Celtic · Life path</p>
               <p>{celestial.celticTree}</p>
-            </div>
-            <div className="rounded-xl bg-[#4a1942]/5 p-3">
-              <p className="font-bold">Life path</p>
               <p className="text-2xl font-black">{celestial.lifePath}</p>
             </div>
           </div>

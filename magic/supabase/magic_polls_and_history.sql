@@ -72,3 +72,48 @@ grant select, insert, update on public.magic_polls to anon, authenticated;
 grant select, insert on public.magic_poll_votes to anon, authenticated;
 grant select, insert on public.magic_anon_court to anon, authenticated;
 grant usage, select on sequence public.magic_poll_votes_id_seq to anon, authenticated;
+
+-- Per-user activity history (dashboard Results / History cloud sync)
+create table if not exists public.magic_user_history (
+  id bigserial primary key,
+  user_id text not null,
+  user_email text,
+  entry_id text not null unique,
+  entry_type text,
+  title text,
+  summary text,
+  payload jsonb default '{}'::jsonb,
+  anonymous boolean default false,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists magic_user_history_user_idx on public.magic_user_history (user_id);
+
+alter table public.magic_user_history enable row level security;
+
+drop policy if exists "magic_hist_select_own" on public.magic_user_history;
+create policy "magic_hist_select_own" on public.magic_user_history
+  for select to authenticated
+  using (
+    user_id = coalesce(auth.uid()::text, '')
+    or lower(user_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+
+drop policy if exists "magic_hist_insert_own" on public.magic_user_history;
+create policy "magic_hist_insert_own" on public.magic_user_history
+  for insert to authenticated
+  with check (
+    user_id = coalesce(auth.uid()::text, '')
+    or lower(user_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+
+drop policy if exists "magic_hist_update_own" on public.magic_user_history;
+create policy "magic_hist_update_own" on public.magic_user_history
+  for update to authenticated
+  using (
+    user_id = coalesce(auth.uid()::text, '')
+    or lower(user_email) = lower(coalesce(auth.jwt() ->> 'email', ''))
+  );
+
+grant select, insert, update on public.magic_user_history to authenticated;
+grant usage, select on sequence public.magic_user_history_id_seq to authenticated;
