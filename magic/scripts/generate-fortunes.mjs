@@ -196,6 +196,6 @@ const out = {
 fs.writeFileSync(path.join(OUT, 'fortunes.json'), JSON.stringify(out));
 fs.writeFileSync(
   path.join(OUT, 'fortunes.js'),
-  `/** Auto-generated fortunes */\nimport data from './fortunes.json';\nexport default data;\n`,
+  `/** Auto-generated fortunes */\nimport data from './fortunes.json' with { type: 'json' };\nexport default data;\n`,
 );
 console.log('Fortunes:', out.counts);

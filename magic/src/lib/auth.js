@@ -1,5 +1,5 @@
-import { supabaseAuth, isAuthConfigured } from './supabaseAuth';
-import { resolveIsAdmin, userHasMagicPro } from './plans';
+import { supabaseAuth, isAuthConfigured } from './supabaseAuth.js';
+import { resolveIsAdmin, userHasMagicPro } from './plans.js';
 
 const CACHE_KEY = 'magic_user_v1';
 

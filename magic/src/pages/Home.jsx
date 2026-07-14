@@ -9,6 +9,7 @@ import SeoHead from '../components/SeoHead';
 import JsonLd from '../components/JsonLd';
 import ShareBar from '../components/ShareBar';
 import { unlockAchievement } from '../lib/achievements';
+import { recordHistory } from '../lib/historyStore';
 
 export default function Home() {
   const { isPremium, can, user } = useAuth();
@@ -37,12 +38,20 @@ export default function Home() {
       return;
     }
     setCoin(null);
-    setResult(askOracle(q, mode === 'reverse' ? 'reverse' : 'classic'));
+    const ans = askOracle(q, mode === 'reverse' ? 'reverse' : 'classic');
+    setResult(ans);
     unlockAchievement('first_sphere');
+    recordHistory({
+      type: 'sphere',
+      title: 'Sanctum Sphere',
+      summary: ans.text,
+      payload: { question: q, answer: ans.text, mode },
+    });
   };
 
   const tools = [
-    { name: 'Dashboard', emoji: '⭐', tagline: user ? 'Fortune, chart, photo' : 'Sign in for daily fortune', path: '/dashboard', pro: false, count: 'You' },
+    { name: 'Dashboard', emoji: '⭐', tagline: user ? 'Results, history, fortune' : 'Sign in for daily fortune', path: '/dashboard', pro: false, count: 'You' },
+    { name: 'Chart harmony', emoji: '💞', tagline: 'Two birthdays · playful score', path: '/compatibility', pro: false, count: 'Viral' },
     { ...BRAND.settler, path: BRAND.settler.route, count: `${stats.settlerCliff || '2k+'} notes` },
     { ...BRAND.pet, path: BRAND.pet.route, count: `${stats.petPhrases || '2k+'} phrases` },
     { ...BRAND.coach, path: BRAND.coach.route, count: `${stats.coachEntries || '2k+'} insights` },

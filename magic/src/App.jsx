@@ -15,12 +15,15 @@ import Legal from './pages/Legal';
 import FreePlayground from './pages/FreePlayground';
 import DailyOracle from './pages/DailyOracle';
 import Dashboard from './pages/Dashboard';
+import PollJoin from './pages/PollJoin';
+import Compatibility from './pages/Compatibility';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/widget" element={<Widget />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/poll/:code" element={<Layout><PollJoin /></Layout>} />
       <Route
         path="/*"
         element={
@@ -36,6 +39,7 @@ export default function App() {
               <Route path="/coach" element={<Navigate to="/before-the-storm" replace />} />
               <Route path="/cauldron" element={<Hearth />} />
               <Route path="/hearth" element={<Navigate to="/cauldron" replace />} />
+              <Route path="/compatibility" element={<Compatibility />} />
               <Route path="/free" element={<FreePlayground />} />
               <Route path="/oracle/daily" element={<DailyOracle />} />
               <Route path="/guides" element={<Guides />} />

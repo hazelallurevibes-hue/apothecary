@@ -7,6 +7,7 @@ import { translatePet, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ShareBar from '../components/ShareBar';
 import { unlockAchievement } from '../lib/achievements';
+import { recordHistory } from '../lib/historyStore';
 
 export default function Pet() {
   const [hope, setHope] = useState('');
@@ -77,15 +78,20 @@ export default function Pet() {
                 type="button"
                 className="btn-primary w-full"
                 onClick={() => {
-                  setOut(
-                    translatePet({
-                      hope,
-                      fileName: fileMeta?.name,
-                      durationHint: fileMeta?.size,
-                      freePeek: peek,
-                    }),
-                  );
+                  const o = translatePet({
+                    hope,
+                    fileName: fileMeta?.name,
+                    durationHint: fileMeta?.size,
+                    freePeek: peek,
+                  });
+                  setOut(o);
                   unlockAchievement('first_familiar');
+                  recordHistory({
+                    type: 'familiar',
+                    title: 'Familiar Whisperer',
+                    summary: o.translation?.slice(0, 120),
+                    payload: o,
+                  });
                 }}
               >
                 {peek ? 'Peek a translation' : 'Whisper it'}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import SeoHead from '../components/SeoHead';
 import ShareBar from '../components/ShareBar';
@@ -11,19 +11,45 @@ import { HAZEL_LINKS } from '../lib/hazel';
 import { profileBlurb } from '../lib/celestial';
 import { restoreSession } from '../lib/auth';
 import { supabaseAuth } from '../lib/supabaseAuth';
+import {
+  loadHistory,
+  deleteHistory,
+  clearHistory,
+  resultsOnly,
+  formatHistoryLine,
+  recordHistory,
+} from '../lib/historyStore';
+
+const TABS = [
+  { id: 'home', label: 'Today' },
+  { id: 'results', label: 'Results' },
+  { id: 'history', label: 'History' },
+  { id: 'chart', label: 'Chart' },
+  { id: 'badges', label: 'Badges' },
+];
 
 export default function Dashboard() {
   const { user, isPremium, refresh, setUser } = useAuth();
+  const [params, setParams] = useSearchParams();
+  const tab = params.get('tab') || 'home';
+  const setTab = (id) => setParams(id === 'home' ? {} : { tab: id });
   const [celestial, setCelestial] = useState(() => loadLocalProfile());
   const [dob, setDob] = useState(() => loadLocalProfile()?.dob || '');
   const [name, setName] = useState(() => loadLocalProfile()?.birthName || user?.name || '');
   const [fortune, setFortune] = useState(null);
   const [xp, setXp] = useState(() => loadXp());
   const [achievements, setAchievements] = useState(() => unlockedList());
+  const [history, setHistory] = useState(() => loadHistory());
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const fStats = fortuneStats();
+
+  useEffect(() => {
+    const onHist = () => setHistory(loadHistory());
+    window.addEventListener('magic-history', onHist);
+    return () => window.removeEventListener('magic-history', onHist);
+  }, []);
 
   useEffect(() => {
     if (!user) return;
@@ -37,6 +63,18 @@ export default function Dashboard() {
     unlockAchievement('first_fortune');
     setXp(loadXp());
     setAchievements(unlockedList());
+    // record once per day
+    const day = daily.day;
+    const already = loadHistory().some((h) => h.type === 'fortune' && h.payload?.day === day);
+    if (!already) {
+      recordHistory({
+        type: 'fortune',
+        title: 'Daily fortune',
+        summary: String(daily.fortune).slice(0, 100),
+        payload: { day, fortune: daily.fortune, lucky: daily.luckyNumbers, word: daily.word },
+      });
+      setHistory(loadHistory());
+    }
   }, [user?.id, celestial?.dob]);
 
   const saveDob = async () => {
@@ -152,7 +190,97 @@ export default function Dashboard() {
         <p className={`text-xs font-semibold ${err ? 'text-red-600' : 'text-emerald-700'}`}>{err || msg}</p>
       )}
 
+      <div className="flex gap-1 overflow-x-auto pb-1">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-full ${
+              tab === t.id ? 'bg-[#4a1942] text-white' : 'bg-white border border-[#4a1942]/15'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {(tab === 'results' || tab === 'history') && (
+        <section className="space-y-3">
+          <div className="flex justify-between items-center">
+            <h2 className="font-display font-bold text-lg text-[#4a1942]">
+              {tab === 'results' ? 'Polls, courts & outcomes' : 'Full activity history'}
+            </h2>
+            <button
+              type="button"
+              className="text-[10px] text-red-600 underline"
+              onClick={() => {
+                if (window.confirm('Clear all local history on this device?')) {
+                  clearHistory();
+                  setHistory([]);
+                }
+              }}
+            >
+              Clear
+            </button>
+          </div>
+          <p className="text-xs text-[#4a1942]/55">
+            Includes tribunals, live polls, compatibility, fortunes, and anonymous court posts from this
+            browser.
+          </p>
+          {(tab === 'results' ? resultsOnly() : history).length === 0 && (
+            <p className="text-sm text-[#4a1942]/50 card p-4">
+              Nothing yet — try{' '}
+              <Link to="/hearth-court" className="underline">
+                Hearth Court
+              </Link>{' '}
+              or{' '}
+              <Link to="/compatibility" className="underline">
+                Chart harmony
+              </Link>
+              .
+            </p>
+          )}
+          {(tab === 'results' ? resultsOnly() : history).map((h) => (
+            <div key={h.id} className="card p-4 text-sm space-y-2">
+              <div className="flex justify-between gap-2">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-[#c9a227]">{h.type}</span>
+                  <p className="font-bold text-[#4a1942]">{h.title}</p>
+                  <p className="text-xs text-[#4a1942]/60">{formatHistoryLine(h)}</p>
+                </div>
+                <button
+                  type="button"
+                  className="text-[10px] text-red-600 shrink-0"
+                  onClick={() => setHistory(deleteHistory(h.id))}
+                >
+                  Delete
+                </button>
+              </div>
+              {h.payload?.verdict?.cliffNote && (
+                <p className="text-xs italic text-[#4a1942]/75">{h.payload.verdict.cliffNote}</p>
+              )}
+              {h.payload?.code && (
+                <Link to={`/poll/${h.payload.code}`} className="text-xs underline">
+                  Open live poll {h.payload.code}
+                </Link>
+              )}
+              {h.payload?.score != null && (
+                <p className="text-xs font-bold">Score {h.payload.score}% · {h.payload.vibe}</p>
+              )}
+              <ShareBar
+                compact
+                title={h.title}
+                text={h.summary || h.title}
+                meta={h.type}
+              />
+            </div>
+          ))}
+        </section>
+      )}
+
       {/* Daily fortune */}
+      {tab === 'home' && (
       <section className="card p-5 space-y-3 border-[#c9a227]/40">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#c9a227]">
           Daily fortune · logged-in
@@ -197,12 +325,25 @@ export default function Dashboard() {
         )}
         {!celestial && (
           <p className="text-xs text-amber-800 bg-amber-50 rounded-xl p-2">
-            Add your birthday below for celestial + Chinese year personalization.
+            Add your birthday under Chart for celestial + Chinese year personalization.
           </p>
         )}
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Link to="/hearth-court" className="btn-secondary py-1.5 px-3">
+            Hearth Court
+          </Link>
+          <Link to="/compatibility" className="btn-secondary py-1.5 px-3">
+            Chart harmony
+          </Link>
+          <button type="button" className="btn-secondary py-1.5 px-3" onClick={() => setTab('results')}>
+            My results
+          </button>
+        </div>
       </section>
+      )}
 
       {/* DOB / chart */}
+      {(tab === 'chart' || tab === 'home') && (
       <section className="card p-5 space-y-3">
         <h2 className="font-display font-bold text-lg text-[#4a1942]">Celestial chart (DOB)</h2>
         <p className="text-xs text-[#4a1942]/60">
@@ -254,8 +395,10 @@ export default function Dashboard() {
           </div>
         )}
       </section>
+      )}
 
       {/* Quick settings */}
+      {tab === 'home' && (
       <section className="card p-4 space-y-2">
         <h2 className="font-display font-bold text-lg text-[#4a1942]">Quick settings</h2>
         <div className="grid grid-cols-2 gap-2 text-sm">
@@ -273,8 +416,10 @@ export default function Dashboard() {
           </a>
         </div>
       </section>
+      )}
 
       {/* Achievements */}
+      {(tab === 'badges' || tab === 'home') && (
       <section className="card p-4">
         <h2 className="font-display font-bold text-lg text-[#4a1942]">Achievements</h2>
         <div className="grid grid-cols-2 gap-2 mt-3">
@@ -296,6 +441,7 @@ export default function Dashboard() {
           ))}
         </div>
       </section>
+      )}
 
       <ApothecaryFunnel />
     </div>

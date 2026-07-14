@@ -1,5 +1,5 @@
 import fortunesData from '../data/generated/fortunes.js';
-import { buildCelestialProfile } from './celestial';
+import { buildCelestialProfile } from './celestial.js';
 
 function hashStr(s) {
   let h = 2166136261;

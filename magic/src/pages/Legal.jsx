@@ -95,12 +95,22 @@ export default function Legal() {
         <h2 className="font-display font-bold text-xl text-[#4a1942]">4. User content &amp; the Hearth</h2>
         <p>
           You retain ownership of text you write. You grant Hazel Allure a license to host, display, and
-          moderate content you submit to shared features (e.g., anonymous Hearth posts when enabled).
+          moderate content you submit to shared features (e.g., anonymous Hearth posts, anonymous Hearth
+          Court posts, and multi-device polls when enabled).
         </p>
         <p>
           Prohibited: threats, illegal content, doxxing, harassment, CSAM, scams, or using Magic Sanctum to
-          facilitate harm. We may remove content and suspend access. Hearth posts in beta may be
-          device-local; cloud features, if enabled later, remain subject to moderation.
+          facilitate harm. Automated filters may block submissions. We may remove content and suspend access.
+          Device history and local journals remain on your browser until you clear them.
+        </p>
+        <p>
+          <strong>Live polls:</strong> Anyone with the link may vote subject to one-vote-per-device limits.
+          Do not collect illegal data or harass participants. Close polls when finished; results may be stored
+          in your dashboard history on this device and/or cloud tables when configured.
+        </p>
+        <p>
+          <strong>Compatibility / charts:</strong> Get consent before entering another person’s date of birth.
+          Outputs are entertainment, not counseling.
         </p>
       </section>
 

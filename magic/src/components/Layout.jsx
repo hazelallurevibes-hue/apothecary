@@ -12,6 +12,7 @@ const NAV = [
   { to: '/familiar', label: 'Familiar', icon: '🐾' },
   { to: '/before-the-storm', label: 'Storm', icon: '🕯' },
   { to: '/cauldron', label: 'Cauldron', icon: '🔥' },
+  { to: '/compatibility', label: 'Harmony', icon: '💞' },
   { to: '/free', label: 'Free', icon: '🎁' },
   { to: '/guides', label: 'Guides', icon: '📖' },
   { to: '/settings', label: 'Set', icon: '⚙' },

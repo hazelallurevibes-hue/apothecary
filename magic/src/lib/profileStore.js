@@ -1,5 +1,5 @@
-import { buildCelestialProfile, profileBlurb } from './celestial';
-import { supabaseAuth, isAuthConfigured } from './supabaseAuth';
+import { buildCelestialProfile, profileBlurb } from './celestial.js';
+import { supabaseAuth, isAuthConfigured } from './supabaseAuth.js';
 
 const LOCAL_KEY = 'magic_celestial_profile_v1';
 

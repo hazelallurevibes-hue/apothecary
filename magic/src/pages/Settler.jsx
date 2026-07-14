@@ -7,15 +7,25 @@ import ShareBar from '../components/ShareBar';
 import { settleArgument, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import { unlockAchievement } from '../lib/achievements';
+import { recordHistory } from '../lib/historyStore';
+import { moderateSides, POLICY_BLURB } from '../lib/contentPolicy';
+import { createLivePoll, pollShareUrl } from '../lib/pollLive';
+import { postAnonymousCourt, loadAnonCourtFeed } from '../lib/anonCourt';
+import { useAuth } from '../context/AuthContext';
 
 export default function Settler() {
-  const [mode, setMode] = useState('tribunal'); // tribunal | poll
+  const { user } = useAuth();
+  const [mode, setMode] = useState('tribunal'); // tribunal | poll | live | anon
   const [sides, setSides] = useState([
     { label: 'Side A', text: '', votes: 0 },
     { label: 'Side B', text: '', votes: 0 },
   ]);
   const [verdict, setVerdict] = useState(null);
   const [pollNote, setPollNote] = useState('');
+  const [liveCode, setLiveCode] = useState('');
+  const [liveUrl, setLiveUrl] = useState('');
+  const [anonFeed, setAnonFeed] = useState(() => loadAnonCourtFeed());
+  const [err, setErr] = useState('');
   const stats = packStats();
   const b = BRAND.settler;
 
@@ -38,39 +48,50 @@ export default function Settler() {
   };
 
   const runTribunal = (peek) => {
-    const v = settleArgument(sides, { freePeek: peek });
-    setVerdict(v);
-    setPollNote('');
-    if (!v.error) unlockAchievement('first_court');
-  };
-
-  const runPoll = (peek) => {
-    const filled = sides.filter((s) => s.label?.trim());
-    if (filled.length < 2) {
-      setVerdict({ error: 'Add at least 2 participant sides for a poll.' });
+    setErr('');
+    const mod = moderateSides(sides);
+    if (!mod.ok) {
+      setErr(mod.message);
       return;
     }
-    const total = filled.reduce((a, s) => a + (Number(s.votes) || 0), 0);
-    const ranked = [...filled].sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    const v = settleArgument(mod.sides, { freePeek: peek });
+    setVerdict(v);
+    setPollNote('');
+    if (!v.error) {
+      unlockAchievement('first_court');
+      recordHistory({
+        type: 'court',
+        title: 'Hearth Court tribunal',
+        summary: v.shared ? 'Shared moon' : `Edge: ${v.winner}`,
+        payload: { sides: mod.sides, verdict: v },
+      });
+    }
+  };
+
+  const runLocalPoll = (peek) => {
+    setErr('');
+    const mod = moderateSides(sides);
+    if (!mod.ok) {
+      setErr(mod.message);
+      return;
+    }
+    const filled = mod.sides;
+    const total = sides.reduce((a, s) => a + (Number(s.votes) || 0), 0);
+    const ranked = [...sides]
+      .filter((s) => s.label?.trim())
+      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
     const top = ranked[0];
     const tie =
       ranked.length > 1 && (ranked[0].votes || 0) === (ranked[1].votes || 0) && (ranked[0].votes || 0) > 0;
-
-    // blend poll winner with text scoring if text present
-    const textVerdict = settleArgument(
-      sides.map((s) => ({ label: s.label, text: s.text || s.label })),
-      { freePeek: peek },
-    );
-
+    const textVerdict = settleArgument(mod.sides, { freePeek: peek });
     setPollNote(
       total === 0
-        ? 'No votes yet — tap Vote on each side as friends chime in, then close the poll.'
+        ? 'No votes yet — tap Vote, then close.'
         : tie
-          ? 'Poll is tied — Hearth Court offers a shared-moon note.'
-          : `Poll lead: ${top.label} (${top.votes || 0}/${total} votes).`,
+          ? 'Poll tied — shared moon.'
+          : `Poll lead: ${top.label} (${top.votes}/${total}).`,
     );
-
-    setVerdict({
+    const v = {
       ...textVerdict,
       poll: {
         total,
@@ -84,22 +105,67 @@ export default function Settler() {
       },
       winner: total === 0 ? textVerdict.winner : tie ? null : top.label,
       shared: tie || textVerdict.shared,
-    });
+    };
+    setVerdict(v);
     unlockAchievement('first_poll');
     unlockAchievement('first_court');
+    recordHistory({
+      type: 'poll',
+      title: 'Same-device poll',
+      summary: v.shared ? 'Tied / shared' : `Lead: ${v.winner}`,
+      payload: { sides, verdict: v },
+    });
+  };
+
+  const startLive = async () => {
+    setErr('');
+    try {
+      const { code, mode: m } = await createLivePoll({
+        title: 'Hearth Court live poll',
+        sides,
+        hostId: user?.id,
+        hostEmail: user?.email,
+        anonymous: false,
+      });
+      const url = pollShareUrl(code);
+      setLiveCode(code);
+      setLiveUrl(url);
+      setPollNote(`Live poll ${code} (${m}). Share the link — friends vote on their phones.`);
+      unlockAchievement('first_poll');
+      recordHistory({
+        type: 'poll',
+        title: `Live poll ${code}`,
+        summary: 'Opened multi-device poll',
+        payload: { code, url },
+      });
+    } catch (e) {
+      setErr(e.message || 'Could not create live poll');
+    }
+  };
+
+  const runAnon = async (peek) => {
+    setErr('');
+    try {
+      const { post, verdict: v } = await postAnonymousCourt({ sides, peek });
+      setVerdict(v);
+      setAnonFeed(loadAnonCourtFeed());
+      setPollNote('Posted anonymously to the public court feed (sanitized).');
+      unlockAchievement('first_court');
+    } catch (e) {
+      setErr(e.message || 'Anonymous post blocked');
+    }
   };
 
   return (
     <>
       <SeoHead
-        title={`${b.name} — Settle Arguments & Live Polls | Magic Sanctum`}
-        description={`${b.tagline} Tribunal scoring or friend poll mode. Share results. Free peeks.`}
+        title={`${b.name} — Tribunal, Live Polls & Anonymous Rulings`}
+        description="Settle differences: tribunal scoring, multi-device live polls, anonymous posts. History on your dashboard."
         path="/hearth-court"
-        keywords="hearth court, argument poll, settle differences, who is right poll"
       />
       <ProGate
         featureId="hearth_court"
-        teaser={`${b.name}: tribunal scoring or live poll with participants. Free sneak peek truncates notes.`}
+        teaser={`${b.name}: tribunal, same-device poll, multi-device live link, or anonymous public ruling. Free peek truncates notes.`}
       >
         {({ peek }) => (
           <div className="space-y-4">
@@ -109,12 +175,18 @@ export default function Settler() {
               </p>
               <h1 className="font-display font-bold text-3xl text-[#4a1942]">{b.name}</h1>
               <p className="text-sm text-[#4a1942]/65 mt-1">{b.tagline}</p>
+              <p className="text-[10px] text-[#4a1942]/50 mt-2">{POLICY_BLURB}</p>
+              <Link to="/dashboard?tab=results" className="text-xs underline text-[#4a1942]">
+                View your poll & court history →
+              </Link>
             </div>
 
             <div className="flex flex-wrap gap-2">
               {[
-                { id: 'tribunal', label: 'Tribunal (AI-free scoring)' },
-                { id: 'poll', label: 'Live poll + friends' },
+                { id: 'tribunal', label: 'Tribunal' },
+                { id: 'poll', label: 'Same-device poll' },
+                { id: 'live', label: 'Multi-device live' },
+                { id: 'anon', label: 'Anonymous post' },
               ].map((m) => (
                 <button
                   key={m.id}
@@ -122,11 +194,10 @@ export default function Settler() {
                   onClick={() => {
                     setMode(m.id);
                     setVerdict(null);
+                    setErr('');
                   }}
                   className={`text-xs font-bold px-3 py-1.5 rounded-full border ${
-                    mode === m.id
-                      ? 'bg-[#4a1942] text-white border-[#4a1942]'
-                      : 'border-[#4a1942]/20'
+                    mode === m.id ? 'bg-[#4a1942] text-white border-[#4a1942]' : 'border-[#4a1942]/20'
                   }`}
                 >
                   {m.label}
@@ -134,10 +205,16 @@ export default function Settler() {
               ))}
             </div>
 
-            {mode === 'poll' && (
-              <p className="text-xs text-[#4a1942]/65 bg-amber-50 border border-amber-100 rounded-xl p-3">
-                Poll mode: name each participant/side, optional argument text, then tap <strong>Vote</strong>{' '}
-                as people chime in (same device or pass the phone). Close poll for ranked results + cliff notes.
+            {mode === 'live' && (
+              <p className="text-xs bg-amber-50 border border-amber-100 rounded-xl p-3 text-[#4a1942]/75">
+                Create a code, share the link. Friends open it on their phones and vote — results stream live
+                on <code className="text-[10px]">/poll/CODE</code>.
+              </p>
+            )}
+            {mode === 'anon' && (
+              <p className="text-xs bg-rose-50 border border-rose-100 rounded-xl p-3 text-[#4a1942]/75">
+                Anonymous public feed — no names. Content still must follow agreements (no threats, doxxing,
+                illegal content). Saved to history as anonymous.
               </p>
             )}
 
@@ -148,7 +225,7 @@ export default function Settler() {
                     className="input flex-1"
                     value={s.label}
                     onChange={(e) => setSide(i, { label: e.target.value })}
-                    placeholder={mode === 'poll' ? `Participant ${i + 1}` : `Side ${i + 1}`}
+                    placeholder={mode === 'poll' || mode === 'live' ? `Participant ${i + 1}` : `Side ${i + 1}`}
                   />
                   {mode === 'poll' && (
                     <button type="button" className="btn-primary text-xs shrink-0 px-3" onClick={() => vote(i)}>
@@ -160,31 +237,53 @@ export default function Settler() {
                   className="textarea"
                   value={s.text}
                   onChange={(e) => setSide(i, { text: e.target.value })}
-                  placeholder={
-                    mode === 'poll'
-                      ? 'Optional: their one-liner argument…'
-                      : 'Their argument in their words…'
-                  }
+                  placeholder="Their argument…"
                   maxLength={800}
                 />
               </div>
             ))}
 
-            <div className="flex gap-2">
-              <button type="button" className="btn-secondary" onClick={addSide} disabled={sides.length >= 4}>
-                Add {mode === 'poll' ? 'participant' : 'side'} ({sides.length}/4)
-              </button>
-              <button
-                type="button"
-                className="btn-primary flex-1"
-                onClick={() => (mode === 'poll' ? runPoll(peek) : runTribunal(peek))}
-              >
-                {mode === 'poll' ? 'Close poll & rule' : peek ? 'Peek ruling' : 'Convene Court'}
-              </button>
-            </div>
-
-            {verdict?.error && <p className="text-sm text-red-600">{verdict.error}</p>}
+            {err && <p className="text-sm text-red-600">{err}</p>}
             {pollNote && <p className="text-xs font-semibold text-[#4a1942]">{pollNote}</p>}
+
+            {liveCode && (
+              <div className="card p-4 space-y-2 border-[#c9a227]/40">
+                <p className="font-mono text-lg font-bold text-[#4a1942]">{liveCode}</p>
+                <a href={liveUrl} className="text-xs underline break-all">
+                  {liveUrl}
+                </a>
+                <ShareBar title="Hearth Court live poll" text={`Vote now: ${liveCode}`} url={liveUrl} />
+                <Link to={`/poll/${liveCode}`} className="btn-primary text-sm text-center block">
+                  Open live results board
+                </Link>
+              </div>
+            )}
+
+            <div className="flex gap-2 flex-wrap">
+              <button type="button" className="btn-secondary" onClick={addSide} disabled={sides.length >= 4}>
+                Add ({sides.length}/4)
+              </button>
+              {mode === 'tribunal' && (
+                <button type="button" className="btn-primary flex-1" onClick={() => runTribunal(peek)}>
+                  {peek ? 'Peek ruling' : 'Convene Court'}
+                </button>
+              )}
+              {mode === 'poll' && (
+                <button type="button" className="btn-primary flex-1" onClick={() => runLocalPoll(peek)}>
+                  Close poll & rule
+                </button>
+              )}
+              {mode === 'live' && (
+                <button type="button" className="btn-primary flex-1" onClick={startLive}>
+                  Create multi-device poll
+                </button>
+              )}
+              {mode === 'anon' && (
+                <button type="button" className="btn-primary flex-1" onClick={() => runAnon(peek)}>
+                  Post anonymously
+                </button>
+              )}
+            </div>
 
             {verdict && !verdict.error && (
               <div className="card p-5 space-y-3">
@@ -193,7 +292,6 @@ export default function Settler() {
                     ? 'Shared moon — both hold pieces'
                     : `Playful edge: ${verdict.winner || verdict.poll?.winner}`}
                 </p>
-
                 {verdict.poll?.ranked && (
                   <div className="space-y-2">
                     {verdict.poll.ranked.map((r) => (
@@ -214,38 +312,32 @@ export default function Settler() {
                     ))}
                   </div>
                 )}
-
-                <p className="text-sm italic text-[#4a1942]/80">{verdict.cliffNote}</p>
-                <p className="text-xs text-[#4a1942]/60">{verdict.template?.note}</p>
-                {verdict.sides && (
-                  <ul className="space-y-2">
-                    {verdict.sides.map((s) => (
-                      <li key={s.label} className="rounded-xl bg-[#4a1942]/5 p-3 text-sm">
-                        <span className="font-bold">{s.label}</span>
-                        <span className="text-[10px] ml-2">score {s.score}</span>
-                        <ul className="mt-1 text-xs list-disc pl-4">
-                          {s.notes.map((n) => (
-                            <li key={n}>{n}</li>
-                          ))}
-                        </ul>
-                      </li>
-                    ))}
-                  </ul>
-                )}
+                <p className="text-sm italic">{verdict.cliffNote}</p>
                 <p className="text-[10px] text-red-600">{verdict.disclaimer || DISCLAIMER}</p>
                 <ShareBar
-                  title="Hearth Court ruling"
+                  title="Hearth Court"
                   text={
-                    verdict.shared || verdict.poll?.tie
+                    verdict.shared
                       ? `Hearth Court: shared moon. ${verdict.cliffNote || ''}`
                       : `Hearth Court edge: ${verdict.winner}. ${verdict.cliffNote || ''}`
                   }
-                  meta={
-                    verdict.poll
-                      ? `Poll ${verdict.poll.ranked.map((r) => `${r.label} ${r.pct}%`).join(' · ')}`
-                      : 'Tribunal mode'
-                  }
                 />
+                <Link to="/dashboard?tab=results" className="text-xs underline">
+                  Saved to your results →
+                </Link>
+              </div>
+            )}
+
+            {mode === 'anon' && anonFeed.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-bold uppercase text-[#4a1942]/40">Anonymous court feed</p>
+                {anonFeed.slice(0, 5).map((p) => (
+                  <div key={p.id} className="card p-3 text-xs">
+                    <p className="font-bold">{p.summary}</p>
+                    <p className="italic mt-1">{p.cliffNote}</p>
+                    <p className="text-[10px] opacity-50 mt-1">{new Date(p.createdAt).toLocaleString()}</p>
+                  </div>
+                ))}
               </div>
             )}
 

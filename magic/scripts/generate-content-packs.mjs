@@ -239,7 +239,7 @@ fs.writeFileSync(path.join(OUT, 'packs.json'), JSON.stringify(out));
 // For Vite, JSON import works: import packs from './packs.json'
 fs.writeFileSync(
   path.join(OUT, 'packs.js'),
-  `/** Auto-generated — full library */\nimport data from './packs.json';\nexport default data;\nexport const BRAND = data.brand;\nexport const COUNTS = data.counts;\n`,
+  `/** Auto-generated — full library */\nimport data from './packs.json' with { type: 'json' };\nexport default data;\nexport const BRAND = data.brand;\nexport const COUNTS = data.counts;\n`,
 );
 
 // SEO hub stubs written as JS for pages
@@ -422,6 +422,7 @@ const today = new Date().toISOString().slice(0, 10);
 const staticPaths = [
   ['/', '1.0', 'daily'],
   ['/dashboard', '0.85', 'daily'],
+  ['/compatibility', '0.88', 'weekly'],
   ['/hearth-court', '0.9', 'weekly'],
   ['/familiar', '0.9', 'weekly'],
   ['/before-the-storm', '0.9', 'weekly'],

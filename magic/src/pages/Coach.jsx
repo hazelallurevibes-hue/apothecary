@@ -7,6 +7,7 @@ import { coachArgument, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ShareBar from '../components/ShareBar';
 import { unlockAchievement } from '../lib/achievements';
+import { recordHistory } from '../lib/historyStore';
 
 const SITUATIONS = [
   'chores', 'money', 'in-laws', 'plans', 'tone of voice', 'lateness', 'phones at dinner',
@@ -88,8 +89,15 @@ export default function Coach() {
                 type="button"
                 className="btn-primary w-full"
                 onClick={() => {
-                  setOut(coachArgument({ situation, stage, detail, freePeek: peek }));
+                  const o = coachArgument({ situation, stage, detail, freePeek: peek });
+                  setOut(o);
                   unlockAchievement('first_storm');
+                  recordHistory({
+                    type: 'storm',
+                    title: 'Before the Storm',
+                    summary: o.primary?.opener?.slice(0, 100),
+                    payload: { situation, stage, ...o },
+                  });
                 }}
               >
                 {peek ? 'Peek one card' : 'Draw insight'}
