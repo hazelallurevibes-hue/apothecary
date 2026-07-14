@@ -4,6 +4,7 @@ import { HAZEL_LINKS } from '../lib/hazel';
 import { loadSettings, saveSettings } from '../lib/storage';
 import { APP_VERSION } from '../lib/appVersion';
 import { packStats } from '../lib/engines';
+import { Link } from 'react-router-dom';
 
 export default function Settings() {
   const { user, isPremium, isAdmin, refresh } = useAuth();
@@ -92,8 +93,21 @@ export default function Settings() {
       <div className="card p-4 text-xs text-[#4a1942]/55 space-y-1">
         <p>App version v{APP_VERSION}</p>
         <p>
-          Content packs: pet {stats.petPhrases} · coach {stats.coachEntries} · cliff notes{' '}
-          {stats.settlerCliff}
+          Libraries: Familiar Whisperer {stats.petPhrases} · Before the Storm {stats.coachEntries} ·
+          Hearth Court notes {stats.settlerCliff}
+        </p>
+        <p>
+          <Link to="/legal" className="underline">
+            Magic policies
+          </Link>{' '}
+          ·{' '}
+          <Link to="/guides" className="underline">
+            Guides
+          </Link>{' '}
+          ·{' '}
+          <a href="/sitemap.xml" className="underline">
+            Sitemap
+          </a>
         </p>
       </div>
     </div>

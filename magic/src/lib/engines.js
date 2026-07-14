@@ -22,6 +22,8 @@ export const ORACLE_ANSWERS = [
   { text: 'ASK AGAIN LATER', tone: 'maybe' },
   { text: 'THE MOON SAYS YES', tone: 'yes' },
   { text: 'NOT THIS PATH', tone: 'no' },
+  { text: 'SIP WATER FIRST', tone: 'maybe' },
+  { text: 'THE FAMILIAR APPROVES', tone: 'yes' },
 ];
 
 export function askOracle(question, mode = 'classic') {
@@ -38,6 +40,8 @@ export function askOracle(question, mode = 'classic') {
       'Reverse the question — what do you already know?',
       'The hearth warms what you feed it.',
       'Even the sphere shrugs sometimes — that is wisdom too.',
+      'Softness is not weakness; it is strategy.',
+      'Leave the scoreboard outside the sanctum.',
     ];
     return { text: pick(proverbs, seed), kind: 'proverb' };
   }
@@ -48,11 +52,14 @@ export function flipCoin() {
   return Math.random() < 0.5 ? 'yes' : 'no';
 }
 
+export function freeDailyLine() {
+  return pick(packs.freeSphereLines, String(Math.floor(Date.now() / 86400000)));
+}
+
 /**
- * Argument settler — offline heuristic (entertainment).
- * Scores sides by length, specificity markers, absolute words, solution words.
+ * Hearth Court — offline heuristic (entertainment).
  */
-export function settleArgument(sides) {
+export function settleArgument(sides, { freePeek = false } = {}) {
   const cleaned = (sides || [])
     .map((s, i) => ({
       index: i,
@@ -63,25 +70,17 @@ export function settleArgument(sides) {
     .slice(0, 4);
 
   if (cleaned.length < 2) {
-    return { error: 'Need at least 2 sides with text.' };
+    return { error: 'Hearth Court needs at least 2 sides with text.' };
   }
 
   const scoreSide = (s) => {
     const t = s.text.toLowerCase();
     let score = Math.min(40, t.length / 8);
-    const specifics = (t.match(/\b(because|when|on|after|before|exactly|specifically|\d+)\b/g) || [])
-      .length;
-    score += specifics * 6;
-    const solutions = (t.match(/\b(let's|we can|next|plan|try|agree|compromise|schedule)\b/g) || [])
-      .length;
-    score += solutions * 8;
-    const absolutes = (t.match(/\b(always|never|everyone|nobody|hate|stupid)\b/g) || []).length;
-    score -= absolutes * 7;
-    const attacks = (t.match(/\b(you always|you never|your fault|idiot|liar)\b/g) || []).length;
-    score -= attacks * 10;
-    const empathy = (t.match(/\b(i feel|i hear|we both|together|sorry|understand)\b/g) || [])
-      .length;
-    score += empathy * 7;
+    score += (t.match(/\b(because|when|on|after|before|exactly|specifically|\d+)\b/g) || []).length * 6;
+    score += (t.match(/\b(let's|we can|next|plan|try|agree|compromise|schedule)\b/g) || []).length * 8;
+    score -= (t.match(/\b(always|never|everyone|nobody|hate|stupid)\b/g) || []).length * 7;
+    score -= (t.match(/\b(you always|you never|your fault|idiot|liar)\b/g) || []).length * 10;
+    score += (t.match(/\b(i feel|i hear|we both|together|sorry|understand)\b/g) || []).length * 7;
     return score;
   };
 
@@ -93,7 +92,7 @@ export function settleArgument(sides) {
   const second = ranked[1];
   const close = Math.abs(top.score - second.score) < 8;
   const template = pick(packs.verdictTemplates, top.text + second.text);
-  const cliff = pick(packs.settlerCliff, top.text);
+  const cliff = pick(packs.settlerCliff, top.text + Date.now());
 
   const notes = ranked.map((s, i) => {
     const bits = [];
@@ -102,37 +101,40 @@ export function settleArgument(sides) {
     if (/\b(let's|plan|try|agree)\b/i.test(s.text)) bits.push('Offered a path forward.');
     if (/\bi feel\b/i.test(s.text)) bits.push('Owned feeling language — solid.');
     if (!bits.length) bits.push('Middle of the pack; more specifics would help.');
-    return { label: s.label, score: Math.round(s.score), notes: bits };
+    return { label: s.label, score: Math.round(s.score), notes: freePeek ? bits.slice(0, 1) : bits };
   });
 
   return {
     winner: close ? null : top.label,
     shared: close,
     template,
-    cliffNote: cliff,
-    sides: notes,
+    cliffNote: freePeek ? `${String(cliff).slice(0, 80)}…` : cliff,
+    sides: freePeek ? notes.slice(0, 2) : notes,
+    librarySize: packs.counts?.settlerCliff || packs.settlerCliff?.length || 0,
+    freePeek,
     disclaimer:
-      'Entertainment only. Not legal, therapeutic, or professional mediation. The sanctum is playful, not a courtroom.',
+      'Entertainment only. Not legal, therapeutic, or professional mediation. Hearth Court is playful theater.',
   };
 }
 
-export function translatePet({ hope, fileName, durationHint }) {
+export function translatePet({ hope, fileName, durationHint, freePeek = false } = {}) {
   const seed = `${hope || ''}|${fileName || ''}|${durationHint || ''}|${Date.now()}`;
   const phrase = pick(packs.petPhrases, seed);
   const hopeLine = hope
-    ? `You hoped they meant: "${hope}". The sanctum hears something adjacent — or delightfully wrong.`
-    : 'No hope text given — pure chaos translation engaged.';
+    ? `You hoped they meant: "${hope}". The Familiar Whisperer hears something adjacent — or delightfully wrong.`
+    : 'No hope text — pure chaos translation engaged.';
   return {
-    translation: phrase,
-    hopeLine,
-    confidence: 40 + (hashStr(seed) % 45),
+    translation: freePeek ? `${String(phrase).slice(0, 90)}…` : phrase,
+    hopeLine: freePeek ? 'Pro unlocks the full translation vault + confidence theater.' : hopeLine,
+    confidence: freePeek ? 33 + (hashStr(seed) % 12) : 40 + (hashStr(seed) % 45),
     librarySize: packs.counts?.petPhrases || packs.petPhrases?.length || 0,
+    freePeek,
     disclaimer:
-      'Pet translator is pure whimsy. Your familiar has not been scientifically decoded.',
+      'Familiar Whisperer is pure whimsy. Your pet has not been scientifically decoded.',
   };
 }
 
-export function coachArgument({ situation, stage, detail }) {
+export function coachArgument({ situation, stage, detail, freePeek = false } = {}) {
   const pool = packs.coachEntries || [];
   const sit = (situation || '').toLowerCase();
   const stageKey = (stage || '').toLowerCase();
@@ -144,20 +146,33 @@ export function coachArgument({ situation, stage, detail }) {
   if (filtered.length < 5) filtered = pool;
   const seed = `${situation}|${stage}|${detail}|${Date.now()}`;
   const primary = pick(filtered, seed);
-  const alts = [1, 2, 3].map((n) => pick(filtered, seed + n)).filter(Boolean);
+  const alts = freePeek
+    ? []
+    : [1, 2, 3].map((n) => pick(filtered, seed + n)).filter(Boolean);
   return {
-    primary,
+    primary: freePeek
+      ? {
+          ...primary,
+          shouldHaveSaid: 'Pro unlocks “what might have helped” lines + more cards.',
+          insight: primary?.insight,
+        }
+      : primary,
     alternatives: alts,
     librarySize: pool.length,
+    freePeek,
     disclaimer:
       'Insight cards are scripted entertainment and pattern language — not therapy or legal counsel.',
   };
 }
 
 export function randomVentPrompt() {
-  return pick(packs.ventPrompts, String(Date.now())) || 'Write what the hearth can hold.';
+  return pick(packs.ventPrompts, String(Date.now())) || 'Write what the cauldron can hold.';
 }
 
 export function packStats() {
   return packs.counts || {};
+}
+
+export function brandFromPacks() {
+  return packs.brand || {};
 }

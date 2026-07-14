@@ -18,6 +18,7 @@ export default function PoliciesProcedures() {
           ['#moderation', 'Moderation'],
           ['#prohibited', 'Prohibited'],
           ['#apothecary', 'Apothecary'],
+          ['#magic-sanctum', 'Magic Sanctum'],
           ['#verification', 'Verification'],
           ['#dmca', 'DMCA'],
           ['#arbitration', 'Arbitration'],
@@ -195,6 +196,47 @@ export default function PoliciesProcedures() {
       </section>
 
       {/* 12 */}
+      <section id="magic-sanctum" className="mb-10">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">Magic Sanctum (magic.hazelallure.com)</h2>
+        <div className="space-y-3 text-gray-700 text-sm leading-relaxed">
+          <p>
+            <strong>Scope.</strong> Magic Sanctum is a Hazel Allure companion product at{' '}
+            <a href="https://magic.hazelallure.com" className="underline text-[#4a1942]" target="_blank" rel="noopener noreferrer">
+              magic.hazelallure.com
+            </a>
+            . It offers entertainment tools including the Sanctum Sphere, Heaven &amp; Ember Coin, Hearth Court,
+            Familiar Whisperer, Before the Storm, Frustration Cauldron, free guides, and related features.
+            Detailed Magic-specific terms also appear at{' '}
+            <a href="https://magic.hazelallure.com/legal" className="underline text-[#4a1942]" target="_blank" rel="noopener noreferrer">
+              magic.hazelallure.com/legal
+            </a>
+            . These Policies apply to Magic Sanctum as an affiliated domain.
+          </p>
+          <p>
+            <strong>Entertainment only.</strong> Magic Sanctum outputs are for fun and personal reflection — not
+            medical, psychological, legal, financial, safety, custody, or professional advice. Hearth Court is not
+            mediation or arbitration. Familiar Whisperer is not veterinary or behavioral diagnosis. Before the Storm
+            cards are scripted prompts, not therapy. Do not use Magic Sanctum in emergencies.
+          </p>
+          <p>
+            <strong>Accounts &amp; Pro.</strong> Magic Sanctum uses the shared Hazel Allure account system. Free users
+            may access Sphere, Heaven &amp; Ember, private journal, educational guides, and limited sneak peeks of Pro
+            libraries. Full Pro libraries and anonymous Hearth posts unlock when the seeker or vendor holds an active
+            Pro plan (or admin access) as reflected on their Hazel profile. Billing for Pro remains under apothecary
+            Stripe checkout and the Legal Agreements.
+          </p>
+          <p>
+            <strong>User content.</strong> Private journal entries may remain on-device. Shared/anonymous Hearth content
+            (when enabled) must not include threats, illegal material, harassment, or doxxing. We may remove content and
+            suspend access for violations consistent with the Moderation and Prohibited sections of these Policies.
+          </p>
+          <p>
+            <strong>Marketing funnel.</strong> Free Magic Sanctum features may promote {VERTICAL.appUrl} products,
+            practitioners, and Pro upgrades. Promotional links do not change the entertainment-only nature of Magic tools.
+          </p>
+        </div>
+      </section>
+
       <section id="apothecary" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">12. Apothecary product safety &amp; labeling</h2>
         <p className="text-gray-700 mb-4 text-sm">{VERTICAL.copy.productSafetyNote}</p>

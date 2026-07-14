@@ -27,6 +27,7 @@ export default function Agreements() {
         <a href="#gathering" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Community Gathering</a>
         <a href="#certificates" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Certificates</a>
         <a href="#entertainment" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Entertainment</a>
+        <a href="#magic-sanctum" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Magic Sanctum</a>
         <a href="#email" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Email Campaigns</a>
         <a href="#stripe-connect" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Stripe Connect</a>
         <a href="#ip" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">IP Ownership</a>
@@ -150,6 +151,38 @@ export default function Agreements() {
           <p><strong>4d.4 Daily oracle &amp; moon mood.</strong> Poetic oracle lines, footer haiku, and practitioner &quot;moon mood&quot; badges are atmospheric design — not forecasts, endorsements, or scheduling guarantees.</p>
           <p><strong>4d.5 Checkout fortunes.</strong> Playful post-checkout messages are ceremonial delight only — not financial, medical, or fulfillment advice.</p>
           <p><strong>4d.6 Voice blessings &amp; playlists.</strong> Optional practitioner voice-note links and cohort playlist URLs are user-supplied content. Hazel Allure does not host, verify, or endorse audio or third-party streaming links.</p>
+        </div>
+      </section>
+
+      <section id="magic-sanctum" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">4e. Magic Sanctum companion app</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p>
+            <strong>4e.1 Product.</strong> Magic Sanctum at{' '}
+            <a href="https://magic.hazelallure.com" className="underline text-[#4a1942]" target="_blank" rel="noopener noreferrer">
+              magic.hazelallure.com
+            </a>{' '}
+            is an affiliated Hazel Allure experience offering Sanctum Sphere, Heaven &amp; Ember Coin, Hearth Court,
+            Familiar Whisperer, Before the Storm, Frustration Cauldron, free guides, and related tools. Full Magic-specific
+            policy text is published at{' '}
+            <a href="https://magic.hazelallure.com/legal" className="underline text-[#4a1942]" target="_blank" rel="noopener noreferrer">
+              magic.hazelallure.com/legal
+            </a>
+            .
+          </p>
+          <p>
+            <strong>4e.2 Entertainment only.</strong> Magic Sanctum results are amusement and reflection aids — not medical,
+            legal, financial, therapeutic, veterinary, or professional advice. Hearth Court is not binding dispute resolution.
+          </p>
+          <p>
+            <strong>4e.3 Shared accounts &amp; Pro.</strong> Magic uses the same account system as {VERTICAL.appUrl}. Pro
+            libraries on Magic unlock with customer Pro, vendor Pro, or admin status. Billing and refunds for Pro remain under
+            Stripe and these Agreements. Free users keep Sphere, coin, private journal, guides, and limited sneak peeks.
+          </p>
+          <p>
+            <strong>4e.4 User content.</strong> Journal and Hearth content must comply with prohibited-use rules. You grant
+            Hazel Allure a license to host and moderate content you submit to shared Magic features.
+          </p>
         </div>
       </section>
 

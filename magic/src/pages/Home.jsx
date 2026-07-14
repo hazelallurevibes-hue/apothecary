@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { askOracle, flipCoin, packStats } from '../lib/engines';
+import { askOracle, flipCoin, freeDailyLine, packStats } from '../lib/engines';
 import { HAZEL_LINKS } from '../lib/hazel';
+import { BRAND, DISCLAIMER } from '../lib/brand';
+import ApothecaryFunnel from '../components/ApothecaryFunnel';
+import SeoHead from '../components/SeoHead';
+import JsonLd from '../components/JsonLd';
 
 export default function Home() {
   const { isPremium, can } = useAuth();
@@ -12,6 +16,7 @@ export default function Home() {
   const [coin, setCoin] = useState(null);
   const [flipping, setFlipping] = useState(false);
   const stats = packStats();
+  const daily = freeDailyLine();
 
   const reveal = () => {
     if (mode === 'coin') {
@@ -25,29 +30,72 @@ export default function Home() {
       return;
     }
     if (mode === 'reverse' && !can('reverse_oracle')) {
-      setResult({ text: 'Sign in with Pro for reverse oracle proverbs.', kind: 'locked' });
+      setResult({ text: 'Moon Mirror Proverbs unlock with Pro — sneak a free sphere answer instead.', kind: 'locked' });
       return;
     }
     setCoin(null);
     setResult(askOracle(q, mode === 'reverse' ? 'reverse' : 'classic'));
   };
 
+  const tools = [
+    { ...BRAND.settler, path: BRAND.settler.route, count: `${stats.settlerCliff || '2k+'} notes` },
+    { ...BRAND.pet, path: BRAND.pet.route, count: `${stats.petPhrases || '2k+'} phrases` },
+    { ...BRAND.coach, path: BRAND.coach.route, count: `${stats.coachEntries || '2k+'} insights` },
+    { ...BRAND.journal, path: BRAND.journal.route, count: 'Free journal' },
+    { name: 'Desk Orb', emoji: '🖥', tagline: 'Installable companion', path: '/widget', pro: false, count: 'PWA' },
+    { name: 'Free playground', emoji: '🎁', tagline: 'Guides, daily ink, peeks', path: '/free', pro: false, count: 'SEO + fun' },
+  ];
+
   return (
     <div className="space-y-6">
+      <SeoHead
+        title="Magic Sanctum — Free Sphere, Coin Flip & Pro Drama Tools | Hazel Allure"
+        description="Sanctum Sphere, Heaven & Ember Coin, Hearth Court, Familiar Whisperer, Before the Storm. Free tools + Pro libraries. Entertainment only."
+        path="/"
+      />
+      <JsonLd
+        data={{
+          '@context': 'https://schema.org',
+          '@type': 'WebApplication',
+          name: 'Magic Sanctum',
+          url: 'https://magic.hazelallure.com',
+          applicationCategory: 'EntertainmentApplication',
+          operatingSystem: 'Web',
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+          description:
+            'Free magic 8 ball style sphere, heaven/ember coin flip, and Pro tools for playful argument settling, pet translation, and pre-argument coaching.',
+          publisher: {
+            '@type': 'Organization',
+            name: 'Hazel Allure',
+            url: 'https://apothecary.hazelallure.com',
+          },
+        }}
+      />
+
       <section className="text-center">
-        <h1 className="font-display font-bold text-3xl text-[#4a1942]">Ask the sanctum</h1>
-        <p className="text-sm text-[#4a1942]/65 mt-2 max-w-md mx-auto">
-          Sphere, heaven/hell coin, and playful tools — same hearth personality as Hazel Allure.
-          Pro unlocks the full library.
+        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#c9a227]">Hazel Allure · Magic Sanctum</p>
+        <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#4a1942] mt-1">
+          Ask the sanctum
+        </h1>
+        <p className="text-sm text-[#4a1942]/65 mt-2 max-w-md mx-auto leading-relaxed">
+          Free sphere & coin for every seeker. Pro unlocks Hearth Court, Familiar Whisperer, and Before
+          the Storm — with free sneak peeks so you feel the magic first.
         </p>
       </section>
+
+      <div className="card px-4 py-3 text-sm italic text-[#4a1942]/80 border-[#c9a227]/30 bg-gradient-to-r from-amber-50/50 to-white">
+        <span className="not-italic font-bold text-[10px] uppercase tracking-widest text-[#c9a227] mr-2">
+          Free daily ink
+        </span>
+        {daily}
+      </div>
 
       <section className="card p-5">
         <div className="flex flex-wrap gap-2 mb-4">
           {[
-            { id: 'classic', label: '8-ball' },
-            { id: 'reverse', label: 'Proverb', pro: true },
-            { id: 'coin', label: 'Coin flip' },
+            { id: 'classic', label: 'Sanctum Sphere' },
+            { id: 'reverse', label: 'Moon Mirror', pro: true },
+            { id: 'coin', label: 'Heaven & Ember' },
           ].map((m) => (
             <button
               key={m.id}
@@ -82,11 +130,12 @@ export default function Home() {
         {mode === 'coin' && (
           <p className="text-xs text-[#4a1942]/70 mb-3">
             One face: a <strong>heaven-scape YES</strong>. The other: a <strong>hell-scape NO</strong>.
+            Free. Viral. Theatrical.
           </p>
         )}
 
         <button type="button" className="btn-primary w-full" onClick={reveal} disabled={flipping}>
-          {flipping ? 'Spinning…' : mode === 'coin' ? 'Flip the coin' : 'Reveal'}
+          {flipping ? 'Spinning…' : mode === 'coin' ? 'Flip Heaven & Ember' : 'Reveal'}
         </button>
 
         {mode === 'coin' && (flipping || coin) && (
@@ -118,7 +167,7 @@ export default function Home() {
         {result && mode !== 'coin' && (
           <div
             className={`mt-4 rounded-2xl p-5 text-center ${
-              result.kind === 'proverb'
+              result.kind === 'proverb' || result.kind === 'locked'
                 ? 'bg-indigo-50 text-indigo-950 italic'
                 : result.tone === 'yes'
                   ? 'bg-emerald-50 text-emerald-900 font-bold text-2xl'
@@ -131,40 +180,63 @@ export default function Home() {
           </div>
         )}
 
-        <p className="mt-3 text-[10px] text-center text-red-600">
-          Not real advice. Entertainment only.
-        </p>
+        <p className="mt-3 text-[10px] text-center text-red-600">{DISCLAIMER}</p>
       </section>
 
       <section className="grid sm:grid-cols-2 gap-3">
-        {[
-          { to: '/settler', title: 'Argument settler', desc: '2–4 sides → playful verdict + cliff notes', pro: true },
-          { to: '/pet', title: 'Pet translator', desc: `Upload vibe + hope text · ${stats.petPhrases || '1000+'} phrases`, pro: true },
-          { to: '/coach', title: 'Pre-argument coach', desc: `${stats.coachEntries || '1000+'} insights with filters`, pro: true },
-          { to: '/hearth', title: 'Frustration box', desc: 'Private journal + anonymous hearth posts', pro: false },
-          { to: '/widget', title: 'Desktop companion', desc: 'Installable mini sphere over your day', pro: false },
-          { to: '/settings', title: 'Settings', desc: 'Profile prefs · link to Hazel account', pro: false },
-        ].map((f) => (
-          <Link key={f.to} to={f.to} className="card p-4 hover:border-[#4a1942]/30 transition">
+        {tools.map((f) => (
+          <Link key={f.path + f.name} to={f.path} className="card p-4 hover:border-[#4a1942]/30 transition">
             <p className="font-display font-bold text-[#4a1942]">
-              {f.title}
-              {f.pro && <span className="chip-pro ml-2 align-middle">Pro</span>}
+              <span className="mr-1">{f.emoji}</span>
+              {f.name}
+              {f.pro && <span className="chip-pro ml-2 align-middle">Pro · free peek</span>}
             </p>
-            <p className="text-xs text-[#4a1942]/60 mt-1">{f.desc}</p>
+            <p className="text-xs text-[#4a1942]/60 mt-1">{f.tagline}</p>
+            <p className="text-[10px] text-[#c9a227] mt-2 font-bold uppercase tracking-wide">{f.count}</p>
           </Link>
         ))}
+      </section>
+
+      <section className="card p-4">
+        <h2 className="font-display font-bold text-lg text-[#4a1942]">Guides for seekers (SEO + lore)</h2>
+        <ul className="mt-2 space-y-1 text-sm">
+          <li>
+            <Link className="underline text-[#4a1942]" to="/guides">
+              All Magic Sanctum guides
+            </Link>
+          </li>
+          <li>
+            <Link className="underline" to="/guides/hearth-court">
+              How Hearth Court works
+            </Link>
+          </li>
+          <li>
+            <Link className="underline" to="/guides/familiar-whisperer">
+              Familiar Whisperer explained
+            </Link>
+          </li>
+          <li>
+            <Link className="underline" to="/legal">
+              Policies & entertainment disclaimers
+            </Link>
+          </li>
+        </ul>
       </section>
 
       {!isPremium && (
         <div className="card p-4 text-center bg-gradient-to-br from-[#4a1942]/5 to-[#c9a227]/10">
           <p className="text-sm text-[#4a1942]/80">
-            Pro on Hazel Allure unlocks settler, pet talk, coach, reverse oracle, and hearth posts.
+            Free forever: Sphere, Heaven & Ember, Cauldron journal, daily ink, sneak peeks.
+            <br />
+            Pro: full 2k+ libraries + Hearth posts — same plan as the apothecary.
           </p>
           <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary mt-3 inline-flex">
             Become Pro
           </a>
         </div>
       )}
+
+      <ApothecaryFunnel />
     </div>
   );
 }

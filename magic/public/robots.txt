@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /auth/callback
+Disallow: /widget
+
+Sitemap: https://magic.hazelallure.com/sitemap.xml
