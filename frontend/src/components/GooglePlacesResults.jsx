@@ -6,7 +6,8 @@ export default function GooglePlacesResults({ query, coords, onPlacesChange }) {
   const [places, setPlaces] = useState([]);
   const [loading, setLoading] = useState(false);
   const [configured, setConfigured] = useState(true);
-  const [enabled, setEnabled] = useState(false);
+  // Auto-open when user has a real query + coords (Places API New / text search)
+  const [enabled, setEnabled] = useState(() => Boolean(query && String(query).trim().length >= 3));
 
   const q = (query || '').trim();
 

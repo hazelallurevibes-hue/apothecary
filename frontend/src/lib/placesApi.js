@@ -1,4 +1,5 @@
-/** Client for Bpicius Google Places search (server-proxied, cost-capped). */
+/** Client for Google Places (New) text search — server-proxied, cost-capped. */
+
 
 let lastFetch = 0;
 const MIN_INTERVAL_MS = 1200;

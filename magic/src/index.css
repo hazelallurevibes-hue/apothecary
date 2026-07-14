@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sanctum-ink: #1a0a18;
+  --sanctum-plum: #4a1942;
+  --sanctum-gold: #c9a227;
+  --sanctum-mist: #f5f0e8;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, rgba(201, 162, 39, 0.12), transparent 50%),
+    radial-gradient(ellipse at bottom, rgba(74, 25, 66, 0.08), transparent 55%),
+    var(--sanctum-mist);
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.card {
+  @apply rounded-2xl border border-[#4a1942]/15 bg-white/90 backdrop-blur shadow-sm;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-xl bg-[#4a1942] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#3a1234] disabled:opacity-50 transition;
+}
+
+.btn-secondary {
+  @apply inline-flex items-center justify-center rounded-xl border border-[#4a1942]/25 bg-white px-4 py-2.5 text-sm font-semibold text-[#4a1942] hover:bg-[#4a1942]/5 disabled:opacity-50 transition;
+}
+
+.chip {
+  @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide;
+}
+
+.chip-pro {
+  @apply chip bg-gradient-to-r from-[#c9a227] to-[#e8c547] text-[#1a0a18];
+}
+
+.input {
+  @apply w-full rounded-xl border border-[#4a1942]/20 bg-white px-3 py-2.5 text-sm outline-none focus:border-[#4a1942]/50 focus:ring-2 focus:ring-[#4a1942]/15;
+}
+
+.textarea {
+  @apply input min-h-[96px] resize-y;
+}
