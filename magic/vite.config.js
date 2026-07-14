@@ -27,23 +27,37 @@ export default defineConfig({
       includeAssets: ['favicon.svg', 'icon.svg', 'version.json'],
       manifest: {
         name: 'Magic Sanctum — Hazel Allure',
-        short_name: 'Magic 8',
+        short_name: 'Magic Sanctum',
         description:
-          'Sanctum sphere, coin flip, argument settler, pet translator, pre-argument coach, and frustration box.',
+          'Sanctum sphere, heaven & ember coin, Hearth Court, Familiar Whisperer, Before the Storm. Entertainment only.',
         theme_color: '#4a1942',
-        background_color: '#1a0a18',
+        background_color: '#120510',
         display: 'standalone',
         orientation: 'any',
         start_url: '/?source=pwa',
         scope: '/',
         categories: ['lifestyle', 'entertainment'],
         lang: 'en',
+        id: 'https://magic.hazelallure.com/',
         icons: [
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'maskable' },
+          { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
-        // Desktop/home-screen install — floating sphere companion
         display_override: ['window-controls-overlay', 'standalone', 'browser'],
+        shortcuts: [
+          {
+            name: 'Sanctum Sphere',
+            short_name: 'Sphere',
+            url: '/?source=shortcut-sphere',
+            description: 'Ask the free sanctum sphere',
+          },
+          {
+            name: 'Hearth Court',
+            short_name: 'Court',
+            url: '/hearth-court?source=shortcut',
+            description: 'Playful multi-side rulings',
+          },
+        ],
       },
       workbox: {
         // Fortune + content libraries exceed default 2 MiB precache limit

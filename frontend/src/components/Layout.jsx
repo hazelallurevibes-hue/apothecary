@@ -28,6 +28,8 @@ import { SeoProvider } from './SeoContext';
 import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl, verticalFeature } from '../lib/vertical';
 import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
+import UpdateSplash from './UpdateSplash';
+import { APP_VERSION } from '../lib/appVersion';
 
 const LOGO_IMG =
   'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:120,cg:true';
@@ -175,6 +177,7 @@ export default function Layout({ user, onLogout, children }) {
   return (
     <SeoProvider>
     <div className="min-h-screen">
+      <UpdateSplash />
       <PageSeo />
       <JsonLd />
       <nav className="bg-white/92 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-50 shadow-sm shadow-ha-primary/5">
@@ -398,7 +401,7 @@ export default function Layout({ user, onLogout, children }) {
         <p className="max-w-7xl mx-auto px-4 md:px-8 mb-4 text-center text-xs text-[#4a1942]/50 whitespace-pre-line italic">{footerHaiku}</p>
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <span>© {new Date().getFullYear()} {VERTICAL.name} • {t('footer.copyright')}</span>
+            <span>© {new Date().getFullYear()} {VERTICAL.name} • {t('footer.copyright')} · v{APP_VERSION}</span>
             <WomanOwnedBadge className="!text-[9px] !py-0.5" />
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 items-center">

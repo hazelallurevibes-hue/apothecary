@@ -5,16 +5,24 @@ export default {
     extend: {
       colors: {
         sanctum: {
-          ink: '#1a0a18',
+          ink: '#120510',
           plum: '#4a1942',
-          gold: '#c9a227',
-          mist: '#f5f0e8',
-          rose: '#8b3a62',
+          deep: '#2d0f2a',
+          violet: '#6b2d7a',
+          gold: '#d4af37',
+          'gold-soft': '#e8c547',
+          mist: '#f7f1e8',
+          rose: '#b76e79',
+          moon: '#e8e0f0',
         },
       },
       fontFamily: {
         display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
         body: ['"DM Sans"', 'system-ui', 'sans-serif'],
+      },
+      boxShadow: {
+        sanctum: '0 8px 32px rgba(45, 15, 42, 0.12), 0 0 0 1px rgba(212, 175, 55, 0.08)',
+        glow: '0 0 40px rgba(212, 175, 55, 0.25)',
       },
     },
   },

@@ -86,25 +86,45 @@ export default function Home() {
         }}
       />
 
-      <section className="text-center">
-        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[#c9a227]">Hazel Allure · Magic Sanctum</p>
-        <h1 className="font-display font-bold text-3xl sm:text-4xl text-[#4a1942] mt-1">
+      <section className="text-center animate-fade-up">
+        <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#c9a227]">
+          Hazel Allure · Magic Sanctum App
+        </p>
+        <h1 className="font-display font-bold text-3xl sm:text-5xl text-brand-gradient mt-1 leading-tight">
           Ask the sanctum
         </h1>
-        <p className="text-sm text-[#4a1942]/65 mt-2 max-w-md mx-auto leading-relaxed">
+        <p className="text-sm text-[#4a1942]/70 mt-2 max-w-md mx-auto leading-relaxed">
           Free sphere & coin for every seeker. Pro unlocks Hearth Court, Familiar Whisperer, and Before
           the Storm — with free sneak peeks so you feel the magic first.
         </p>
       </section>
 
-      <div className="card px-4 py-3 text-sm italic text-[#4a1942]/80 border-[#c9a227]/30 bg-gradient-to-r from-amber-50/50 to-white">
+      {/* Hero sphere visual */}
+      {mode !== 'coin' && (
+        <div className="flex flex-col items-center animate-fade-up-delay py-2">
+          <div className="sanctum-sphere" aria-hidden>
+            <div className="sanctum-sphere-window">
+              {result?.text
+                ? result.text.length > 28
+                  ? `${result.text.slice(0, 26)}…`
+                  : result.text
+                : '⑧'}
+            </div>
+          </div>
+          <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#4a1942]/45">
+            Sanctum Sphere
+          </p>
+        </div>
+      )}
+
+      <div className="card card-glow px-4 py-3 text-sm italic text-[#4a1942]/85 animate-fade-up-delay">
         <span className="not-italic font-bold text-[10px] uppercase tracking-widest text-[#c9a227] mr-2">
           Free daily ink
         </span>
         {daily}
       </div>
 
-      <section className="card p-5">
+      <section className="card p-5 sm:p-6">
         <div className="flex flex-wrap gap-2 mb-4">
           {[
             { id: 'classic', label: 'Sanctum Sphere' },
@@ -119,10 +139,10 @@ export default function Home() {
                 setResult(null);
                 setCoin(null);
               }}
-              className={`text-xs font-bold px-3 py-1.5 rounded-full border ${
+              className={`text-xs font-bold px-3 py-1.5 rounded-full border transition ${
                 mode === m.id
-                  ? 'bg-[#4a1942] text-white border-[#4a1942]'
-                  : 'border-[#4a1942]/20 text-[#4a1942]/80'
+                  ? 'bg-gradient-to-r from-[#4a1942] to-[#6b2d7a] text-white border-transparent shadow-md'
+                  : 'border-[#4a1942]/20 text-[#4a1942]/80 hover:border-[#c9a227]/50'
               }`}
             >
               {m.label}
@@ -138,6 +158,9 @@ export default function Home() {
             value={q}
             maxLength={240}
             onChange={(e) => setQ(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') reveal();
+            }}
           />
         )}
 
@@ -148,31 +171,31 @@ export default function Home() {
           </p>
         )}
 
-        <button type="button" className="btn-primary w-full" onClick={reveal} disabled={flipping}>
-          {flipping ? 'Spinning…' : mode === 'coin' ? 'Flip Heaven & Ember' : 'Reveal'}
+        <button type="button" className="btn-primary w-full py-3 text-base" onClick={reveal} disabled={flipping}>
+          {flipping ? 'Spinning the coin…' : mode === 'coin' ? 'Flip Heaven & Ember' : 'Reveal the sphere'}
         </button>
 
         {mode === 'coin' && (flipping || coin) && (
           <div
-            className={`mt-4 rounded-2xl min-h-[140px] flex items-center justify-center overflow-hidden ${
+            className={`mt-4 rounded-2xl min-h-[160px] flex items-center justify-center overflow-hidden border ${
               flipping
-                ? 'bg-gradient-to-br from-slate-800 to-violet-950 animate-pulse'
+                ? 'bg-gradient-to-br from-slate-800 via-violet-950 to-[#1a0a18] border-[#c9a227]/30 animate-pulse'
                 : coin === 'yes'
-                  ? 'bg-gradient-to-br from-sky-300 via-indigo-200 to-amber-100'
-                  : 'bg-gradient-to-br from-red-950 via-orange-900 to-black'
+                  ? 'bg-gradient-to-br from-sky-300 via-indigo-200 to-amber-100 border-sky-300/50'
+                  : 'bg-gradient-to-br from-red-950 via-orange-900 to-black border-orange-800/50'
             }`}
           >
             {flipping ? (
-              <span className="text-5xl animate-spin">🪙</span>
+              <span className="text-6xl animate-coin-spin">🪙</span>
             ) : coin === 'yes' ? (
-              <div className="text-center py-8">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-sky-900/70">Heaven-scape</p>
-                <p className="text-6xl font-black text-sky-950">YES</p>
+              <div className="text-center py-8 animate-fade-up">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-sky-900/70 font-bold">Heaven-scape</p>
+                <p className="text-6xl font-black text-sky-950 drop-shadow-sm">YES</p>
               </div>
             ) : (
-              <div className="text-center py-8">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-orange-200/70">Hell-scape</p>
-                <p className="text-6xl font-black text-orange-50">NO</p>
+              <div className="text-center py-8 animate-fade-up">
+                <p className="text-[10px] uppercase tracking-[0.25em] text-orange-200/70 font-bold">Hell-scape</p>
+                <p className="text-6xl font-black text-orange-50 drop-shadow">NO</p>
               </div>
             )}
           </div>
@@ -180,14 +203,14 @@ export default function Home() {
 
         {result && mode !== 'coin' && (
           <div
-            className={`mt-4 rounded-2xl p-5 text-center ${
+            className={`mt-4 rounded-2xl p-5 text-center border animate-fade-up ${
               result.kind === 'proverb' || result.kind === 'locked'
-                ? 'bg-indigo-50 text-indigo-950 italic'
+                ? 'bg-indigo-50/90 text-indigo-950 italic border-indigo-100'
                 : result.tone === 'yes'
-                  ? 'bg-emerald-50 text-emerald-900 font-bold text-2xl'
+                  ? 'bg-emerald-50 text-emerald-900 font-bold text-2xl border-emerald-100'
                   : result.tone === 'no'
-                    ? 'bg-rose-50 text-rose-900 font-bold text-2xl'
-                    : 'bg-amber-50 text-amber-950 font-bold text-xl'
+                    ? 'bg-rose-50 text-rose-900 font-bold text-2xl border-rose-100'
+                    : 'bg-amber-50 text-amber-950 font-bold text-xl border-amber-100'
             }`}
           >
             {result.text}
@@ -220,13 +243,17 @@ export default function Home() {
 
       <section className="grid sm:grid-cols-2 gap-3">
         {tools.map((f) => (
-          <Link key={f.path + f.name} to={f.path} className="card p-4 hover:border-[#4a1942]/30 transition">
-            <p className="font-display font-bold text-[#4a1942]">
-              <span className="mr-1">{f.emoji}</span>
+          <Link
+            key={f.path + f.name}
+            to={f.path}
+            className="card p-4 hover:-translate-y-0.5 active:translate-y-0 transition-transform"
+          >
+            <p className="font-display font-bold text-[#4a1942] text-lg">
+              <span className="mr-1.5">{f.emoji}</span>
               {f.name}
               {f.pro && <span className="chip-pro ml-2 align-middle">Pro · free peek</span>}
             </p>
-            <p className="text-xs text-[#4a1942]/60 mt-1">{f.tagline}</p>
+            <p className="text-xs text-[#4a1942]/65 mt-1 leading-relaxed">{f.tagline}</p>
             <p className="text-[10px] text-[#c9a227] mt-2 font-bold uppercase tracking-wide">{f.count}</p>
           </Link>
         ))}

@@ -9,11 +9,20 @@
     { "source": "/sitemap.xml", "destination": "/api/sitemap" },
     { "source": "/sitemap-index.xml", "destination": "/api/sitemap-index" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
+    { "source": "/version.json", "destination": "/version.json" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/googled5859dbcf06a1225.html", "destination": "/googled5859dbcf06a1225.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [
+    {
+      "source": "/version.json",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" },
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

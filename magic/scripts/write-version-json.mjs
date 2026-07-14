@@ -8,16 +8,18 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.0.0';
+const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.4.0';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'Magic Sanctum update',
-  message: 'Sphere, coin flip, settler, pet translator, coach, and hearth journal.',
+  title: 'A fresher Sanctum awaits',
+  message:
+    'Richer branding, installable app experience, and a one-tap upgrade when we ship something new.',
   highlights: [
-    'Heaven/hell coin flip',
-    'Offline content packs (1000+ lines)',
-    'Installable PWA companion',
+    'Polished Magic Sanctum colors, sphere, and app shell',
+    'SEO + social meta for sharing the sphere & coin',
+    'Upgrade prompt on startup when a new version is live',
+    'Install Magic as a home-screen app (PWA)',
   ],
 };
 

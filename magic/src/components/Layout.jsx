@@ -4,6 +4,8 @@ import { APP_VERSION } from '../lib/appVersion';
 import { HAZEL_LINKS } from '../lib/hazel';
 import { signOut } from '../lib/auth';
 import { BRAND } from '../lib/brand';
+import UpdateSplash from './UpdateSplash';
+import InstallAppBanner from './InstallAppBanner';
 
 const NAV = [
   { to: '/', label: 'Sphere', icon: '⑧' },
@@ -18,29 +20,46 @@ const NAV = [
   { to: '/settings', label: 'Set', icon: '⚙' },
 ];
 
+/** Primary tabs for mobile bottom app bar */
+const BOTTOM_NAV = [
+  { to: '/', label: 'Sphere', icon: '⑧' },
+  { to: '/dashboard', label: 'You', icon: '⭐' },
+  { to: '/hearth-court', label: 'Court', icon: '⚖' },
+  { to: '/compatibility', label: 'Match', icon: '💞' },
+  { to: '/settings', label: 'More', icon: '✦' },
+];
+
 export default function Layout({ children }) {
   const { user, isPremium, isAdmin } = useAuth();
   const { pathname } = useLocation();
   const compact = pathname === '/widget';
 
   if (compact) {
-    return <div className="min-h-screen bg-transparent">{children}</div>;
+    return (
+      <div className="min-h-screen bg-transparent">
+        <UpdateSplash />
+        {children}
+      </div>
+    );
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b border-[#4a1942]/10 bg-white/80 backdrop-blur sticky top-0 z-40">
+      <UpdateSplash />
+      <InstallAppBanner />
+
+      <header className="border-b border-[#4a1942]/10 bg-white/75 backdrop-blur-xl sticky top-0 z-40 shadow-sm shadow-[#4a1942]/5">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
-          <Link to="/" className="flex items-center gap-2 min-w-0">
-            <span className="w-9 h-9 rounded-full bg-gradient-to-br from-[#1a0a18] to-[#4a1942] text-white flex items-center justify-center font-bold border border-[#c9a227]/50">
+          <Link to="/" className="flex items-center gap-2.5 min-w-0 group">
+            <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[#1a0a18] via-[#4a1942] to-[#6b2d7a] text-white flex items-center justify-center font-display font-bold text-lg border-2 border-[#c9a227]/70 shadow-md shadow-[#c9a227]/20 group-hover:scale-105 transition-transform">
               8
             </span>
             <div className="min-w-0">
-              <p className="font-display font-bold text-lg text-[#4a1942] leading-tight truncate">
+              <p className="font-display font-bold text-lg text-brand-gradient leading-tight truncate">
                 {BRAND.appName}
               </p>
-              <p className="text-[10px] text-[#4a1942]/50 font-mono">
-                v{APP_VERSION} · Hazel Allure
+              <p className="text-[10px] text-[#4a1942]/50 font-mono tracking-wide">
+                v{APP_VERSION} · Hazel Allure App
               </p>
             </div>
           </Link>
@@ -48,7 +67,11 @@ export default function Layout({ children }) {
             {isPremium && <span className="chip-pro">Pro</span>}
             {isAdmin && <span className="chip bg-[#1a0a18] text-white">Admin</span>}
             {user ? (
-              <button type="button" onClick={() => signOut()} className="text-[#4a1942]/60 hover:text-[#4a1942]">
+              <button
+                type="button"
+                onClick={() => signOut()}
+                className="text-[#4a1942]/60 hover:text-[#4a1942] font-semibold"
+              >
                 Sign out
               </button>
             ) : (
@@ -58,7 +81,7 @@ export default function Layout({ children }) {
             )}
           </div>
         </div>
-        <nav className="max-w-3xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto">
+        <nav className="max-w-3xl mx-auto px-2 pb-2 flex gap-1 overflow-x-auto scrollbar-none hidden md:flex">
           {NAV.map((n) => (
             <NavLink
               key={n.to}
@@ -66,7 +89,9 @@ export default function Layout({ children }) {
               end={n.to === '/'}
               className={({ isActive }) =>
                 `shrink-0 px-3 py-1.5 rounded-full text-xs font-semibold transition ${
-                  isActive ? 'bg-[#4a1942] text-white' : 'text-[#4a1942]/70 hover:bg-[#4a1942]/8'
+                  isActive
+                    ? 'bg-gradient-to-r from-[#4a1942] to-[#6b2d7a] text-white shadow-sm'
+                    : 'text-[#4a1942]/70 hover:bg-[#4a1942]/8'
                 }`
               }
             >
@@ -77,10 +102,12 @@ export default function Layout({ children }) {
         </nav>
       </header>
 
-      <div className="border-b border-amber-200/60 bg-gradient-to-r from-amber-50/90 to-rose-50/40">
+      <div className="border-b border-[#c9a227]/30 bg-gradient-to-r from-amber-50/95 via-rose-50/50 to-violet-50/60">
         <p className="max-w-3xl mx-auto px-4 py-1.5 text-[11px] text-amber-950">
-          <span className="font-black uppercase tracking-widest text-[9px] text-orange-700 mr-2">Beta</span>
-          <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-orange-100 border border-orange-200/80 mr-2">
+          <span className="font-black uppercase tracking-widest text-[9px] text-orange-700 mr-2">
+            Beta App
+          </span>
+          <span className="font-mono font-bold text-[10px] px-1.5 py-0.5 rounded bg-white/80 border border-orange-200/80 mr-2 text-[#4a1942]">
             v{APP_VERSION}
           </span>
           Entertainment only ·{' '}
@@ -94,10 +121,10 @@ export default function Layout({ children }) {
         </p>
       </div>
 
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6">{children}</main>
+      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-6 app-main">{children}</main>
 
-      <footer className="border-t border-[#4a1942]/10 py-6 text-center text-xs text-[#4a1942]/50 space-y-2">
-        <p className="font-display text-sm text-[#4a1942]/70">Stir, breathe, receive.</p>
+      <footer className="hidden md:block border-t border-[#4a1942]/10 py-6 text-center text-xs text-[#4a1942]/50 space-y-2 bg-white/40 backdrop-blur">
+        <p className="font-display text-sm text-[#4a1942]/70">{BRAND.tagline}</p>
         <p>
           <Link to="/guides" className="underline mx-1">
             Guides
@@ -119,6 +146,34 @@ export default function Layout({ children }) {
           </a>
         </p>
       </footer>
+
+      {/* Mobile app bottom navigation */}
+      <nav
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 app-bottom-nav"
+        aria-label="Primary"
+      >
+        <div className="max-w-3xl mx-auto flex items-stretch justify-around px-1 pt-1.5 pb-1">
+          {BOTTOM_NAV.map((n) => (
+            <NavLink
+              key={n.to}
+              to={n.to}
+              end={n.to === '/'}
+              className={({ isActive }) =>
+                `flex flex-col items-center justify-center min-w-[3.5rem] px-2 py-1 rounded-xl text-[10px] font-bold transition ${
+                  isActive
+                    ? 'text-[#4a1942] bg-[#4a1942]/8'
+                    : 'text-[#4a1942]/55 hover:text-[#4a1942]'
+                }`
+              }
+            >
+              <span className="text-lg leading-none mb-0.5" aria-hidden>
+                {n.icon}
+              </span>
+              {n.label}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }

@@ -1,11 +1,12 @@
 {
-  "version": "1.3.1",
-  "buildId": "2026-07-14T21:58:56.377Z",
-  "title": "Magic Sanctum update",
-  "message": "Sphere, coin flip, settler, pet translator, coach, and hearth journal.",
+  "version": "1.4.0",
+  "buildId": "2026-07-14T22:09:11.414Z",
+  "title": "A fresher Sanctum awaits",
+  "message": "Richer branding, installable app experience, and a one-tap upgrade when we ship something new.",
   "highlights": [
-    "Heaven/hell coin flip",
-    "Offline content packs (1000+ lines)",
-    "Installable PWA companion"
+    "Polished Magic Sanctum colors, sphere, and app shell",
+    "SEO + social meta for sharing the sphere & coin",
+    "Upgrade prompt on startup when a new version is live",
+    "Install Magic as a home-screen app (PWA)"
   ]
 }
