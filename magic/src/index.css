@@ -310,3 +310,108 @@ body::before {
 ::-webkit-scrollbar-track {
   background: transparent;
 }
+
+/* ── Familiar + achievement motion ── */
+@keyframes familiar-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+@keyframes familiar-blink {
+  0%, 42%, 46%, 100% { transform: scaleY(1); }
+  44% { transform: scaleY(0.12); }
+}
+@keyframes familiar-spark {
+  0%, 100% { opacity: 0.35; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+@keyframes wing-flutter {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-6deg); }
+}
+@keyframes medal-shimmer {
+  0%, 100% { filter: brightness(1); }
+  50% { filter: brightness(1.12); }
+}
+@keyframes foil-sheen {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+
+.familiar-live .familiar-float {
+  animation: familiar-float 3.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.familiar-live .familiar-blink {
+  animation: familiar-blink 5.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.familiar-live .familiar-spark {
+  animation: familiar-spark 2.4s ease-in-out infinite;
+}
+.familiar-live .familiar-wing {
+  animation: wing-flutter 2.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: right center;
+}
+
+.familiar-portrait-live {
+  animation: familiar-float 3.4s ease-in-out infinite;
+}
+.familiar-portrait-live .fp-blink {
+  animation: familiar-blink 6s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.familiar-portrait-live .fp-spark {
+  animation: familiar-spark 2.6s ease-in-out infinite;
+}
+.familiar-portrait-live .fp-wing-l {
+  animation: wing-flutter 2.5s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 70% 50%;
+}
+.familiar-portrait-live .fp-wing-r {
+  animation: wing-flutter 2.5s ease-in-out infinite reverse;
+  transform-box: fill-box;
+  transform-origin: 30% 50%;
+}
+
+.achievement-medal-live {
+  animation: medal-shimmer 3s ease-in-out infinite;
+}
+.achievement-spark {
+  animation: familiar-spark 2s ease-in-out infinite;
+}
+
+.tarot-foil {
+  position: relative;
+  overflow: hidden;
+}
+.tarot-foil::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.22) 45%,
+    rgba(201, 162, 39, 0.25) 50%,
+    transparent 60%
+  );
+  background-size: 200% 100%;
+  animation: foil-sheen 4.5s ease-in-out infinite;
+  opacity: 0.7;
+}
+
+/* Triple-gild easter egg flash */
+@keyframes gild-flash {
+  0% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+  40% { box-shadow: 0 0 40px 12px rgba(212, 175, 55, 0.55); }
+  100% { box-shadow: 0 0 0 0 rgba(212, 175, 55, 0); }
+}
+.gild-flash {
+  animation: gild-flash 1.2s ease-out;
+}

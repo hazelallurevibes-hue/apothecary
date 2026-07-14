@@ -65,7 +65,7 @@ export default function FamiliarCompanion({ user }) {
         type="button"
         onClick={speak}
         onDoubleClick={(e) => { e.preventDefault(); resetPosition(); }}
-        className="hover:scale-110 transition-transform rounded-full cursor-grab active:cursor-grabbing"
+        className="hover:scale-110 transition-transform rounded-full cursor-grab active:cursor-grabbing animate-glow-pulse"
         style={{ transform: `scale(${scale})` }}
         aria-label={`${familiar.name} familiar — drag to reposition, tap for whisper`}
       >
@@ -73,17 +73,21 @@ export default function FamiliarCompanion({ user }) {
           id={familiarId}
           size="md"
           tier={tier}
-          glow={familiar.glow}
+          glow={familiar.glow || true}
           ariaLabel={familiar.name}
+          className="drop-shadow-lg"
         />
       </button>
-      <span className="text-[8px] text-[#4a1942]/50 whitespace-nowrap bg-white/70 px-1 rounded">
+      <span className="text-[8px] text-[#4a1942]/55 whitespace-nowrap bg-white/85 border border-[#c9a227]/25 px-1.5 py-0.5 rounded-full shadow-sm">
         {familiar.moonEmoji} {familiar.mood}
         {tier > 0 && <span className="text-[#c9a227]"> · {tierPres.label}</span>}
       </span>
-      <span className="text-[7px] text-[#4a1942]/35">hold & drag to move</span>
+      <span className="text-[7px] text-[#4a1942]/35">drag · tap to whisper</span>
       {whisper && (
-        <div className="max-w-[180px] text-[10px] text-center text-[#4a1942]/80 bg-white/90 border border-[#4a1942]/15 rounded-xl px-2 py-1 shadow-sm pointer-events-none">
+        <div className="max-w-[190px] text-[10px] text-center text-[#4a1942]/85 bg-white/95 border border-[#c9a227]/35 rounded-2xl px-2.5 py-1.5 shadow-md pointer-events-none animate-fade-in-up">
+          <p className="text-[8px] font-black uppercase tracking-widest text-[#c9a227] mb-0.5">
+            {familiar.name}
+          </p>
           {whisper}
         </div>
       )}

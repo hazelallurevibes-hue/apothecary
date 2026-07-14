@@ -18,13 +18,15 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
   if (allowPeek && access.peek) {
     return (
       <div className="space-y-4">
-        <div className="rounded-2xl border border-dashed border-[#c9a227]/60 bg-gradient-to-r from-amber-50/80 to-rose-50/50 px-4 py-3 text-xs text-[#4a1942]/80">
-          <span className="font-black uppercase tracking-widest text-[9px] text-[#c9a227] mr-2">
-            Free sneak peek
-          </span>
-          {teaser ||
-            'Taste Pro magic — results are truncated. Full library unlocks with Hazel Allure Pro.'}
-          <div className="mt-2 flex flex-wrap gap-2">
+        <div className="rounded-2xl border border-[#c9a227]/45 bg-gradient-to-br from-amber-50/90 via-white to-rose-50/60 px-4 py-3.5 text-xs text-[#4a1942]/85 shadow-sm">
+          <p className="font-black uppercase tracking-[0.2em] text-[9px] text-[#c9a227] mb-1">
+            Free showcase · not a tease
+          </p>
+          <p className="leading-relaxed">
+            {teaser ||
+              'Enjoy a complete, beautiful sample of this Pro tool. Pro unlocks the full library, multi-cards, live modes, and endless freshness.'}
+          </p>
+          <div className="mt-2.5 flex flex-wrap gap-2">
             {!user ? (
               <>
                 <Link to="/auth" className="btn-primary text-xs py-1.5 px-3">
@@ -35,7 +37,7 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
                 </a>
               </>
             ) : (
-              <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary text-xs py-1.5 px-3">
+              <a href={HAZEL_LINKS.proUpgrade()} className="btn-gold text-xs py-1.5 px-3">
                 Unlock full Pro library
               </a>
             )}

@@ -22,15 +22,38 @@ export function AchievementProvider({ children }) {
       {children}
       {toast && (
         <div
-          className="fixed bottom-6 right-6 z-[90] max-w-xs animate-in fade-in slide-in-from-bottom-4"
+          className="fixed bottom-6 right-6 z-[90] max-w-sm animate-fade-in-up"
           role="status"
           aria-live="polite"
         >
-          <div className="rounded-2xl border border-[#4a1942]/20 bg-white/95 backdrop-blur shadow-lg px-4 py-3 flex gap-3 items-start">
-            <span className="text-2xl" aria-hidden>{toast.icon}</span>
-            <div>
-              <p className="text-xs uppercase tracking-wide text-[#4a1942]/70">Something unlocked</p>
-              <p className="text-sm text-gray-700">A quiet milestone on your path.</p>
+          <div className="rounded-2xl border border-[#c9a227]/40 bg-white/95 backdrop-blur-xl shadow-2xl px-4 py-3.5 flex gap-3 items-center overflow-hidden relative">
+            <div
+              className="absolute inset-0 opacity-30 pointer-events-none"
+              style={{
+                background:
+                  'radial-gradient(circle at 90% 10%, rgba(201,162,39,0.45), transparent 50%)',
+              }}
+            />
+            <div
+              className="relative shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl border-2 border-[#c9a227]/70 shadow-md"
+              style={{
+                background: 'linear-gradient(145deg, #6b2d7a, #4a1942 50%, #1a0a18)',
+                boxShadow: '0 0 16px rgba(201,162,39,0.35)',
+              }}
+              aria-hidden
+            >
+              {toast.icon || '✦'}
+            </div>
+            <div className="relative min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c9a227]">
+                Achievement unlocked
+              </p>
+              <p className="text-sm font-semibold text-[#4a1942] heading-font">
+                {toast.name || toast.id || 'A quiet milestone'}
+              </p>
+              <p className="text-xs text-[#4a1942]/65 leading-snug">
+                {toast.desc || 'A quiet milestone on your path.'}
+              </p>
             </div>
           </div>
         </div>

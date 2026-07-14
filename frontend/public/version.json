@@ -1,11 +1,11 @@
 {
-  "version": "1.5.0",
-  "buildId": "2026-07-14T22:09:11.425Z",
-  "title": "Hazel Allure has an update",
-  "message": "A fresher apothecary experience is ready — refresh to load the newest marketplace features and fixes.",
+  "version": "1.6.0",
+  "buildId": "2026-07-14T22:31:34.708Z",
+  "title": "Familiars & cards gleam brighter",
+  "message": "Animated spirit familiars, foil tarot cards, and richer achievement unlocks — same woman-owned polish throughout.",
   "highlights": [
-    "Latest marketplace & vendor listing improvements",
-    "Polished wellness branding across the apothecary",
-    "Version v1.5.0 ready to install"
+    "Living familiar portraits (float, blink, wing flutter)",
+    "Foil-sheen tarot cards with ornate frames",
+    "Version v1.6.0 ready to install"
   ]
 }

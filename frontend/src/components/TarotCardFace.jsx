@@ -46,49 +46,75 @@ export default function TarotCardFace({ card, revealed = true, size = 'sm', clas
   const inner = (
     <div
       title={interactive ? `View ${card.name}` : card.name}
-      className={`relative overflow-hidden border shadow-md flex flex-col items-center justify-between text-center text-white bg-gradient-to-br ${art.gradient} ${art.border} ${s.wrap} ${s.h} ${s.pad} ${className} ${interactive ? 'cursor-pointer hover:shadow-lg hover:scale-[1.04] transition-all' : ''}`}
+      className={`tarot-foil relative overflow-hidden border-2 shadow-lg flex flex-col items-center justify-between text-center text-white bg-gradient-to-br ${art.gradient} ${art.border} ${s.wrap} ${s.h} ${s.pad} ${className} ${interactive ? 'cursor-pointer hover:shadow-xl hover:scale-[1.05] hover:brightness-110 transition-all duration-300' : ''}`}
+      style={{
+        boxShadow: `0 8px 24px rgba(26,10,24,0.35), 0 0 0 1px ${art.accent}33, inset 0 1px 0 rgba(255,255,255,0.12)`,
+      }}
     >
       <OrnateCorners accent={art.accent} />
+      {/* double frame */}
       <div
-        className="absolute inset-0 opacity-[0.35] pointer-events-none"
+        className="absolute inset-1.5 rounded-[inherit] pointer-events-none opacity-40"
+        style={{ border: `1px solid ${art.accent}` }}
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 opacity-[0.4] pointer-events-none"
         style={{ backgroundImage: art.pattern }}
         aria-hidden
       />
       <div
-        className="absolute inset-0 opacity-[0.12] pointer-events-none"
+        className="absolute inset-0 opacity-[0.18] pointer-events-none"
         style={{
-          backgroundImage: 'radial-gradient(circle at 30% 20%, white 0%, transparent 45%), radial-gradient(circle at 70% 80%, rgba(201,162,39,0.4) 0%, transparent 40%)',
+          backgroundImage:
+            'radial-gradient(circle at 30% 20%, white 0%, transparent 45%), radial-gradient(circle at 70% 80%, rgba(201,162,39,0.45) 0%, transparent 40%)',
         }}
         aria-hidden
       />
       {art.frame === 'major' && (
         <div
-          className="absolute inset-x-2 top-8 bottom-12 rounded-lg border border-white/10 flex items-center justify-center pointer-events-none"
+          className="absolute inset-x-2 top-8 bottom-12 rounded-lg border border-white/15 flex items-center justify-center pointer-events-none"
           style={{
-            background: `linear-gradient(160deg, ${art.accent}22, transparent 60%)`,
+            background: `linear-gradient(160deg, ${art.accent}33, transparent 60%)`,
+            boxShadow: `inset 0 0 24px ${art.accent}22`,
           }}
           aria-hidden
         >
-          <span className={`${size === 'lg' ? 'text-5xl' : size === 'md' ? 'text-3xl' : 'text-xl'} drop-shadow-lg opacity-90`}>
+          <span
+            className={`${size === 'lg' ? 'text-5xl' : size === 'md' ? 'text-3xl' : 'text-xl'} drop-shadow-lg opacity-95`}
+            style={{ textShadow: `0 0 18px ${art.accent}88` }}
+          >
             {art.symbol}
           </span>
         </div>
       )}
-      <span className={`relative z-10 ${s.glyph} tracking-widest opacity-80 font-serif`} style={{ color: art.accent }}>
+      <span className={`relative z-10 ${s.glyph} tracking-[0.2em] opacity-90 font-serif`} style={{ color: art.accent }}>
         {art.glyph}
       </span>
-      <span className={`relative z-10 ${s.symbol} drop-shadow-sm`} aria-hidden>
+      <span
+        className={`relative z-10 ${s.symbol} drop-shadow-md`}
+        style={{ filter: `drop-shadow(0 0 8px ${art.accent}66)` }}
+        aria-hidden
+      >
         {art.symbol}
       </span>
       <div className="relative z-10 w-full px-0.5">
-        <p className={`${s.name} font-semibold leading-tight line-clamp-3 font-serif`}>{card.name}</p>
+        <p className={`${s.name} font-semibold leading-tight line-clamp-3 font-serif tracking-wide`}>{card.name}</p>
         {size !== 'xs' && size !== 'sm' && (
-          <p className="text-[8px] opacity-60 mt-1 uppercase tracking-wider">{art.element}</p>
+          <p className="text-[8px] opacity-70 mt-1 uppercase tracking-[0.15em]" style={{ color: art.accent }}>
+            {art.element}
+          </p>
+        )}
+        {size === 'lg' && art.motif && (
+          <p className="text-[8px] opacity-50 mt-1.5 leading-snug px-1">{art.motif}</p>
         )}
       </div>
       {art.frame === 'major' && (
-        <span className="absolute top-2 right-2 text-[8px] text-[#c9a227]/90" aria-hidden>✦</span>
+        <span className="absolute top-2 right-2 text-[9px] text-[#c9a227]" aria-hidden>✦</span>
       )}
+      <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 text-[7px] tracking-widest opacity-40" aria-hidden>
+        HA
+      </span>
     </div>
   );
 

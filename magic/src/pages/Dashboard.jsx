@@ -6,7 +6,15 @@ import ShareBar from '../components/ShareBar';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import { drawDailyFortune, fortuneStats } from '../lib/fortune';
 import { loadLocalProfile, setDobAndBuild, syncProfileToSupabase, uploadAvatar } from '../lib/profileStore';
-import { loadXp, levelFromXp, unlockedList, unlockAchievement, noteFortuneStreak } from '../lib/achievements';
+import {
+  loadXp,
+  levelFromXp,
+  unlockedList,
+  unlockAchievement,
+  noteFortuneStreak,
+  allAchievementsWithStatus,
+} from '../lib/achievements';
+import AchievementBadge from '../components/AchievementBadge';
 import { HAZEL_LINKS } from '../lib/hazel';
 import { profileBlurb } from '../lib/celestial';
 import { restoreSession } from '../lib/auth';
@@ -485,21 +493,33 @@ export default function Dashboard() {
       {(tab === 'badges' || tab === 'home') && (
       <section className="card p-4">
         <h2 className="font-display font-bold text-lg text-[#4a1942]">Achievements</h2>
-        <div className="grid grid-cols-2 gap-2 mt-3">
-          {achievements.length === 0 && (
-            <p className="text-xs text-[#4a1942]/50 col-span-2">Play tools to unlock badges.</p>
-          )}
-          {achievements.map((a) => (
-            <div key={a.id} className="rounded-xl border border-[#c9a227]/30 p-2 text-xs">
-              <span className="text-lg">{a.emoji}</span>
-              <p className="font-bold text-[#4a1942]">{a.name}</p>
-              <p className="text-[#4a1942]/55">{a.desc}</p>
-              <ShareBar
-                compact
-                title={a.name}
-                text={`I unlocked “${a.name}” on Magic Sanctum — ${a.desc}`}
-                meta={`${a.emoji} +${a.xp} XP`}
+        <p className="text-[11px] text-[#4a1942]/50 mt-1">
+          Gold-rimmed medals · rarity by XP · easter eggs hide in the familiar & sphere
+        </p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
+          {allAchievementsWithStatus().map((a) => (
+            <div
+              key={a.id}
+              className={`rounded-2xl border p-2 ${
+                a.unlocked ? 'border-[#c9a227]/40 bg-gradient-to-b from-amber-50/40 to-white' : 'border-[#4a1942]/10'
+              }`}
+            >
+              <AchievementBadge
+                emoji={a.emoji}
+                name={a.name}
+                desc={a.desc}
+                xp={a.xp}
+                unlocked={a.unlocked}
+                size={64}
               />
+              {a.unlocked && (
+                <ShareBar
+                  compact
+                  title={a.name}
+                  text={`I unlocked “${a.name}” on Magic Sanctum — ${a.desc}`}
+                  meta={`${a.emoji} +${a.xp} XP`}
+                />
+              )}
             </div>
           ))}
         </div>

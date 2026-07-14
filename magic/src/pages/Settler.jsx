@@ -12,6 +12,7 @@ import { moderateSides, POLICY_BLURB } from '../lib/contentPolicy';
 import { createLivePoll, pollShareUrl } from '../lib/pollLive';
 import { postAnonymousCourt, loadAnonCourtFeed } from '../lib/anonCourt';
 import { useAuth } from '../context/AuthContext';
+import ProValueStrip from '../components/ProValueStrip';
 
 export default function Settler() {
   const { user } = useAuth();
@@ -49,12 +50,27 @@ export default function Settler() {
 
   const runTribunal = (peek) => {
     setErr('');
+    if (peek) {
+      // Full showcase ruling — no need to write sides first
+      const v = settleArgument([], { freePeek: true });
+      setVerdict(v);
+      setPollNote('Showcase tribunal — a complete sample of Pro theater.');
+      unlockAchievement('first_court');
+      unlockAchievement('pro_showcase');
+      recordHistory({
+        type: 'court',
+        title: 'Hearth Court showcase',
+        summary: v.shared ? 'Shared moon (showcase)' : `Edge: ${v.winner}`,
+        payload: { verdict: v, showcase: true },
+      });
+      return;
+    }
     const mod = moderateSides(sides);
     if (!mod.ok) {
       setErr(mod.message);
       return;
     }
-    const v = settleArgument(mod.sides, { freePeek: peek });
+    const v = settleArgument(mod.sides, { freePeek: false });
     setVerdict(v);
     setPollNote('');
     if (!v.error) {
@@ -165,7 +181,7 @@ export default function Settler() {
       />
       <ProGate
         featureId="hearth_court"
-        teaser={`${b.name}: tribunal, same-device poll, multi-device live link, or anonymous public ruling. Free peek truncates notes.`}
+        teaser={`${b.name}: free seekers get a complete showcase ruling (cliff notes, scores, seal). Pro scores your real sides, polls, live multi-device links, and 2,800+ cliff notes.`}
       >
         {({ peek }) => (
           <div className="space-y-4">
@@ -218,30 +234,38 @@ export default function Settler() {
               </p>
             )}
 
-            {sides.map((s, i) => (
-              <div key={i} className="card p-4 space-y-2">
-                <div className="flex gap-2">
-                  <input
-                    className="input flex-1"
-                    value={s.label}
-                    onChange={(e) => setSide(i, { label: e.target.value })}
-                    placeholder={mode === 'poll' || mode === 'live' ? `Participant ${i + 1}` : `Side ${i + 1}`}
+            {peek && mode === 'tribunal' && (
+              <p className="text-xs rounded-xl border border-[#c9a227]/35 bg-amber-50/80 px-3 py-2 text-[#4a1942]/75">
+                Free showcase does not require writing sides — tap <strong>Reveal showcase ruling</strong> for a
+                complete sample. Pro convenes court on <em>your</em> arguments.
+              </p>
+            )}
+
+            {!(peek && mode === 'tribunal') &&
+              sides.map((s, i) => (
+                <div key={i} className="card p-4 space-y-2">
+                  <div className="flex gap-2">
+                    <input
+                      className="input flex-1"
+                      value={s.label}
+                      onChange={(e) => setSide(i, { label: e.target.value })}
+                      placeholder={mode === 'poll' || mode === 'live' ? `Participant ${i + 1}` : `Side ${i + 1}`}
+                    />
+                    {mode === 'poll' && (
+                      <button type="button" className="btn-primary text-xs shrink-0 px-3" onClick={() => vote(i)}>
+                        Vote ({s.votes || 0})
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    className="textarea"
+                    value={s.text}
+                    onChange={(e) => setSide(i, { text: e.target.value })}
+                    placeholder="Their argument…"
+                    maxLength={800}
                   />
-                  {mode === 'poll' && (
-                    <button type="button" className="btn-primary text-xs shrink-0 px-3" onClick={() => vote(i)}>
-                      Vote ({s.votes || 0})
-                    </button>
-                  )}
                 </div>
-                <textarea
-                  className="textarea"
-                  value={s.text}
-                  onChange={(e) => setSide(i, { text: e.target.value })}
-                  placeholder="Their argument…"
-                  maxLength={800}
-                />
-              </div>
-            ))}
+              ))}
 
             {err && <p className="text-sm text-red-600">{err}</p>}
             {pollNote && <p className="text-xs font-semibold text-[#4a1942]">{pollNote}</p>}
@@ -265,7 +289,7 @@ export default function Settler() {
               </button>
               {mode === 'tribunal' && (
                 <button type="button" className="btn-primary flex-1" onClick={() => runTribunal(peek)}>
-                  {peek ? 'Peek ruling' : 'Convene Court'}
+                  {peek ? 'Reveal showcase ruling' : 'Convene Court'}
                 </button>
               )}
               {mode === 'poll' && (
@@ -286,12 +310,19 @@ export default function Settler() {
             </div>
 
             {verdict && !verdict.error && (
-              <div className="card p-5 space-y-3">
+              <div className="card card-glow p-5 space-y-3 border-[#c9a227]/30">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#c9a227]">
+                  {verdict.freePeek ? 'Showcase ruling' : 'Pro ruling'}
+                  {verdict.ritualScore != null ? ` · ritual ${verdict.ritualScore}` : ''}
+                </p>
                 <p className="font-display font-bold text-xl text-[#4a1942]">
                   {verdict.shared || verdict.poll?.tie
                     ? 'Shared moon — both hold pieces'
                     : `Playful edge: ${verdict.winner || verdict.poll?.winner}`}
                 </p>
+                {verdict.template?.note && (
+                  <p className="text-xs text-[#4a1942]/60">{verdict.template.note}</p>
+                )}
                 {verdict.poll?.ranked && (
                   <div className="space-y-2">
                     {verdict.poll.ranked.map((r) => (
@@ -312,7 +343,31 @@ export default function Settler() {
                     ))}
                   </div>
                 )}
-                <p className="text-sm italic">{verdict.cliffNote}</p>
+                <p className="text-sm italic leading-relaxed text-[#4a1942]/85">{verdict.cliffNote}</p>
+                {verdict.secondaryCliff && (
+                  <p className="text-xs text-[#4a1942]/55 border-l-2 border-[#c9a227]/50 pl-3">
+                    Secondary seal: {verdict.secondaryCliff}
+                  </p>
+                )}
+                {verdict.sides?.length > 0 && (
+                  <div className="space-y-2 pt-1">
+                    {verdict.sides.map((s) => (
+                      <div key={s.label} className="rounded-xl bg-[#4a1942]/5 p-3 text-xs">
+                        <p className="font-bold text-[#4a1942]">
+                          {s.label} · score {s.score}
+                        </p>
+                        <ul className="mt-1 space-y-0.5 text-[#4a1942]/70">
+                          {(s.notes || []).map((n) => (
+                            <li key={n}>· {n}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {verdict.seal && (
+                  <p className="text-[10px] font-bold text-[#c9a227] uppercase tracking-wide">{verdict.seal}</p>
+                )}
                 <p className="text-[10px] text-red-600">{verdict.disclaimer || DISCLAIMER}</p>
                 <ShareBar
                   title="Hearth Court"
@@ -321,6 +376,11 @@ export default function Settler() {
                       ? `Hearth Court: shared moon. ${verdict.cliffNote || ''}`
                       : `Hearth Court edge: ${verdict.winner}. ${verdict.cliffNote || ''}`
                   }
+                />
+                <ProValueStrip
+                  freePeek={verdict.freePeek}
+                  unlocks={verdict.proUnlocks}
+                  title="Pro Hearth Court scores your real drama"
                 />
                 <Link to="/dashboard?tab=results" className="text-xs underline">
                   Saved to your results →

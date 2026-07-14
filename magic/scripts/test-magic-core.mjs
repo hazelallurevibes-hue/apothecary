@@ -64,6 +64,13 @@ const v = settleArgument([
 assert(!v.error, 'Verdict no error');
 assert(!!v.cliffNote, 'Cliff note');
 assert(v.winner === 'Alex' || v.shared, 'Empathy side favored or shared');
+assert(!!v.ritualScore, 'Pro ritual score present');
+assert(!!v.secondaryCliff, 'Pro secondary cliff note');
+
+const peek = settleArgument([], { freePeek: true });
+assert(peek.freePeek === true, 'Showcase freePeek flag');
+assert(peek.cliffNote && peek.cliffNote.length > 40, 'Showcase cliff is full (not tiny)');
+assert(Array.isArray(peek.proUnlocks) && peek.proUnlocks.length > 0, 'Showcase lists Pro unlocks');
 
 console.log('Fortune');
 const f = drawDailyFortune({ email: 'test@example.com', celestial: chart });

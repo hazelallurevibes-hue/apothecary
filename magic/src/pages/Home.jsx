@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { askOracle, flipCoin, freeDailyLine, packStats } from '../lib/engines';
+import { askOracle, askMoonMirror, flipCoin, freeDailyLine, packStats } from '../lib/engines';
 import { HAZEL_LINKS } from '../lib/hazel';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
@@ -10,6 +10,7 @@ import JsonLd from '../components/JsonLd';
 import ShareBar from '../components/ShareBar';
 import ToolGrid from '../components/ToolGrid';
 import SanctumLogo from '../components/SanctumLogo';
+import ProValueStrip from '../components/ProValueStrip';
 import { unlockAchievement } from '../lib/achievements';
 import { recordHistory } from '../lib/historyStore';
 
@@ -22,6 +23,8 @@ export default function Home() {
   const [result, setResult] = useState(null);
   const [coin, setCoin] = useState(null);
   const [flipping, setFlipping] = useState(false);
+  const [sphereTaps, setSphereTaps] = useState(0);
+  const [gild, setGild] = useState(false);
   const stats = packStats();
   const daily = freeDailyLine();
 
@@ -58,15 +61,25 @@ export default function Home() {
       }, 900);
       return;
     }
-    if (mode === 'reverse' && !can('reverse_oracle')) {
-      setResult({
-        text: 'Moon Mirror Proverbs unlock with Pro — sneak a free sphere answer instead.',
-        kind: 'locked',
+    if (mode === 'reverse') {
+      setCoin(null);
+      const freePeek = !can('reverse_oracle');
+      const ans = freePeek
+        ? askMoonMirror(q, { freePeek: true })
+        : askMoonMirror(q, { freePeek: false });
+      setResult(ans);
+      unlockAchievement('first_sphere');
+      if (freePeek) unlockAchievement('pro_showcase');
+      recordHistory({
+        type: 'sphere',
+        title: freePeek ? 'Moon Mirror showcase' : 'Moon Mirror',
+        summary: ans.text,
+        payload: { question: q, answer: ans.text, mode, freePeek },
       });
       return;
     }
     setCoin(null);
-    const ans = askOracle(q, mode === 'reverse' ? 'reverse' : 'classic');
+    const ans = askOracle(q, 'classic');
     setResult(ans);
     unlockAchievement('first_sphere');
     recordHistory({
@@ -75,6 +88,18 @@ export default function Home() {
       summary: ans.text,
       payload: { question: q, answer: ans.text, mode },
     });
+  };
+
+  const onSphereTap = () => {
+    const next = sphereTaps + 1;
+    setSphereTaps(next);
+    if (next >= 3) {
+      setSphereTaps(0);
+      setGild(true);
+      unlockAchievement('sphere_secret');
+      setTimeout(() => setGild(false), 1200);
+    }
+    reveal();
   };
 
   return (
@@ -136,8 +161,8 @@ export default function Home() {
         <div className="flex flex-col items-center animate-fade-up-delay py-2">
           <button
             type="button"
-            onClick={reveal}
-            className="sanctum-sphere cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a227] focus-visible:ring-offset-2 rounded-full border-0 p-0"
+            onClick={onSphereTap}
+            className={`sanctum-sphere cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a227] focus-visible:ring-offset-2 rounded-full border-0 p-0 ${gild ? 'gild-flash' : ''}`}
             aria-label="Tap sphere to reveal an answer"
           >
             <div className="sanctum-sphere-window">
@@ -254,7 +279,7 @@ export default function Home() {
         {result && mode !== 'coin' && (
           <div
             className={`mt-4 rounded-2xl p-5 text-center border animate-fade-up ${
-              result.kind === 'proverb' || result.kind === 'locked'
+              result.kind === 'proverb'
                 ? 'bg-indigo-50/90 text-indigo-950 italic border-indigo-100'
                 : result.tone === 'yes'
                   ? 'bg-emerald-50 text-emerald-900 font-bold text-2xl border-emerald-100'
@@ -264,14 +289,37 @@ export default function Home() {
             }`}
           >
             {result.text}
-            {result.kind === 'locked' && (
-              <div className="mt-3 not-italic flex flex-wrap justify-center gap-2">
-                <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary text-xs py-1.5 px-3">
-                  Unlock Moon Mirror Pro
-                </a>
-                <button type="button" className="btn-secondary text-xs py-1.5 px-3" onClick={() => setModeAndUrl('classic')}>
-                  Free sphere instead
-                </button>
+            {result.whisper && (
+              <p className="text-[10px] not-italic font-semibold text-[#4a1942]/45 mt-2 tracking-wide">
+                {result.whisper}
+              </p>
+            )}
+            {result.seal && (
+              <p className="text-[10px] not-italic font-bold text-[#c9a227] mt-2 uppercase tracking-wide">
+                {result.seal}
+              </p>
+            )}
+            {result.alternatives?.length > 0 && (
+              <div className="mt-3 not-italic text-left space-y-1.5">
+                <p className="text-[10px] font-bold uppercase text-[#4a1942]/40">Pro alternate proverbs</p>
+                {result.alternatives.map((a) => (
+                  <p key={a} className="text-xs text-indigo-900/80 bg-white/60 rounded-lg px-2 py-1.5">
+                    {a}
+                  </p>
+                ))}
+              </div>
+            )}
+            {result.freePeek && (
+              <div className="mt-3 not-italic text-left">
+                <ProValueStrip
+                  freePeek
+                  unlocks={[
+                    'Full Moon Mirror proverb vault',
+                    'Alternate proverbs every reverse draw',
+                    'Depth seals & share theater',
+                  ]}
+                  title="Pro Moon Mirror is a whole shelf of wisdom"
+                />
               </div>
             )}
           </div>

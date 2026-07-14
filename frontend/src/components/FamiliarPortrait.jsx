@@ -142,8 +142,10 @@ function OwlPortrait({ p }) {
       <ellipse cx="50" cy="52" rx="22" ry="18" fill={p.body[0]} />
       <ellipse cx="40" cy="50" rx="9" ry="11" fill="#f5f0e8" />
       <ellipse cx="60" cy="50" rx="9" ry="11" fill="#f5f0e8" />
-      <Eye cx="40" cy="50" r="5.5" iris={p.eye} pupil={p.pupil} />
-      <Eye cx="60" cy="50" r="5.5" iris={p.eye} pupil={p.pupil} />
+      <g className="fp-blink">
+        <Eye cx="40" cy="50" r="5.5" iris={p.eye} pupil={p.pupil} />
+        <Eye cx="60" cy="50" r="5.5" iris={p.eye} pupil={p.pupil} />
+      </g>
       <path d="M46 58 Q50 62 54 58" stroke={p.body[0]} strokeWidth="1.5" fill="none" />
       <path d="M50 60 L50 66" stroke="#c4a574" strokeWidth="2" strokeLinecap="round" />
       <path d="M28 55 Q22 48 26 42" stroke={p.body[2]} strokeWidth="3" fill="none" opacity="0.5" />
@@ -160,11 +162,14 @@ function CatPortrait({ p }) {
       <ellipse cx="50" cy="58" rx="20" ry="18" fill={p.body[2]} />
       <ellipse cx="42" cy="54" rx="7" ry="8" fill={p.body[0]} />
       <ellipse cx="58" cy="54" rx="7" ry="8" fill={p.body[0]} />
-      <Eye cx="42" cy="54" r="4.5" iris={p.eye} pupil={p.pupil} />
-      <Eye cx="58" cy="54" r="4.5" iris={p.eye} pupil={p.pupil} />
+      <g className="fp-blink">
+        <Eye cx="42" cy="54" r="4.5" iris={p.eye} pupil={p.pupil} />
+        <Eye cx="58" cy="54" r="4.5" iris={p.eye} pupil={p.pupil} />
+      </g>
       <path d="M50 58 L48 62 L52 62 Z" fill={p.belly} />
       <path d="M44 64 Q50 67 56 64" stroke={p.belly} strokeWidth="1.2" fill="none" opacity="0.6" />
       <path d="M32 68 Q50 74 68 68" stroke={p.accent} strokeWidth="0.8" fill="none" opacity="0.25" />
+      <path d="M28 56 H18 M28 60 H18 M72 56 H82 M72 60 H82" stroke="#e8e4f0" strokeWidth="0.6" opacity="0.35" />
     </>
   );
 }
@@ -172,14 +177,20 @@ function CatPortrait({ p }) {
 function MothPortrait({ p }) {
   return (
     <>
-      <ellipse cx="30" cy="52" rx="22" ry="28" fill={p.wing[0]} opacity="0.85" transform="rotate(-15 30 52)" />
-      <ellipse cx="70" cy="52" rx="22" ry="28" fill={p.wing[1]} opacity="0.8" transform="rotate(15 70 52)" />
-      <ellipse cx="30" cy="52" rx="14" ry="18" fill={p.wing[2]} opacity="0.5" transform="rotate(-15 30 52)" />
-      <ellipse cx="70" cy="52" rx="14" ry="18" fill={p.wing[2]} opacity="0.5" transform="rotate(15 70 52)" />
+      <g className="fp-wing-l">
+        <ellipse cx="30" cy="52" rx="22" ry="28" fill={p.wing[0]} opacity="0.85" transform="rotate(-15 30 52)" />
+        <ellipse cx="30" cy="52" rx="14" ry="18" fill={p.wing[2]} opacity="0.5" transform="rotate(-15 30 52)" />
+      </g>
+      <g className="fp-wing-r">
+        <ellipse cx="70" cy="52" rx="22" ry="28" fill={p.wing[1]} opacity="0.8" transform="rotate(15 70 52)" />
+        <ellipse cx="70" cy="52" rx="14" ry="18" fill={p.wing[2]} opacity="0.5" transform="rotate(15 70 52)" />
+      </g>
       <ellipse cx="50" cy="58" rx="6" ry="14" fill={p.body[1]} />
       <ellipse cx="50" cy="48" rx="5" ry="6" fill={p.body[2]} />
-      <circle cx="48" cy="46" r="1.2" fill={p.eye} />
-      <circle cx="52" cy="46" r="1.2" fill={p.eye} />
+      <g className="fp-blink">
+        <circle cx="48" cy="46" r="1.2" fill={p.eye} />
+        <circle cx="52" cy="46" r="1.2" fill={p.eye} />
+      </g>
       <path d="M46 42 Q50 36 54 42" stroke={p.accent} strokeWidth="1" fill="none" opacity="0.7" />
       <path d="M30 40 Q50 30 70 40" stroke={p.accent} strokeWidth="0.6" fill="none" opacity="0.4" />
     </>
@@ -450,13 +461,19 @@ export default function FamiliarPortrait({
       width={dim}
       height={dim}
       viewBox="0 0 100 100"
-      className={`block ${className}`}
+      className={`block familiar-portrait-live ${className}`}
       role="img"
       aria-label={ariaLabel}
       style={dropShadow ? { filter: dropShadow } : undefined}
     >
       <PortraitShell id={id} palette={palette} glow={!!glowColor} tier={tier}>
-        <Renderer p={palette} />
+        <g className="familiar-float">
+          <Renderer p={palette} animated />
+        </g>
+        {/* ambient sparkles */}
+        <circle className="fp-spark" cx="18" cy="16" r="1.2" fill="#e8c547" opacity="0.85" />
+        <circle className="fp-spark" cx="82" cy="22" r="0.9" fill="#fff" opacity="0.65" />
+        <circle className="fp-spark" cx="76" cy="78" r="0.8" fill="#e8c547" opacity="0.5" />
       </PortraitShell>
     </svg>
   );

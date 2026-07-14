@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ProGate from '../components/ProGate';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
+import ProValueStrip from '../components/ProValueStrip';
 import { translatePet, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ShareBar from '../components/ShareBar';
@@ -19,14 +20,14 @@ export default function Pet() {
   return (
     <>
       <SeoHead
-        title={`${b.name} — Pet Translator (${stats.petPhrases || '2000+'} Phrases) | Magic Sanctum`}
+        title={`${b.name} — Pet Translator (${stats.petPhrases || '2800+'} Phrases) | Magic Sanctum`}
         description={b.tagline}
         path="/familiar"
         keywords="familiar whisperer, pet translator, what is my cat saying, dog translator joke"
       />
       <ProGate
         featureId="familiar_whisperer"
-        teaser={`${b.name}: ${stats.petPhrases || '2000+'} offline phrases. Free sneak peeks truncate the translation — Pro unlocks the vault.`}
+        teaser={`${b.name}: free seekers get a complete showcase translation (not a tease). Pro unlocks ${stats.petPhrases || '2,800+'} vault lines, alts, and aura theater.`}
       >
         {({ peek }) => (
           <div className="space-y-4">
@@ -86,6 +87,7 @@ export default function Pet() {
                   });
                   setOut(o);
                   unlockAchievement('first_familiar');
+                  if (peek) unlockAchievement('pro_showcase');
                   recordHistory({
                     type: 'familiar',
                     title: 'Familiar Whisperer',
@@ -94,23 +96,45 @@ export default function Pet() {
                   });
                 }}
               >
-                {peek ? 'Peek a translation' : 'Whisper it'}
+                {peek ? 'Reveal showcase translation' : 'Whisper it'}
               </button>
             </div>
 
             {out && (
-              <div className="card p-5 space-y-2">
-                <p className="text-[10px] uppercase tracking-widest text-[#4a1942]/50">
-                  Translation · {out.confidence}% sanctum confidence
-                  {out.freePeek ? ' · sneak peek' : ''}
-                </p>
-                <p className="font-display text-xl text-[#4a1942] font-bold leading-snug">
+              <div className="card card-glow p-5 space-y-3 border-[#c9a227]/30">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-[10px] uppercase tracking-widest text-[#4a1942]/50">
+                    {out.freePeek ? 'Showcase translation' : 'Full vault whisper'} · {out.confidence}% confidence
+                  </p>
+                  {out.mood && (
+                    <span className="chip text-[9px] bg-[#4a1942]/8 text-[#4a1942]">{out.mood}</span>
+                  )}
+                </div>
+                <p className="font-display text-xl sm:text-2xl text-[#4a1942] font-bold leading-snug">
                   “{out.translation}”
                 </p>
-                <p className="text-xs text-[#4a1942]/70">{out.hopeLine}</p>
+                <p className="text-xs text-[#4a1942]/70 leading-relaxed">{out.hopeLine}</p>
+                {out.seal && (
+                  <p className="text-[10px] font-bold text-[#c9a227] uppercase tracking-wide">{out.seal}</p>
+                )}
+                {out.alternatives?.length > 0 && (
+                  <div className="border-t border-[#4a1942]/10 pt-3 space-y-2">
+                    <p className="text-xs font-bold uppercase text-[#4a1942]/40">Pro alternate whispers</p>
+                    {out.alternatives.map((a) => (
+                      <p key={a} className="text-sm text-[#4a1942]/75 rounded-xl bg-[#4a1942]/5 p-3">
+                        “{a}”
+                      </p>
+                    ))}
+                  </div>
+                )}
                 <p className="text-[10px] text-[#4a1942]/40">Library: {out.librarySize} phrases</p>
                 <p className="text-[10px] text-red-600">{out.disclaimer || DISCLAIMER}</p>
                 <ShareBar title="Familiar Whisperer" text={`My familiar said: “${out.translation}”`} />
+                <ProValueStrip
+                  freePeek={out.freePeek}
+                  unlocks={out.proUnlocks}
+                  title="Pro Familiar Whisperer never runs dry"
+                />
               </div>
             )}
 

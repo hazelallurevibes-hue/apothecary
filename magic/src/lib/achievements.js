@@ -14,6 +14,10 @@ export const ACHIEVEMENTS = [
   { id: 'streak_3', name: 'Three Moons', desc: '3-day fortune streak', emoji: '🌙', xp: 50 },
   { id: 'streak_7', name: 'Week of Ink', desc: '7-day fortune streak', emoji: '📜', xp: 100 },
   { id: 'journal_3', name: 'Cauldron Keeper', desc: '3 private journal entries', emoji: '🔥', xp: 20 },
+  { id: 'familiar_bond', name: 'Bonded Companion', desc: 'Tapped the sanctum familiar 7 times', emoji: '💜', xp: 35 },
+  { id: 'easter_moon', name: 'Thirteen Moons', desc: 'Found the familiar cycle easter egg', emoji: '🌕', xp: 75 },
+  { id: 'sphere_secret', name: 'Triple Gild', desc: 'Triple-tapped the home sphere', emoji: '✦', xp: 45 },
+  { id: 'pro_showcase', name: 'Porch Light', desc: 'Opened a full Pro showcase peek', emoji: '🏛', xp: 15 },
 ];
 
 export function loadAchievements() {
@@ -73,4 +77,9 @@ export function levelFromXp(xp) {
 export function unlockedList() {
   const map = loadAchievements();
   return ACHIEVEMENTS.filter((a) => map[a.id]).map((a) => ({ ...a, ...map[a.id] }));
+}
+
+export function allAchievementsWithStatus() {
+  const map = loadAchievements();
+  return ACHIEVEMENTS.map((a) => ({ ...a, unlocked: !!map[a.id], at: map[a.id]?.at }));
 }

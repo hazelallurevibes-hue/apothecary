@@ -7,6 +7,8 @@ import { BRAND, TOOL_LINKS } from '../lib/brand';
 import UpdateSplash from './UpdateSplash';
 import InstallAppBanner from './InstallAppBanner';
 import SanctumLogo from './SanctumLogo';
+import SanctumFamiliar from './SanctumFamiliar';
+import AchievementToast from './AchievementToast';
 
 const NAV = [
   { to: '/', label: 'Sphere', icon: '⑧' },
@@ -48,6 +50,8 @@ export default function Layout({ children }) {
     <div className="min-h-screen flex flex-col">
       <UpdateSplash />
       <InstallAppBanner />
+      <AchievementToast />
+      <SanctumFamiliar />
 
       <header className="border-b border-[#4a1942]/10 bg-white/75 backdrop-blur-xl sticky top-0 z-40 shadow-sm shadow-[#4a1942]/5">
         <div className="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between gap-3">

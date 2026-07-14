@@ -87,6 +87,82 @@ button {
   animation: ha-glow-pulse 3s ease-in-out infinite;
 }
 
+/* ── Familiar + tarot motion (woman-owned polish) ── */
+@keyframes familiar-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3.5px); }
+}
+@keyframes familiar-blink {
+  0%, 42%, 46%, 100% { transform: scaleY(1); }
+  44% { transform: scaleY(0.1); }
+}
+@keyframes familiar-spark {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+@keyframes wing-flutter {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-7deg); }
+}
+@keyframes foil-sheen {
+  0% { background-position: -120% 0; }
+  100% { background-position: 220% 0; }
+}
+
+.familiar-portrait-live {
+  animation: familiar-float 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+.familiar-portrait-live .familiar-float {
+  animation: familiar-float 3.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.familiar-portrait-live .fp-blink {
+  animation: familiar-blink 5.8s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.familiar-portrait-live .fp-spark {
+  animation: familiar-spark 2.5s ease-in-out infinite;
+}
+.familiar-portrait-live .fp-wing-l {
+  animation: wing-flutter 2.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: 70% 50%;
+}
+.familiar-portrait-live .fp-wing-r {
+  animation: wing-flutter 2.4s ease-in-out infinite reverse;
+  transform-box: fill-box;
+  transform-origin: 30% 50%;
+}
+
+.tarot-foil {
+  position: relative;
+  overflow: hidden;
+}
+.tarot-foil::after {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.2) 46%,
+    rgba(201, 162, 39, 0.28) 50%,
+    transparent 62%
+  );
+  background-size: 200% 100%;
+  animation: foil-sheen 4.8s ease-in-out infinite;
+  opacity: 0.75;
+  z-index: 5;
+}
+
+.animate-fade-in-up {
+  animation: ha-fade-in-up 0.45s ease-out both;
+}
+
 /* Frosted glass card — glassmorphism with brand tint */
 .glass-card {
   background: rgba(255, 255, 255, 0.72);

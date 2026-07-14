@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ProGate from '../components/ProGate';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
+import ProValueStrip from '../components/ProValueStrip';
 import { coachArgument, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ShareBar from '../components/ShareBar';
@@ -32,14 +33,14 @@ export default function Coach() {
   return (
     <>
       <SeoHead
-        title={`${b.name} — Pre-Argument Coach (${stats.coachEntries || '2000+'} Insights)`}
+        title={`${b.name} — Pre-Argument Coach (${stats.coachEntries || '2800+'} Insights)`}
         description={b.tagline}
         path="/before-the-storm"
         keywords="before the storm, what to say in an argument, communication scripts, conflict tips"
       />
       <ProGate
         featureId="before_the_storm"
-        teaser={`${b.name}: ${stats.coachEntries || '2000+'} filtered insights. Free peeks show one card; Pro unlocks the full deck.`}
+        teaser={`${b.name}: free showcase draws a complete, beautiful card. Pro unlocks ${stats.coachEntries || '2,800+'} filtered insights + alternate cards every draw.`}
       >
         {({ peek }) => (
           <div className="space-y-4">
@@ -59,16 +60,31 @@ export default function Coach() {
 
             <div className="card p-4 space-y-3">
               <label className="text-xs font-bold uppercase text-[#4a1942]/50">Situation</label>
-              <select className="input" value={situation} onChange={(e) => setSituation(e.target.value)}>
+              <select
+                className="input"
+                value={situation}
+                onChange={(e) => setSituation(e.target.value)}
+                disabled={peek}
+              >
                 {SITUATIONS.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
                 ))}
               </select>
+              {peek && (
+                <p className="text-[10px] text-[#4a1942]/50">
+                  Showcase uses curated situations — Pro filters the full deck to your exact vibe.
+                </p>
+              )}
 
               <label className="text-xs font-bold uppercase text-[#4a1942]/50">What is true right now?</label>
-              <select className="input" value={stage} onChange={(e) => setStage(e.target.value)}>
+              <select
+                className="input"
+                value={stage}
+                onChange={(e) => setStage(e.target.value)}
+                disabled={peek}
+              >
                 {STAGES.map((s) => (
                   <option key={s} value={s}>
                     {s}
@@ -83,6 +99,7 @@ export default function Coach() {
                 onChange={(e) => setDetail(e.target.value)}
                 placeholder="One sentence context…"
                 maxLength={300}
+                disabled={peek}
               />
 
               <button
@@ -92,6 +109,7 @@ export default function Coach() {
                   const o = coachArgument({ situation, stage, detail, freePeek: peek });
                   setOut(o);
                   unlockAchievement('first_storm');
+                  if (peek) unlockAchievement('pro_showcase');
                   recordHistory({
                     type: 'storm',
                     title: 'Before the Storm',
@@ -100,26 +118,32 @@ export default function Coach() {
                   });
                 }}
               >
-                {peek ? 'Peek one card' : 'Draw insight'}
+                {peek ? 'Reveal showcase card' : 'Draw full storm deck'}
               </button>
             </div>
 
             {out?.primary && (
-              <div className="card p-5 space-y-3">
+              <div className="card card-glow p-5 space-y-3 border-[#c9a227]/30">
                 <p className="text-[10px] uppercase tracking-widest text-[#4a1942]/50">
-                  {out.freePeek ? 'Sneak peek card' : 'Primary card'} · library {out.librarySize}
+                  {out.freePeek ? 'Showcase card' : 'Primary card'} · library {out.librarySize}
                 </p>
-                <p className="font-semibold text-[#4a1942]">{out.primary.opener}</p>
-                <p className="text-sm text-[#4a1942]/80">{out.primary.insight}</p>
-                <p className="text-sm italic text-[#4a1942]/70">{out.primary.shouldHaveSaid}</p>
+                <p className="font-semibold text-[#4a1942] text-lg leading-snug">{out.primary.opener}</p>
+                <p className="text-sm text-[#4a1942]/80 leading-relaxed">{out.primary.insight}</p>
+                <p className="text-sm italic text-[#4a1942]/70 leading-relaxed">{out.primary.shouldHaveSaid}</p>
+                {out.primary.ritual && (
+                  <p className="text-xs font-bold text-[#c9a227] rounded-xl bg-amber-50/80 border border-amber-100 px-3 py-2">
+                    Ritual · {out.primary.ritual}
+                  </p>
+                )}
                 <p className="text-xs text-[#4a1942]/55">{out.primary.blurb}</p>
 
                 {out.alternatives?.length > 0 && (
                   <div className="border-t border-[#4a1942]/10 pt-3 space-y-2">
-                    <p className="text-xs font-bold uppercase text-[#4a1942]/40">More cards</p>
+                    <p className="text-xs font-bold uppercase text-[#4a1942]/40">More Pro cards</p>
                     {out.alternatives.map((a, i) => (
-                      <div key={i} className="rounded-xl bg-[#4a1942]/5 p-3 text-xs text-[#4a1942]/80">
-                        {a.opener} — {a.insight}
+                      <div key={i} className="rounded-xl bg-[#4a1942]/5 p-3 text-xs text-[#4a1942]/80 leading-relaxed">
+                        <p className="font-semibold">{a.opener}</p>
+                        <p className="mt-1 opacity-80">{a.insight}</p>
                       </div>
                     ))}
                   </div>
@@ -128,6 +152,11 @@ export default function Coach() {
                 <ShareBar
                   title="Before the Storm"
                   text={`${out.primary.opener} ${out.primary.insight}`}
+                />
+                <ProValueStrip
+                  freePeek={out.freePeek}
+                  unlocks={out.proUnlocks}
+                  title="Pro draws a whole storm deck"
                 />
               </div>
             )}

@@ -8,18 +8,18 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.5.0';
+const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.6.0';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'Sanctum feels more alive',
+  title: 'Showcase peeks & living familiars',
   message:
-    'Everything is clickable, Desk Orb is easy to find, branding is sharper, and libraries got deeper.',
+    'Free users get full beautiful Pro samples. Pro goes deeper. Familiars animate, medals gleam, easter eggs hide.',
   highlights: [
-    'Desk Orb widget: open /widget or the Orb tab — also in the install popup',
-    'Tool grid + footer links to every feature and the apothecary',
-    'New logo mark, richer guides (Desk Orb, Chart Harmony, Daily Fortune)',
-    'Expanded content libraries + updated sitemap',
+    'Awesome free showcases for Court, Whisperer, Storm, Moon Mirror',
+    'Pro multi-cards, ritual scores, vault depth, live court modes',
+    'Animated sanctum familiar + achievement medals',
+    'Easter eggs: 7-tap bond, 13-tap cycle, triple-gild sphere',
   ],
 };
 
