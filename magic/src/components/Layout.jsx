@@ -14,6 +14,9 @@ const NAV = [
   { to: '/', label: 'Sphere', icon: '⑧' },
   { to: '/dashboard', label: 'You', icon: '⭐' },
   { to: '/hearth-court', label: 'Court', icon: '⚖' },
+  { to: '/dice', label: 'Dice', icon: '🎲' },
+  { to: '/this-or-that', label: 'T/T', icon: '⚡' },
+  { to: '/mood', label: 'Mood', icon: '🌙' },
   { to: '/familiar', label: 'Familiar', icon: '🐾' },
   { to: '/before-the-storm', label: 'Storm', icon: '🕯' },
   { to: '/cauldron', label: 'Cauldron', icon: '🔥' },
@@ -26,9 +29,9 @@ const NAV = [
 
 const BOTTOM_NAV = [
   { to: '/', label: 'Sphere', icon: '⑧' },
-  { to: '/dashboard', label: 'You', icon: '⭐' },
+  { to: '/hearth-court', label: 'Court', icon: '⚖' },
+  { to: '/dice', label: 'Dice', icon: '🎲' },
   { to: '/widget', label: 'Orb', icon: '🖥' },
-  { to: '/compatibility', label: 'Match', icon: '💞' },
   { to: '/settings', label: 'More', icon: '✦' },
 ];
 

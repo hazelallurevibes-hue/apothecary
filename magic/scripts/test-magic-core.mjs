@@ -72,6 +72,18 @@ assert(peek.freePeek === true, 'Showcase freePeek flag');
 assert(peek.cliffNote && peek.cliffNote.length > 40, 'Showcase cliff is full (not tiny)');
 assert(Array.isArray(peek.proUnlocks) && peek.proUnlocks.length > 0, 'Showcase lists Pro unlocks');
 
+const freeBasic = settleArgument(
+  [
+    { label: 'Alex', text: 'I feel stressed when dishes pile up because I cook every night. Let us plan a schedule.' },
+    { label: 'Sam', text: 'You always nag and never help with anything stupid.', votes: 2 },
+  ],
+  { freeBasic: true },
+);
+assert(freeBasic.freeBasic === true, 'Free basic flag');
+assert(!freeBasic.error, 'Free basic scores real sides');
+assert(!!freeBasic.winner || freeBasic.shared, 'Free basic produces winner or shared');
+assert(Array.isArray(freeBasic.proUnlocks) && freeBasic.proUnlocks.length > 0, 'Free basic upsells Pro');
+
 console.log('Fortune');
 const f = drawDailyFortune({ email: 'test@example.com', celestial: chart });
 assert(f.fortune && f.fortune.length > 10, 'Fortune sentence');

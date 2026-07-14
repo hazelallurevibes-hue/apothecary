@@ -16,11 +16,31 @@ export const MAGIC_FEATURES = {
     free: false,
     viral: 'Moon Mirror Proverbs',
   },
+  hearth_court_basic: {
+    label: 'Hearth Court free (2 sides, vote, basic ruling)',
+    free: true,
+    viral: 'Hearth Court Free',
+  },
   hearth_court: {
-    label: 'Hearth Court (argument settler)',
+    label: 'Hearth Court Pro (live polls, 4 sides, full cliffs)',
     free: false,
-    viral: 'Hearth Court',
+    viral: 'Hearth Court Pro',
     freePeek: true,
+  },
+  sanctum_dice: {
+    label: 'Sanctum Dice',
+    free: true,
+    viral: 'Sanctum Dice',
+  },
+  this_or_that: {
+    label: 'This or That',
+    free: true,
+    viral: 'This or That',
+  },
+  mood_meter: {
+    label: 'Mood Meter + moon phase',
+    free: true,
+    viral: 'Mood Meter',
   },
   familiar_whisperer: {
     label: 'Familiar Whisperer (pet talk)',

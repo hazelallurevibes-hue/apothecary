@@ -8,18 +8,18 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.6.0';
+const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.7.0';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'Showcase peeks & living familiars',
+  title: 'Free Court + install-worthy tools',
   message:
-    'Free users get full beautiful Pro samples. Pro goes deeper. Familiars animate, medals gleam, easter eggs hide.',
+    'Enter arguments, vote, and get a computer ruling for free. Dice, This-or-That, and Mood Meter make the app worth downloading.',
   highlights: [
-    'Awesome free showcases for Court, Whisperer, Storm, Moon Mirror',
-    'Pro multi-cards, ritual scores, vault depth, live court modes',
-    'Animated sanctum familiar + achievement medals',
-    'Easter eggs: 7-tap bond, 13-tap cycle, triple-gild sphere',
+    'Hearth Court free: 2 sides, votes, basic computer decision',
+    'New free: Sanctum Dice, This or That, Mood Meter + moon',
+    'Pro: live multi-device polls, 4 sides, full libraries',
+    'Clear free vs Pro value map on Free playground',
   ],
 };
 

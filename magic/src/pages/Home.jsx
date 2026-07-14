@@ -140,17 +140,20 @@ export default function Home() {
           the Storm — free peeks so you feel the magic first.
         </p>
         <div className="flex flex-wrap justify-center gap-2 mt-3">
+          <Link to="/hearth-court" className="btn-primary text-xs py-1.5 px-3">
+            Free Court · vote & rule
+          </Link>
+          <Link to="/dice" className="btn-secondary text-xs py-1.5 px-3">
+            Sanctum Dice
+          </Link>
           <Link to="/widget" className="btn-gold text-xs py-1.5 px-3">
-            Open Desk Orb widget
+            Desk Orb
           </Link>
           <Link to="/free" className="btn-secondary text-xs py-1.5 px-3">
-            Free playground
-          </Link>
-          <Link to="/guides" className="btn-secondary text-xs py-1.5 px-3">
-            Read guides
+            All free tools
           </Link>
           {!user && (
-            <Link to="/auth" className="btn-primary text-xs py-1.5 px-3">
+            <Link to="/auth" className="btn-secondary text-xs py-1.5 px-3">
               Sign in
             </Link>
           )}

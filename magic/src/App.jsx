@@ -17,6 +17,9 @@ import DailyOracle from './pages/DailyOracle';
 import Dashboard from './pages/Dashboard';
 import PollJoin from './pages/PollJoin';
 import Compatibility from './pages/Compatibility';
+import Dice from './pages/Dice';
+import ThisOrThat from './pages/ThisOrThat';
+import MoodMeter from './pages/MoodMeter';
 
 export default function App() {
   return (
@@ -40,6 +43,9 @@ export default function App() {
               <Route path="/cauldron" element={<Hearth />} />
               <Route path="/hearth" element={<Navigate to="/cauldron" replace />} />
               <Route path="/compatibility" element={<Compatibility />} />
+              <Route path="/dice" element={<Dice />} />
+              <Route path="/this-or-that" element={<ThisOrThat />} />
+              <Route path="/mood" element={<MoodMeter />} />
               <Route path="/free" element={<FreePlayground />} />
               <Route path="/oracle/daily" element={<DailyOracle />} />
               <Route path="/guides" element={<Guides />} />

@@ -18,6 +18,9 @@ export const ACHIEVEMENTS = [
   { id: 'easter_moon', name: 'Thirteen Moons', desc: 'Found the familiar cycle easter egg', emoji: '🌕', xp: 75 },
   { id: 'sphere_secret', name: 'Triple Gild', desc: 'Triple-tapped the home sphere', emoji: '✦', xp: 45 },
   { id: 'pro_showcase', name: 'Porch Light', desc: 'Opened a full Pro showcase peek', emoji: '🏛', xp: 15 },
+  { id: 'first_dice', name: 'Dicebound', desc: 'Rolled Sanctum Dice', emoji: '🎲', xp: 10 },
+  { id: 'first_this_or_that', name: 'Binary Heart', desc: 'Played This or That', emoji: '⚡', xp: 10 },
+  { id: 'first_mood', name: 'Weather Within', desc: 'Sealed a Mood Meter reading', emoji: '🌙', xp: 12 },
 ];
 
 export function loadAchievements() {
