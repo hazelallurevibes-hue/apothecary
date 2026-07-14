@@ -17,5 +17,11 @@ export const HAZEL_LINKS = {
   proUpgrade: () => `${HAZEL_URL}/pro-upgrade?type=customer&utm_source=magic`,
   account: () => `${HAZEL_URL}/account-settings?utm_source=magic`,
   marketplace: () => `${HAZEL_URL}/products?utm_source=magic`,
+  services: () => `${HAZEL_URL}/services?utm_source=magic`,
+  courses: () => `${HAZEL_URL}/courses?utm_source=magic`,
+  topPractitioners: () => `${HAZEL_URL}/top-vendors?utm_source=magic`,
+  policies: () => `${HAZEL_URL}/policies-procedures?utm_source=magic`,
+  agreements: () => `${HAZEL_URL}/agreements?utm_source=magic`,
   magicAuth: () => '/auth',
+  brandSite: () => 'https://www.hazelallure.com/',
 };

@@ -109,7 +109,7 @@ const signHooks = [
   'Your rising mood favors collaboration',
 ];
 
-const fortunes = expand([openers, middles, closers], 3200);
+const fortunes = expand([openers, middles, closers], 3800);
 const signFortunes = expand(
   [
     signHooks,
@@ -124,7 +124,7 @@ const signFortunes = expand(
   ],
   900,
 );
-const allFortunes = [...new Set([...fortunes, ...signFortunes])].slice(0, 4200);
+const allFortunes = [...new Set([...fortunes, ...signFortunes])].slice(0, 5000);
 
 const words = [
   { lang: 'Chinese', word: '缘', roman: 'yuán', meaning: 'fated connection' },

@@ -152,12 +152,31 @@ export default function Dashboard() {
           Sign in to unlock daily fortune, celestial chart from your birthday, achievements, and profile
           tools — same account as the apothecary.
         </p>
-        <a href="/auth" className="btn-primary inline-flex">
-          Sign in
-        </a>
-        <a href={HAZEL_LINKS.signup()} className="btn-secondary inline-flex">
-          Create account with birthday later
-        </a>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Link to="/auth" className="btn-primary">
+            Sign in
+          </Link>
+          <a href={HAZEL_LINKS.signup()} className="btn-secondary">
+            Create account
+          </a>
+        </div>
+        <div className="flex flex-wrap justify-center gap-3 text-xs pt-2">
+          <Link to="/" className="underline font-semibold text-[#4a1942]">
+            Free sphere
+          </Link>
+          <Link to="/widget" className="underline font-semibold text-[#4a1942]">
+            Desk Orb
+          </Link>
+          <Link to="/free" className="underline font-semibold text-[#4a1942]">
+            Free playground
+          </Link>
+          <Link to="/compatibility" className="underline font-semibold text-[#4a1942]">
+            Chart harmony
+          </Link>
+          <Link to="/guides/daily-fortune" className="underline">
+            Fortune guide
+          </Link>
+        </div>
       </div>
     );
   }

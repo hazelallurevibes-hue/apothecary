@@ -1,6 +1,10 @@
 User-agent: *
 Allow: /
+Allow: /widget
+Allow: /guides
+Allow: /free
+Allow: /compatibility
 Disallow: /auth/callback
-Disallow: /widget
+Disallow: /poll/
 
 Sitemap: https://magic.hazelallure.com/sitemap.xml

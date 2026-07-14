@@ -7,16 +7,28 @@
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://magic.hazelallure.com/dashboard</loc>
+    <loc>https://magic.hazelallure.com/free</loc>
     <lastmod>2026-07-14</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/guides</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/widget</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://magic.hazelallure.com/compatibility</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>weekly</changefreq>
-    <priority>0.88</priority>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://magic.hazelallure.com/hearth-court</loc>
@@ -43,16 +55,22 @@
     <priority>0.85</priority>
   </url>
   <url>
-    <loc>https://magic.hazelallure.com/widget</loc>
+    <loc>https://magic.hazelallure.com/dashboard</loc>
     <lastmod>2026-07-14</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
+    <changefreq>daily</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/oracle/daily</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
   </url>
   <url>
     <loc>https://magic.hazelallure.com/settings</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.55</priority>
   </url>
   <url>
     <loc>https://magic.hazelallure.com/auth</loc>
@@ -64,25 +82,7 @@
     <loc>https://magic.hazelallure.com/legal</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://magic.hazelallure.com/guides</loc>
-    <lastmod>2026-07-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://magic.hazelallure.com/oracle/daily</loc>
-    <lastmod>2026-07-14</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://magic.hazelallure.com/free</loc>
-    <lastmod>2026-07-14</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.92</priority>
+    <priority>0.65</priority>
   </url>
   <url>
     <loc>https://magic.hazelallure.com/guides/sanctum-sphere</loc>
@@ -122,6 +122,24 @@
   </url>
   <url>
     <loc>https://magic.hazelallure.com/guides/magic-sanctum-for-seekers</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/guides/desk-orb</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/guides/chart-harmony</loc>
+    <lastmod>2026-07-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.88</priority>
+  </url>
+  <url>
+    <loc>https://magic.hazelallure.com/guides/daily-fortune</loc>
     <lastmod>2026-07-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>

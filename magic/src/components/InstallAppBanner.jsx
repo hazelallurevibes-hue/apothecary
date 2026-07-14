@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import SanctumLogo from './SanctumLogo';
 
 const DISMISS_KEY = 'magic_install_banner_dismissed';
 
 /**
- * Prompts users to install Magic Sanctum as a home-screen / desktop app (PWA).
+ * Prompts users to install Magic Sanctum as a home-screen app
+ * and points them to the Desk Orb widget at /widget.
  */
 export default function InstallAppBanner() {
   const [deferred, setDeferred] = useState(null);
@@ -30,11 +33,10 @@ export default function InstallAppBanner() {
     };
     window.addEventListener('beforeinstallprompt', onBip);
 
-    // iOS / browsers without beforeinstallprompt — soft hint after short delay
+    // Show soft hint for everyone after a short delay (not only iOS)
     const t = setTimeout(() => {
-      const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-      if (isIos && !standalone) setVisible(true);
-    }, 4000);
+      if (!standalone) setVisible(true);
+    }, 3500);
 
     return () => {
       window.removeEventListener('beforeinstallprompt', onBip);
@@ -67,27 +69,55 @@ export default function InstallAppBanner() {
 
   return (
     <div className="fixed bottom-[4.75rem] md:bottom-4 left-3 right-3 z-50 max-w-md mx-auto animate-fade-up">
-      <div className="card card-glow p-3 flex items-start gap-3 shadow-xl">
-        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#1a0a18] to-[#4a1942] border border-[#c9a227]/60 flex items-center justify-center text-white font-display font-bold text-lg shrink-0">
-          8
-        </div>
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#4a1942]">Install Magic Sanctum</p>
-          <p className="text-[11px] text-[#4a1942]/65 leading-snug mt-0.5">
-            {deferred
-              ? 'Add the app to your home screen for one-tap sphere, coin, and court.'
-              : 'On iPhone: Share → Add to Home Screen for the full app experience.'}
-          </p>
-          <div className="flex gap-2 mt-2">
-            {deferred && (
-              <button type="button" onClick={install} className="btn-gold text-xs py-1.5 px-3">
-                Install app
-              </button>
-            )}
-            <button type="button" onClick={dismiss} className="btn-secondary text-xs py-1.5 px-3">
-              Not now
-            </button>
+      <div className="card card-glow p-3.5 shadow-xl">
+        <div className="flex items-start gap-3">
+          <SanctumLogo size={44} className="shrink-0" decorative />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-bold text-[#4a1942]">Install Magic Sanctum</p>
+            <p className="text-[11px] text-[#4a1942]/65 leading-snug mt-0.5">
+              {deferred
+                ? 'Add the full app to your home screen — then open Desk Orb for a tiny companion.'
+                : 'Browser menu → Install / Add to Home Screen. On iPhone: Share → Add to Home Screen.'}
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={dismiss}
+            className="text-[#4a1942]/40 hover:text-[#4a1942] text-lg leading-none px-1"
+            aria-label="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="mt-3 rounded-xl bg-[#4a1942]/[0.05] border border-[#4a1942]/10 px-3 py-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#c9a227]">
+            Where is the widget?
+          </p>
+          <p className="text-[11px] text-[#4a1942]/70 mt-0.5 leading-snug">
+            <strong>Desk Orb</strong> lives at{' '}
+            <Link to="/widget" className="underline font-bold text-[#4a1942]" onClick={dismiss}>
+              magic.hazelallure.com/widget
+            </Link>
+            — a minimal sphere + coin companion. Pin that tab or open it after install.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2 mt-3">
+          {deferred && (
+            <button type="button" onClick={install} className="btn-gold text-xs py-1.5 px-3">
+              Install app
+            </button>
+          )}
+          <Link to="/widget" onClick={dismiss} className="btn-primary text-xs py-1.5 px-3">
+            Open Desk Orb
+          </Link>
+          <Link to="/settings" onClick={dismiss} className="btn-secondary text-xs py-1.5 px-3">
+            Install tips
+          </Link>
+          <button type="button" onClick={dismiss} className="text-xs text-[#4a1942]/50 px-2">
+            Not now
+          </button>
         </div>
       </div>
     </div>

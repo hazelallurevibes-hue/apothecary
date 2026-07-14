@@ -2,17 +2,17 @@
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  * Splash copy is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.4.0';
+export const APP_VERSION = '1.5.0';
 
 export const UPDATE_SPLASH = {
-  title: 'A fresher Sanctum awaits',
+  title: 'Sanctum feels more alive',
   message:
-    'Richer branding, installable app experience, and a one-tap upgrade when we ship something new.',
+    'Everything is clickable, Desk Orb is easy to find, branding is sharper, and libraries got deeper.',
   highlights: [
-    'Polished Magic Sanctum colors, sphere, and app shell',
-    'SEO + social meta for sharing the sphere & coin',
-    'Upgrade prompt on startup when a new version is live',
-    'Install Magic as a home-screen app (PWA)',
+    'Desk Orb widget: open /widget or the Orb tab — also in the install popup',
+    'Tool grid + footer links to every feature and the apothecary',
+    'New logo mark, richer guides (Desk Orb, Chart Harmony, Daily Fortune)',
+    'Expanded content libraries + updated sitemap',
   ],
 };
 

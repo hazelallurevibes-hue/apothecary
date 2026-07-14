@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { HAZEL_LINKS } from '../lib/hazel';
 
 /** Soft conversion strips — free playground → apothecary */
@@ -8,6 +9,10 @@ export default function ApothecaryFunnel({ variant = 'default' }) {
         Enjoying the sanctum?{' '}
         <a href={HAZEL_LINKS.marketplace()} className="underline font-semibold text-[#4a1942]">
           Shop the apothecary
+        </a>{' '}
+        ·{' '}
+        <a href={HAZEL_LINKS.services()} className="underline font-semibold text-[#4a1942]">
+          Book practitioners
         </a>{' '}
         ·{' '}
         <a href={HAZEL_LINKS.proUpgrade()} className="underline font-semibold text-[#4a1942]">
@@ -24,19 +29,35 @@ export default function ApothecaryFunnel({ variant = 'default' }) {
         The porch light is on at the apothecary
       </h3>
       <p className="text-sm text-[#4a1942]/70 mt-2 leading-relaxed">
-        Magic Sanctum is the free playground — sphere, coin, sneak peeks. When you want human
+        Magic Sanctum is the free playground — sphere, coin, Desk Orb, sneak peeks. When you want human
         practitioners, ritual goods, or courses, the same Hazel Allure account opens the full
         marketplace. Stir, breathe, receive… then browse.
       </p>
       <div className="flex flex-col sm:flex-row gap-2 mt-4">
         <a href={HAZEL_LINKS.marketplace()} className="btn-primary flex-1 text-center">
-          Explore apothecary →
+          Shop apothecary →
         </a>
-        <a href={HAZEL_LINKS.proUpgrade()} className="btn-secondary flex-1 text-center">
-          Unlock Pro libraries
+        <a href={HAZEL_LINKS.services()} className="btn-secondary flex-1 text-center">
+          Book practitioners
+        </a>
+        <a href={HAZEL_LINKS.proUpgrade()} className="btn-gold flex-1 text-center">
+          Unlock Pro
         </a>
       </div>
-      <p className="text-[10px] text-[#4a1942]/45 mt-3">
+      <p className="text-[11px] text-center mt-3 text-[#4a1942]/55">
+        <Link to="/widget" className="underline font-semibold">
+          Desk Orb widget
+        </Link>
+        {' · '}
+        <a href={HAZEL_LINKS.courses()} className="underline">
+          Courses
+        </a>
+        {' · '}
+        <a href={HAZEL_LINKS.topPractitioners()} className="underline">
+          Top practitioners
+        </a>
+      </p>
+      <p className="text-[10px] text-[#4a1942]/45 mt-2 text-center">
         Pro = same customer or vendor Pro plan as apothecary.hazelallure.com
       </p>
     </div>

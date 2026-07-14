@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { HAZEL_LINKS } from '../lib/hazel';
 import { useAuth } from '../context/AuthContext';
 import { magicCanPeek } from '../lib/plans';
@@ -26,9 +27,9 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
           <div className="mt-2 flex flex-wrap gap-2">
             {!user ? (
               <>
-                <a href="/auth" className="btn-primary text-xs py-1.5 px-3">
+                <Link to="/auth" className="btn-primary text-xs py-1.5 px-3">
                   Sign in
-                </a>
+                </Link>
                 <a href={HAZEL_LINKS.signup()} className="btn-secondary text-xs py-1.5 px-3">
                   Join free
                 </a>
@@ -38,6 +39,12 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
                 Unlock full Pro library
               </a>
             )}
+            <Link to="/free" className="btn-secondary text-xs py-1.5 px-3">
+              Free playground
+            </Link>
+            <Link to="/guides" className="text-xs underline py-1.5 px-1 text-[#4a1942]/60">
+              Guides
+            </Link>
           </div>
         </div>
         {typeof children === 'function' ? children({ peek: true, isPremium: false }) : children}
@@ -59,15 +66,29 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
             <a href={HAZEL_LINKS.signup()} className="btn-primary">
               Create Hazel account
             </a>
-            <a href="/auth" className="btn-secondary">
+            <Link to="/auth" className="btn-secondary">
               Sign in
-            </a>
+            </Link>
           </>
         ) : (
           <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary">
             Upgrade to Pro on Hazel Allure
           </a>
         )}
+        <div className="flex flex-wrap justify-center gap-2 text-xs">
+          <Link to="/" className="underline">
+            Free sphere
+          </Link>
+          <Link to="/widget" className="underline">
+            Desk Orb
+          </Link>
+          <Link to="/free" className="underline">
+            Free playground
+          </Link>
+          <a href={HAZEL_LINKS.marketplace()} className="underline">
+            Apothecary
+          </a>
+        </div>
         {!isPremium && user && (
           <p className="text-[11px] text-[#4a1942]/50">
             Signed in as {user.email} · plan: {user.customer_plan || 'free'}

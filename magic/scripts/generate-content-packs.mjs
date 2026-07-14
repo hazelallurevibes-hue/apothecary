@@ -62,7 +62,7 @@ const petEnd = [
   '…cauldron cools when you obey.', '…the black cat jury concurs.',
 ];
 
-const petPhrases = uniqueExpand([petWho, petDo, petWhat, petEnd], 2200);
+const petPhrases = uniqueExpand([petWho, petDo, petWhat, petEnd], 2800);
 
 // —— Before the Storm (coach) ——
 const situations = [
@@ -127,11 +127,11 @@ for (const sit of situations) {
         freePeek: ci % 7 === 0,
       });
       ci += 1;
-      if (coachEntries.length >= 2200) break;
+      if (coachEntries.length >= 2800) break;
     }
-    if (coachEntries.length >= 2200) break;
+    if (coachEntries.length >= 2800) break;
   }
-  if (coachEntries.length >= 2200) break;
+  if (coachEntries.length >= 2800) break;
 }
 
 // —— Hearth Court (settler) cliff notes + side scripts ——
@@ -160,7 +160,7 @@ const settlerCliff = uniqueExpand(
       'Let the cat break the tension.',
     ],
   ],
-  2200,
+  2800,
 );
 
 const verdictTemplates = [
@@ -188,12 +188,12 @@ const ventPrompts = uniqueExpand(
       'the silence after dinner.',
     ],
   ],
-  400,
+  600,
 );
 
 const freeSphereLines = uniqueExpand(
   [
-    ['The sphere whispers:', 'Sanctum murmur:', 'Moon ink says:', 'Hearth hum:'],
+    ['The sphere whispers:', 'Sanctum murmur:', 'Moon ink says:', 'Hearth hum:', 'Desk Orb hums:'],
     [
       'try softness first',
       'not every no is forever',
@@ -203,10 +203,14 @@ const freeSphereLines = uniqueExpand(
       'ask smaller questions',
       'leave the scoreboard outside',
       'the familiar is watching kindly',
+      'pin the desk orb for tiny decisions',
+      'share the laugh, keep the care',
+      'the coin is theater not law',
+      'consent before chart peeks',
     ],
     ['· free daily wisdom', '· seeker edition', '· no payment required', '· then visit the apothecary'],
   ],
-  200,
+  320,
 );
 
 const out = {
@@ -392,20 +396,89 @@ const SEO_HUBS = [
     h1: 'A playground that funnels kindness',
     emoji: '✨',
     summary:
-      'Free sphere, coin, and teaser tools build habit. Pro unlocks Hearth Court, Familiar Whisperer, and Before the Storm. Same account as apothecary.hazelallure.com.',
+      'Free sphere, coin, Desk Orb, and teaser tools build habit. Pro unlocks Hearth Court, Familiar Whisperer, and Before the Storm. Same account as apothecary.hazelallure.com.',
     keywords: 'hazel allure magic, free spiritual tools, apothecary funnel, sanctum pro',
     sections: [
       {
         h: 'Free forever layer',
-        p: 'Sanctum Sphere, Heaven & Ember Coin, Frustration Cauldron journal, daily free wisdom lines, and sneak peeks of Pro tools. We want you laughing before you buy.',
+        p: 'Sanctum Sphere, Heaven & Ember Coin, Frustration Cauldron journal, daily free wisdom lines, Desk Orb widget, Chart Harmony, and sneak peeks of Pro tools. We want you laughing before you buy.',
       },
       {
         h: 'Pro layer',
-        p: 'Customer or vendor Pro on Hazel Allure unlocks full libraries — 2000+ pet lines, 2000+ coach insights, full Hearth Court, reverse proverbs, anonymous Hearth posts.',
+        p: 'Customer or vendor Pro on Hazel Allure unlocks full libraries — 2800+ pet lines, 2800+ coach insights, full Hearth Court, reverse proverbs, anonymous Hearth posts.',
       },
       {
         h: 'Shop when ready',
         p: 'Practitioners, apothecary goods, and Teaching Sanctum courses live at apothecary.hazelallure.com. Magic Sanctum is the front porch light.',
+      },
+    ],
+  },
+  {
+    slug: 'desk-orb',
+    title: 'Desk Orb Widget — Minimal Magic Companion at /widget',
+    h1: 'Desk Orb widget',
+    emoji: '🖥',
+    summary:
+      'Open magic.hazelallure.com/widget for a tiny sphere + coin companion. Pin the tab, bookmark it, or open after installing the Magic Sanctum app.',
+    keywords: 'desk orb, magic widget, floating magic 8 ball, pin tab companion, sanctum widget',
+    sections: [
+      {
+        h: 'Where to find it',
+        p: 'Desk Orb lives at https://magic.hazelallure.com/widget — also linked from the home page, install banner, mobile Orb tab, Settings, and footer. It is intentionally minimal so it stays useful as a companion window.',
+      },
+      {
+        h: 'How to use it',
+        p: 'Tap Sphere for a classic sanctum answer or Coin for Heaven & Ember. Install Magic Sanctum as a home-screen app from the full site, then jump back to /widget for desk-side decisions. True always-on-top desktop shells can come later; the PWA + pin-tab pattern is the web-native first step.',
+      },
+      {
+        h: 'Full Sanctum',
+        p: 'Need history, Hearth Court, Familiar Whisperer, or Chart Harmony? Use the Full Magic Sanctum link on the widget to return to the complete app with the same branding and account.',
+      },
+    ],
+  },
+  {
+    slug: 'chart-harmony',
+    title: 'Chart Harmony — Two-Birthday Compatibility (Entertainment)',
+    h1: 'Chart Harmony',
+    emoji: '💞',
+    summary:
+      'Enter two birthdays for a playful compatibility score from Western signs, Chinese animals, and life paths. Consent required. Entertainment only.',
+    keywords: 'birthday compatibility, zodiac match free, chart harmony, entertainment astrology match',
+    sections: [
+      {
+        h: 'How it works',
+        p: 'Chart Harmony combines western elemental vibes, Chinese animal playbooks, and a light life-path number for a theatrical score — not a clinical reading and not destiny. Always get consent before using someone else’s birthday.',
+      },
+      {
+        h: 'Share carefully',
+        p: 'Scores are for laughs, icebreakers, and story posts. Download a share card if you want, but never publish private dates without permission.',
+      },
+      {
+        h: 'Next steps',
+        p: 'Save results to your dashboard history when signed in. Explore practitioners at the apothecary if you want a human conversation beyond the game.',
+      },
+    ],
+  },
+  {
+    slug: 'daily-fortune',
+    title: 'Daily Fortune Cookie & Celestial Dashboard — Magic Sanctum',
+    h1: 'Daily fortune & chart',
+    emoji: '🥠',
+    summary:
+      'Sign in for a daily fortune cookie line, lucky numbers, and a playful celestial chart from your birthday — synced with your Hazel Allure profile when SQL is live.',
+    keywords: 'daily fortune cookie free, lucky numbers today, birthday zodiac chart fun, sanctum dashboard',
+    sections: [
+      {
+        h: 'Sign in for the full porch',
+        p: 'Guests can play sphere and coin for free. The dashboard fortune, DOB chart, achievements, and cloud history unlock with the same Hazel Allure account used on the apothecary.',
+      },
+      {
+        h: 'What you get',
+        p: 'A rotating fortune library (thousands of lines), lucky number seeds, western + Chinese flavor, optional birth time for rising flair, and a results history you can share lightly.',
+      },
+      {
+        h: 'Entertainment only',
+        p: 'Fortunes and charts are theatrical. They are not medical, financial, or professional advice. Pair serious decisions with humans you trust.',
       },
     ],
   },
@@ -421,19 +494,19 @@ const BASE = 'https://magic.hazelallure.com';
 const today = new Date().toISOString().slice(0, 10);
 const staticPaths = [
   ['/', '1.0', 'daily'],
-  ['/dashboard', '0.85', 'daily'],
-  ['/compatibility', '0.88', 'weekly'],
+  ['/free', '0.95', 'weekly'],
+  ['/guides', '0.95', 'weekly'],
+  ['/widget', '0.9', 'weekly'],
+  ['/compatibility', '0.9', 'weekly'],
   ['/hearth-court', '0.9', 'weekly'],
   ['/familiar', '0.9', 'weekly'],
   ['/before-the-storm', '0.9', 'weekly'],
   ['/cauldron', '0.85', 'weekly'],
-  ['/widget', '0.7', 'monthly'],
-  ['/settings', '0.4', 'monthly'],
-  ['/auth', '0.5', 'monthly'],
-  ['/legal', '0.6', 'monthly'],
-  ['/guides', '0.95', 'weekly'],
+  ['/dashboard', '0.85', 'daily'],
   ['/oracle/daily', '0.9', 'daily'],
-  ['/free', '0.92', 'weekly'],
+  ['/settings', '0.55', 'monthly'],
+  ['/auth', '0.5', 'monthly'],
+  ['/legal', '0.65', 'monthly'],
   ...SEO_HUBS.map((h) => [`/guides/${h.slug}`, '0.88', 'weekly']),
 ];
 
@@ -457,8 +530,12 @@ fs.writeFileSync(
   path.join(PUBLIC, 'robots.txt'),
   `User-agent: *
 Allow: /
+Allow: /widget
+Allow: /guides
+Allow: /free
+Allow: /compatibility
 Disallow: /auth/callback
-Disallow: /widget
+Disallow: /poll/
 
 Sitemap: ${BASE}/sitemap.xml
 `,
@@ -467,24 +544,42 @@ fs.writeFileSync(
   path.join(PUBLIC, 'llms.txt'),
   `# Magic Sanctum (magic.hazelallure.com)
 
-> Playful decision and communication tools from Hazel Allure — entertainment only.
+> Playful decision and communication tools from Hazel Allure — entertainment only. Installable PWA + Desk Orb widget.
 
-## Primary
-- ${BASE}/
-- ${BASE}/guides
-- ${BASE}/guides/sanctum-sphere
-- ${BASE}/guides/hearth-court
-- ${BASE}/guides/familiar-whisperer
-- ${BASE}/guides/before-the-storm
-- ${BASE}/legal
+## Brand
+- Product: Magic Sanctum
+- Publisher: Hazel Allure LLC
+- Colors: plum #4a1942, gold #d4af37, mist #f7f1e8, ink #120510
+- Tagline: Stir, breathe, receive — then decide with a wink.
+
+## Primary tools (clickable routes)
+- ${BASE}/ — Sanctum Sphere
+- ${BASE}/?mode=coin — Heaven & Ember coin
+- ${BASE}/widget — Desk Orb companion widget
+- ${BASE}/compatibility — Chart Harmony
+- ${BASE}/hearth-court — Hearth Court
+- ${BASE}/familiar — Familiar Whisperer
+- ${BASE}/before-the-storm — Before the Storm
+- ${BASE}/cauldron — Frustration Cauldron
+- ${BASE}/dashboard — Fortune & history (sign in)
+- ${BASE}/free — Free playground
+- ${BASE}/oracle/daily — Daily free ink
+- ${BASE}/settings — Install tips + all links
+- ${BASE}/guides — All guides
+- ${BASE}/legal — Policies
 - ${BASE}/sitemap.xml
+
+## Guides
+${SEO_HUBS.map((h) => `- ${BASE}/guides/${h.slug} — ${h.h1}`).join('\n')}
 
 ## Related
 - https://apothecary.hazelallure.com/ — marketplace & Pro billing
+- https://apothecary.hazelallure.com/services — practitioners
+- https://apothecary.hazelallure.com/pro-upgrade — Pro unlock
 - https://www.hazelallure.com/ — brand home / Alluring News
 
 ## Note
-Oracle answers, Hearth Court rulings, Familiar Whisperer translations, and Before the Storm cards are entertainment. Not medical, legal, financial, or professional advice.
+Oracle answers, Hearth Court rulings, Familiar Whisperer translations, Chart Harmony, and Before the Storm cards are entertainment. Not medical, legal, financial, or professional advice.
 `,
 );
 

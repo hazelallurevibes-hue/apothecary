@@ -1,8 +1,10 @@
-/** Viral product names + HA personality copy */
+/** Viral product names + HA personality copy + route map */
 
 export const BRAND = {
   appName: 'Magic Sanctum',
+  shortName: 'Magic',
   tagline: 'Stir, breathe, receive — then decide with a wink.',
+  domain: 'https://magic.hazelallure.com',
   pet: {
     id: 'familiar_whisperer',
     route: '/familiar',
@@ -11,6 +13,7 @@ export const BRAND = {
     emoji: '🐾',
     tagline: 'What is your familiar *actually* plotting?',
     pro: true,
+    guide: '/guides/familiar-whisperer',
   },
   coach: {
     id: 'before_the_storm',
@@ -20,6 +23,7 @@ export const BRAND = {
     emoji: '🕯',
     tagline: 'Words for the fight you have not had yet (or the one you just survived).',
     pro: true,
+    guide: '/guides/before-the-storm',
   },
   settler: {
     id: 'hearth_court',
@@ -29,6 +33,7 @@ export const BRAND = {
     emoji: '⚖',
     tagline: '2–4 sides. One playful ruling. Cliff notes included.',
     pro: true,
+    guide: '/guides/hearth-court',
   },
   sphere: {
     id: 'sanctum_sphere',
@@ -38,15 +43,17 @@ export const BRAND = {
     emoji: '⑧',
     tagline: 'Ask anything. Entertainment only.',
     pro: false,
+    guide: '/guides/sanctum-sphere',
   },
   coin: {
     id: 'heaven_ember',
-    route: '/',
+    route: '/?mode=coin',
     name: 'Heaven & Ember Coin',
     short: 'Coin',
     emoji: '🪙',
     tagline: 'YES from the clouds. NO from the coals.',
     pro: false,
+    guide: '/guides/heaven-ember-coin',
   },
   journal: {
     id: 'frustration_cauldron',
@@ -56,8 +63,48 @@ export const BRAND = {
     emoji: '🔥',
     tagline: 'Vent privately. Or feed the Hearth.',
     pro: false,
+    guide: '/guides/frustration-cauldron',
+  },
+  widget: {
+    id: 'desk_orb',
+    route: '/widget',
+    name: 'Desk Orb',
+    short: 'Widget',
+    emoji: '🖥',
+    tagline: 'Minimal companion — pin the tab or open after install.',
+    pro: false,
+    guide: '/guides/desk-orb',
+  },
+  harmony: {
+    id: 'chart_harmony',
+    route: '/compatibility',
+    name: 'Chart Harmony',
+    short: 'Match',
+    emoji: '💞',
+    tagline: 'Two birthdays · playful compatibility score.',
+    pro: false,
+    guide: '/guides/chart-harmony',
   },
 };
+
+/** Flat actionable routes for sitemap / menus */
+export const TOOL_LINKS = [
+  { to: '/', label: 'Sanctum Sphere', emoji: '⑧' },
+  { to: '/?mode=coin', label: 'Heaven & Ember', emoji: '🪙' },
+  { to: '/dashboard', label: 'Dashboard', emoji: '⭐' },
+  { to: '/compatibility', label: 'Chart Harmony', emoji: '💞' },
+  { to: '/hearth-court', label: 'Hearth Court', emoji: '⚖' },
+  { to: '/familiar', label: 'Familiar Whisperer', emoji: '🐾' },
+  { to: '/before-the-storm', label: 'Before the Storm', emoji: '🕯' },
+  { to: '/cauldron', label: 'Frustration Cauldron', emoji: '🔥' },
+  { to: '/widget', label: 'Desk Orb Widget', emoji: '🖥' },
+  { to: '/free', label: 'Free Playground', emoji: '🎁' },
+  { to: '/oracle/daily', label: 'Daily Oracle', emoji: '🌙' },
+  { to: '/guides', label: 'Guides', emoji: '📖' },
+  { to: '/settings', label: 'Settings', emoji: '⚙' },
+  { to: '/legal', label: 'Policies', emoji: '📜' },
+  { to: '/auth', label: 'Sign in', emoji: '🔑' },
+];
 
 export const DISCLAIMER =
   'Entertainment only — not medical, legal, financial, therapeutic, or professional advice. If you are unsafe, contact local emergency services.';
@@ -71,3 +118,17 @@ export const WHIMSY_LOADING = [
   'Polishing the sphere…',
   'Counting cliff notes…',
 ];
+
+/** Map guide slug → try-it route */
+export const GUIDE_TRY_ROUTES = {
+  'sanctum-sphere': '/',
+  'heaven-ember-coin': '/?mode=coin',
+  'hearth-court': '/hearth-court',
+  'familiar-whisperer': '/familiar',
+  'before-the-storm': '/before-the-storm',
+  'frustration-cauldron': '/cauldron',
+  'magic-sanctum-for-seekers': '/free',
+  'desk-orb': '/widget',
+  'chart-harmony': '/compatibility',
+  'daily-fortune': '/dashboard',
+};

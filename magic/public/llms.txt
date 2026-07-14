@@ -1,20 +1,47 @@
 # Magic Sanctum (magic.hazelallure.com)
 
-> Playful decision and communication tools from Hazel Allure — entertainment only.
+> Playful decision and communication tools from Hazel Allure — entertainment only. Installable PWA + Desk Orb widget.
 
-## Primary
-- https://magic.hazelallure.com/
-- https://magic.hazelallure.com/guides
-- https://magic.hazelallure.com/guides/sanctum-sphere
-- https://magic.hazelallure.com/guides/hearth-court
-- https://magic.hazelallure.com/guides/familiar-whisperer
-- https://magic.hazelallure.com/guides/before-the-storm
-- https://magic.hazelallure.com/legal
+## Brand
+- Product: Magic Sanctum
+- Publisher: Hazel Allure LLC
+- Colors: plum #4a1942, gold #d4af37, mist #f7f1e8, ink #120510
+- Tagline: Stir, breathe, receive — then decide with a wink.
+
+## Primary tools (clickable routes)
+- https://magic.hazelallure.com/ — Sanctum Sphere
+- https://magic.hazelallure.com/?mode=coin — Heaven & Ember coin
+- https://magic.hazelallure.com/widget — Desk Orb companion widget
+- https://magic.hazelallure.com/compatibility — Chart Harmony
+- https://magic.hazelallure.com/hearth-court — Hearth Court
+- https://magic.hazelallure.com/familiar — Familiar Whisperer
+- https://magic.hazelallure.com/before-the-storm — Before the Storm
+- https://magic.hazelallure.com/cauldron — Frustration Cauldron
+- https://magic.hazelallure.com/dashboard — Fortune & history (sign in)
+- https://magic.hazelallure.com/free — Free playground
+- https://magic.hazelallure.com/oracle/daily — Daily free ink
+- https://magic.hazelallure.com/settings — Install tips + all links
+- https://magic.hazelallure.com/guides — All guides
+- https://magic.hazelallure.com/legal — Policies
 - https://magic.hazelallure.com/sitemap.xml
+
+## Guides
+- https://magic.hazelallure.com/guides/sanctum-sphere — Sanctum Sphere
+- https://magic.hazelallure.com/guides/heaven-ember-coin — Heaven & Ember Coin
+- https://magic.hazelallure.com/guides/hearth-court — Hearth Court
+- https://magic.hazelallure.com/guides/familiar-whisperer — Familiar Whisperer
+- https://magic.hazelallure.com/guides/before-the-storm — Before the Storm
+- https://magic.hazelallure.com/guides/frustration-cauldron — Frustration Cauldron
+- https://magic.hazelallure.com/guides/magic-sanctum-for-seekers — A playground that funnels kindness
+- https://magic.hazelallure.com/guides/desk-orb — Desk Orb widget
+- https://magic.hazelallure.com/guides/chart-harmony — Chart Harmony
+- https://magic.hazelallure.com/guides/daily-fortune — Daily fortune & chart
 
 ## Related
 - https://apothecary.hazelallure.com/ — marketplace & Pro billing
+- https://apothecary.hazelallure.com/services — practitioners
+- https://apothecary.hazelallure.com/pro-upgrade — Pro unlock
 - https://www.hazelallure.com/ — brand home / Alluring News
 
 ## Note
-Oracle answers, Hearth Court rulings, Familiar Whisperer translations, and Before the Storm cards are entertainment. Not medical, legal, financial, or professional advice.
+Oracle answers, Hearth Court rulings, Familiar Whisperer translations, Chart Harmony, and Before the Storm cards are entertainment. Not medical, legal, financial, or professional advice.
