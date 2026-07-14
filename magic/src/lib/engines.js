@@ -36,19 +36,30 @@ function pickN(list, seed, n) {
   return out;
 }
 
+/** Classic 8-ball style — short YES / NO / MAYBE with flavor */
 export const ORACLE_ANSWERS = [
-  { text: 'YES', tone: 'yes' },
-  { text: 'NO', tone: 'no' },
-  { text: 'MAYBE', tone: 'maybe' },
-  { text: 'ASK AGAIN LATER', tone: 'maybe' },
-  { text: 'THE MOON SAYS YES', tone: 'yes' },
-  { text: 'NOT THIS PATH', tone: 'no' },
-  { text: 'SIP WATER FIRST', tone: 'maybe' },
-  { text: 'THE FAMILIAR APPROVES', tone: 'yes' },
-  { text: 'STIR, THEN DECIDE', tone: 'maybe' },
-  { text: 'GOLD DOOR OPENS', tone: 'yes' },
-  { text: 'WAIT FOR SOFTNESS', tone: 'maybe' },
-  { text: 'THE HEARTH SAYS NO', tone: 'no' },
+  { text: 'YES', tone: 'yes', flavor: 'Clear as gold. Move with it.' },
+  { text: 'YES', tone: 'yes', flavor: 'The sphere leans toward you.' },
+  { text: 'YES — GO', tone: 'yes', flavor: 'Soft green light. Take the step.' },
+  { text: 'THE MOON SAYS YES', tone: 'yes', flavor: 'Night air agrees with you.' },
+  { text: 'SIGNS POINT TO YES', tone: 'yes', flavor: 'Classic 8-ball certainty.' },
+  { text: 'IT IS CERTAIN', tone: 'yes', flavor: 'No wobble in the window.' },
+  { text: 'YOU MAY RELY ON IT', tone: 'yes', flavor: 'Steady. Kind. Forward.' },
+  { text: 'NO', tone: 'no', flavor: 'Not this path — not tonight.' },
+  { text: 'NO', tone: 'no', flavor: 'The coal side of the coin.' },
+  { text: 'NOT THIS PATH', tone: 'no', flavor: 'A closed door can be mercy.' },
+  { text: 'DON\'T COUNT ON IT', tone: 'no', flavor: 'Protect your energy.' },
+  { text: 'MY SOURCES SAY NO', tone: 'no', flavor: 'The familiar shakes its head.' },
+  { text: 'OUTLOOK NOT SO GOOD', tone: 'no', flavor: 'Wait for softer weather.' },
+  { text: 'THE HEARTH SAYS NO', tone: 'no', flavor: 'Stay by the fire a while.' },
+  { text: 'MAYBE', tone: 'maybe', flavor: 'Neither yes nor no — breathe first.' },
+  { text: 'ASK AGAIN LATER', tone: 'maybe', flavor: 'The answer is still steeping.' },
+  { text: 'CANNOT PREDICT NOW', tone: 'maybe', flavor: 'Fog on the glass. Try again.' },
+  { text: 'SIP WATER FIRST', tone: 'maybe', flavor: 'Body first, then the question.' },
+  { text: 'STIR, THEN DECIDE', tone: 'maybe', flavor: 'One more stir of the cauldron.' },
+  { text: 'REPLY HAZY', tone: 'maybe', flavor: 'Come back with a clearer ask.' },
+  { text: 'BETTER NOT TELL YOU NOW', tone: 'maybe', flavor: 'Mystery for a reason.' },
+  { text: 'CONCENTRATE AND ASK AGAIN', tone: 'maybe', flavor: 'The sphere wants your full heart.' },
 ];
 
 /** Pro-only reverse proverb vault (free gets showcase samples via freePeek path) */
@@ -91,17 +102,20 @@ export function askOracle(question, mode = 'classic') {
   }
   const ans = pick(ORACLE_ANSWERS, seed);
   return {
-    ...ans,
+    text: ans.text,
+    tone: ans.tone,
+    flavor: ans.flavor || '',
     kind: 'classic',
-    whisper: pick(
-      [
-        'The sphere glows warm.',
-        'Gold dust settles on the answer.',
-        'A familiar tail flicks once.',
-        'The hearth hums agreement.',
-      ],
-      seed,
-    ),
+    whisper: ans.flavor
+      || pick(
+        [
+          'The sphere glows warm.',
+          'Gold dust settles on the answer.',
+          'A familiar tail flicks once.',
+          'The hearth hums agreement.',
+        ],
+        seed,
+      ),
   };
 }
 

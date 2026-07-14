@@ -8,18 +8,18 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.7.0';
+const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.7.1';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'Free Court + install-worthy tools',
+  title: 'Desk Orb fixed + clearer sphere answers',
   message:
-    'Enter arguments, vote, and get a computer ruling for free. Dice, This-or-That, and Mood Meter make the app worth downloading.',
+    'The widget 8-ball now shows YES / NO / MAYBE. Install uses proper app icons. Free daily ink sits under Ask a question.',
   highlights: [
-    'Hearth Court free: 2 sides, votes, basic computer decision',
-    'New free: Sanctum Dice, This or That, Mood Meter + moon',
-    'Pro: live multi-device polls, 4 sides, full libraries',
-    'Clear free vs Pro value map on Free playground',
+    'Desk Orb: tap 8-ball always shows a big answer',
+    'Install Desk Orb / app with PNG icons + on-page Install button',
+    'Classic sphere answers: YES, NO, MAYBE with flavor lines',
+    'Free daily ink moved under the question box',
   ],
 };
 

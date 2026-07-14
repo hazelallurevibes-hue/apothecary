@@ -166,18 +166,18 @@ export default function Home() {
             type="button"
             onClick={onSphereTap}
             className={`sanctum-sphere cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c9a227] focus-visible:ring-offset-2 rounded-full border-0 p-0 ${gild ? 'gild-flash' : ''}`}
-            aria-label="Tap sphere to reveal an answer"
+            aria-label="Tap sphere to reveal YES, NO, or MAYBE"
           >
             <div className="sanctum-sphere-window">
               {result?.text
-                ? result.text.length > 28
-                  ? `${result.text.slice(0, 26)}…`
+                ? result.text.length > 22
+                  ? `${result.text.slice(0, 20)}…`
                   : result.text
                 : '⑧'}
             </div>
           </button>
           <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.2em] text-[#4a1942]/45">
-            Tap the sphere · or type below
+            Tap for YES · NO · MAYBE
           </p>
           <Link
             to={BRAND.sphere.guide}
@@ -187,19 +187,6 @@ export default function Home() {
           </Link>
         </div>
       )}
-
-      <Link
-        to="/oracle/daily"
-        className="card card-glow px-4 py-3 text-sm italic text-[#4a1942]/85 animate-fade-up-delay block hover:border-[#c9a227]/50 transition"
-      >
-        <span className="not-italic font-bold text-[10px] uppercase tracking-widest text-[#c9a227] mr-2">
-          Free daily ink
-        </span>
-        {daily}
-        <span className="not-italic block text-[10px] font-bold text-[#4a1942]/45 mt-1.5">
-          Open daily oracle →
-        </span>
-      </Link>
 
       <section className="card p-5 sm:p-6">
         <div className="flex flex-wrap gap-2 mb-4">
@@ -227,7 +214,7 @@ export default function Home() {
         {mode !== 'coin' && (
           <input
             className="input mb-3"
-            placeholder="Type your question…"
+            placeholder="Type your question… (or just tap the sphere)"
             value={q}
             maxLength={240}
             onChange={(e) => setQ(e.target.value)}
@@ -250,8 +237,22 @@ export default function Home() {
         )}
 
         <button type="button" className="btn-primary w-full py-3 text-base" onClick={reveal} disabled={flipping}>
-          {flipping ? 'Spinning the coin…' : mode === 'coin' ? 'Flip Heaven & Ember' : 'Reveal the sphere'}
+          {flipping ? 'Spinning the coin…' : mode === 'coin' ? 'Flip Heaven & Ember' : 'Reveal YES · NO · MAYBE'}
         </button>
+
+        {/* Free daily ink — directly under the ask/reveal controls */}
+        <Link
+          to="/oracle/daily"
+          className="mt-4 block rounded-xl border border-[#c9a227]/35 bg-gradient-to-r from-amber-50/90 to-white px-4 py-3 text-sm italic text-[#4a1942]/85 hover:border-[#c9a227]/60 transition"
+        >
+          <span className="not-italic font-bold text-[10px] uppercase tracking-widest text-[#c9a227] mr-2">
+            Free daily ink
+          </span>
+          {daily}
+          <span className="not-italic block text-[10px] font-bold text-[#4a1942]/45 mt-1.5">
+            Open daily oracle →
+          </span>
+        </Link>
 
         {mode === 'coin' && (flipping || coin) && (
           <div
@@ -285,16 +286,29 @@ export default function Home() {
               result.kind === 'proverb'
                 ? 'bg-indigo-50/90 text-indigo-950 italic border-indigo-100'
                 : result.tone === 'yes'
-                  ? 'bg-emerald-50 text-emerald-900 font-bold text-2xl border-emerald-100'
+                  ? 'bg-emerald-50 text-emerald-900 border-emerald-100'
                   : result.tone === 'no'
-                    ? 'bg-rose-50 text-rose-900 font-bold text-2xl border-rose-100'
-                    : 'bg-amber-50 text-amber-950 font-bold text-xl border-amber-100'
+                    ? 'bg-rose-50 text-rose-900 border-rose-100'
+                    : 'bg-amber-50 text-amber-950 border-amber-100'
             }`}
           >
-            {result.text}
-            {result.whisper && (
-              <p className="text-[10px] not-italic font-semibold text-[#4a1942]/45 mt-2 tracking-wide">
-                {result.whisper}
+            {result.kind !== 'proverb' && (
+              <p className="text-[10px] not-italic font-black uppercase tracking-[0.2em] opacity-60 mb-1">
+                {result.tone === 'yes' ? 'Yes' : result.tone === 'no' ? 'No' : 'Maybe'}
+              </p>
+            )}
+            <p
+              className={
+                result.kind === 'proverb'
+                  ? 'italic text-lg'
+                  : 'font-black text-3xl sm:text-4xl tracking-wide'
+              }
+            >
+              {result.text}
+            </p>
+            {(result.flavor || result.whisper) && (
+              <p className="text-sm not-italic font-medium text-[#4a1942]/65 mt-2 leading-relaxed">
+                {result.flavor || result.whisper}
               </p>
             )}
             {result.seal && (

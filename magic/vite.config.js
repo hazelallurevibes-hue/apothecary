@@ -24,12 +24,19 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'prompt',
-      includeAssets: ['favicon.svg', 'icon.svg', 'version.json'],
+      includeAssets: [
+        'favicon.svg',
+        'icon.svg',
+        'icon-192.png',
+        'icon-512.png',
+        'apple-touch-icon.png',
+        'version.json',
+      ],
       manifest: {
         name: 'Magic Sanctum — Hazel Allure',
         short_name: 'Magic Sanctum',
         description:
-          'Sanctum sphere, heaven & ember coin, Hearth Court, Familiar Whisperer, Before the Storm. Entertainment only.',
+          'Sanctum sphere, heaven & ember coin, Desk Orb, Hearth Court. Entertainment only.',
         theme_color: '#4a1942',
         background_color: '#120510',
         display: 'standalone',
@@ -40,11 +47,20 @@ export default defineConfig({
         lang: 'en',
         id: 'https://magic.hazelallure.com/',
         icons: [
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
-          { src: '/icon.svg', sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' },
         ],
         display_override: ['window-controls-overlay', 'standalone', 'browser'],
         shortcuts: [
+          {
+            name: 'Desk Orb',
+            short_name: 'Orb',
+            url: '/widget?source=shortcut-orb',
+            description: 'Minimal sphere & coin companion',
+            icons: [{ src: '/icon-192.png', sizes: '192x192', type: 'image/png' }],
+          },
           {
             name: 'Sanctum Sphere',
             short_name: 'Sphere',
@@ -55,7 +71,7 @@ export default defineConfig({
             name: 'Hearth Court',
             short_name: 'Court',
             url: '/hearth-court?source=shortcut',
-            description: 'Playful multi-side rulings',
+            description: 'Vote & computer ruling',
           },
         ],
       },

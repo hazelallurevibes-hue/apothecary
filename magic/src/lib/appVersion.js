@@ -2,17 +2,17 @@
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  * Splash copy is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.7.0';
+export const APP_VERSION = '1.7.1';
 
 export const UPDATE_SPLASH = {
-  title: 'Free Court + install-worthy tools',
+  title: 'Desk Orb fixed + clearer sphere answers',
   message:
-    'Enter arguments, vote, and get a computer ruling for free. New Dice, This-or-That, and Mood Meter make the app worth downloading — Pro still converts hard.',
+    'The widget 8-ball now shows YES / NO / MAYBE. Install uses proper app icons. Free daily ink sits under Ask a question.',
   highlights: [
-    'Hearth Court free: 2 sides, votes, basic computer decision',
-    'New free: Sanctum Dice, This or That, Mood Meter + moon',
-    'Pro: live multi-device polls, 4 sides, 2,800+ cliffs, full libraries',
-    'Clear free vs Pro value map on Free playground',
+    'Desk Orb: tap 8-ball always shows a big answer',
+    'Install Desk Orb / app with PNG icons + on-page Install button',
+    'Classic sphere answers: YES, NO, MAYBE with flavor lines',
+    'Free daily ink moved under the question box',
   ],
 };
 

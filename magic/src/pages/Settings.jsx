@@ -60,16 +60,27 @@ export default function Settings() {
         </div>
         <ol className="text-xs text-[#4a1942]/70 space-y-1.5 list-decimal pl-4 leading-relaxed">
           <li>
-            <strong>Install the app:</strong> browser menu → Install / Add to Home Screen (iPhone: Share →
-            Add to Home Screen).
+            <strong>Chrome / Edge (desktop or Android):</strong> open{' '}
+            <a href="https://magic.hazelallure.com" className="underline font-semibold">
+              magic.hazelallure.com
+            </a>{' '}
+            → menu (⋮) → <em>Install app</em> or <em>Install Magic Sanctum</em>. After install, open the app
+            and use the <strong>Orb</strong> tab / Desk Orb shortcut.
           </li>
           <li>
-            <strong>Open Desk Orb:</strong> use the Orb tab on mobile, the Desk Orb nav item, or the link
-            above.
+            <strong>iPhone / iPad:</strong> Safari → Share → <em>Add to Home Screen</em>. Then open Magic
+            Sanctum and go to Desk Orb, or long-press the icon if your browser offers a Desk Orb shortcut.
           </li>
           <li>
-            <strong>Pin it:</strong> keep the widget tab handy for desk use, or bookmark{' '}
-            <code className="bg-[#4a1942]/8 px-1 rounded">/widget</code>.
+            <strong>Can&apos;t install?</strong> Open{' '}
+            <Link to="/widget" className="underline font-semibold">
+              /widget
+            </Link>
+            , bookmark it, and pin the browser tab for desk use. The Desk Orb page itself has an Install
+            button when the browser supports it.
+          </li>
+          <li>
+            <strong>PNG app icons</strong> are now included so install prompts work more reliably on Chrome.
           </li>
         </ol>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
