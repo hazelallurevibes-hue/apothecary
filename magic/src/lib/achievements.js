@@ -4,8 +4,8 @@ const XP_KEY = 'magic_xp_v1';
 export const ACHIEVEMENTS = [
   { id: 'first_sphere', name: 'Sphere Touched', desc: 'Asked the Sanctum Sphere', emoji: '⑧', xp: 10 },
   { id: 'first_coin', name: 'Heaven or Ember', desc: 'Flipped Heaven & Ember', emoji: '🪙', xp: 10 },
-  { id: 'first_court', name: 'Court Clerk', desc: 'Convened Hearth Court', emoji: '⚖', xp: 25 },
-  { id: 'first_poll', name: 'Poll Whisperer', desc: 'Ran a Hearth Court poll', emoji: '📊', xp: 30 },
+  { id: 'first_court', name: 'Circle Keeper', desc: 'Sealed a Hearth Court rite', emoji: '☽', xp: 25 },
+  { id: 'first_poll', name: 'Stone Caster', desc: 'Cast stones in Hearth Court', emoji: '✦', xp: 30 },
   { id: 'first_familiar', name: 'Familiar Friend', desc: 'Used Familiar Whisperer', emoji: '🐾', xp: 20 },
   { id: 'first_storm', name: 'Storm Prepper', desc: 'Drew Before the Storm', emoji: '🕯', xp: 20 },
   { id: 'first_fortune', name: 'Cookie Breaker', desc: 'Opened a daily fortune', emoji: '🥠', xp: 15 },

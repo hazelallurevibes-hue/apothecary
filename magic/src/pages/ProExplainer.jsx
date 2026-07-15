@@ -17,8 +17,8 @@ const FEATURE_COPY = {
     backLabel: 'Back to Familiar',
   },
   hearth_court: {
-    title: 'Hearth Court Pro theater',
-    body: 'Free already gives you real two-side rulings and votes. Pro adds live multi-phone polls, 3–4 sides, anonymous public court, and 2,800+ cliff notes so every ruling feels new.',
+    title: 'Hearth Court Pro circle',
+    body: 'Free already gives you a real two-path oracle seal and stone casting. Pro opens the living multi-phone circle, 3–4 paths, anonymous veil, and 2,800+ cliff seals so every rite feels new — still a metaphysical decision aid, not a spectacle.',
     back: '/hearth-court',
     backLabel: 'Back to Court',
   },
@@ -29,8 +29,14 @@ const FEATURE_COPY = {
     backLabel: 'Back to Sphere',
   },
   pathfinder: {
-    title: 'Pathfinder + Pro sanctum',
-    body: 'Pathfinder career sparks are free. Pro unlocks deeper Magic libraries and the same Hazel Allure plan that opens practitioner bookings and marketplace benefits.',
+    title: 'Pathfinder Pro depth',
+    body: 'Free includes the full career & money aptitude exam plus a 4-question Path & Personality spark. Pro unlocks the 12-question Myers-Briggs–style battery, full type career overlays, complete money seals, and the aptitude×type weave — plus Storm, Familiar, and living Court on the same Hazel plan.',
+    back: '/pathfinder',
+    backLabel: 'Back to Pathfinder',
+  },
+  pathfinder_mbti: {
+    title: 'Full Path & Personality map',
+    body: 'You tried the free 4-question spark. Pro opens twelve questions, clearer type leans, money seals, growth edges, and a weave with your vocation tracks — entertainment reflection, not a clinical or hiring test.',
     back: '/pathfinder',
     backLabel: 'Back to Pathfinder',
   },

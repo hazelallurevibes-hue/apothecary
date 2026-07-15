@@ -18,7 +18,7 @@ export default function FreePlayground() {
     <div className="space-y-5">
       <SeoHead
         title="Free Magic Sanctum — Court, Dice, Mood, Sphere & App Tools"
-        description="Robust free tier: Hearth Court vote + computer ruling, Sanctum Dice, This-or-That, Mood Meter, Desk Orb. Pro libraries still convert hard."
+        description="Robust free tier: Hearth Court oracle seal, Pathfinder career map, Sanctum Dice, This-or-That, Mood Meter, Desk Orb. Pro libraries still convert hard."
         path="/free"
       />
       <h1 className="font-display font-bold text-3xl text-[#4a1942]">Free playground</h1>
@@ -114,7 +114,7 @@ export default function FreePlayground() {
       <div className="card p-4">
         <h2 className="font-display font-bold text-lg">Free Court + Pro showcases</h2>
         <p className="text-sm text-[#4a1942]/65 mt-1">
-          <strong>Hearth Court is free</strong> for 2 sides, votes, and a computer ruling. Familiar Whisperer &amp;
+          <strong>Hearth Court is free</strong> for 2 paths, stone casting, and an oracle seal. Pathfinder career + personality spark free. Familiar Whisperer &amp;
           Before the Storm still offer full showcase samples — Pro unlocks{' '}
           {stats.petPhrases || '2800'}+ / {stats.coachEntries || '2800'}+ / {stats.settlerCliff || '2800'}+ lines
           plus live multi-device court.

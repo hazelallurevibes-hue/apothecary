@@ -6,14 +6,17 @@ import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import FeatureExplainer from '../components/FeatureExplainer';
 import DateOfBirthFields from '../components/DateOfBirthFields';
 import InfoTip from '../components/InfoTip';
+import ProValueStrip from '../components/ProValueStrip';
 import { computeCompatibility } from '../lib/compatibility';
 import { recordHistory } from '../lib/historyStore';
 import { unlockAchievement } from '../lib/achievements';
 import { POLICY_BLURB } from '../lib/contentPolicy';
 import { loadLocalProfile } from '../lib/profileStore';
 import { HAZEL_LINKS } from '../lib/hazel';
+import { useAuth } from '../context/AuthContext';
 
 export default function Compatibility() {
+  const { isPremium } = useAuth();
   const mine = loadLocalProfile();
   const [nameA, setNameA] = useState(mine?.birthName || 'You');
   const [dobA, setDobA] = useState(mine?.dob || '');
@@ -51,8 +54,8 @@ export default function Compatibility() {
       />
       <h1 className="font-display font-bold text-3xl text-[#4a1942]">Chart harmony</h1>
       <p className="text-sm text-[#4a1942]/65 leading-relaxed">
-        Two birthdays → playful score from elements, Chinese animals, and life paths. Type the dates if calendars
-        feel tiny. Consent before using someone else’s birthday.
+        Two birthdays → a multi-category weave from elements, Chinese animals, life paths, money rhythm, and career
+        tempo. Type the dates if calendars feel tiny. Consent before using someone else’s birthday.
       </p>
       <p className="text-[10px] text-[#4a1942]/50">{POLICY_BLURB}</p>
 
@@ -95,7 +98,10 @@ export default function Compatibility() {
         <div className="card card-glow p-5 space-y-4 border-rose-200/60">
           <p className="text-[10px] uppercase tracking-widest text-[#c9a227] font-black">{result.vibe}</p>
           <p className="font-display text-5xl font-bold text-[#4a1942]">{result.score}%</p>
-          <p className="text-sm text-[#4a1942]/65">Overall playful harmony — hover each category ! for origin & meaning.</p>
+          <p className="text-sm text-[#4a1942]/65">
+            Overall harmony score — hover each category ! for origin & meaning. Money and career notes are reflection
+            tools, not professional advice.
+          </p>
 
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="rounded-xl bg-rose-50/80 p-3 border border-rose-100">
@@ -144,17 +150,43 @@ export default function Compatibility() {
 
           {result.mysticalExtras?.length > 0 && (
             <div className="space-y-2">
-              <p className="text-[10px] font-black uppercase text-[#c9a227]">Other playful measures</p>
+              <p className="text-[10px] font-black uppercase text-[#c9a227]">Money · career · conflict · hearth</p>
               {result.mysticalExtras.map((x) => (
                 <div key={x.label} className="rounded-xl bg-amber-50/80 border border-amber-100 px-3 py-2 text-xs">
-                  <InfoTip label={x.label} title="Entertainment measure">
-                    Not financial or career advice — a spark for conversation. For real money or job decisions, consult
-                    qualified humans.
+                  <InfoTip label={x.label} title="Reflection measure">
+                    {x.detail ||
+                      'Not financial or career advice — a conversation frame. For real money or job decisions, consult qualified humans.'}
                   </InfoTip>
-                  <p className="mt-1 text-[#4a1942]/75">{x.text}</p>
+                  <p className="mt-1 text-[#4a1942]/75 leading-relaxed">{x.text}</p>
+                  {x.detail && <p className="mt-1 text-[10px] text-[#4a1942]/50 leading-relaxed">{x.detail}</p>}
                 </div>
               ))}
             </div>
+          )}
+
+          {isPremium && result.proExtras?.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-[10px] font-black uppercase text-violet-700">Pro depth · household & vocation</p>
+              {result.proExtras.map((x) => (
+                <div key={x.label} className="rounded-xl bg-violet-50/80 border border-violet-100 px-3 py-2 text-xs">
+                  <p className="font-bold text-violet-950">{x.label}</p>
+                  <p className="mt-1 text-[#4a1942]/75 leading-relaxed">{x.text}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {!isPremium && (
+            <ProValueStrip
+              freePeek
+              unlocks={[
+                'Household money ritual prompts',
+                'Vocation support pact by life-path gap',
+                'Seasonal re-check seals',
+                'Full Storm, Familiar & living Court libraries on the same plan',
+              ]}
+              title="Pro adds household & vocation depth"
+            />
           )}
 
           <div>

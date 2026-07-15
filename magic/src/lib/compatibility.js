@@ -157,10 +157,56 @@ export function computeCompatibility(dobA, dobB, nameA = 'A', nameB = 'B') {
       'If conflict is unsafe, stop the game and get real help.',
     ],
     mysticalExtras: [
-      { label: 'Money vibe (playful)', text: score % 2 === 0 ? 'Budget talks may feel easier after food and rest.' : 'Price honesty builds trust faster than grand gestures.' },
-      { label: 'Career weave (playful)', text: lpDiff <= 2 ? 'Similar work rhythms — protect quiet hours together.' : 'Different work tempos — schedule check-ins, not surveillance.' },
+      {
+        label: 'Money rhythm (pair)',
+        text:
+          score % 2 === 0
+            ? 'Budget talks may land easier after food, rest, and a named agenda — not as a surprise ambush.'
+            : 'Price honesty and shared “enough” definitions build trust faster than grand gestures or silent resentment.',
+        detail:
+          'Reflection for couples/households: who tracks bills, how you name wants vs needs, and when to pause if money talk turns cruel. Not financial advice.',
+      },
+      {
+        label: 'Career & path weave',
+        text:
+          lpDiff <= 2
+            ? 'Similar work rhythms — protect quiet hours together and celebrate each other’s wins without competition.'
+            : 'Different work tempos — schedule check-ins as care, not surveillance; name peak focus times out loud.',
+        detail:
+          'How two life-path numbers might clash or complement around ambition, rest, and public vs private drive. Entertainment pattern language — not career counseling.',
+      },
+      {
+        label: 'Conflict alchemy',
+        text:
+          elementScore >= 70
+            ? 'Element blend favors repair if you name needs early — before the cauldron boils over.'
+            : 'Element friction can become growth if you translate styles (fire needs air; water needs earth).',
+        detail: 'Use with Before the Storm for words before a hard talk. Not therapy.',
+      },
+      {
+        label: 'Shared hearth practice',
+        text: blurb,
+        detail: 'A poetic line seeded by both birthdays — share only with consent.',
+      },
+    ],
+    proExtras: [
+      {
+        label: 'Household money ritual',
+        text: 'Pro-style depth: try a monthly “money moon” — 30 minutes, same date, no phones, three numbers only (in, out, goal).',
+      },
+      {
+        label: 'Vocation support pact',
+        text:
+          lpDiff === 0
+            ? 'Same-number energy: co-work sprints can thrill or smother — book separate deep-work blocks on purpose.'
+            : 'Different numbers: one may push launch while the other steadies the foundation — assign roles explicitly.',
+      },
+      {
+        label: 'Seasonal check-in',
+        text: `At the next solstice or birthday, revisit this score for fun — charts change how you *talk*, not who you are. Seed ${score}.`,
+      },
     ],
     disclaimer:
-      'Entertainment only — not relationship, medical, financial, or counseling advice. Consent required before sharing someone else’s chart.',
+      'Entertainment only — not relationship, medical, financial, career, or counseling advice. Consent required before sharing someone else’s chart.',
   };
 }

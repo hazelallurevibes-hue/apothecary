@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { askOracle, askMoonMirror, flipCoin, freeDailyLine, packStats } from '../lib/engines';
@@ -14,6 +14,85 @@ import ProValueStrip from '../components/ProValueStrip';
 import { unlockAchievement } from '../lib/achievements';
 import { recordHistory } from '../lib/historyStore';
 
+/** Rotating feature spotlight under the sphere — cycles by day + slot */
+const ROTATING_FEATURES = [
+  {
+    to: '/hearth-court',
+    emoji: '☽',
+    title: 'Hearth Court',
+    blurb: 'Name two paths. Cast stones. Receive an oracle seal — free decision ritual.',
+    chip: 'Free circle',
+  },
+  {
+    to: '/pathfinder',
+    emoji: '🗺',
+    title: 'Pathfinder',
+    blurb: 'Career tracks, money literacy seals, and a Path & Personality spark.',
+    chip: 'Career & path',
+  },
+  {
+    to: '/compatibility',
+    emoji: '💞',
+    title: 'Chart Harmony',
+    blurb: 'Two birthdays → elements, animals, money rhythm, career weave.',
+    chip: 'Harmony',
+  },
+  {
+    to: '/dice',
+    emoji: '🎲',
+    title: 'Sanctum Dice',
+    blurb: 'List options. Let the dice choose. Free forever.',
+    chip: 'Free forever',
+  },
+  {
+    to: '/before-the-storm',
+    emoji: '🕯',
+    title: 'Before the Storm',
+    blurb: 'Words before a hard talk — free showcase, Pro full deck.',
+    chip: 'Prep',
+  },
+  {
+    to: '/familiar',
+    emoji: '🐾',
+    title: 'Familiar Whisperer',
+    blurb: 'What is your familiar actually plotting? Whimsy with a Pro vault.',
+    chip: 'Pets',
+  },
+  {
+    to: '/mood',
+    emoji: '🌙',
+    title: 'Mood Meter',
+    blurb: 'Energy · peace · connection plus free moon-phase ink.',
+    chip: 'Check-in',
+  },
+  {
+    to: '/widget',
+    emoji: '🖥',
+    title: 'Desk Orb',
+    blurb: 'Pin a sphere on any desk — widget + standalone HTML.',
+    chip: 'Install',
+  },
+  {
+    to: '/this-or-that',
+    emoji: '⚡',
+    title: 'This or That',
+    blurb: 'Two options. One theatrical pick. Pass the phone.',
+    chip: 'Social',
+  },
+  {
+    to: '/oracle/daily',
+    emoji: '✨',
+    title: 'Daily Oracle',
+    blurb: 'One free ink line for the day — ritual without the paywall.',
+    chip: 'Daily',
+  },
+];
+
+function daySeed() {
+  const d = new Date();
+  return d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+}
+
 export default function Home() {
   const { isPremium, can, user } = useAuth();
   const [params, setParams] = useSearchParams();
@@ -25,13 +104,28 @@ export default function Home() {
   const [flipping, setFlipping] = useState(false);
   const [sphereTaps, setSphereTaps] = useState(0);
   const [gild, setGild] = useState(false);
+  const [rotateSlot, setRotateSlot] = useState(0);
   const stats = packStats();
   const daily = freeDailyLine();
+
+  const spotlight = useMemo(() => {
+    const base = daySeed() % ROTATING_FEATURES.length;
+    const idx = (base + rotateSlot) % ROTATING_FEATURES.length;
+    const next = ROTATING_FEATURES[(idx + 1) % ROTATING_FEATURES.length];
+    const third = ROTATING_FEATURES[(idx + 2) % ROTATING_FEATURES.length];
+    return [ROTATING_FEATURES[idx], next, third];
+  }, [rotateSlot]);
 
   useEffect(() => {
     if (modeParam === 'coin') setMode('coin');
     else if (modeParam === 'reverse') setMode('reverse');
   }, [modeParam]);
+
+  // Auto-rotate feature cards under the sphere every 8s
+  useEffect(() => {
+    const t = setInterval(() => setRotateSlot((s) => s + 1), 8000);
+    return () => clearInterval(t);
+  }, []);
 
   const setModeAndUrl = (id) => {
     setMode(id);
@@ -119,7 +213,7 @@ export default function Home() {
           operatingSystem: 'Web',
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
           description:
-            'Free magic 8 ball style sphere, heaven/ember coin flip, desk orb widget, and Pro tools for playful argument settling, pet translation, and pre-argument coaching.',
+            'Free magic 8 ball style sphere, heaven/ember coin flip, desk orb widget, Hearth Court decision circle, Pathfinder career map, and Pro libraries for familiar whispers and storm prep.',
           publisher: {
             '@type': 'Organization',
             name: 'Hazel Allure',
@@ -141,10 +235,10 @@ export default function Home() {
         </p>
         <div className="flex flex-wrap justify-center gap-2 mt-3">
           <Link to="/hearth-court" className="btn-primary text-xs py-1.5 px-3">
-            Free Court · vote & rule
+            Free Court · oracle seal
           </Link>
-          <Link to="/dice" className="btn-secondary text-xs py-1.5 px-3">
-            Sanctum Dice
+          <Link to="/pathfinder" className="btn-secondary text-xs py-1.5 px-3">
+            Pathfinder
           </Link>
           <Link to="/widget" className="btn-gold text-xs py-1.5 px-3">
             Desk Orb
@@ -185,6 +279,51 @@ export default function Home() {
           >
             How the Sanctum Sphere works →
           </Link>
+
+          {/* Rotating feature discovery under the 8-ball */}
+          <div className="w-full max-w-md mt-5 space-y-2">
+            <div className="flex items-center justify-between px-1">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-[#c9a227]">
+                Discover · rotates
+              </p>
+              <button
+                type="button"
+                className="text-[10px] font-bold underline text-[#4a1942]/50 hover:text-[#4a1942]"
+                onClick={() => setRotateSlot((s) => s + 1)}
+              >
+                Next features
+              </button>
+            </div>
+            <div className="grid gap-2">
+              {spotlight.map((f, i) => (
+                <Link
+                  key={`${f.to}-${i}-${rotateSlot}`}
+                  to={f.to}
+                  className={`block rounded-2xl border px-3.5 py-3 text-left transition hover:shadow-md ${
+                    i === 0
+                      ? 'border-[#c9a227]/50 bg-gradient-to-r from-amber-50/90 to-white'
+                      : 'border-[#4a1942]/12 bg-white/80 hover:border-[#c9a227]/35'
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    <span className="text-xl leading-none mt-0.5" aria-hidden>
+                      {f.emoji}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-display font-bold text-sm text-[#4a1942]">{f.title}</span>
+                        <span className="text-[9px] font-black uppercase tracking-wider rounded-full bg-[#4a1942]/8 text-[#4a1942]/70 px-2 py-0.5">
+                          {f.chip}
+                        </span>
+                      </div>
+                      <p className="text-xs text-[#4a1942]/65 mt-0.5 leading-relaxed">{f.blurb}</p>
+                    </div>
+                    <span className="text-[#c9a227] text-sm font-bold shrink-0">→</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 

@@ -265,7 +265,7 @@ export default function Dashboard() {
             </button>
           </div>
           <p className="text-xs text-[#4a1942]/55">
-            Includes tribunals, live polls, compatibility, fortunes, and anonymous court posts from this
+            Includes circle seals, living polls, compatibility, fortunes, and anonymous court posts from this
             browser.
           </p>
           {(tab === 'results' ? resultsOnly() : history).length === 0 && (

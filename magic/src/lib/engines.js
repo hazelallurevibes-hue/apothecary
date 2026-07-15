@@ -151,18 +151,19 @@ export function freeDailyLine() {
  * full Pro: multi notes, full library cliffs, secondary seal, ritual score
  */
 const FREE_BASIC_CLIFFS = [
-  'Hearth Court (free): clarity and kindness scored highest. Pick one next step tonight — entertainment only.',
-  'Basic sanctum ruling: the side with specifics and a plan edges ahead. Softness still wins the room.',
-  'Computer decision: less always/never, more here is what we try next. Walk kindly.',
-  'Free tribunal note: both can be partly right. Name one feeling and one fix before dessert.',
-  'Playful edge awarded. Rest before rehash if voices are loud. Not legal advice — just the moon winking.',
+  'The hearth hears both paths. Choose the next kind step before the next hard word.',
+  'Shared moon energy: neither path is trash — name one need and one boundary, then rest.',
+  'Clarity and repair language lit the stronger path. Absolute words dimmed the other.',
+  'Free circle seal: both can hold medicine. Name one feeling and one fix before the night ends.',
+  'The scales lean gently. Rest before rehash if voices are loud. Not legal advice — the moon only winks.',
+  'Offer a plan, not a verdict on anyone’s soul. Entertainment seal only.',
 ];
 
 const FREE_COURT_PRO_UNLOCKS = [
-  '2,800+ rotating cliff notes (never the same seal twice)',
-  '3–4 sides, multi-device live polls friends join on their phones',
-  'Anonymous public court feed + secondary Pro seals',
-  'Full ritual score + richer per-side notes for share cards',
+  '2,800+ rotating cliff seals (never the same oracle twice)',
+  '3–4 paths, living multi-device circle friends join on their phones',
+  'Anonymous veil feed + secondary Pro seals',
+  'Full ritual score + richer per-path notes for share cards',
 ];
 
 export function settleArgument(sides, { freePeek = false, freeBasic = false } = {}) {
@@ -218,13 +219,13 @@ export function settleArgument(sides, { freePeek = false, freeBasic = false } = 
 
   if (freeBasic) {
     const notes = ranked.map((s, i) => {
-      let bit = 'Heard by the court — more specifics would help.';
-      if (i === 0 && !close) bit = 'Strongest overall on clarity + tone.';
-      else if (i === 0 && close) bit = 'Near tie — soft edge / shared moon energy.';
-      else if (/\b(always|never)\b/i.test(s.text)) bit = 'Absolute words weakened the claim.';
-      else if (/\b(let's|plan|try|agree)\b/i.test(s.text)) bit = 'Offered a path forward.';
-      else if (/\bi feel\b/i.test(s.text)) bit = 'Owned feeling language — solid.';
-      if ((s.votes || 0) > 0) bit += ` Crowd: ${s.votes} vote(s).`;
+      let bit = 'Heard by the circle — more specifics would strengthen the seal.';
+      if (i === 0 && !close) bit = 'Strongest path on clarity, tone, and forward motion.';
+      else if (i === 0 && close) bit = 'Near balance — soft lean / shared moon energy.';
+      else if (/\b(always|never)\b/i.test(s.text)) bit = 'Absolute words thinned the spell of the case.';
+      else if (/\b(let's|plan|try|agree)\b/i.test(s.text)) bit = 'Offered a path forward — the hearth favors this.';
+      else if (/\bi feel\b/i.test(s.text)) bit = 'Owned feeling language — solid magick of honesty.';
+      if ((s.votes || 0) > 0) bit += ` Stones cast: ${s.votes}.`;
       return { label: s.label, score: Math.round(s.score), notes: [bit] };
     });
     const cliff = pick(FREE_BASIC_CLIFFS, top.text + Date.now());
@@ -236,14 +237,14 @@ export function settleArgument(sides, { freePeek = false, freeBasic = false } = 
       secondaryCliff: null,
       sides: notes,
       ritualScore: null,
-      seal: close ? 'Shared moon · free basic' : `Edge to ${top.label} · free basic`,
+      seal: close ? 'Shared moon · free seal' : `Lean to ${top.label} · free seal`,
       depth: 'free_basic',
       freeBasic: true,
       freePeek: false,
       librarySize: packs.counts?.settlerCliff || packs.settlerCliff?.length || 0,
       proUnlocks: FREE_COURT_PRO_UNLOCKS,
       disclaimer:
-        'Entertainment only. Not legal, therapeutic, or professional mediation. Free basic decision — Pro unlocks the full cliff library & live court.',
+        'Entertainment only. Not legal, therapeutic, or professional mediation. Free oracle seal — Pro unlocks the full cliff library & living multi-device circle.',
     };
   }
 
@@ -252,15 +253,15 @@ export function settleArgument(sides, { freePeek = false, freeBasic = false } = 
 
   const notes = ranked.map((s, i) => {
     const bits = [];
-    if (i === 0 && !close) bits.push('Strongest overall on clarity + tone.');
-    if (i === 0 && close) bits.push('Near tie — edge is soft; shared moon energy.');
-    if (/\b(always|never)\b/i.test(s.text)) bits.push('Absolute words weakened the claim.');
-    if (/\b(let's|plan|try|agree)\b/i.test(s.text)) bits.push('Offered a path forward.');
-    if (/\bi feel\b/i.test(s.text)) bits.push('Owned feeling language — solid.');
-    if (/\b(sorry|understand|hear you)\b/i.test(s.text)) bits.push('Repair language detected — court smiles.');
-    if (s.text.length > 180) bits.push('Rich detail helped the case.');
-    if ((s.votes || 0) > 0) bits.push(`Crowd energy: ${s.votes} vote(s).`);
-    if (!bits.length) bits.push('Middle of the pack; more specifics would help.');
+    if (i === 0 && !close) bits.push('Strongest path on clarity, tone, and forward motion.');
+    if (i === 0 && close) bits.push('Near balance — soft lean; shared moon energy.');
+    if (/\b(always|never)\b/i.test(s.text)) bits.push('Absolute words thinned the spell of the case.');
+    if (/\b(let's|plan|try|agree)\b/i.test(s.text)) bits.push('Offered a path forward — the hearth favors this.');
+    if (/\bi feel\b/i.test(s.text)) bits.push('Owned feeling language — solid magick of honesty.');
+    if (/\b(sorry|understand|hear you)\b/i.test(s.text)) bits.push('Repair language detected — the circle softens.');
+    if (s.text.length > 180) bits.push('Rich detail fed the oracle.');
+    if ((s.votes || 0) > 0) bits.push(`Stone energy: ${s.votes} cast.`);
+    if (!bits.length) bits.push('Middle of the weave; more specifics would help.');
     return { label: s.label, score: Math.round(s.score), notes: bits };
   });
 
@@ -277,14 +278,14 @@ export function settleArgument(sides, { freePeek = false, freeBasic = false } = 
     secondaryCliff: cliffAlt,
     sides: notes,
     ritualScore,
-    seal: close ? 'Shared moon · Pro seal' : `Edge to ${top.label} · Pro seal`,
+    seal: close ? 'Shared moon · Pro circle seal' : `Lean to ${top.label} · Pro circle seal`,
     depth: 'full',
     librarySize: packs.counts?.settlerCliff || packs.settlerCliff?.length || 0,
     freePeek: false,
     freeBasic: false,
     proUnlocks: [],
     disclaimer:
-      'Entertainment only. Not legal, therapeutic, or professional mediation. Hearth Court is playful theater.',
+      'Entertainment only. Not legal, therapeutic, or professional mediation. Hearth Court is a metaphysical decision ritual — not a verdict on anyone’s worth.',
   };
 }
 

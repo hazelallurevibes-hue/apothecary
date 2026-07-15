@@ -1,19 +1,19 @@
 /**
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  */
-export const APP_VERSION = '1.8.0';
+export const APP_VERSION = '1.9.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Clickable cards, Pathfinder & standalone Desk Orb',
+  title: 'Oracle Court, Path personality & date fix',
   message:
-    'Home cards open reliably with psychology colors. Storm choices work. Harmony has typed dates. Download a standalone Desk Orb HTML. Collapsible More menu.',
+    'Harmony days 10–31 type correctly. Hearth Court is a witchy decision circle. Pathfinder has career, money seals, and Myers-Briggs-style Path & Personality (free spark + Pro depth). Home features rotate under the sphere.',
   highlights: [
-    'Larger colored tool cards that always navigate',
-    'Storm: choose situation + vibe (free)',
-    'Harmony: type year/month/day + category ! tips',
-    'Pathfinder career aptitude + 3,200 path lines',
-    'Standalone Desk Orb HTML download (any computer)',
-    'Collapsible More menu · Pro explainer before checkout',
+    'Birthday day field: type 10–31 without auto-zero blocking you',
+    'Hearth Court: metaphysical circle, stones, oracle seals (less Jerry Springer)',
+    'Pathfinder: robust career/money + free MBTI-style spark + Pro 12Q map & weave',
+    'Chart Harmony: money rhythm & career weave (not “playful” labels)',
+    'Home: rotating feature cards under the Sanctum Sphere',
+    'Pro depth worth the plan across Court, Path, and Harmony',
   ],
 };
 

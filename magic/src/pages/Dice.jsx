@@ -79,7 +79,7 @@ export default function Dice() {
           This or That
         </Link>
         <Link to="/hearth-court" className="btn-secondary py-1.5 px-3">
-          Hearth Court (vote)
+          Hearth Court (circle)
         </Link>
         <Link to="/widget" className="btn-gold py-1.5 px-3">
           Desk Orb

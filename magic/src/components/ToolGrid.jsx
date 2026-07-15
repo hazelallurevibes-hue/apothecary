@@ -40,10 +40,10 @@ const TOOL_META = {
   },
   court: {
     to: '/hearth-court',
-    bg: 'from-stone-50 via-white to-orange-50/50',
-    border: 'border-stone-300/80 hover:border-orange-400',
-    chip: 'bg-stone-200 text-stone-900',
-    feel: 'Fairness & resolution',
+    bg: 'from-violet-50 via-white to-indigo-50/50',
+    border: 'border-violet-200/80 hover:border-violet-400',
+    chip: 'bg-violet-100 text-violet-950',
+    feel: 'Oracle decision ritual',
   },
   dice: {
     to: '/dice',
