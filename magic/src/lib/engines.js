@@ -130,24 +130,63 @@ const PRO_PROVERBS = [
   'Let one small ritual mark the choice so your nervous system can rest.',
 ];
 
+/**
+ * Weighted 8-ball: question language leans the pool, then hash picks within lean.
+ * Entertainment algorithm — not prediction science.
+ */
+function leanOraclePool(question = '') {
+  const q = String(question || '').toLowerCase();
+  let bias = 0; // negative → no, positive → yes, near 0 → maybe
+  if (/\b(should i|is it (ok|okay|safe|wise)|can i|will it work|go for it|take the leap)\b/.test(q)) bias += 1;
+  if (/\b(love|trust|heal|grow|rest|gentle|kind|help)\b/.test(q)) bias += 1;
+  if (/\b(afraid|anxious|panic|force|rush|prove|revenge|punish)\b/.test(q)) bias -= 1;
+  if (/\b(quit|leave|end it|break up|ghost|steal|lie)\b/.test(q)) bias -= 1;
+  if (/\b(maybe|unsure|confused|either|both|wait|later)\b/.test(q)) bias = 0;
+  if (q.length < 8) bias = 0; // short asks stay balanced
+  const yes = ORACLE_ANSWERS.filter((a) => a.tone === 'yes');
+  const no = ORACLE_ANSWERS.filter((a) => a.tone === 'no');
+  const maybe = ORACLE_ANSWERS.filter((a) => a.tone === 'maybe');
+  if (bias >= 2) return [...yes, ...yes, ...maybe, ...ORACLE_ANSWERS];
+  if (bias <= -2) return [...no, ...no, ...maybe, ...ORACLE_ANSWERS];
+  if (bias === 1) return [...yes, ...maybe, ...ORACLE_ANSWERS];
+  if (bias === -1) return [...no, ...maybe, ...ORACLE_ANSWERS];
+  return ORACLE_ANSWERS;
+}
+
 export function askOracle(question, mode = 'classic') {
   const seed = `${question}|${Date.now()}`;
   if (mode === 'reverse') {
     // Full proverb vault for Pro; classic path also used by free peek via showcase in UI
+    const pool = PRO_PROVERBS;
+    const text = pick(pool, seed);
+    // Prefer proverbs that echo question keywords when possible
+    const words = String(question || '')
+      .toLowerCase()
+      .split(/\W+/)
+      .filter((w) => w.length > 4)
+      .slice(0, 6);
+    let preferred = pool;
+    if (words.length) {
+      const hit = pool.filter((p) => words.some((w) => p.toLowerCase().includes(w)));
+      if (hit.length >= 3) preferred = hit;
+    }
     return {
-      text: pick(PRO_PROVERBS, seed),
+      text: pick(preferred, seed),
       kind: 'proverb',
       depth: 'full',
       seal: 'Moon Mirror · full vault',
-      alternatives: pickN(PRO_PROVERBS, seed + 'alts', 3).filter((t) => t),
+      alternatives: pickN(pool, seed + 'alts', 4).filter((t) => t && t !== text),
+      algorithm: 'keyword-echo · proverb vault',
     };
   }
-  const ans = pick(ORACLE_ANSWERS, seed);
+  const pool = leanOraclePool(question);
+  const ans = pick(pool, seed);
   return {
     text: ans.text,
     tone: ans.tone,
     flavor: ans.flavor || '',
     kind: 'classic',
+    algorithm: 'weighted lean · combinatorial flavor',
     whisper: ans.flavor
       || pick(
         [
@@ -155,6 +194,8 @@ export function askOracle(question, mode = 'classic') {
           'Gold dust settles on the answer.',
           'A familiar tail flicks once.',
           'The hearth hums agreement.',
+          'Ink settles on the window like dew.',
+          'The gold rim catches your breath — then answers.',
         ],
         seed,
       ),
@@ -240,13 +281,24 @@ export function settleArgument(sides, { freePeek = false, freeBasic = false } = 
   const scoreSide = (s) => {
     const t = s.text.toLowerCase();
     let score = Math.min(40, t.length / 8);
-    score += (t.match(/\b(because|when|on|after|before|exactly|specifically|\d+)\b/g) || []).length * 6;
-    score += (t.match(/\b(let's|we can|next|plan|try|agree|compromise|schedule)\b/g) || []).length * 8;
+    // Specificity & timeline
+    score += (t.match(/\b(because|when|on|after|before|exactly|specifically|\d+|today|tonight|friday|week)\b/g) || []).length * 6;
+    // Forward motion / plan language
+    score += (t.match(/\b(let's|we can|next|plan|try|agree|compromise|schedule|propose|offer)\b/g) || []).length * 8;
+    // Absolute / character attacks
     score -= (t.match(/\b(always|never|everyone|nobody|hate|stupid)\b/g) || []).length * 7;
-    score -= (t.match(/\b(you always|you never|your fault|idiot|liar)\b/g) || []).length * 10;
-    score += (t.match(/\b(i feel|i hear|we both|together|sorry|understand)\b/g) || []).length * 7;
-    score += (t.match(/\b(appreciate|thank|grateful|love|care)\b/g) || []).length * 5;
+    score -= (t.match(/\b(you always|you never|your fault|idiot|liar|useless|crazy)\b/g) || []).length * 10;
+    // Ownership & repair
+    score += (t.match(/\b(i feel|i hear|we both|together|sorry|understand|my part|i own)\b/g) || []).length * 7;
+    score += (t.match(/\b(appreciate|thank|grateful|love|care|respect)\b/g) || []).length * 5;
+    // Boundary without cruelty
+    score += (t.match(/\b(boundary|need|limit|space|consent)\b/g) || []).length * 4;
+    // Length bonus caps — walls of text without structure plateau
+    if (t.length > 120 && !/\b(i feel|because|plan|next)\b/.test(t)) score -= 4;
+    // Stone / vote energy
     score += Math.min(12, (s.votes || 0) * 3);
+    // Tiny novelty so equal arguments don't always freeze the same way
+    score += (hashStr(s.label + t.slice(0, 40)) % 5);
     return score;
   };
 

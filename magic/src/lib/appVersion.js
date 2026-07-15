@@ -1,18 +1,17 @@
 /**
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  */
-export const APP_VERSION = '1.9.2';
+export const APP_VERSION = '1.9.3';
 
 export const UPDATE_SPLASH = {
-  title: 'Richer Pro decks + clearer sphere',
+  title: 'Smarter sphere · richer decks',
   message:
-    'More sphere answers and Moon Mirror proverbs. Pro Familiar and Storm cards add bond/territory/care and body/frame/repair layers. Mood Meter categories. Pathfinder still deep.',
+    'Sphere answers lean on your question wording. Court scoring is deeper. More Moon Mirror proverbs. Google site verification file is live for Search Console.',
   highlights: [
-    'Bigger YES/NO/MAYBE with red outline',
-    'Expanded free sphere answers + Pro proverb vault',
-    'Pro Familiar: bond, territory, care + second seal',
-    'Pro Storm: more situations + body/frame/repair layers',
-    'Mood Meter category notes + moon flavor',
+    'Weighted YES/NO/MAYBE algorithm from question language',
+    'Deeper Hearth Court scoring (repair, boundaries, plans)',
+    'Keyword-echo Moon Mirror for Pro',
+    'Google verification HTML for magic.hazelallure.com',
   ],
 };
 

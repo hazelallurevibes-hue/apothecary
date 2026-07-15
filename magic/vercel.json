@@ -7,7 +7,9 @@
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/llms.txt", "destination": "/llms.txt" },
     { "source": "/desk-orb-standalone.html", "destination": "/desk-orb-standalone.html" },
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+    { "source": "/version.json", "destination": "/version.json" },
+    { "source": "/googled5859dbcf06a1225.html", "destination": "/googled5859dbcf06a1225.html" },
+    { "source": "/((?!assets/|googled5859dbcf06a1225\\.html).*)", "destination": "/index.html" }
   ],
   "headers": [
     {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { fetchVendorAnalytics } from '../lib/vendorAnalytics';
 import { getVendorContext, isPaidVendor, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
@@ -30,7 +30,13 @@ import {
 } from '../lib/onboardingApi';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
-import { resendVerificationEmail } from '../lib/emailVerification';
+import { checkEmailVerified, resendVerificationEmail } from '../lib/emailVerification';
+import { listingDetailPath } from '../lib/listingDisplay';
+import {
+  listListingTemplates,
+  saveListingTemplate,
+  deleteListingTemplate,
+} from '../lib/listingTemplates';
 import UpgradeBanner from '../components/UpgradeBanner';
 import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
@@ -69,11 +75,14 @@ const EMPTY_FRESHNESS = { harvest_date: '', good_by_date: '', storage_method: 'r
 const EMPTY_PREORDER = { is_preorder: false, preorder_available_date: '', preorder_max_qty: '' };
 
 export default function VendorDashboard({ user }) {
+  const navigate = useNavigate();
   const [myMenu, setMyMenu] = useState([]);
   const [myProduce, setMyProduce] = useState([]);
   const [myTasks, setMyTasks] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [produceTemplates, setProduceTemplates] = useState([]);
+  const [menuTemplates, setMenuTemplates] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
   const [serviceVideoUrl, setServiceVideoUrl] = useState('');
   const [serviceMediaType, setServiceMediaType] = useState('both');
@@ -209,47 +218,96 @@ export default function VendorDashboard({ user }) {
 
   const listingLimits = getVendorListingLimits(vendorPlan);
 
+  const refreshTemplates = useCallback(() => {
+    if (!myVendorId) return;
+    setProduceTemplates(listListingTemplates(myVendorId, 'produce'));
+    setMenuTemplates(listListingTemplates(myVendorId, 'menu'));
+  }, [myVendorId]);
+
+  useEffect(() => {
+    refreshTemplates();
+  }, [refreshTemplates]);
+
+  // Deep-link from listing page “Edit in dashboard”
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem('hazel_edit_listing');
+      if (!raw) return;
+      sessionStorage.removeItem('hazel_edit_listing');
+      const { type, id } = JSON.parse(raw);
+      if (!id) return;
+      if (type === 'produce') {
+        const item = myProduce.find((p) => String(p.id) === String(id));
+        if (item) startEditProduce(item);
+      } else {
+        const item = myMenu.find((m) => String(m.id) === String(id));
+        if (item) startEditMenu(item);
+      }
+    } catch {
+      /* ignore */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myMenu, myProduce]);
+
+  /** Email must always be live-verified — never skip because other listings exist. */
+  const ensureEmailVerifiedForListing = async () => {
+    const emailOk = user ? await checkEmailVerified(user) : false;
+    if (emailOk) {
+      if (launchSteps.verify_email === false || !launchSteps.verify_email) {
+        try {
+          if (myVendorId) await markOnboardingStep(myVendorId, 'verify_email', true);
+        } catch {
+          /* ignore */
+        }
+      }
+      return true;
+    }
+
+    setForceEmailBanner(true);
+    let resendNote = '';
+    if (user?.email) {
+      try {
+        await resendVerificationEmail(user.email, { role: 'vendor' });
+        resendNote = `We just re-sent a verification email to ${user.email}. Check inbox and spam/junk.`;
+        setEmailGateMessage(resendNote);
+      } catch (e) {
+        resendNote =
+          e?.message ||
+          'Could not auto-send verification email. Use Resend on the yellow banner below.';
+        setEmailGateMessage(resendNote);
+      }
+    } else {
+      resendNote = 'Sign in with an email address so we can send a confirmation link.';
+      setEmailGateMessage(resendNote);
+    }
+    requestAnimationFrame(() => {
+      document.getElementById('email-verify-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    alert(
+      `Verify your email before posting or editing listings.\n\n${resendNote}\n\nYou can also tap Resend on the yellow banner.`
+    );
+    return false;
+  };
+
   const passesLaunchGate = async () => {
+    // Always enforce live email verification (fixes prior bypass when other listings existed)
+    if (!(await ensureEmailVerifiedForListing())) return false;
+
     const hasListings = myMenu.length + myProduce.length > 0;
+    // After first live listing, still require email (done above) but skip other one-time steps
     if (hasListings) return true;
 
-    const blockers = ['verify_email', 'safety_policies', 'id_verification'].filter((id) => !launchSteps[id]);
+    const blockers = ['safety_policies', 'id_verification'].filter((id) => !launchSteps[id]);
+    // Also block if checklist still marks email incomplete (belt + suspenders)
+    if (!launchSteps.verify_email) {
+      // live check already failed above if truly unverified; if checklist lags, force re-check UI
+      if (!(await checkEmailVerified(user))) return false;
+    }
+
     if (blockers.length) {
       const step = VENDOR_ONBOARDING_STEPS.find((s) => s.id === blockers[0]);
       const stepNum = VENDOR_ONBOARDING_STEPS.findIndex((s) => s.id === blockers[0]) + 1;
-
-      // Email not verified: auto-resend confirmation and surface the banner with a Resend button
-      if (blockers[0] === 'verify_email') {
-        setForceEmailBanner(true);
-        let resendNote = '';
-        if (user?.email) {
-          try {
-            await resendVerificationEmail(user.email, { role: 'vendor' });
-            resendNote = `We just re-sent a verification email to ${user.email}. Check inbox and spam/junk.`;
-            setEmailGateMessage(resendNote);
-          } catch (e) {
-            resendNote =
-              e?.message ||
-              'Could not auto-send verification email. Use Resend on the yellow banner below.';
-            setEmailGateMessage(resendNote);
-          }
-        } else {
-          resendNote = 'Sign in with an email address so we can send a confirmation link.';
-          setEmailGateMessage(resendNote);
-        }
-        // Scroll the yellow banner into view after React paints it
-        requestAnimationFrame(() => {
-          document.getElementById('email-verify-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        });
-        alert(
-          `Complete launch checklist step ${stepNum} first: ${step?.label || 'Verify email'}.\n\n${resendNote}\n\nYou can also tap Resend on the yellow banner.`
-        );
-        return false;
-      }
-
-      alert(
-        `Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.`
-      );
+      alert(`Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.`);
       return false;
     }
 
@@ -258,6 +316,84 @@ export default function VendorDashboard({ user }) {
       return false;
     }
     return true;
+  };
+
+  const afterListingPublished = (itemType, saved, { wasEdit = false } = {}) => {
+    if (!saved?.id) return;
+    const path = listingDetailPath(itemType, saved.id);
+    const verb = wasEdit ? 'updated' : 'published';
+    const go = window.confirm(
+      `"${saved.name || 'Listing'}" ${verb}.\n\nOpen the listing page to view, edit, or remove it?`
+    );
+    if (go) navigate(path);
+  };
+
+  const saveCurrentProduceAsTemplate = () => {
+    if (!myVendorId) return;
+    const name = window.prompt('Template name', newProduce.name || 'Apothecary template');
+    if (name == null) return;
+    saveListingTemplate(myVendorId, 'produce', name, {
+      produce: newProduce,
+      allergens: newProduceAllergens,
+      safety: newProduceSafety,
+      freshness: newProduceFreshness,
+      preorder: newProducePreorder,
+      options: newProduceOptions,
+      section: produceSection,
+      medicinalLegalAck,
+    });
+    refreshTemplates();
+    alert('Template saved on this device. Use “Load template” to start over from it anytime.');
+  };
+
+  const loadProduceTemplate = (tpl) => {
+    if (!tpl?.payload) return;
+    const p = tpl.payload;
+    setEditProduceId(null);
+    if (p.produce) setNewProduce({ ...newProduce, ...p.produce });
+    if (p.allergens) setNewProduceAllergens(p.allergens);
+    if (p.safety) setNewProduceSafety(p.safety);
+    if (p.freshness) setNewProduceFreshness(p.freshness);
+    if (p.preorder) setNewProducePreorder(p.preorder);
+    if (p.options) setNewProduceOptions(p.options);
+    if (p.section) setProduceSection(p.section);
+    if (typeof p.medicinalLegalAck === 'boolean') setMedicinalLegalAck(p.medicinalLegalAck);
+    setProduceThumbnail({ ...EMPTY_THUMBNAIL });
+    document.getElementById('add-produce')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const saveCurrentMenuAsTemplate = () => {
+    if (!myVendorId) return;
+    const name = window.prompt('Template name', newItem.name || 'Service template');
+    if (name == null) return;
+    saveListingTemplate(myVendorId, 'menu', name, {
+      item: newItem,
+      allergens: newItemAllergens,
+      safety: newItemSafety,
+      preorder: newItemPreorder,
+      foodLabel: newItemFoodLabel,
+      options: newItemOptions,
+      serviceVideoUrl,
+      serviceMediaType,
+    });
+    refreshTemplates();
+    alert('Template saved on this device. Use “Load template” to start over from it anytime.');
+  };
+
+  const loadMenuTemplate = (tpl) => {
+    if (!tpl?.payload) return;
+    const p = tpl.payload;
+    setEditMenuId(null);
+    if (p.item) setNewItem({ ...newItem, ...p.item });
+    if (p.allergens) setNewItemAllergens(p.allergens);
+    if (p.safety) setNewItemSafety(p.safety);
+    if (p.preorder) setNewItemPreorder(p.preorder);
+    if (p.foodLabel) setNewItemFoodLabel(p.foodLabel);
+    if (p.options) setNewItemOptions(p.options);
+    if (p.serviceVideoUrl != null) setServiceVideoUrl(p.serviceVideoUrl);
+    if (p.serviceMediaType) setServiceMediaType(p.serviceMediaType);
+    setMenuThumbnail({ ...EMPTY_THUMBNAIL });
+    document.getElementById('add-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const resetMenuForm = () => {
@@ -335,9 +471,10 @@ export default function VendorDashboard({ user }) {
 
       if (editMenuId) {
         if (error) throw error;
+        const updated = added || { ...menuRow, id: editMenuId, name: newItem.name };
         resetMenuForm();
         await refreshVendorData();
-        alert('Wellness service updated.');
+        afterListingPublished('menu', updated, { wasEdit: true });
         setAdding(false);
         return;
       }
@@ -361,6 +498,7 @@ export default function VendorDashboard({ user }) {
         resetMenuForm();
         await refreshVendorData();
         shareToSocial(added, true);
+        afterListingPublished('menu', added, { wasEdit: false });
         setAdding(false);
         return;
       }
@@ -483,10 +621,12 @@ export default function VendorDashboard({ user }) {
         throw new Error(formatListingSaveError(error, 'Failed to add apothecary item.'));
       }
 
+      const wasEdit = !!editProduceId;
       if (!editProduceId) await finalizeProducePublish(saved);
+      const published = saved || { id: editProduceId, name: newProduce.name };
       resetProduceForm();
       await refreshVendorData();
-      alert(editProduceId ? 'Apothecary listing updated!' : 'Added to the Apothecary!');
+      afterListingPublished('produce', published, { wasEdit });
     } catch (e) {
       alert(formatListingSaveError(e, editProduceId ? 'Failed to update listing.' : 'Failed to add apothecary item.'));
     }
@@ -615,6 +755,7 @@ export default function VendorDashboard({ user }) {
         }
         await refreshVendorData();
         shareToSocial(added, true);
+        afterListingPublished('menu', added, { wasEdit: false });
       }
     } catch (e) {
       throw new Error(formatListingSaveError(e, 'Failed to add service.'));
@@ -653,6 +794,7 @@ export default function VendorDashboard({ user }) {
       }
       await finalizeProducePublish(added);
       await refreshVendorData();
+      afterListingPublished('produce', added, { wasEdit: false });
     } catch (e) {
       throw new Error(formatListingSaveError(e, 'Failed to add apothecary item.'));
     } finally {
@@ -1028,7 +1170,7 @@ export default function VendorDashboard({ user }) {
               />
             </div>
           </div>
-          <div className="mt-4 flex flex-col sm:flex-row gap-2">
+          <div className="mt-4 flex flex-col sm:flex-row gap-2 flex-wrap">
             <button
               type="button"
               onClick={requestAddMenuItem}
@@ -1039,19 +1181,50 @@ export default function VendorDashboard({ user }) {
                 ? editMenuId ? 'Saving…' : 'Adding…'
                 : editMenuId ? 'Save changes' : 'Add item & get social share options'}
             </button>
-            {editMenuId && (
-              <button
-                type="button"
-                onClick={resetMenuForm}
-                disabled={adding}
-                className="w-full sm:w-auto px-6 py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
-              >
-                Cancel edit
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={saveCurrentMenuAsTemplate}
+              disabled={adding || !newItem.name}
+              className="w-full sm:w-auto px-4 py-3 border border-amber-300 bg-amber-50 text-amber-950 rounded-2xl text-sm font-medium hover:bg-amber-100 disabled:opacity-50"
+            >
+              Save as template
+            </button>
+            <button
+              type="button"
+              onClick={resetMenuForm}
+              disabled={adding}
+              className="w-full sm:w-auto px-6 py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
+            >
+              {editMenuId ? 'Cancel edit' : 'Start over'}
+            </button>
           </div>
+          {menuTemplates.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-dashed border-[#4a1942]/20 bg-white/60 p-3">
+              <p className="text-xs font-semibold text-[#4a1942] mb-2">Saved service templates (this device)</p>
+              <div className="flex flex-wrap gap-2">
+                {menuTemplates.map((tpl) => (
+                  <div key={tpl.id} className="flex items-center gap-1 rounded-full border bg-white pl-3 pr-1 py-1 text-xs">
+                    <button type="button" className="font-medium text-[#4a1942] hover:underline" onClick={() => loadMenuTemplate(tpl)}>
+                      Load · {tpl.name}
+                    </button>
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 text-red-600 hover:bg-red-50 rounded-full"
+                      onClick={() => {
+                        if (!window.confirm(`Delete template “${tpl.name}”?`)) return;
+                        deleteListingTemplate(myVendorId, 'menu', tpl.id);
+                        refreshTemplates();
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
           {shareMessage && <div className="mt-3 text-sm text-emerald-600">{shareMessage}</div>}
-          <p className="text-xs text-gray-500 mt-2">After adding, we offer one-click links to post on Facebook Marketplace, X, WhatsApp, and more.</p>
+          <p className="text-xs text-gray-500 mt-2">After posting, you can open the listing to view, edit, or remove it. Save a template to start the next listing faster.</p>
         </div>
       </div>
 
@@ -1189,7 +1362,7 @@ export default function VendorDashboard({ user }) {
               />
             </div>
           </div>
-          <div className="flex flex-col gap-3 mt-3 sm:flex-row sm:items-center">
+          <div className="flex flex-col gap-3 mt-3 sm:flex-row sm:items-center sm:flex-wrap">
             <button type="button" onClick={requestAddProduceItem} disabled={addingProduce} className="w-full sm:flex-1 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-60 hover:bg-[#2d1230]">
               {addingProduce
                 ? editProduceId ? 'Saving…' : 'Listing…'
@@ -1197,22 +1370,54 @@ export default function VendorDashboard({ user }) {
                   ? 'Save changes'
                   : 'List in Apothecary'}
             </button>
-            {editProduceId && (
-              <button
-                type="button"
-                onClick={resetProduceForm}
-                disabled={addingProduce}
-                className="w-full sm:w-auto px-6 py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
-              >
-                Cancel edit
-              </button>
-            )}
+            <button
+              type="button"
+              onClick={saveCurrentProduceAsTemplate}
+              disabled={addingProduce || !newProduce.name}
+              className="w-full sm:w-auto px-4 py-3 border border-amber-300 bg-amber-50 text-amber-950 rounded-2xl text-sm font-medium hover:bg-amber-100 disabled:opacity-50"
+            >
+              Save as template
+            </button>
+            <button
+              type="button"
+              onClick={resetProduceForm}
+              disabled={addingProduce}
+              className="w-full sm:w-auto px-4 py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
+            >
+              {editProduceId ? 'Cancel edit' : 'Start over'}
+            </button>
             {!editProduceId && (
               <label className="flex items-center justify-center gap-2 text-sm border px-4 py-3 rounded-2xl cursor-pointer shrink-0">
                 <input type="checkbox" checked={newProduce.organic} onChange={e=>setNewProduce({...newProduce, organic: e.target.checked ? 1 : 0})} /> Organic / natural
               </label>
             )}
           </div>
+          {produceTemplates.length > 0 && (
+            <div className="mt-3 rounded-2xl border border-dashed border-[#4a1942]/20 bg-[#4a1942]/[0.03] p-3">
+              <p className="text-xs font-semibold text-[#4a1942] mb-2">Saved templates (this device)</p>
+              <div className="flex flex-wrap gap-2">
+                {produceTemplates.map((tpl) => (
+                  <div key={tpl.id} className="flex items-center gap-1 rounded-full border bg-white pl-3 pr-1 py-1 text-xs">
+                    <button type="button" className="font-medium text-[#4a1942] hover:underline" onClick={() => loadProduceTemplate(tpl)}>
+                      Load · {tpl.name}
+                    </button>
+                    <button
+                      type="button"
+                      className="px-2 py-0.5 text-red-600 hover:bg-red-50 rounded-full"
+                      title="Delete template"
+                      onClick={() => {
+                        if (!window.confirm(`Delete template “${tpl.name}”?`)) return;
+                        deleteListingTemplate(myVendorId, 'produce', tpl.id);
+                        refreshTemplates();
+                      }}
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {produceList.length > 0 && (

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ListingFulfillmentActions from '../components/ListingFulfillmentActions';
 import VendorFulfillmentPanel from '../components/VendorFulfillmentPanel';
 import { supabase } from '../lib/supabaseClient';
@@ -19,25 +19,37 @@ import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VideoEmbed from '../components/VideoEmbed';
 import { VERTICAL } from '../lib/vertical';
 import { useSeoContext } from '../components/SeoContext';
+import { getVendorContext } from '../lib/plans';
 
 export default function ListingDetailPage({ user }) {
   const { type, id } = useParams();
+  const navigate = useNavigate();
   const itemType = type === 'produce' ? 'produce' : 'menu';
   const table = itemType === 'menu' ? 'menu_items' : 'produce_items';
   const [item, setItem] = useState(null);
   const [vendor, setVendor] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
   const { setPageSeo } = useSeoContext();
+  const vendorCtx = getVendorContext(user);
+  const myVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+
+  const reload = async () => {
+    setLoading(true);
+    const { data: row } = await supabase.from(table).select('*').eq('id', id).maybeSingle();
+    setItem(row || null);
+    if (row?.vendor_id) {
+      const { data: v } = await supabase.from('vendors').select('*').eq('id', row.vendor_id).maybeSingle();
+      setVendor(v);
+    } else {
+      setVendor(null);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const load = async () => {
-      const { data: row } = await supabase.from(table).select('*').eq('id', id).maybeSingle();
-      setItem(row);
-      if (row?.vendor_id) {
-        const { data: v } = await supabase.from('vendors').select('*').eq('id', row.vendor_id).maybeSingle();
-        setVendor(v);
-      }
-    };
-    load();
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [table, id]);
 
   useEffect(() => {
@@ -57,9 +69,60 @@ export default function ListingDetailPage({ user }) {
     return () => setPageSeo({});
   }, [item, vendor, itemType, setPageSeo]);
 
-  if (!item) {
+  if (loading) {
     return <div className="p-8 text-gray-500">Loading listing…</div>;
   }
+
+  if (!item) {
+    return (
+      <div className="max-w-lg mx-auto p-8 space-y-3 text-center">
+        <p className="text-gray-700 font-medium">We could not find this listing.</p>
+        <p className="text-sm text-gray-500">It may have been removed, or you may not have permission to view it yet.</p>
+        <div className="flex flex-wrap justify-center gap-2 pt-2">
+          <Link to="/vendor-dashboard" className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm">
+            Practitioner dashboard
+          </Link>
+          <Link to={VERTICAL.routes.productsMarket || '/products'} className="px-4 py-2 border rounded-2xl text-sm">
+            Browse apothecary
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const isOwner =
+    !!myVendorId &&
+    !!item.vendor_id &&
+    String(myVendorId) === String(item.vendor_id);
+
+  const toggleVisibility = async () => {
+    if (!isOwner) return;
+    setBusy(true);
+    try {
+      const next = item.approved ? 0 : 1;
+      const { error } = await supabase.from(table).update({ approved: next }).eq('id', item.id);
+      if (error) throw error;
+      setItem((prev) => ({ ...prev, approved: next }));
+    } catch (e) {
+      alert(e.message || 'Could not update visibility.');
+    }
+    setBusy(false);
+  };
+
+  const removeListing = async () => {
+    if (!isOwner) return;
+    if (!window.confirm(`Remove “${item.name}” permanently? This cannot be undone.`)) return;
+    setBusy(true);
+    try {
+      const { error } = await supabase.from(table).delete().eq('id', item.id);
+      if (error) throw error;
+      alert('Listing removed.');
+      navigate('/vendor-dashboard');
+    } catch (e) {
+      alert(e.message || 'Could not remove listing.');
+      setBusy(false);
+    }
+  };
 
   const pickupSummary = formatPickupHoursSummary(vendor?.pickup_hours);
   const events = upcomingEvents(vendor?.in_person_events);
@@ -69,7 +132,59 @@ export default function ListingDetailPage({ user }) {
 
   return (
     <div className="max-w-3xl mx-auto">
-      <Link to={backTo} className="text-sm text-[#4a1942] mb-4 inline-block">← Back to {backLabel}</Link>
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <Link to={backTo} className="text-sm text-[#4a1942] inline-block">← Back to {backLabel}</Link>
+        {isOwner && (
+          <Link to="/vendor-dashboard" className="text-sm font-medium text-[#4a1942] underline">
+            Dashboard →
+          </Link>
+        )}
+      </div>
+
+      {isOwner && (
+        <div className="mb-4 rounded-3xl border-2 border-amber-300 bg-amber-50 p-4 space-y-3">
+          <p className="text-sm font-semibold text-amber-950">Your listing · manage</p>
+          <p className="text-xs text-amber-900/80">
+            {item.approved
+              ? 'Visible on the public market (when browse filters allow).'
+              : 'Hidden from public browse — still open to you here.'}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to={`/vendor-dashboard#${itemType === 'produce' ? 'add-produce' : 'add-menu'}`}
+              className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(
+                    'hazel_edit_listing',
+                    JSON.stringify({ type: itemType, id: item.id }),
+                  );
+                } catch {
+                  /* ignore */
+                }
+              }}
+            >
+              Edit in dashboard
+            </Link>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={toggleVisibility}
+              className="px-4 py-2 border border-amber-400 bg-white rounded-2xl text-sm font-medium disabled:opacity-50"
+            >
+              {item.approved ? 'Hide from public' : 'Show on public'}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={removeListing}
+              className="px-4 py-2 border border-red-300 text-red-700 bg-white rounded-2xl text-sm font-medium disabled:opacity-50"
+            >
+              Cancel / remove listing
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white border rounded-3xl overflow-hidden">
         {item.service_video_url && (item.media_type === 'video' || item.media_type === 'both') ? (
