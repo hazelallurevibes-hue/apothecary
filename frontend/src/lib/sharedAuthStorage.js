@@ -1,18 +1,14 @@
 /**
  * Shared Supabase auth storage for Apothecary + Magic on *.hazelallure.com
+ * Keep in sync with magic/src/lib/sharedAuthStorage.js
  *
- * Security notes:
- * - Session lives only in http(s) cookies scoped to Domain=.hazelallure.com
- * - Secure + SameSite=Lax (not sent on third-party POSTs)
- * - Never put access/refresh tokens in query strings
- * - Localhost keeps localStorage only (no cross-port cookie domain)
- * - Chunked cookies avoid 4KB browser limits
+ * Security: Secure+SameSite=Lax cookies on parent domain only; no tokens in URLs.
  */
 
 export const HAZEL_AUTH_STORAGE_KEY = 'hazel_sb_auth_v1';
 const COOKIE_PREFIX = 'hazel_sb_auth';
-const CHUNK = 3200; // stay under typical 4KB cookie limit with attributes
-const MAX_AGE = 60 * 60 * 24 * 14; // 14 days
+const CHUNK = 3000;
+const MAX_AGE = 60 * 60 * 24 * 14;
 
 function canUseSharedCookies() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
@@ -26,65 +22,146 @@ function cookieDomainAttr() {
 }
 
 function readCookie(name) {
-  const parts = document.cookie.split(';');
-  for (const p of parts) {
-    const [k, ...rest] = p.trim().split('=');
-    if (k === name) return decodeURIComponent(rest.join('=') || '');
+  try {
+    const parts = document.cookie.split(';');
+    for (const p of parts) {
+      const [k, ...rest] = p.trim().split('=');
+      if (k === name) {
+        const raw = rest.join('=') || '';
+        try {
+          return decodeURIComponent(raw);
+        } catch {
+          return raw;
+        }
+      }
+    }
+  } catch {
+    /* ignore */
   }
   return null;
 }
 
 function writeCookie(name, value, maxAge = MAX_AGE) {
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `${name}=${encodeURIComponent(value)}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}${cookieDomainAttr()}`;
+  try {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=${value}; Path=/; Max-Age=${maxAge}; SameSite=Lax${secure}${cookieDomainAttr()}`;
+  } catch {
+    /* ignore */
+  }
 }
 
 function clearCookie(name) {
-  const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-  document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}${cookieDomainAttr()}`;
+  try {
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `${name}=; Path=/; Max-Age=0; SameSite=Lax${secure}${cookieDomainAttr()}`;
+  } catch {
+    /* ignore */
+  }
 }
 
 function clearAllChunks() {
   const n = Number(readCookie(`${COOKIE_PREFIX}_n`) || '0');
-  for (let i = 0; i < Math.max(n, 12); i++) clearCookie(`${COOKIE_PREFIX}_${i}`);
+  for (let i = 0; i < Math.max(n, 24); i++) clearCookie(`${COOKIE_PREFIX}_${i}`);
   clearCookie(`${COOKIE_PREFIX}_n`);
+}
+
+function toB64(str) {
+  try {
+    return btoa(unescape(encodeURIComponent(str)));
+  } catch {
+    return btoa(str);
+  }
+}
+
+function fromB64(b64) {
+  try {
+    return decodeURIComponent(escape(atob(b64)));
+  } catch {
+    try {
+      return atob(b64);
+    } catch {
+      return null;
+    }
+  }
 }
 
 function readChunked() {
   const n = Number(readCookie(`${COOKIE_PREFIX}_n`) || '0');
-  if (!n || n < 1 || n > 20) return null;
+  if (!n || n < 1 || n > 40) return null;
   let out = '';
   for (let i = 0; i < n; i++) {
     const part = readCookie(`${COOKIE_PREFIX}_${i}`);
     if (part == null) return null;
     out += part;
   }
-  return out || null;
+  const decoded = fromB64(out);
+  if (decoded && (decoded.startsWith('{') || decoded.startsWith('['))) return decoded;
+  if (out.startsWith('{') || out.startsWith('%7B') || out.startsWith('%7b')) {
+    try {
+      return decodeURIComponent(out);
+    } catch {
+      return out;
+    }
+  }
+  return decoded || out || null;
 }
 
 function writeChunked(value) {
   clearAllChunks();
   if (!value) return;
+  const payload = toB64(value);
   const parts = [];
-  for (let i = 0; i < value.length; i += CHUNK) {
-    parts.push(value.slice(i, i + CHUNK));
+  for (let i = 0; i < payload.length; i += CHUNK) {
+    parts.push(payload.slice(i, i + CHUNK));
   }
   writeCookie(`${COOKIE_PREFIX}_n`, String(parts.length));
   parts.forEach((p, i) => writeCookie(`${COOKIE_PREFIX}_${i}`, p));
 }
 
-/** Migrate legacy per-app keys once so users stay signed in after upgrade */
 function migrateLegacyLocal(key) {
   try {
     const legacyKeys = [
       key,
       'magic_supabase_auth',
       'sb-jihinbkeqlkgywfsxizj-auth-token',
+      ...Object.keys(localStorage).filter((k) => k.includes('auth-token') || k.includes('supabase.auth')),
     ];
     for (const lk of legacyKeys) {
-      const v = localStorage.getItem(lk);
-      if (v && v.length > 20) return v;
+      try {
+        const v = localStorage.getItem(lk);
+        if (v && v.length > 40 && (v.includes('access_token') || v.includes('refresh_token'))) return v;
+      } catch {
+        /* ignore */
+      }
     }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+export function readSharedSessionRaw() {
+  try {
+    const local = localStorage.getItem(HAZEL_AUTH_STORAGE_KEY);
+    if (local && local.length > 40) return local;
+  } catch {
+    /* ignore */
+  }
+  if (canUseSharedCookies()) {
+    const c = readChunked();
+    if (c && c.length > 40) return c;
+  }
+  return migrateLegacyLocal(HAZEL_AUTH_STORAGE_KEY);
+}
+
+export function extractTokensFromStoredSession(raw) {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw);
+    const sess = parsed?.currentSession || parsed?.session || parsed;
+    const access_token = sess?.access_token;
+    const refresh_token = sess?.refresh_token;
+    if (access_token && refresh_token) return { access_token, refresh_token };
   } catch {
     /* ignore */
   }
@@ -93,12 +170,6 @@ function migrateLegacyLocal(key) {
 
 export const sharedAuthStorage = {
   getItem(key) {
-    try {
-      const local = localStorage.getItem(key);
-      if (local) return local;
-    } catch {
-      /* ignore */
-    }
     if (canUseSharedCookies()) {
       const fromCookie = readChunked();
       if (fromCookie) {
@@ -109,6 +180,12 @@ export const sharedAuthStorage = {
         }
         return fromCookie;
       }
+    }
+    try {
+      const local = localStorage.getItem(key);
+      if (local) return local;
+    } catch {
+      /* ignore */
     }
     const migrated = migrateLegacyLocal(key);
     if (migrated) {
@@ -143,10 +220,6 @@ export const sharedAuthStorage = {
   },
 };
 
-/**
- * Build a cross-site URL that lands on the bridge page (session already in shared cookie).
- * Never attaches tokens to the URL.
- */
 export function buildAuthBridgeUrl(origin, nextPath = '/') {
   const base = String(origin || '').replace(/\/$/, '');
   const next = nextPath.startsWith('/') ? nextPath : `/${nextPath}`;
@@ -154,7 +227,6 @@ export function buildAuthBridgeUrl(origin, nextPath = '/') {
   return `${base}/auth/bridge?next=${encodeURIComponent(safeNext)}`;
 }
 
-export function isHazelProductionHost() {
-  if (typeof window === 'undefined') return false;
+export function canShareHazelCookies() {
   return canUseSharedCookies();
 }
