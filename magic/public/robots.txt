@@ -1,10 +1,30 @@
+# Magic Sanctum — magic.hazelallure.com
+# Generated 2026-07-15
+
 User-agent: *
 Allow: /
-Allow: /widget
-Allow: /guides
 Allow: /free
+Allow: /guides
+Allow: /guides/
+Allow: /widget
 Allow: /compatibility
+Allow: /pathfinder
+Allow: /hearth-court
+Allow: /dice
+Allow: /this-or-that
+Allow: /mood
+Allow: /oracle/daily
+Allow: /familiar
+Allow: /before-the-storm
+Allow: /cauldron
+Allow: /legal
+Allow: /sitemap.xml
+Allow: /llms.txt
+Allow: /desk-orb-standalone.html
+
+# Private / ephemeral
 Disallow: /auth/callback
 Disallow: /poll/
+Disallow: /poll
 
 Sitemap: https://magic.hazelallure.com/sitemap.xml

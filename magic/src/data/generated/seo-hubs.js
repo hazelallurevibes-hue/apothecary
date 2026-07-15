@@ -203,6 +203,28 @@ export const SEO_HUBS = [
     ]
   },
   {
+    "slug": "pathfinder",
+    "title": "Pathfinder — Career, Money Literacy & Path Personality",
+    "h1": "Pathfinder",
+    "emoji": "🗺",
+    "summary": "Free career aptitude and money literacy seals plus a Myers-Briggs–style Path & Personality spark. Pro unlocks the full 12-question map and aptitude×type weave. Entertainment reflection only.",
+    "keywords": "career path quiz, money literacy, myers briggs style, pathfinder, vocation map, hazel allure",
+    "sections": [
+      {
+        "h": "What it is",
+        "p": "Pathfinder is Magic Sanctum’s vocation and money-rhythm tool: a short aptitude exam, money seals, and optional Path & Personality dichotomies inspired by popular type language. Free seekers get the full aptitude plus a 4-question spark; Pro deepens the map."
+      },
+      {
+        "h": "How to use it",
+        "p": "Answer career and money questions honestly, seal the reading, then try Path & Personality. Weave both for a decision-friendly summary. For real jobs, taxes, or counseling, hire licensed humans — this is entertainment pattern language."
+      },
+      {
+        "h": "Apothecary bridge",
+        "p": "After a path reading, rest with a practitioner or course on apothecary.hazelallure.com — same Pro plan, same account."
+      }
+    ]
+  },
+  {
     "slug": "daily-fortune",
     "title": "Daily Fortune Cookie & Celestial Dashboard — Magic Sanctum",
     "h1": "Daily fortune & chart",

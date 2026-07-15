@@ -460,6 +460,29 @@ const SEO_HUBS = [
     ],
   },
   {
+    slug: 'pathfinder',
+    title: 'Pathfinder — Career, Money Literacy & Path Personality',
+    h1: 'Pathfinder',
+    emoji: '🗺',
+    summary:
+      'Free career aptitude and money literacy seals plus a Myers-Briggs–style Path & Personality spark. Pro unlocks the full 12-question map and aptitude×type weave. Entertainment reflection only.',
+    keywords: 'career path quiz, money literacy, myers briggs style, pathfinder, vocation map, hazel allure',
+    sections: [
+      {
+        h: 'What it is',
+        p: 'Pathfinder is Magic Sanctum’s vocation and money-rhythm tool: a short aptitude exam, money seals, and optional Path & Personality dichotomies inspired by popular type language. Free seekers get the full aptitude plus a 4-question spark; Pro deepens the map.',
+      },
+      {
+        h: 'How to use it',
+        p: 'Answer career and money questions honestly, seal the reading, then try Path & Personality. Weave both for a decision-friendly summary. For real jobs, taxes, or counseling, hire licensed humans — this is entertainment pattern language.',
+      },
+      {
+        h: 'Apothecary bridge',
+        p: 'After a path reading, rest with a practitioner or course on apothecary.hazelallure.com — same Pro plan, same account.',
+      },
+    ],
+  },
+  {
     slug: 'daily-fortune',
     title: 'Daily Fortune Cookie & Celestial Dashboard — Magic Sanctum',
     h1: 'Daily fortune & chart',
@@ -492,32 +515,49 @@ fs.writeFileSync(
 // Static sitemap + robots + llms
 const BASE = 'https://magic.hazelallure.com';
 const today = new Date().toISOString().slice(0, 10);
+
+/** Public indexable routes: [path, priority, changefreq] — no private poll codes */
 const staticPaths = [
+  // Home & discovery
   ['/', '1.0', 'daily'],
   ['/free', '0.95', 'weekly'],
   ['/guides', '0.95', 'weekly'],
+  ['/oracle/daily', '0.92', 'daily'],
+  // Core free tools
   ['/hearth-court', '0.95', 'weekly'],
+  ['/pathfinder', '0.94', 'weekly'],
+  ['/compatibility', '0.93', 'weekly'],
   ['/dice', '0.92', 'weekly'],
   ['/this-or-that', '0.92', 'weekly'],
-  ['/mood', '0.9', 'daily'],
-  ['/pathfinder', '0.93', 'weekly'],
-  ['/pro-explainer', '0.4', 'monthly'],
-  ['/widget', '0.9', 'weekly'],
-  ['/compatibility', '0.9', 'weekly'],
-  ['/familiar', '0.88', 'weekly'],
-  ['/before-the-storm', '0.88', 'weekly'],
-  ['/cauldron', '0.85', 'weekly'],
-  ['/dashboard', '0.85', 'daily'],
-  ['/oracle/daily', '0.9', 'daily'],
+  ['/mood', '0.91', 'daily'],
+  ['/widget', '0.91', 'weekly'],
+  ['/cauldron', '0.88', 'weekly'],
+  // Pro-featured (still public pages for SEO peeks)
+  ['/familiar', '0.9', 'weekly'],
+  ['/before-the-storm', '0.9', 'weekly'],
+  ['/dashboard', '0.8', 'daily'],
+  // Account / policy
+  ['/legal', '0.7', 'monthly'],
   ['/settings', '0.55', 'monthly'],
   ['/auth', '0.5', 'monthly'],
-  ['/legal', '0.65', 'monthly'],
+  ['/pro-explainer', '0.45', 'monthly'],
+  // Guide hubs (generated)
   ...SEO_HUBS.map((h) => [`/guides/${h.slug}`, '0.88', 'weekly']),
 ];
 
+// Deduplicate paths (first wins)
+const seenPaths = new Set();
+const uniquePaths = staticPaths.filter(([p]) => {
+  if (seenPaths.has(p)) return false;
+  seenPaths.add(p);
+  return true;
+});
+
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${staticPaths
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 https://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+${uniquePaths
   .map(
     ([p, pri, freq]) => `  <url>
     <loc>${BASE}${p}</loc>
@@ -533,14 +573,34 @@ ${staticPaths
 fs.writeFileSync(path.join(PUBLIC, 'sitemap.xml'), sitemap);
 fs.writeFileSync(
   path.join(PUBLIC, 'robots.txt'),
-  `User-agent: *
+  `# Magic Sanctum — magic.hazelallure.com
+# Generated ${today}
+
+User-agent: *
 Allow: /
-Allow: /widget
-Allow: /guides
 Allow: /free
+Allow: /guides
+Allow: /guides/
+Allow: /widget
 Allow: /compatibility
+Allow: /pathfinder
+Allow: /hearth-court
+Allow: /dice
+Allow: /this-or-that
+Allow: /mood
+Allow: /oracle/daily
+Allow: /familiar
+Allow: /before-the-storm
+Allow: /cauldron
+Allow: /legal
+Allow: /sitemap.xml
+Allow: /llms.txt
+Allow: /desk-orb-standalone.html
+
+# Private / ephemeral
 Disallow: /auth/callback
 Disallow: /poll/
+Disallow: /poll
 
 Sitemap: ${BASE}/sitemap.xml
 `,
@@ -590,4 +650,4 @@ Oracle answers, Hearth Court rulings, Familiar Whisperer translations, Chart Har
 
 console.log('Generated packs:', out.counts);
 console.log('SEO hubs:', SEO_HUBS.length);
-console.log('Wrote sitemap.xml, robots.txt, llms.txt');
+console.log(`Wrote sitemap.xml (${uniquePaths.length} urls), robots.txt, llms.txt`);
