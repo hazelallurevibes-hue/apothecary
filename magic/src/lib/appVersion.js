@@ -1,17 +1,17 @@
 /**
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  */
-export const APP_VERSION = '1.9.5';
+export const APP_VERSION = '1.9.6';
 
 export const UPDATE_SPLASH = {
-  title: 'Admin-controlled Magic + deeper answers',
+  title: 'Stay signed in across Magic & Apothecary',
   message:
-    'Apothecary admin can toggle Magic features and announcements. More sphere answers and Pro proverbs. Richer Storm showcases.',
+    'Secure shared session on hazelallure.com — hop between Magic and Apothecary without signing in again. More oracle answers and Pro depth.',
   highlights: [
-    'Admin Magic control panel on Apothecary',
-    'Home announcement from admin settings',
-    'Expanded YES/NO/MAYBE + Moon Mirror lines',
-    'More Before the Storm showcase cards',
+    'Cross-site login bridge (no tokens in URLs)',
+    'Shared Secure cookies on *.hazelallure.com',
+    'Profile auto-loads on both apps',
+    'Richer sphere + Moon Mirror content',
   ],
 };
 

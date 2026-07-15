@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { HAZEL_AUTH_STORAGE_KEY, sharedAuthStorage } from './sharedAuthStorage';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey =
@@ -19,6 +20,9 @@ export const supabase = createClient(
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storage: sharedAuthStorage,
+      storageKey: HAZEL_AUTH_STORAGE_KEY,
+      flowType: 'pkce',
     },
   }
 );

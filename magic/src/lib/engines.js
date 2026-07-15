@@ -89,6 +89,13 @@ export const ORACLE_ANSWERS = [
   { text: 'TWO TEAS, THEN TALK', tone: 'maybe', flavor: 'Ritual before reaction.' },
   { text: 'DRAW ANOTHER CARD', tone: 'maybe', flavor: 'Not stalling — gathering light.' },
   { text: 'MOON IS HALF', tone: 'maybe', flavor: 'Neither full yes nor empty no.' },
+  { text: 'YES · SEAL IT', tone: 'yes', flavor: 'Decide once. Then protect the decision.' },
+  { text: 'THE CAULDRON AGREES', tone: 'yes', flavor: 'Something good is already brewing.' },
+  { text: 'WALK TOWARD WARMTH', tone: 'yes', flavor: 'Choose the room that softens your shoulders.' },
+  { text: 'NO · NOT TONIGHT', tone: 'no', flavor: 'Tomorrow’s moon may answer differently.' },
+  { text: 'CLOSE THE TAB', tone: 'no', flavor: 'This is doom-scroll, not destiny.' },
+  { text: 'ASK A HUMAN', tone: 'maybe', flavor: 'The sphere bows to real counsel.' },
+  { text: 'COUNT TO THREE', tone: 'maybe', flavor: 'Impulse is loud. Wisdom is quieter.' },
 ];
 
 /** Pro-only reverse proverb vault (free gets showcase samples via freePeek path) */
@@ -155,6 +162,13 @@ const PRO_PROVERBS = [
   'Your next kind boundary is a Pro-level spell, free of charge.',
   'What would the wisest version of you do after one glass of water?',
   'The coin of Heaven & Ember has two faces; so does most loyalty — choose which one you feed.',
+  'Pro seal: if you need three people to approve a yes, it is already a maybe.',
+  'The sanctum does not reward self-erasure — only honest trade-offs.',
+  'When the familiar sits on the laptop, the work can wait five minutes.',
+  'A soft no today can be a loud yes after rest.',
+  'Mirror note: reverse the audience — would you still choose this alone?',
+  'If the path needs a costume, it may not fit your bones.',
+  'Cliff of the week: schedule repair before you schedule revenge.',
 ];
 
 /**

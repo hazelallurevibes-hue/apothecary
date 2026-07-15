@@ -8,6 +8,7 @@ import Hearth from './pages/Hearth';
 import Settings from './pages/Settings';
 import Widget from './pages/Widget';
 import Auth from './pages/Auth';
+import AuthBridge from './pages/AuthBridge';
 import AuthCallback from './pages/AuthCallback';
 import Guides from './pages/Guides';
 import GuideHub from './pages/GuideHub';
@@ -28,6 +29,7 @@ export default function App() {
     <Routes>
       <Route path="/widget" element={<Widget />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/auth/bridge" element={<AuthBridge />} />
       <Route path="/poll/:code" element={<Layout><PollJoin /></Layout>} />
       <Route
         path="/*"
@@ -57,6 +59,7 @@ export default function App() {
               <Route path="/pro-explainer" element={<ProExplainer />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/bridge" element={<AuthBridge />} />
             </Routes>
           </Layout>
         }

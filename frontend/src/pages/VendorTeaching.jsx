@@ -92,11 +92,13 @@ export default function VendorTeaching({ user }) {
   const ctx = getVendorContext(user);
   const vendorId = ctx?.vendorId;
   const canTeach = vendorCan(user, 'teaching_platform');
+  const isPro = isVendorPro(user);
 
   const [activeTab, setActiveTab] = useState('courses');
   const [courses, setCourses] = useState([]);
   const [selectedCourseId, setSelectedCourseId] = useState(null);
   const [lessons, setLessons] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [courseDraft, setCourseDraft] = useState({ ...EMPTY_COURSE });
   const [lessonDraft, setLessonDraft] = useState({ ...EMPTY_LESSON });
   const [coverThumb, setCoverThumb] = useState({ ...EMPTY_THUMBNAIL });
@@ -107,7 +109,13 @@ export default function VendorTeaching({ user }) {
 
   useEffect(() => {
     if (!vendorId) return;
-    fetchVendorCourses(vendorId).then(setCourses).catch(() => setCourses([]));
+    setLoadError('');
+    fetchVendorCourses(vendorId)
+      .then(setCourses)
+      .catch((e) => {
+        setCourses([]);
+        setLoadError(e.message || 'Could not load courses. Check connection and try Refresh.');
+      });
   }, [vendorId]);
 
   useEffect(() => {
@@ -116,15 +124,22 @@ export default function VendorTeaching({ user }) {
       .from('vendors')
       .select('stream_youtube, stream_twitch, stream_rumble, stream_platform, bio')
       .eq('id', Number(vendorId))
-      .single()
-      .then(({ data }) => {
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (error) {
+          setVendor(null);
+          return;
+        }
         if (data) {
           setVendor(data);
           const { delivery } = parseHaTeachMetadata(data.bio || '');
-          if (delivery.length) setSessionTypes(delivery.filter((d) => ['live_stream', 'one_on_one', 'group_cohort'].includes(d)));
+          if (delivery.length) {
+            setSessionTypes(
+              delivery.filter((d) => ['live_stream', 'one_on_one', 'group_cohort'].includes(d)),
+            );
+          }
         }
-      })
-      .catch(() => setVendor(null));
+      });
   }, [vendorId]);
 
   useEffect(() => {
@@ -132,8 +147,23 @@ export default function VendorTeaching({ user }) {
       setLessons([]);
       return;
     }
-    fetchCourseLessons(selectedCourseId).then(setLessons).catch(() => setLessons([]));
+    fetchCourseLessons(selectedCourseId)
+      .then(setLessons)
+      .catch(() => setLessons([]));
   }, [selectedCourseId]);
+
+  if (!vendorId) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-16">
+        <div className="text-5xl mb-4">📚</div>
+        <h1 className="text-3xl font-bold heading-font text-[#4a1942]">Teaching Sanctum</h1>
+        <p className="text-gray-600 mt-4">Link a practitioner profile first, then return here.</p>
+        <Link to="/vendor-dashboard" className="inline-block mt-6 text-[#4a1942] underline font-semibold">
+          Practitioner dashboard →
+        </Link>
+      </div>
+    );
+  }
 
   if (!canTeach) {
     return (
@@ -141,12 +171,17 @@ export default function VendorTeaching({ user }) {
         <div className="text-5xl mb-4">📚</div>
         <h1 className="text-3xl font-bold heading-font text-[#4a1942]">Teaching Sanctum</h1>
         <p className="text-gray-600 mt-4 max-w-md mx-auto">
-          Pro Practitioners monetize courses — herbalism, tarot, ritual craft, spiritual business — with YouTube &amp; Vimeo lessons.
+          Pro Practitioners monetize courses — herbalism, tarot, ritual craft, spiritual business — with YouTube &amp; Vimeo lessons, live slots, and credentials.
         </p>
-        {!isVendorPro(user) && (
+        {!isPro && (
           <Link to="/pro-upgrade?type=vendor" className="inline-block mt-8 px-8 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">
             Unlock Pro Teaching →
           </Link>
+        )}
+        {isPro && (
+          <p className="text-sm text-amber-800 mt-6">
+            Your plan is Pro but teaching permission is off — contact support or re-login to refresh permissions.
+          </p>
         )}
       </div>
     );
@@ -244,6 +279,23 @@ export default function VendorTeaching({ user }) {
         <p className="text-gray-600 mt-2">
           Design inclusive teachings — async courses, live sanctum sessions, and 1:1 mentorship — all in one place.
         </p>
+        {loadError && (
+          <div className="mt-3 rounded-2xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+            {loadError}{' '}
+            <button
+              type="button"
+              className="underline font-semibold"
+              onClick={() => {
+                setLoadError('');
+                fetchVendorCourses(vendorId)
+                  .then(setCourses)
+                  .catch((e) => setLoadError(e.message || 'Still failed'));
+              }}
+            >
+              Retry
+            </button>
+          </div>
+        )}
       </div>
 
       <nav

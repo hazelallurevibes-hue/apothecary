@@ -83,6 +83,7 @@ export default function Layout({ user, onLogout, children }) {
   const isCustomer = user?.role?.toLowerCase() === 'customer';
   const isGuest = user?.role?.toLowerCase() === 'guest';
   const MAGIC_URL = (import.meta.env.VITE_MAGIC_URL || 'https://magic.hazelallure.com').replace(/\/$/, '');
+  const magicBridgeUrl = `${MAGIC_URL}/auth/bridge?next=${encodeURIComponent('/')}`;
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -99,8 +100,13 @@ export default function Layout({ user, onLogout, children }) {
       <NavLink to={VERTICAL.routes.topPractitioners} onNavigate={closeMobile}>{t('nav.topVendors')}</NavLink>
       <NavLink to={VERTICAL.routes.courses} onNavigate={closeMobile}>{VERTICAL.labels.courses}</NavLink>
       <NavLink to="/gathering" onNavigate={closeMobile}>The Hearth</NavLink>
-      <ExternalNavLink href={MAGIC_URL} onNavigate={closeMobile}>
-        ⑧ Magic Sanctum
+      <ExternalNavLink href={magicBridgeUrl} onNavigate={closeMobile}>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="inline-flex h-5 w-5 items-center justify-center rounded-full bg-gradient-to-br from-[#4a1942] to-[#6b2d7a] text-[10px] text-white font-black border border-[#c9a227]/80">
+            ⑧
+          </span>
+          Magic Sanctum
+        </span>
       </ExternalNavLink>
       {blogMenu.map((b) => (
         <ExternalNavLink key={b.href} href={b.href} onNavigate={closeMobile}>
@@ -113,7 +119,7 @@ export default function Layout({ user, onLogout, children }) {
   const customerMenu = useMemo(() => {
     const items = [
       { label: 'Seeker Portal', to: '/customer-portal', perm: null },
-      { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true, perm: null },
+      { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true, perm: null },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
@@ -130,7 +136,7 @@ export default function Layout({ user, onLogout, children }) {
     { label: 'Top Practitioners', to: '/top-vendors' },
     { label: 'Wellness Services', to: '/services' },
     { label: 'Apothecary', to: '/products' },
-    { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true },
+    { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true },
     { label: 'FAQ', to: '/faq' },
     { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH },
     { label: 'Account Settings', to: '/account-settings' },
@@ -150,7 +156,7 @@ export default function Layout({ user, onLogout, children }) {
   const vendorManageMenu = useMemo(() => {
     const items = [
       { label: 'Account Settings', to: '/account-settings', perm: null },
-      { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true, perm: null },
+      { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true, perm: null },
       { label: 'Messages', to: '/messages', perm: 'sell' },
       { label: 'Practitioner lounge', to: '/vendor-gathering', perm: 'vendor_gathering' },
       { label: 'Email Campaigns', to: '/vendor-campaigns', perm: null },
@@ -211,13 +217,16 @@ export default function Layout({ user, onLogout, children }) {
               <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.topVendors')}</Link>
               <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942] whitespace-nowrap">{VERTICAL.labels.courses}</Link>
               <a
-                href={MAGIC_URL}
+                href={magicBridgeUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#4a1942] whitespace-nowrap text-[#4a1942] font-semibold"
-                title="Magic Sanctum — sphere, court, pathfinder"
+                className="inline-flex items-center gap-1.5 hover:opacity-90 whitespace-nowrap font-semibold"
+                title="Magic Sanctum — stay signed in across Hazel"
               >
-                ⑧ Magic
+                <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-[#4a1942] to-[#6b2d7a] text-[11px] text-white font-black border border-[#c9a227] shadow-sm">
+                  ⑧
+                </span>
+                <span className="text-[#4a1942]">Magic</span>
               </a>
               <NavDropdown
                 label="Blog"

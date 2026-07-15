@@ -47,30 +47,37 @@ export const ADMIN_SITE_LINKS = [
 ];
 
 /** Cross-product control surface — Magic Sanctum is part of Hazel Allure admin scope */
+const MAGIC_ORIGIN = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_MAGIC_URL
+  ? String(import.meta.env.VITE_MAGIC_URL).replace(/\/$/, '')
+  : 'https://magic.hazelallure.com');
+
+const magicBridge = (path = '/') =>
+  `${MAGIC_ORIGIN}/auth/bridge?next=${encodeURIComponent(path)}`;
+
 export const ADMIN_MAGIC_LINKS = [
   {
     label: 'Magic Sanctum (live)',
-    href: 'https://magic.hazelallure.com',
-    desc: 'Sphere, Court, Pathfinder, Desk Orb — admin is always Pro',
+    href: magicBridge('/'),
+    desc: 'Sphere, Court, Pathfinder, Desk Orb — stay signed in',
   },
   {
     label: 'Magic Settings',
-    href: 'https://magic.hazelallure.com/settings',
+    href: magicBridge('/settings'),
     desc: 'Install, Desk Orb, account & Pro status',
   },
   {
     label: 'Magic Sitemap',
-    href: 'https://magic.hazelallure.com/sitemap.xml',
+    href: `${MAGIC_ORIGIN}/sitemap.xml`,
     desc: 'Search index of all public Magic routes',
   },
   {
     label: 'Magic Pathfinder',
-    href: 'https://magic.hazelallure.com/pathfinder',
+    href: magicBridge('/pathfinder'),
     desc: 'Career / personality Pro maps',
   },
   {
     label: 'Hearth Court',
-    href: 'https://magic.hazelallure.com/hearth-court',
+    href: magicBridge('/hearth-court'),
     desc: 'Decision circle + live polls (Pro)',
   },
 ];

@@ -45,6 +45,7 @@ const VendorVerification = lazyWithRetry(() => import('./pages/VendorVerificatio
 const VendorSafetyAcceptance = lazyWithRetry(() => import('./pages/VendorSafetyAcceptance'));
 const VendorEmailVerify = lazyWithRetry(() => import('./pages/VendorEmailVerify'));
 const EmailVerifyPage = lazyWithRetry(() => import('./pages/EmailVerifyPage'));
+const AuthBridge = lazyWithRetry(() => import('./pages/AuthBridge'));
 const VendorTaxCenter = lazyWithRetry(() => import('./pages/VendorTaxCenter'));
 const PickupConfirmPage = lazyWithRetry(() => import('./pages/PickupConfirmPage'));
 const ProUpgrade = lazyWithRetry(() => import('./pages/ProUpgrade'));
@@ -318,6 +319,7 @@ function AppCore({ auth0 = null }) {
       <Route path="/signup" element={<SignUp onLogin={login} />} />
       <Route path="/vendor-signup" element={<VendorSignUp onLogin={login} />} />
       <Route path="/customer-signup" element={<CustomerSignUp onLogin={login} />} />
+      <Route path="/auth/bridge" element={<AuthBridge onLogin={login} />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/link-expired" element={<LinkExpired />} />

@@ -57,20 +57,47 @@ export default function AdminCommandCenter({
 
       <div className="bg-white border rounded-3xl p-6">
         <h3 className="font-semibold mb-4">Admin tools — click to open</h3>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 text-sm">
-          {tabEntries.map((tab) => (
-            <button
-              key={tab.key}
-              type="button"
-              onClick={() => onNavigateTab(tab.key)}
-              className="text-left px-3 py-2.5 border rounded-2xl hover:border-[#4a1942] hover:bg-[#4a1942]/5 transition"
-            >
-              <span className="mr-1.5" aria-hidden>{tab.icon}</span>
-              {tab.label}
-            </button>
-          ))}
-          <Link to={ACCOUNT_PROFILE_PATH} className="text-left px-3 py-2.5 border rounded-2xl hover:border-[#4a1942] hover:bg-blue-50/50">
-            ✏️ Admin profile
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 text-sm">
+          {tabEntries.map((tab) => {
+            const tones = {
+              overview: 'from-slate-50 to-white border-slate-200',
+              automation: 'from-amber-50 to-white border-amber-200',
+              users: 'from-blue-50 to-white border-blue-200',
+              vendors: 'from-violet-50 to-white border-violet-200',
+              verification: 'from-sky-50 to-white border-sky-200',
+              advertising: 'from-orange-50 to-white border-orange-200',
+              campaigns: 'from-pink-50 to-white border-pink-200',
+              compliance: 'from-red-50 to-white border-red-200',
+              orders: 'from-emerald-50 to-white border-emerald-200',
+              content: 'from-fuchsia-50 to-white border-fuchsia-200',
+              magic: 'from-[#4a1942]/10 to-amber-50 border-[#c9a227]/50',
+              email: 'from-cyan-50 to-white border-cyan-200',
+              'pro-payments': 'from-yellow-50 to-white border-yellow-300',
+              settings: 'from-stone-50 to-white border-stone-200',
+            };
+            const tone = tones[tab.key] || 'from-gray-50 to-white border-gray-200';
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => onNavigateTab(tab.key)}
+                className={`text-left px-3 py-3 rounded-2xl border bg-gradient-to-br ${tone} hover:shadow-md transition`}
+              >
+                <span className="text-2xl block mb-1" aria-hidden>
+                  {tab.icon}
+                </span>
+                <span className="font-semibold text-[#2d1230]">{tab.label}</span>
+              </button>
+            );
+          })}
+          <Link
+            to={ACCOUNT_PROFILE_PATH}
+            className="text-left px-3 py-3 rounded-2xl border bg-gradient-to-br from-indigo-50 to-white border-indigo-200 hover:shadow-md transition"
+          >
+            <span className="text-2xl block mb-1" aria-hidden>
+              ✏️
+            </span>
+            <span className="font-semibold text-[#2d1230]">Admin profile</span>
           </Link>
         </div>
       </div>
