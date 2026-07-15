@@ -18,6 +18,7 @@ export const ADMIN_TABS = {
   compliance: { key: 'compliance', label: 'Compliance', icon: '📋', path: '/users?tab=compliance' },
   orders: { key: 'orders', label: 'Orders', icon: '📦', path: '/users?tab=orders' },
   content: { key: 'content', label: 'Content', icon: '✨', path: '/users?tab=content' },
+  magic: { key: 'magic', label: 'Magic Sanctum', icon: '⑧', path: '/users?tab=magic' },
   email: { key: 'email', label: 'Site Email', icon: '📬', path: '/users?tab=email' },
   proPayments: { key: 'pro-payments', label: 'Pro Payments', icon: '💳', path: '/users?tab=pro-payments' },
   settings: { key: 'settings', label: 'Settings', icon: '⚙️', path: '/users?tab=settings' },

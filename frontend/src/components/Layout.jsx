@@ -77,11 +77,12 @@ export default function Layout({ user, onLogout, children }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
 
-  const isAdmin = user?.role?.toLowerCase() === 'admin';
+  const isAdmin = user?.role?.toLowerCase() === 'admin' || user?.isAdmin;
   const vendorCtx = getVendorContext(user);
   const isVendor = user?.role?.toLowerCase() === 'vendor' || !!vendorCtx;
   const isCustomer = user?.role?.toLowerCase() === 'customer';
   const isGuest = user?.role?.toLowerCase() === 'guest';
+  const MAGIC_URL = (import.meta.env.VITE_MAGIC_URL || 'https://magic.hazelallure.com').replace(/\/$/, '');
 
   const closeMobile = () => setMobileOpen(false);
 
@@ -98,6 +99,9 @@ export default function Layout({ user, onLogout, children }) {
       <NavLink to={VERTICAL.routes.topPractitioners} onNavigate={closeMobile}>{t('nav.topVendors')}</NavLink>
       <NavLink to={VERTICAL.routes.courses} onNavigate={closeMobile}>{VERTICAL.labels.courses}</NavLink>
       <NavLink to="/gathering" onNavigate={closeMobile}>The Hearth</NavLink>
+      <ExternalNavLink href={MAGIC_URL} onNavigate={closeMobile}>
+        ⑧ Magic Sanctum
+      </ExternalNavLink>
       {blogMenu.map((b) => (
         <ExternalNavLink key={b.href} href={b.href} onNavigate={closeMobile}>
           {b.label}
@@ -109,6 +113,7 @@ export default function Layout({ user, onLogout, children }) {
   const customerMenu = useMemo(() => {
     const items = [
       { label: 'Seeker Portal', to: '/customer-portal', perm: null },
+      { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true, perm: null },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
@@ -125,6 +130,7 @@ export default function Layout({ user, onLogout, children }) {
     { label: 'Top Practitioners', to: '/top-vendors' },
     { label: 'Wellness Services', to: '/services' },
     { label: 'Apothecary', to: '/products' },
+    { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true },
     { label: 'FAQ', to: '/faq' },
     { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH },
     { label: 'Account Settings', to: '/account-settings' },
@@ -144,6 +150,7 @@ export default function Layout({ user, onLogout, children }) {
   const vendorManageMenu = useMemo(() => {
     const items = [
       { label: 'Account Settings', to: '/account-settings', perm: null },
+      { label: '⑧ Magic Sanctum', href: MAGIC_URL, external: true, perm: null },
       { label: 'Messages', to: '/messages', perm: 'sell' },
       { label: 'Practitioner lounge', to: '/vendor-gathering', perm: 'vendor_gathering' },
       { label: 'Email Campaigns', to: '/vendor-campaigns', perm: null },
@@ -161,6 +168,7 @@ export default function Layout({ user, onLogout, children }) {
 
   const adminMenu = [
     { label: '📊 Admin Portal', to: '/users?tab=overview' },
+    { label: '⑧ Magic Sanctum', to: '/users?tab=magic' },
     { label: '⚡ Automation', to: '/users?tab=automation' },
     { label: '✏️ Edit Profile', to: ACCOUNT_PROFILE_PATH },
     { label: '👥 Users', to: '/users?tab=users' },
@@ -202,6 +210,15 @@ export default function Layout({ user, onLogout, children }) {
               <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.apothecary')}</Link>
               <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.topVendors')}</Link>
               <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942] whitespace-nowrap">{VERTICAL.labels.courses}</Link>
+              <a
+                href={MAGIC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-[#4a1942] whitespace-nowrap text-[#4a1942] font-semibold"
+                title="Magic Sanctum — sphere, court, pathfinder"
+              >
+                ⑧ Magic
+              </a>
               <NavDropdown
                 label="Blog"
                 items={blogMenu.map((b) => ({ label: b.label, href: b.href, external: true }))}

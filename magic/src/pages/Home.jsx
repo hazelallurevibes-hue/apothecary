@@ -13,6 +13,7 @@ import SanctumLogo from '../components/SanctumLogo';
 import ProValueStrip from '../components/ProValueStrip';
 import { unlockAchievement } from '../lib/achievements';
 import { recordHistory } from '../lib/historyStore';
+import { fetchMagicPlatformSettings, magicSettingOn } from '../lib/platformSettings';
 
 /** Rotating feature spotlight under the sphere — cycles by day + slot */
 const ROTATING_FEATURES = [
@@ -105,6 +106,7 @@ export default function Home() {
   const [sphereTaps, setSphereTaps] = useState(0);
   const [gild, setGild] = useState(false);
   const [rotateSlot, setRotateSlot] = useState(0);
+  const [platform, setPlatform] = useState(null);
   const stats = packStats();
   const daily = freeDailyLine();
 
@@ -121,11 +123,22 @@ export default function Home() {
     else if (modeParam === 'reverse') setMode('reverse');
   }, [modeParam]);
 
+  useEffect(() => {
+    fetchMagicPlatformSettings().then(setPlatform).catch(() => setPlatform(null));
+  }, []);
+
   // Auto-rotate feature cards under the sphere every 8s
   useEffect(() => {
     const t = setInterval(() => setRotateSlot((s) => s + 1), 8000);
     return () => clearInterval(t);
   }, []);
+
+  const magicEnabled = !platform || magicSettingOn(platform, 'magic_enabled');
+  const announcement = platform?.magic_home_announcement?.trim() || '';
+  const maintenance = platform?.magic_maintenance_message?.trim() || 'The sanctum is resting — return soon.';
+  const proBlurb =
+    platform?.magic_pro_upsell_blurb?.trim() ||
+    'Pro unlocks full Storm, Familiar, live Court, Path & Personality, and Moon Mirror vaults — same Hazel plan as the apothecary.';
 
   const setModeAndUrl = (id) => {
     setMode(id);
@@ -233,6 +246,16 @@ export default function Home() {
           Free sphere & coin for every seeker. Pro unlocks Hearth Court, Familiar Whisperer, and Before
           the Storm — free peeks so you feel the magic first.
         </p>
+        {announcement && (
+          <div className="mt-3 mx-auto max-w-lg rounded-2xl border border-[#c9a227]/40 bg-amber-50/90 px-4 py-2.5 text-sm text-[#4a1942]/85">
+            {announcement}
+          </div>
+        )}
+        {!magicEnabled && (
+          <div className="mt-3 mx-auto max-w-lg rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-950">
+            {maintenance}
+          </div>
+        )}
         <div className="flex flex-wrap justify-center gap-2 mt-3">
           <Link to="/hearth-court" className="btn-primary text-xs py-1.5 px-3">
             Free Court · oracle seal
@@ -582,7 +605,7 @@ export default function Home() {
           <p className="text-sm text-[#4a1942]/80">
             Free forever: Sphere, Heaven & Ember, Cauldron journal, daily ink, Desk Orb, sneak peeks.
             <br />
-            Pro: full 2k+ libraries + Hearth posts — same plan as the apothecary.
+            {proBlurb}
           </p>
           <div className="flex flex-wrap justify-center gap-2 mt-3">
             <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary">

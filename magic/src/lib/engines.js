@@ -77,6 +77,18 @@ export const ORACLE_ANSWERS = [
   { text: 'NAME THE NEED FIRST', tone: 'maybe', flavor: 'Clarity before commitment.' },
   { text: 'CHECK YOUR BODY', tone: 'maybe', flavor: 'Gut, shoulders, jaw — then ask.' },
   { text: 'ORACLE IS STEEPING', tone: 'maybe', flavor: 'Tea first. Verdict later.' },
+  { text: 'YES · WITH BOUNDARIES', tone: 'yes', flavor: 'Green light — and a fence that loves you.' },
+  { text: 'THE PORCH SAYS YES', tone: 'yes', flavor: 'Come in. Shoes optional. Honesty required.' },
+  { text: 'INK SAYS GO', tone: 'yes', flavor: 'Write the first line before doubt edits it.' },
+  { text: 'TRUST THE SOFT YES', tone: 'yes', flavor: 'Not loud — but real.' },
+  { text: 'NO · FOR YOUR FUTURE', tone: 'no', flavor: 'This no is a gift to tomorrow-you.' },
+  { text: 'STEP BACK', tone: 'no', flavor: 'Distance is a spell of clarity.' },
+  { text: 'NOT YOUR LOAD', tone: 'no', flavor: 'Put the bag down. It was never yours alone.' },
+  { text: 'HOLD THE LINE', tone: 'no', flavor: 'Boundary stands. Kindly. Firmly.' },
+  { text: 'ASK YOUR BODY AGAIN', tone: 'maybe', flavor: 'Shoulders up? Jaw tight? That’s data.' },
+  { text: 'TWO TEAS, THEN TALK', tone: 'maybe', flavor: 'Ritual before reaction.' },
+  { text: 'DRAW ANOTHER CARD', tone: 'maybe', flavor: 'Not stalling — gathering light.' },
+  { text: 'MOON IS HALF', tone: 'maybe', flavor: 'Neither full yes nor empty no.' },
 ];
 
 /** Pro-only reverse proverb vault (free gets showcase samples via freePeek path) */
@@ -128,6 +140,21 @@ const PRO_PROVERBS = [
   'The coin of Heaven & Ember has two faces; so does most loyalty.',
   'What you call procrastination may be unfinished grief.',
   'Let one small ritual mark the choice so your nervous system can rest.',
+  'Pro depth: the answer is rarely more speed — it is cleaner consent.',
+  'If the familiar hides, the room is too loud; lower the lights first.',
+  'Moon Mirror seal: reverse the story until the villain becomes a need.',
+  'What you call laziness may be grief wearing soft clothes.',
+  'A yes without a date is a maybe wearing perfume.',
+  'Sanctum counsel: schedule the hard talk like a guest you respect.',
+  'The gold rim does not grade your feelings — only whether you named them.',
+  'If both options hurt, choose the pain that includes rest afterward.',
+  'Proverb of the quiet hearth: reputation is weather; character is climate.',
+  'Leave one door open for grace — including your own.',
+  'The sphere prefers a specific question to a beautiful panic.',
+  'When pride and love argue, let curiosity hold the gavel.',
+  'Your next kind boundary is a Pro-level spell, free of charge.',
+  'What would the wisest version of you do after one glass of water?',
+  'The coin of Heaven & Ember has two faces; so does most loyalty — choose which one you feed.',
 ];
 
 /**

@@ -24,6 +24,7 @@ import AdminCommunityModerationPanel from '../components/AdminCommunityModeratio
 import AdminCommandCenter from '../components/AdminCommandCenter';
 import AdminAutomationPanel from '../components/AdminAutomationPanel';
 import AdminAdvertisingPanel from '../components/AdminAdvertisingPanel';
+import AdminMagicPanel from '../components/AdminMagicPanel';
 import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
@@ -309,6 +310,7 @@ export default function AdminPortal({ user, onLogout }) {
             { key: 'compliance', label: `${ADMIN_TABS.compliance.icon}${listingReports.length ? ` (${listingReports.length})` : ''}` },
             { key: 'orders', label: `${ADMIN_TABS.orders.icon} ${ADMIN_TABS.orders.label}` },
             { key: 'content', label: `${ADMIN_TABS.content.icon} ${ADMIN_TABS.content.label}` },
+            { key: 'magic', label: `${ADMIN_TABS.magic.icon} ${ADMIN_TABS.magic.label}` },
             { key: 'email', label: `${ADMIN_TABS.email.icon} ${ADMIN_TABS.email.label}` },
             { key: 'pro-payments', label: `${ADMIN_TABS.proPayments.icon} ${ADMIN_TABS.proPayments.label}` },
             { key: 'settings', label: `${ADMIN_TABS.settings.icon} ${ADMIN_TABS.settings.label}` },
@@ -526,6 +528,10 @@ export default function AdminPortal({ user, onLogout }) {
               ))}
             </div>
           </div>
+        )}
+
+        {!loading && activeTab === 'magic' && (
+          <AdminMagicPanel adminEmail={user?.email} onMessage={setAdminMessage} />
         )}
 
         {!loading && activeTab === 'content' && (

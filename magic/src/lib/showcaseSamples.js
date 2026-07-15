@@ -53,6 +53,22 @@ export const SHOWCASE_COACH = [
     aura: 'plum',
   },
   {
+    opener: 'Try: "I want us on the same team about money — can we look at one number together for ten minutes?"',
+    insight: 'Cliff note: money talks fail when they become character trials. One number, one feeling, one next step.',
+    shouldHaveSaid: 'What might have helped: "I am scared, not accusing."',
+    blurb: 'Before the Storm · money: fear wears a calculator; invite partnership.',
+    ritual: 'Sit side by side · phones away · one spreadsheet or receipt',
+    aura: 'gold',
+  },
+  {
+    opener: 'Lead with: "When the group chat piles on, I shut down — can we use a pause word?"',
+    insight: 'Cliff note: group dynamics need a safety valve. A pause word is not drama — it is design.',
+    shouldHaveSaid: 'What might have helped: "I still love you all; I need air."',
+    blurb: 'Before the Storm · friend drama: protect nervous systems, not the gossip loop.',
+    ritual: 'Name the pause word · use it once · reconvene later',
+    aura: 'violet',
+  },
+  {
     opener: 'Lead with curiosity: "Help me understand what you needed in that moment."',
     insight: 'Cliff note: pride hates apologies; love needs them. Curiosity lowers the temperature faster than being right.',
     shouldHaveSaid: 'What might have helped: "Your feeling makes sense even if I disagree."',
