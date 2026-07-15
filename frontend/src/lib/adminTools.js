@@ -28,6 +28,8 @@ export const ADMIN_EXTERNAL_LINKS = [
   { label: 'Supabase Dashboard', href: 'https://supabase.com/dashboard', desc: 'Database & auth' },
   { label: 'Resend Dashboard', href: 'https://resend.com/emails', desc: 'Transactional email' },
   { label: 'Vercel Dashboard', href: 'https://vercel.com/dashboard', desc: 'Deployments & domains' },
+  { label: 'Magic Sanctum', href: 'https://magic.hazelallure.com', desc: 'Magic app (admin = full Pro)' },
+  { label: 'Magic Vercel project', href: 'https://vercel.com/hazel-allure/magic-sanctum', desc: 'Magic Sanctum deploys' },
 ];
 
 export const ADMIN_SITE_LINKS = [
@@ -37,9 +39,39 @@ export const ADMIN_SITE_LINKS = [
   { label: 'Pro upgrade page', to: '/pro-upgrade' },
   { label: `${vendorLabel} verification`, to: '/vendor-verification' },
   { label: 'Onboarding flow', to: '/onboarding' },
+  { label: `${vendorLabel} dashboard`, to: '/vendor-dashboard' },
   ...(verticalFeature('seoLiterature') ? [{ label: 'SEO guides', to: '/learn' }] : []),
   { label: 'FAQ', to: '/faq' },
   { label: 'Policies', to: '/policies-procedures' },
+];
+
+/** Cross-product control surface — Magic Sanctum is part of Hazel Allure admin scope */
+export const ADMIN_MAGIC_LINKS = [
+  {
+    label: 'Magic Sanctum (live)',
+    href: 'https://magic.hazelallure.com',
+    desc: 'Sphere, Court, Pathfinder, Desk Orb — admin is always Pro',
+  },
+  {
+    label: 'Magic Settings',
+    href: 'https://magic.hazelallure.com/settings',
+    desc: 'Install, Desk Orb, account & Pro status',
+  },
+  {
+    label: 'Magic Sitemap',
+    href: 'https://magic.hazelallure.com/sitemap.xml',
+    desc: 'Search index of all public Magic routes',
+  },
+  {
+    label: 'Magic Pathfinder',
+    href: 'https://magic.hazelallure.com/pathfinder',
+    desc: 'Career / personality Pro maps',
+  },
+  {
+    label: 'Hearth Court',
+    href: 'https://magic.hazelallure.com/hearth-court',
+    desc: 'Decision circle + live polls (Pro)',
+  },
 ];
 
 export const AUTOMATION_SETTING_KEYS = [

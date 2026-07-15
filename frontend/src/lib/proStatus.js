@@ -85,13 +85,13 @@ export async function syncUserProStatus(profile) {
 
 export function isCustomerProUser(user) {
   if (!user) return false;
-  if ((user.role || '').toLowerCase() === 'admin') return true;
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return true;
   return isProPlan(getEffectiveCustomerPlan(user));
 }
 
 export function isVendorProUser(user) {
   if (!user) return false;
-  if ((user.role || '').toLowerCase() === 'admin') return true;
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return true;
   return isProPlan(getEffectiveVendorPlan(user));
 }
 

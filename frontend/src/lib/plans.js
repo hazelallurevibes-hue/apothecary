@@ -155,17 +155,18 @@ export function vendorCan(user, permission) {
 
 export function getEffectiveCustomerPlan(user) {
   if (!user) return 'free';
-  if ((user.role || '').toLowerCase() === 'admin') return 'paid';
-  if (isProPlan(user.customer_plan)) return user.customer_plan;
-  if (user.customer_pro_active) return 'paid';
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return 'paid';
+  // Vendor Pro also unlocks seeker Pro areas (same Hazel membership across both sites)
+  if (isProPlan(user.customer_plan) || user.customer_pro_active) return user.customer_plan || 'paid';
+  if (isProPlan(user.vendor_plan) || user.vendor_pro_active) return 'paid';
   return user.customer_plan || 'free';
 }
 
 export function getEffectiveVendorPlan(user) {
   if (!user) return 'free';
-  if ((user.role || '').toLowerCase() === 'admin') return 'paid';
-  if (isProPlan(user.vendor_plan)) return user.vendor_plan;
-  if (user.vendor_pro_active) return 'paid';
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return 'paid';
+  if (isProPlan(user.vendor_plan) || user.vendor_pro_active) return user.vendor_plan || 'paid';
+  // Customer-only Pro does not unlock vendor selling tools — must be a vendor plan
   return user.vendor_plan || 'free';
 }
 
@@ -219,15 +220,22 @@ export function advertisingAccountBadge(plan, type = 'vendor') {
 /** True when the signed-in user has an active Pro Practitioner plan. */
 export function isVendorPro(user) {
   if (!user) return false;
-  if ((user.role || '').toLowerCase() === 'admin') return true;
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return true;
   return isProPlan(getEffectiveVendorPlan(user));
 }
 
-/** True when the signed-in user has an active Pro Member plan. */
+/** True when the signed-in user has an active Pro Member plan (or Vendor Pro — shared membership). */
 export function isCustomerPro(user) {
   if (!user) return false;
-  if ((user.role || '').toLowerCase() === 'admin') return true;
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return true;
   return isProPlan(getEffectiveCustomerPlan(user));
+}
+
+/** Pro on either side of Hazel unlocks Magic Sanctum Pro libraries. */
+export function hasAnyHazelPro(user) {
+  if (!user) return false;
+  if ((user.role || '').toLowerCase() === 'admin' || user.isAdmin) return true;
+  return isCustomerPro(user) || isVendorPro(user);
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = VERTICAL.plans?.paidVendorFeatures || [];

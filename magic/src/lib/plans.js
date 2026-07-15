@@ -94,6 +94,7 @@ export function isProPlan(plan) {
 export function resolveIsAdmin(userLike = {}) {
   const role = String(userLike.role || '').toLowerCase();
   if (role === 'admin') return true;
+  if (userLike.isAdmin) return true;
   const email = String(userLike.email || '')
     .toLowerCase()
     .trim();
@@ -105,11 +106,13 @@ export function resolveIsAdmin(userLike = {}) {
   return known.includes(email);
 }
 
+/** Admin or Pro (customer OR vendor) unlocks every Magic Pro library. */
 export function userHasMagicPro(user) {
   if (!user) return false;
   if (user.isAdmin || resolveIsAdmin(user)) return true;
-  if (isProPlan(user.customer_plan)) return true;
-  if (isProPlan(user.vendor_plan)) return true;
+  if (user.isPremium === true) return true;
+  if (isProPlan(user.customer_plan) || user.customer_pro_active) return true;
+  if (isProPlan(user.vendor_plan) || user.vendor_pro_active) return true;
   return false;
 }
 

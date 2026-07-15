@@ -38,21 +38,54 @@ async function enrichVendor(row) {
   return { vendor_plan: data?.plan || 'free' };
 }
 
+async function enrichSubscriptions(email) {
+  if (!isAuthConfigured() || !email) return { customer_pro_active: false, vendor_pro_active: false };
+  try {
+    const { data: userRow } = await supabaseAuth
+      .from('users')
+      .select('id')
+      .ilike('email', email.trim())
+      .maybeSingle();
+    if (!userRow?.id) return { customer_pro_active: false, vendor_pro_active: false };
+    const { data: subs } = await supabaseAuth
+      .from('platform_subscriptions')
+      .select('plan_type, status')
+      .eq('user_id', userRow.id);
+    const active = new Set(['active', 'trialing']);
+    const list = subs || [];
+    return {
+      customer_pro_active: list.some((s) => s.plan_type === 'customer' && active.has(s.status)),
+      vendor_pro_active: list.some((s) => s.plan_type === 'vendor' && active.has(s.status)),
+    };
+  } catch {
+    return { customer_pro_active: false, vendor_pro_active: false };
+  }
+}
+
 export async function resolveMagicUser(session) {
   if (!session?.user?.email) return null;
   const row = await enrichFromUsers(session.user.email);
   const vendor = await enrichVendor(row);
+  const subs = await enrichSubscriptions(session.user.email);
   const role = String(row.role || session.user.user_metadata?.role || 'customer')
     .toLowerCase()
     .trim();
+  let customer_plan = row.customer_plan || 'free';
+  let vendor_plan = vendor.vendor_plan || 'free';
+  if (subs.customer_pro_active) customer_plan = 'paid';
+  if (subs.vendor_pro_active) vendor_plan = 'paid';
+  // Cross-site: vendor Pro or customer Pro both unlock Magic libraries
   const base = {
     id: row.id || session.user.id,
     authId: session.user.id,
     email: session.user.email,
     name: row.name || session.user.user_metadata?.name || session.user.email.split('@')[0],
     avatar: row.avatar || null,
-    customer_plan: row.customer_plan || 'free',
-    vendor_plan: vendor.vendor_plan,
+    customer_plan,
+    vendor_plan,
+    customer_pro_active: !!subs.customer_pro_active,
+    vendor_pro_active: !!subs.vendor_pro_active,
+    vendor_id: row.vendor_id || null,
     role,
     status: row.status || 'active',
   };
@@ -60,6 +93,12 @@ export async function resolveMagicUser(session) {
   const user = {
     ...base,
     isAdmin,
+    // Admin always Pro on Magic
+    customer_plan: isAdmin ? 'paid' : base.customer_plan,
+    vendor_plan: isAdmin ? 'paid' : base.vendor_plan,
+    customer_pro_active: isAdmin ? true : base.customer_pro_active,
+    vendor_pro_active: isAdmin ? true : base.vendor_pro_active,
+    role: isAdmin ? 'admin' : role,
     isPremium: false,
   };
   user.isPremium = userHasMagicPro(user);

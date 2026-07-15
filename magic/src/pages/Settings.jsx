@@ -102,7 +102,7 @@ export default function Settings() {
               Plan: {user.customer_plan || 'free'}
               {user.vendor_plan && user.vendor_plan !== 'free' ? ` · vendor ${user.vendor_plan}` : ''}
               {isPremium ? ' · Magic Pro unlocked' : ''}
-              {isAdmin ? ' · Admin' : ''}
+              {isAdmin ? ' · Admin (full control)' : ''}
             </p>
             <div className="flex flex-wrap gap-2 pt-1">
               <button type="button" className="btn-secondary text-xs" onClick={() => refresh()}>
@@ -120,6 +120,37 @@ export default function Settings() {
                 </a>
               )}
             </div>
+            {isAdmin && (
+              <div className="mt-3 rounded-xl border border-[#c9a227]/50 bg-amber-50/80 p-3 space-y-2">
+                <p className="text-[10px] font-black uppercase tracking-widest text-[#c9a227]">
+                  Admin · full Pro on Magic + Apothecary
+                </p>
+                <p className="text-xs text-[#4a1942]/75 leading-relaxed">
+                  You have every Magic library (Storm, Familiar, Court live, Path personality) and full Apothecary
+                  admin tools. Vendor Pro or Customer Pro on Hazel also unlocks Magic Pro for that account.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href="https://apothecary.hazelallure.com/users?tab=overview"
+                    className="btn-gold text-xs"
+                  >
+                    Apothecary admin portal
+                  </a>
+                  <Link to="/hearth-court" className="btn-secondary text-xs">
+                    Hearth Court
+                  </Link>
+                  <Link to="/pathfinder" className="btn-secondary text-xs">
+                    Pathfinder
+                  </Link>
+                  <Link to="/before-the-storm" className="btn-secondary text-xs">
+                    Storm (Pro)
+                  </Link>
+                  <Link to="/familiar" className="btn-secondary text-xs">
+                    Familiar (Pro)
+                  </Link>
+                </div>
+              </div>
+            )}
           </>
         ) : (
           <>

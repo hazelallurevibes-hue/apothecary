@@ -5,12 +5,13 @@ import { getAppUrl } from './appUrl';
 import { VERTICAL } from './vertical';
 import { STORAGE_KEYS } from './storageKeys';
 import { applySubscriptionProFlags, fetchActiveSubscriptionsForEmail } from './proStatus';
+import { applyAdminProFlags, resolveIsAdmin } from './resolveAdmin';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
 function normalizeProfile(raw) {
   if (!raw) return null;
-  return {
+  const base = {
     ...raw,
     role: (raw.role || 'guest').toLowerCase(),
     vendor: raw.vendor_id || raw.vendor || null,
@@ -31,6 +32,10 @@ function normalizeProfile(raw) {
     diet_type: raw.diet_type || 'none',
     customer_region: raw.customer_region || 'US',
   };
+  if (resolveIsAdmin(base)) {
+    return applyAdminProFlags(base);
+  }
+  return base;
 }
 
 async function enrichProfile(profile) {
@@ -38,11 +43,12 @@ async function enrichProfile(profile) {
 
   const { data: row } = await supabase
     .from('users')
-    .select('id, customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
+    .select('id, role, customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
     .ilike('email', profile.email.trim())
     .maybeSingle();
 
   if (row) {
+    if (row.role) profile.role = String(row.role).toLowerCase();
     profile.customer_plan = row.customer_plan || profile.customer_plan;
     profile.purchase_count = Number(row.purchase_count) || 0;
     profile.id = profile.id || row.id;
@@ -62,17 +68,17 @@ async function enrichProfile(profile) {
   }
 
   const vendorId = profile.vendor_id || profile.vendor;
-  if (profile.role === 'vendor' && vendorId) {
+  if ((profile.role === 'vendor' || profile.role === 'admin') && vendorId) {
     const { data: vendor } = await supabase
       .from('vendors')
       .select('plan')
       .eq('id', Number(vendorId))
       .maybeSingle();
-    profile.vendor_plan = vendor?.plan || 'free';
+    if (vendor?.plan) profile.vendor_plan = vendor.plan;
   }
 
   const emp = await fetchEmployeeRecord(profile.email);
-  if (emp && profile.role !== 'vendor') {
+  if (emp && profile.role !== 'vendor' && profile.role !== 'admin') {
     profile.employee_vendor_id = emp.vendor_id;
     profile.employee_permissions = emp.permissions;
     profile.employee_vendor_plan = emp.vendor_plan;
@@ -83,6 +89,11 @@ async function enrichProfile(profile) {
     profile = applySubscriptionProFlags(profile, subscriptions);
   } catch {
     /* subscriptions optional */
+  }
+
+  // Admin always full Pro on both sides (Apothecary + Magic)
+  if (resolveIsAdmin(profile)) {
+    profile = applyAdminProFlags(profile);
   }
 
   return profile;

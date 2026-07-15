@@ -28,7 +28,7 @@ const EMPTY = {
 
 export async function fetchVendorCatalog(vendorId) {
   const vid = Number(vendorId);
-  if (!vid) return { menu: [], produce: [], tasks: [] };
+  if (!vid) return { menu: [], produce: [], tasks: [], errors: [] };
 
   const [menuRes, produceRes, tasksRes] = await Promise.all([
     supabase.from('menu_items').select('*').eq('vendor_id', vid).order('id', { ascending: false }),
@@ -36,10 +36,24 @@ export async function fetchVendorCatalog(vendorId) {
     supabase.from('tasks').select('*').eq('vendor_id', vid).order('id', { ascending: false }),
   ]);
 
+  const errors = [];
+  if (menuRes.error) {
+    console.warn('[vendor catalog] menu_items:', menuRes.error.message);
+    errors.push(menuRes.error.message);
+  }
+  if (produceRes.error) {
+    console.warn('[vendor catalog] produce_items:', produceRes.error.message);
+    errors.push(produceRes.error.message);
+  }
+  if (tasksRes.error) {
+    console.warn('[vendor catalog] tasks:', tasksRes.error.message);
+  }
+
   return {
     menu: menuRes.data || [],
     produce: produceRes.data || [],
     tasks: tasksRes.data || [],
+    errors,
   };
 }
 

@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
-import { ADMIN_EXTERNAL_LINKS, ADMIN_SITE_LINKS, ADMIN_TABS } from '../lib/adminTools';
+import { ADMIN_EXTERNAL_LINKS, ADMIN_MAGIC_LINKS, ADMIN_SITE_LINKS, ADMIN_TABS } from '../lib/adminTools';
 
 function StatCard({ label, value, tone = 'default', onClick, badge }) {
   const tones = {
@@ -103,6 +103,27 @@ export default function AdminCommandCenter({
               </Link>
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className="bg-gradient-to-r from-[#4a1942]/5 to-amber-50 border border-[#c9a227]/40 rounded-3xl p-6">
+        <h3 className="font-semibold mb-1 text-[#4a1942]">Magic Sanctum control</h3>
+        <p className="text-xs text-gray-600 mb-4">
+          Admin accounts are always Pro on Magic and Apothecary. Open Magic tools, sitemap, and settings from here.
+        </p>
+        <div className="grid sm:grid-cols-2 gap-2">
+          {ADMIN_MAGIC_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col px-3 py-2.5 border border-[#4a1942]/15 bg-white rounded-2xl hover:border-[#c9a227] text-sm"
+            >
+              <span className="font-medium text-[#4a1942]">{link.label} ↗</span>
+              <span className="text-xs text-gray-500">{link.desc}</span>
+            </a>
+          ))}
         </div>
       </div>
 

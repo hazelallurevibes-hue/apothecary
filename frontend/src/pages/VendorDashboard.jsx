@@ -993,6 +993,7 @@ export default function VendorDashboard({ user }) {
         menuCount={myMenu.length}
         produceCount={myProduce.length}
         user={user}
+        onStepsChange={setLaunchSteps}
       />
 
       {isProPractitioner ? (
@@ -1001,16 +1002,135 @@ export default function VendorDashboard({ user }) {
         <UpgradeBanner plan={vendorPlan} user={user} />
       )}
 
-      {myMenu.length + myProduce.length === 0 && nextIncompleteStep(launchSteps) && (
-        <div className="mb-4 text-sm bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2">
+      {nextIncompleteStep(launchSteps) && (
+        <div className="mb-4 text-sm bg-amber-50 border-2 border-amber-400 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 animate-pulse">
           <span>
-            Launch checklist: complete <strong>{nextIncompleteStep(launchSteps)?.label}</strong> before your first listing.
+            Still need: <strong>{nextIncompleteStep(launchSteps)?.label}</strong>
+            {nextIncompleteStep(launchSteps)?.id === 'verify_email'
+              ? ' — email verify stays highlighted until you confirm the link.'
+              : ' — finish this before new first-time launch steps lock in.'}
           </span>
-          <Link to={nextIncompleteStep(launchSteps)?.path || '/onboarding'} className="text-[#4a1942] font-medium text-xs hover:underline">
-            Continue checklist →
-          </Link>
+          <a
+            href={`#launch-step-${nextIncompleteStep(launchSteps)?.id}`}
+            className="text-amber-950 font-bold text-xs underline"
+          >
+            Jump to step →
+          </a>
         </div>
       )}
+
+      {/* Always-visible My Listings so vendors can find posted items immediately */}
+      <div id="my-listings" className="mb-8 scroll-mt-24 rounded-3xl border-2 border-[#4a1942]/25 bg-white p-4 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+          <div>
+            <h2 className="font-bold text-lg text-[#4a1942]">My listings</h2>
+            <p className="text-xs text-gray-500">
+              {loadingData
+                ? 'Loading…'
+                : myMenu.length + myProduce.length === 0
+                  ? 'Nothing posted yet — use Quick Add or the forms below.'
+                  : `${myMenu.length} service(s) · ${myProduce.length} apothecary item(s)`}
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => refreshVendorData()}
+              className="text-xs px-3 py-1.5 border rounded-2xl hover:bg-gray-50"
+            >
+              Refresh list
+            </button>
+            <a href="#listing-quick-add" className="text-xs px-3 py-1.5 bg-[#4a1942] text-white rounded-2xl">
+              Add listing
+            </a>
+          </div>
+        </div>
+        {myMenu.length + myProduce.length > 0 ? (
+          <div className="space-y-2 max-h-[28rem] overflow-y-auto">
+            {myMenu.map((item) => (
+              <div
+                key={`m-${item.id}`}
+                className="flex flex-wrap items-center justify-between gap-2 border rounded-2xl px-3 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase text-violet-700 mr-2">Service</span>
+                  <span className="font-medium break-words">{item.name}</span>
+                  <span className="text-gray-500 ml-2">${item.price}</span>
+                  {!item.approved && (
+                    <span className="ml-2 text-[10px] text-amber-700 font-semibold">Hidden</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Link
+                    to={listingDetailPath('menu', item.id)}
+                    className="text-xs px-2.5 py-1 border rounded-xl hover:bg-gray-50"
+                  >
+                    View
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => startEditMenu(item)}
+                    className="text-xs px-2.5 py-1 border border-[#4a1942] text-[#4a1942] rounded-xl"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteMenuItem(item)}
+                    className="text-xs px-2.5 py-1 border border-red-200 text-red-700 rounded-xl"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+            {myProduce.map((item) => (
+              <div
+                key={`p-${item.id}`}
+                className="flex flex-wrap items-center justify-between gap-2 border rounded-2xl px-3 py-2 text-sm"
+              >
+                <div className="min-w-0">
+                  <span className="text-[10px] font-bold uppercase text-emerald-700 mr-2">Apothecary</span>
+                  <span className="font-medium break-words">{item.name}</span>
+                  <span className="text-gray-500 ml-2">
+                    ${item.price}/{item.unit || 'ea'}
+                  </span>
+                  {!item.approved && (
+                    <span className="ml-2 text-[10px] text-amber-700 font-semibold">Hidden</span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Link
+                    to={listingDetailPath('produce', item.id)}
+                    className="text-xs px-2.5 py-1 border rounded-xl hover:bg-gray-50"
+                  >
+                    View
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => startEditProduce(item)}
+                    className="text-xs px-2.5 py-1 border border-[#4a1942] text-[#4a1942] rounded-xl"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteProduceItem(item)}
+                    className="text-xs px-2.5 py-1 border border-red-200 text-red-700 rounded-xl"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-gray-500">
+            After you post, every listing appears here with View / Edit / Remove — even while email verify is still
+            outstanding (verify stays highlighted above).
+          </p>
+        )}
+      </div>
 
       {loadingData && (
         <div className="text-sm text-gray-500 mb-4">Refreshing live data…</div>
