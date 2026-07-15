@@ -120,6 +120,7 @@ export const TOOL_LINKS = [
   { to: '/?mode=coin', label: 'Heaven & Ember', emoji: '🪙' },
   { to: '/dashboard', label: 'Dashboard', emoji: '⭐' },
   { to: '/compatibility', label: 'Chart Harmony', emoji: '💞' },
+  { to: '/pathfinder', label: 'Pathfinder', emoji: '🗺' },
   { to: '/hearth-court', label: 'Hearth Court', emoji: '⚖' },
   { to: '/dice', label: 'Sanctum Dice', emoji: '🎲' },
   { to: '/this-or-that', label: 'This or That', emoji: '⚡' },

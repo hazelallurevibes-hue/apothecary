@@ -14,7 +14,11 @@ export const HAZEL_LINKS = {
     `${HAZEL_URL}/login${next ? `?next=${encodeURIComponent(next)}` : `?next=${encodeURIComponent(MAGIC_ORIGIN)}`}`,
   signup: () =>
     `${HAZEL_URL}/customer-signup?utm_source=magic&utm_medium=sanctum&next=${encodeURIComponent(MAGIC_ORIGIN)}`,
-  proUpgrade: () => `${HAZEL_URL}/pro-upgrade?type=customer&utm_source=magic`,
+  proUpgrade: (reason = 'magic_general') =>
+    `${HAZEL_URL}/pro-upgrade?type=customer&utm_source=magic&utm_medium=sanctum&utm_campaign=${encodeURIComponent(reason)}&from=magic&feature=${encodeURIComponent(reason)}`,
+  /** In-app explainer before leaving Magic for Pro billing */
+  proExplainer: (feature = 'pro') =>
+    `/pro-explainer?feature=${encodeURIComponent(feature)}`,
   account: () => `${HAZEL_URL}/account-settings?utm_source=magic`,
   marketplace: () => `${HAZEL_URL}/products?utm_source=magic`,
   services: () => `${HAZEL_URL}/services?utm_source=magic`,

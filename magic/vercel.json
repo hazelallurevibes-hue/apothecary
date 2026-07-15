@@ -6,6 +6,7 @@
     { "source": "/sitemap.xml", "destination": "/sitemap.xml" },
     { "source": "/robots.txt", "destination": "/robots.txt" },
     { "source": "/llms.txt", "destination": "/llms.txt" },
+    { "source": "/desk-orb-standalone.html", "destination": "/desk-orb-standalone.html" },
     { "source": "/((?!assets/).*)", "destination": "/index.html" }
   ],
   "headers": [

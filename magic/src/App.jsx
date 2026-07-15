@@ -20,6 +20,8 @@ import Compatibility from './pages/Compatibility';
 import Dice from './pages/Dice';
 import ThisOrThat from './pages/ThisOrThat';
 import MoodMeter from './pages/MoodMeter';
+import Pathfinder from './pages/Pathfinder';
+import ProExplainer from './pages/ProExplainer';
 
 export default function App() {
   return (
@@ -43,6 +45,7 @@ export default function App() {
               <Route path="/cauldron" element={<Hearth />} />
               <Route path="/hearth" element={<Navigate to="/cauldron" replace />} />
               <Route path="/compatibility" element={<Compatibility />} />
+              <Route path="/pathfinder" element={<Pathfinder />} />
               <Route path="/dice" element={<Dice />} />
               <Route path="/this-or-that" element={<ThisOrThat />} />
               <Route path="/mood" element={<MoodMeter />} />
@@ -51,6 +54,7 @@ export default function App() {
               <Route path="/guides" element={<Guides />} />
               <Route path="/guides/:slug" element={<GuideHub />} />
               <Route path="/legal" element={<Legal />} />
+              <Route path="/pro-explainer" element={<ProExplainer />} />
               <Route path="/settings" element={<Settings />} />
               <Route path="/auth" element={<Auth />} />
             </Routes>

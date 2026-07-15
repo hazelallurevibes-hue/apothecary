@@ -1,17 +1,19 @@
 /**
  * Bump APP_VERSION (and package.json version) on every user-facing release.
- * Splash copy is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.7.2';
+export const APP_VERSION = '1.8.0';
 
 export const UPDATE_SPLASH = {
-  title: 'One-tap auto update',
+  title: 'Clickable cards, Pathfinder & standalone Desk Orb',
   message:
-    'New versions apply automatically once — no more clicking upgrade over and over after deploys.',
+    'Home cards open reliably with psychology colors. Storm choices work. Harmony has typed dates. Download a standalone Desk Orb HTML. Collapsible More menu.',
   highlights: [
-    'Auto-update when a new version is live',
-    'Reload guard stops update loops',
-    'Brief “Updating…” screen, then you are in',
+    'Larger colored tool cards that always navigate',
+    'Storm: choose situation + vibe (free)',
+    'Harmony: type year/month/day + category ! tips',
+    'Pathfinder career aptitude + 3,200 path lines',
+    'Standalone Desk Orb HTML download (any computer)',
+    'Collapsible More menu · Pro explainer before checkout',
   ],
 };
 

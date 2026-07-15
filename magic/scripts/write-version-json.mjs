@@ -8,17 +8,18 @@ const ROOT = path.join(__dirname, '..');
 const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
-const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.7.2';
+const APP_VERSION = process.env.MAGIC_APP_VERSION || pkg.version || '1.8.0';
 const splash = {
   version: APP_VERSION,
   buildId: new Date().toISOString(),
-  title: 'One-tap auto update',
+  title: 'Clickable cards, Pathfinder & standalone Desk Orb',
   message:
-    'New versions apply automatically once — no more clicking upgrade over and over after deploys.',
+    'Home cards open reliably. Storm choices work. Typed birthdays. Pathfinder. Downloadable offline Desk Orb HTML.',
   highlights: [
-    'Auto-update when a new version is live',
-    'Reload guard stops update loops',
-    'Brief Updating screen, then you are in',
+    'Psychology-colored tool cards',
+    'Pathfinder career aptitude + 3k lines',
+    'Standalone Desk Orb HTML for any PC',
+    'Collapsible More menu + Pro explainer',
   ],
 };
 

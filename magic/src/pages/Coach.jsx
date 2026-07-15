@@ -4,11 +4,13 @@ import ProGate from '../components/ProGate';
 import ApothecaryFunnel from '../components/ApothecaryFunnel';
 import SeoHead from '../components/SeoHead';
 import ProValueStrip from '../components/ProValueStrip';
+import FeatureExplainer from '../components/FeatureExplainer';
 import { coachArgument, packStats } from '../lib/engines';
 import { BRAND, DISCLAIMER } from '../lib/brand';
 import ShareBar from '../components/ShareBar';
 import { unlockAchievement } from '../lib/achievements';
 import { recordHistory } from '../lib/historyStore';
+import { HAZEL_LINKS } from '../lib/hazel';
 
 const SITUATIONS = [
   'chores', 'money', 'in-laws', 'plans', 'tone of voice', 'lateness', 'phones at dinner',
@@ -58,13 +60,29 @@ export default function Coach() {
               </p>
             </div>
 
+            <FeatureExplainer
+              title="Prep words before the fight — or after"
+              what="Before the Storm draws communication openers, cliff notes, and “what might have helped” lines from a large offline library. Entertainment pattern language — not therapy."
+              how="Choose a situation and what is true right now. Optional detail helps Pro filtering. Free seekers can change every choice and still draw a full showcase-quality card."
+              tips={[
+                'One issue at a time.',
+                'Ask permission before hard talks.',
+                'If you are unsafe, contact local emergency services.',
+              ]}
+              freeNote="Full choices unlocked — draw a polished card anytime."
+              proNote={`${stats.coachEntries || '2,800+'} filtered insights + alternate cards every draw.`}
+              guideTo="/guides/before-the-storm"
+              apothecaryHint="Find a practitioner →"
+              apothecaryHref={HAZEL_LINKS.services()}
+              accent="from-slate-50 to-white"
+            />
+
             <div className="card p-4 space-y-3">
-              <label className="text-xs font-bold uppercase text-[#4a1942]/50">Situation</label>
+              <label className="text-xs font-bold uppercase text-[#4a1942]/50">Situation (you choose)</label>
               <select
                 className="input"
                 value={situation}
                 onChange={(e) => setSituation(e.target.value)}
-                disabled={peek}
               >
                 {SITUATIONS.map((s) => (
                   <option key={s} value={s}>
@@ -72,18 +90,12 @@ export default function Coach() {
                   </option>
                 ))}
               </select>
-              {peek && (
-                <p className="text-[10px] text-[#4a1942]/50">
-                  Showcase uses curated situations — Pro filters the full deck to your exact vibe.
-                </p>
-              )}
 
               <label className="text-xs font-bold uppercase text-[#4a1942]/50">What is true right now?</label>
               <select
                 className="input"
                 value={stage}
                 onChange={(e) => setStage(e.target.value)}
-                disabled={peek}
               >
                 {STAGES.map((s) => (
                   <option key={s} value={s}>
@@ -97,14 +109,13 @@ export default function Coach() {
                 className="textarea"
                 value={detail}
                 onChange={(e) => setDetail(e.target.value)}
-                placeholder="One sentence context…"
+                placeholder="One sentence context… (Pro uses this more deeply)"
                 maxLength={300}
-                disabled={peek}
               />
 
               <button
                 type="button"
-                className="btn-primary w-full"
+                className="btn-primary w-full py-3"
                 onClick={() => {
                   const o = coachArgument({ situation, stage, detail, freePeek: peek });
                   setOut(o);
@@ -118,8 +129,16 @@ export default function Coach() {
                   });
                 }}
               >
-                {peek ? 'Reveal showcase card' : 'Draw full storm deck'}
+                {peek ? 'Draw free storm card' : 'Draw full Pro storm deck'}
               </button>
+              {peek && (
+                <p className="text-[11px] text-[#4a1942]/55">
+                  Your choices still set the stage. Pro filters the entire library to this exact vibe every time.{' '}
+                  <Link to={HAZEL_LINKS.proExplainer('before_the_storm')} className="underline font-semibold">
+                    Why was I offered Pro?
+                  </Link>
+                </p>
+              )}
             </div>
 
             {out?.primary && (

@@ -121,29 +121,48 @@ export default function Widget() {
         </p>
         <p className="text-white/45 text-[10px] mb-3">Magic Sanctum companion · tap the ball</p>
 
-        {!isStandalone && (
-          <div className="mb-4 rounded-2xl border border-[#d4af37]/30 bg-white/5 px-3 py-2.5 text-left">
-            <p className="text-[10px] font-black uppercase tracking-widest text-[#e8c547]">
-              Install Desk Orb
-            </p>
-            <p className="text-[11px] text-white/70 mt-1 leading-snug">
-              {installHint ||
-                'Install Magic Sanctum as an app, then open Desk Orb for a tiny companion window.'}
-            </p>
-            <div className="flex flex-wrap gap-2 mt-2">
-              <button type="button" onClick={installApp} className="btn-gold text-xs py-1.5 px-3">
-                {deferred ? 'Install app now' : 'Install / copy link'}
-              </button>
-              <Link to="/settings" className="btn-secondary text-xs py-1.5 px-3 !text-[#4a1942]">
-                Full tips
-              </Link>
-            </div>
+        <div className="mb-4 rounded-2xl border border-[#d4af37]/30 bg-white/5 px-3 py-2.5 text-left space-y-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#e8c547]">
+            Independent Desk Orb (any computer)
+          </p>
+          <p className="text-[11px] text-white/70 leading-snug">
+            Download a single HTML file that runs offline — no app store, no login. Open it like a document.
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="/desk-orb-standalone.html"
+              download="Magic-Sanctum-Desk-Orb.html"
+              className="btn-gold text-xs py-1.5 px-3 inline-flex"
+            >
+              Download standalone HTML
+            </a>
+            <a
+              href="/desk-orb-standalone.html"
+              target="_blank"
+              rel="noreferrer"
+              className="btn-secondary text-xs py-1.5 px-3 !text-[#4a1942] inline-flex"
+            >
+              Open standalone
+            </a>
           </div>
-        )}
-
-        {isStandalone && (
-          <p className="text-[10px] text-emerald-300/80 mb-3 font-semibold">Running as installed app ✓</p>
-        )}
+          {!isStandalone && (
+            <>
+              <p className="text-[10px] font-black uppercase tracking-widest text-[#e8c547] pt-1">
+                Or install full Magic app
+              </p>
+              <p className="text-[11px] text-white/70 leading-snug">
+                {installHint ||
+                  'Chrome: menu → Install app. iPhone: Share → Add to Home Screen.'}
+              </p>
+              <button type="button" onClick={installApp} className="btn-primary text-xs py-1.5 px-3">
+                {deferred ? 'Install app now' : 'Try browser install / copy link'}
+              </button>
+            </>
+          )}
+          {isStandalone && (
+            <p className="text-[10px] text-emerald-300/80 font-semibold">Running as installed app ✓</p>
+          )}
+        </div>
 
         <div className="flex justify-center gap-2 mb-4">
           <button
@@ -246,7 +265,7 @@ export default function Widget() {
           </div>
         </div>
         <p className="mt-3 text-[9px] text-white/30 leading-relaxed">
-          Bookmark /widget · Install for desk use · Entertainment only
+          Prefer offline? Download the standalone HTML above · Entertainment only
         </p>
       </div>
     </div>

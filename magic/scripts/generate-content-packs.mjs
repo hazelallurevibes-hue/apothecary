@@ -500,6 +500,8 @@ const staticPaths = [
   ['/dice', '0.92', 'weekly'],
   ['/this-or-that', '0.92', 'weekly'],
   ['/mood', '0.9', 'daily'],
+  ['/pathfinder', '0.93', 'weekly'],
+  ['/pro-explainer', '0.4', 'monthly'],
   ['/widget', '0.9', 'weekly'],
   ['/compatibility', '0.9', 'weekly'],
   ['/familiar', '0.88', 'weekly'],

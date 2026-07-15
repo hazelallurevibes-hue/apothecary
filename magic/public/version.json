@@ -1,11 +1,12 @@
 {
-  "version": "1.7.2",
-  "buildId": "2026-07-14T22:54:36.128Z",
-  "title": "One-tap auto update",
-  "message": "New versions apply automatically once — no more clicking upgrade over and over after deploys.",
+  "version": "1.8.0",
+  "buildId": "2026-07-15T00:30:47.325Z",
+  "title": "Clickable cards, Pathfinder & standalone Desk Orb",
+  "message": "Home cards open reliably. Storm choices work. Typed birthdays. Pathfinder. Downloadable offline Desk Orb HTML.",
   "highlights": [
-    "Auto-update when a new version is live",
-    "Reload guard stops update loops",
-    "Brief Updating screen, then you are in"
+    "Psychology-colored tool cards",
+    "Pathfinder career aptitude + 3k lines",
+    "Standalone Desk Orb HTML for any PC",
+    "Collapsible More menu + Pro explainer"
   ]
 }

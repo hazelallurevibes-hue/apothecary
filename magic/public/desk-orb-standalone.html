@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#4a1942" />
+  <title>Desk Orb — Magic Sanctum (standalone)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; font-family: system-ui, sans-serif;
+      background: linear-gradient(145deg, #120510, #2d0f2a 45%, #4a1942);
+      color: #f7f1e8; display: flex; align-items: center; justify-content: center; padding: 1rem;
+    }
+    .card {
+      width: 100%; max-width: 22rem; border-radius: 1.5rem; border: 1px solid rgba(212,175,55,.45);
+      background: rgba(18,5,16,.94); padding: 1.25rem; text-align: center;
+      box-shadow: 0 20px 50px rgba(0,0,0,.45);
+    }
+    h1 { font-size: .7rem; letter-spacing: .22em; text-transform: uppercase; color: #e8c547; margin: 0 0 .25rem; }
+    .sub { font-size: .65rem; color: rgba(255,255,255,.45); margin-bottom: 1rem; }
+    .modes { display: flex; gap: .5rem; justify-content: center; margin-bottom: 1rem; }
+    .modes button {
+      border-radius: 999px; border: 1px solid rgba(255,255,255,.2); background: transparent;
+      color: rgba(255,255,255,.75); font-size: .75rem; font-weight: 700; padding: .35rem .75rem; cursor: pointer;
+    }
+    .modes button.on { background: #d4af37; color: #120510; border-color: transparent; }
+    .ball {
+      width: 8rem; height: 8rem; margin: 0 auto; border-radius: 50%; border: 3px solid #d4af37;
+      background: radial-gradient(circle at 35% 30%, #8b3d9b, #4a1942 50%, #120510);
+      color: #fff; font-size: 2.75rem; font-weight: 800; cursor: pointer;
+      box-shadow: 0 0 40px rgba(212,175,55,.35); display: flex; align-items: center; justify-content: center;
+    }
+    .ball:active { transform: scale(.96); }
+    .hint { font-size: .7rem; color: rgba(255,255,255,.5); margin-top: .5rem; }
+    .out {
+      margin-top: 1rem; min-height: 6.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,.15);
+      padding: 1rem; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .out.yes { background: linear-gradient(135deg, rgba(52,211,153,.25), rgba(6,78,59,.5)); }
+    .out.no { background: linear-gradient(135deg, rgba(127,29,29,.5), #1a0505); }
+    .out.maybe { background: linear-gradient(135deg, rgba(245,158,11,.2), rgba(76,29,149,.4)); }
+    .out .label { font-size: .6rem; letter-spacing: .2em; text-transform: uppercase; opacity: .7; }
+    .out .main { font-size: 1.75rem; font-weight: 900; margin-top: .25rem; }
+    .out .flavor { font-size: .75rem; opacity: .85; margin-top: .5rem; line-height: 1.4; }
+    .foot { margin-top: 1rem; font-size: .65rem; color: rgba(255,255,255,.35); line-height: 1.45; }
+    .foot a { color: #e8c547; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Desk Orb</h1>
+    <p class="sub">Standalone companion · no install required · open this file anytime</p>
+    <div class="modes">
+      <button type="button" id="m8" class="on">8-ball</button>
+      <button type="button" id="mcoin">Coin</button>
+    </div>
+    <button type="button" class="ball" id="ball" aria-label="Reveal answer">8</button>
+    <p class="hint" id="hint">Tap for YES · NO · MAYBE</p>
+    <div class="out" id="out" hidden></div>
+    <p class="foot">
+      Entertainment only · Not advice<br />
+      Full site: <a href="https://magic.hazelallure.com/">magic.hazelallure.com</a><br />
+      Save this file (File → Save As) to keep an offline orb on any computer.
+    </p>
+  </div>
+  <script>
+    var ANSWERS = [
+      { text: 'YES', tone: 'yes', flavor: 'Clear as gold. Move with it.' },
+      { text: 'YES', tone: 'yes', flavor: 'The sphere leans toward you.' },
+      { text: 'SIGNS POINT TO YES', tone: 'yes', flavor: 'Classic 8-ball certainty.' },
+      { text: 'IT IS CERTAIN', tone: 'yes', flavor: 'No wobble in the window.' },
+      { text: 'NO', tone: 'no', flavor: 'Not this path — not tonight.' },
+      { text: 'NOT THIS PATH', tone: 'no', flavor: 'A closed door can be mercy.' },
+      { text: "DON'T COUNT ON IT", tone: 'no', flavor: 'Protect your energy.' },
+      { text: 'MAYBE', tone: 'maybe', flavor: 'Neither yes nor no — breathe first.' },
+      { text: 'ASK AGAIN LATER', tone: 'maybe', flavor: 'The answer is still steeping.' },
+      { text: 'SIP WATER FIRST', tone: 'maybe', flavor: 'Body first, then the question.' },
+      { text: 'CONCENTRATE AND ASK AGAIN', tone: 'maybe', flavor: 'The sphere wants your full heart.' }
+    ];
+    var mode = '8';
+    var busy = false;
+    var ball = document.getElementById('ball');
+    var out = document.getElementById('out');
+    var hint = document.getElementById('hint');
+    document.getElementById('m8').onclick = function () {
+      mode = '8'; this.className = 'on'; document.getElementById('mcoin').className = '';
+      ball.textContent = '8'; hint.textContent = 'Tap for YES · NO · MAYBE'; out.hidden = true;
+    };
+    document.getElementById('mcoin').onclick = function () {
+      mode = 'coin'; this.className = 'on'; document.getElementById('m8').className = '';
+      ball.textContent = '🪙'; hint.textContent = 'Tap to flip Heaven & Ember'; out.hidden = true;
+    };
+    ball.onclick = function () {
+      if (busy) return;
+      busy = true;
+      out.hidden = true;
+      hint.textContent = 'Consulting…';
+      ball.textContent = '…';
+      setTimeout(function () {
+        var a;
+        if (mode === 'coin') {
+          var yes = Math.random() < 0.5;
+          a = { text: yes ? 'YES' : 'NO', tone: yes ? 'yes' : 'no', flavor: yes ? 'Heaven-scape' : 'Hell-scape' };
+        } else {
+          a = ANSWERS[Math.floor(Math.random() * ANSWERS.length)];
+        }
+        out.className = 'out ' + a.tone;
+        out.innerHTML = '<div class="label">' + (mode === 'coin' ? a.flavor : 'Sanctum Sphere') + '</div>' +
+          '<div class="main">' + a.text + '</div>' +
+          (mode === '8' ? '<div class="flavor">' + a.flavor + '</div>' : '');
+        out.hidden = false;
+        ball.textContent = mode === 'coin' ? '🪙' : '8';
+        hint.textContent = mode === 'coin' ? 'Tap to flip again' : 'Tap for YES · NO · MAYBE';
+        busy = false;
+      }, 400);
+    };
+  </script>
+</body>
+</html>

@@ -21,6 +21,7 @@ export const ACHIEVEMENTS = [
   { id: 'first_dice', name: 'Dicebound', desc: 'Rolled Sanctum Dice', emoji: '🎲', xp: 10 },
   { id: 'first_this_or_that', name: 'Binary Heart', desc: 'Played This or That', emoji: '⚡', xp: 10 },
   { id: 'first_mood', name: 'Weather Within', desc: 'Sealed a Mood Meter reading', emoji: '🌙', xp: 12 },
+  { id: 'first_pathfinder', name: 'Path Seeker', desc: 'Completed Pathfinder aptitude', emoji: '🗺', xp: 20 },
 ];
 
 export function loadAchievements() {

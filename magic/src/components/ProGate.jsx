@@ -37,9 +37,9 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
                 </a>
               </>
             ) : (
-              <a href={HAZEL_LINKS.proUpgrade()} className="btn-gold text-xs py-1.5 px-3">
-                Unlock full Pro library
-              </a>
+              <Link to={HAZEL_LINKS.proExplainer(featureId || 'magic_general')} className="btn-gold text-xs py-1.5 px-3">
+                Why Pro? Explain first
+              </Link>
             )}
             <Link to="/free" className="btn-secondary text-xs py-1.5 px-3">
               Free playground
@@ -55,12 +55,16 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
   }
 
   return (
-    <div className="card p-5 text-center">
+    <div className="card p-5 text-center space-y-3">
       <p className="text-3xl mb-2">✨</p>
       <h2 className="font-display font-bold text-xl text-[#4a1942]">Pro Sanctum feature</h2>
       <p className="text-sm text-[#4a1942]/70 mt-2">
         {teaser ||
           'This tool opens fully for Hazel Allure Pro members (customer or vendor Pro).'}
+      </p>
+      <p className="text-xs text-[#4a1942]/55 leading-relaxed">
+        You are seeing this because this area needs the full library or live multi-device modes. Free tools
+        (sphere, court basic, dice, harmony, pathfinder) stay free — we explain Pro before checkout.
       </p>
       <div className="flex flex-col gap-2 mt-4">
         {!user ? (
@@ -73,19 +77,22 @@ export default function ProGate({ featureId, children, teaser, allowPeek = true 
             </Link>
           </>
         ) : (
-          <a href={HAZEL_LINKS.proUpgrade()} className="btn-primary">
-            Upgrade to Pro on Hazel Allure
-          </a>
+          <Link to={HAZEL_LINKS.proExplainer(featureId || 'magic_general')} className="btn-primary">
+            Why Pro? Read first →
+          </Link>
         )}
         <div className="flex flex-wrap justify-center gap-2 text-xs">
           <Link to="/" className="underline">
             Free sphere
           </Link>
+          <Link to="/hearth-court" className="underline">
+            Free court
+          </Link>
+          <Link to="/pathfinder" className="underline">
+            Pathfinder
+          </Link>
           <Link to="/widget" className="underline">
             Desk Orb
-          </Link>
-          <Link to="/free" className="underline">
-            Free playground
           </Link>
           <a href={HAZEL_LINKS.marketplace()} className="underline">
             Apothecary
