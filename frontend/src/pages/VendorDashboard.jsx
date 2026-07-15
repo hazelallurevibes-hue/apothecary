@@ -30,6 +30,7 @@ import {
 } from '../lib/onboardingApi';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
+import { resendVerificationEmail } from '../lib/emailVerification';
 import UpgradeBanner from '../components/UpgradeBanner';
 import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
@@ -102,6 +103,9 @@ export default function VendorDashboard({ user }) {
   const [vendorIdentityVerified, setVendorIdentityVerified] = useState(false);
   const [requireIdBeforeListing, setRequireIdBeforeListing] = useState(true);
   const [launchSteps, setLaunchSteps] = useState({});
+  /** Force amber verify banner when listing is blocked (banner may not show if check is still pending). */
+  const [forceEmailBanner, setForceEmailBanner] = useState(false);
+  const [emailGateMessage, setEmailGateMessage] = useState('');
   const quickAddResolver = useRef(null);
 
   // Pricing Calculator state (analytics tool for competitiveness)
@@ -205,7 +209,7 @@ export default function VendorDashboard({ user }) {
 
   const listingLimits = getVendorListingLimits(vendorPlan);
 
-  const passesLaunchGate = () => {
+  const passesLaunchGate = async () => {
     const hasListings = myMenu.length + myProduce.length > 0;
     if (hasListings) return true;
 
@@ -213,11 +217,38 @@ export default function VendorDashboard({ user }) {
     if (blockers.length) {
       const step = VENDOR_ONBOARDING_STEPS.find((s) => s.id === blockers[0]);
       const stepNum = VENDOR_ONBOARDING_STEPS.findIndex((s) => s.id === blockers[0]) + 1;
-      const extra = blockers[0] === 'verify_email'
-        ? ' Use the yellow banner above to resend your confirmation email.'
-        : '';
+
+      // Email not verified: auto-resend confirmation and surface the banner with a Resend button
+      if (blockers[0] === 'verify_email') {
+        setForceEmailBanner(true);
+        let resendNote = '';
+        if (user?.email) {
+          try {
+            await resendVerificationEmail(user.email, { role: 'vendor' });
+            resendNote = `We just re-sent a verification email to ${user.email}. Check inbox and spam/junk.`;
+            setEmailGateMessage(resendNote);
+          } catch (e) {
+            resendNote =
+              e?.message ||
+              'Could not auto-send verification email. Use Resend on the yellow banner below.';
+            setEmailGateMessage(resendNote);
+          }
+        } else {
+          resendNote = 'Sign in with an email address so we can send a confirmation link.';
+          setEmailGateMessage(resendNote);
+        }
+        // Scroll the yellow banner into view after React paints it
+        requestAnimationFrame(() => {
+          document.getElementById('email-verify-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+        alert(
+          `Complete launch checklist step ${stepNum} first: ${step?.label || 'Verify email'}.\n\n${resendNote}\n\nYou can also tap Resend on the yellow banner.`
+        );
+        return false;
+      }
+
       alert(
-        `Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.${extra}`
+        `Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.`
       );
       return false;
     }
@@ -258,8 +289,8 @@ export default function VendorDashboard({ user }) {
     document.getElementById('add-menu')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const requestAddMenuItem = () => {
-    if (!passesLaunchGate()) return;
+  const requestAddMenuItem = async () => {
+    if (!(await passesLaunchGate())) return;
     if (!newItem.name || !newItem.price || !myVendorId) return;
     if (!editMenuId && listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
       alert(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Paid for unlimited listings.`);
@@ -393,8 +424,8 @@ export default function VendorDashboard({ user }) {
     document.getElementById('add-produce')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const requestAddProduceItem = () => {
-    if (!passesLaunchGate()) return;
+  const requestAddProduceItem = async () => {
+    if (!(await passesLaunchGate())) return;
     if (!newProduce.name || !newProduce.price || !myVendorId) return;
     if (!editProduceId && listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
       alert(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Paid for unlimited.`);
@@ -499,35 +530,41 @@ export default function VendorDashboard({ user }) {
     }
   };
 
-  const handleQuickAddService = (payload) => new Promise((resolve, reject) => {
-    if (!passesLaunchGate()) {
-      reject(new Error('Complete your launch checklist before your first listing.'));
-      return;
-    }
-    if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
-      reject(new Error(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Pro for unlimited listings.`));
-      return;
-    }
-    quickAddResolver.current = { resolve, reject };
-    setConfirmPost({ type: 'menu', name: payload.name, quick: payload });
-  });
+  const handleQuickAddService = (payload) =>
+    new Promise((resolve, reject) => {
+      (async () => {
+        if (!(await passesLaunchGate())) {
+          reject(new Error('Complete your launch checklist before your first listing. If email is unverified, check the yellow banner — we re-send a confirmation link automatically.'));
+          return;
+        }
+        if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
+          reject(new Error(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Pro for unlimited listings.`));
+          return;
+        }
+        quickAddResolver.current = { resolve, reject };
+        setConfirmPost({ type: 'menu', name: payload.name, quick: payload });
+      })().catch(reject);
+    });
 
-  const handleQuickAddProduct = (payload) => new Promise((resolve, reject) => {
-    if (!passesLaunchGate()) {
-      reject(new Error('Complete your launch checklist before your first listing.'));
-      return;
-    }
-    if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
-      reject(new Error(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Pro for unlimited.`));
-      return;
-    }
-    if (categoryRequiresLegalAck(payload.category) && !payload.medicinalLegalAck) {
-      reject(new Error('Medicinal / therapeutic listings require compliance confirmation.'));
-      return;
-    }
-    quickAddResolver.current = { resolve, reject };
-    setConfirmPost({ type: 'produce', name: payload.name, quick: payload });
-  });
+  const handleQuickAddProduct = (payload) =>
+    new Promise((resolve, reject) => {
+      (async () => {
+        if (!(await passesLaunchGate())) {
+          reject(new Error('Complete your launch checklist before your first listing. If email is unverified, check the yellow banner — we re-send a confirmation link automatically.'));
+          return;
+        }
+        if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
+          reject(new Error(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Pro for unlimited.`));
+          return;
+        }
+        if (categoryRequiresLegalAck(payload.category) && !payload.medicinalLegalAck) {
+          reject(new Error('Medicinal / therapeutic listings require compliance confirmation.'));
+          return;
+        }
+        quickAddResolver.current = { resolve, reject };
+        setConfirmPost({ type: 'produce', name: payload.name, quick: payload });
+      })().catch(reject);
+    });
 
   const addQuickMenuItem = async (quick) => {
     if (!quick?.name || !quick?.price || !myVendorId) return;
@@ -801,7 +838,13 @@ export default function VendorDashboard({ user }) {
         </div>
       </div>
 
-      <EmailVerificationBanner user={user} variant="vendor" />
+      <EmailVerificationBanner
+        user={user}
+        variant="vendor"
+        forceShow={forceEmailBanner || launchSteps.verify_email === false}
+        statusMessage={emailGateMessage}
+        onDismissForce={() => setForceEmailBanner(false)}
+      />
 
       <VendorOnboardingChecklist
         vendorId={myVendorId}

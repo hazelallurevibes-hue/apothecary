@@ -92,7 +92,8 @@ export default function VendorOnboardingChecklist({ vendorId, menuCount = 0, pro
                   <div className="text-xs text-gray-500 mt-0.5">{step.description}</div>
                   {!checked && step.id === 'verify_email' && (
                     <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-2 py-1.5 mt-2">
-                      Check your inbox and spam folder, then use <strong>Resend email</strong> on the banner above if needed.
+                      Check inbox and spam. Posting a listing re-sends the confirmation email automatically — or use{' '}
+                      <strong>Resend email</strong> on the yellow banner.
                     </p>
                   )}
                   {!checked && (

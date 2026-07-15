@@ -14,7 +14,18 @@ function initialVerifiedState(user) {
   return null;
 }
 
-export default function EmailVerificationBanner({ user, variant = 'customer' }) {
+/**
+ * Amber verification banner with Resend.
+ * forceShow: parent (e.g. listing gate) forces the banner visible even while check is pending
+ * statusMessage: e.g. "We just re-sent…" after auto-resend on product post
+ */
+export default function EmailVerificationBanner({
+  user,
+  variant = 'customer',
+  forceShow = false,
+  statusMessage = '',
+  onDismissForce,
+}) {
   const [verified, setVerified] = useState(() => initialVerifiedState(user));
   const [sending, setSending] = useState(false);
   const [message, setMessage] = useState('');
@@ -52,6 +63,10 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
   }, [runCheck]);
 
   useEffect(() => {
+    if (statusMessage) setMessage(statusMessage);
+  }, [statusMessage]);
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const sessionUser = session?.user;
       if (!sessionUser?.email || !user?.email) return;
@@ -59,13 +74,15 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
       if (sessionUser.email_confirmed_at || sessionUser.confirmed_at) {
         writeEmailVerifiedCache(user.email, true);
         setVerified(true);
+        onDismissForce?.();
       }
     });
     return () => subscription.unsubscribe();
-  }, [user?.email]);
+  }, [user?.email, onDismissForce]);
 
-  // Only show when we know email is unverified — never flash while checking (verified === null)
-  if (verified !== false) return null;
+  // Show when we know email is unverified, OR parent forces it (listing blocked)
+  const show = verified === false || (forceShow && verified !== true);
+  if (!show) return null;
 
   const isVendor = variant === 'vendor';
 
@@ -81,8 +98,22 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
     setSending(false);
   };
 
+  // Auto-resend once when forceShow flips on and we have an email (parent may have already resent;
+  // this is a no-op path if user only landed with forceShow — parent handles primary resend)
+  useEffect(() => {
+    if (!forceShow || !user?.email || verified === true) return;
+    // Scroll into view when forced
+    requestAnimationFrame(() => {
+      document.getElementById('email-verify-banner')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  }, [forceShow, user?.email, verified]);
+
   return (
-    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-3xl p-5">
+    <div
+      id="email-verify-banner"
+      className="mb-6 bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 shadow-sm sticky top-2 z-20"
+      role="alert"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <div className="font-semibold text-amber-950">
@@ -90,13 +121,17 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
           </div>
           <p className="text-sm text-amber-900/80 mt-1">
             {isVendor
-              ? 'Your practitioner dashboard is ready — confirm your email, then complete identity verification before your first listing goes live.'
+              ? 'Your practitioner dashboard is ready — confirm your email, then complete identity verification before your first listing goes live. We can re-send the confirmation link with one tap.'
               : 'Your portal is open — confirm your email before your first booking, order, or message with a practitioner.'}
           </p>
           <p className="text-xs text-amber-800/70 mt-1">
-            Waiting for confirmation: <strong>{user?.email}</strong>
+            Waiting for confirmation: <strong>{user?.email || 'your account email'}</strong>
           </p>
-          {message && <p className="text-xs text-emerald-800 mt-2">{message}</p>}
+          {message && (
+            <p className="text-sm text-emerald-900 mt-2 font-medium bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
+              {message}
+            </p>
+          )}
         </div>
         <div className="flex flex-col sm:flex-row gap-2 shrink-0">
           <button
@@ -112,7 +147,7 @@ export default function EmailVerificationBanner({ user, variant = 'customer' }) 
           <button
             type="button"
             onClick={resend}
-            disabled={sending}
+            disabled={sending || !user?.email}
             className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium disabled:opacity-60"
           >
             {sending ? 'Sending…' : 'Resend email'}

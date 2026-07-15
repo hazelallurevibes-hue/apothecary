@@ -117,6 +117,27 @@ export default function Pet() {
                 {out.seal && (
                   <p className="text-[10px] font-bold text-[#c9a227] uppercase tracking-wide">{out.seal}</p>
                 )}
+                {out.proCategories?.length > 0 && (
+                  <div className="space-y-2 border-t border-[#4a1942]/10 pt-3">
+                    <p className="text-xs font-bold uppercase text-[#c9a227]">Pro depth · bond · territory · care</p>
+                    {out.proCategories.map((c) => (
+                      <div key={c.label} className="rounded-xl bg-fuchsia-50/80 border border-fuchsia-100 px-3 py-2 text-xs">
+                        <p className="font-bold text-fuchsia-950">{c.label}</p>
+                        <p className="text-[#4a1942]/75 mt-0.5 leading-relaxed">{c.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {out.secondaryWhisper && (
+                  <p className="text-xs italic text-[#4a1942]/65 border-l-2 border-fuchsia-300 pl-3">
+                    Second seal: {out.secondaryWhisper}
+                  </p>
+                )}
+                {out.ritualScore != null && (
+                  <p className="text-[10px] font-bold text-[#c9a227] uppercase tracking-wide">
+                    Ritual score · {out.ritualScore}
+                  </p>
+                )}
                 {out.alternatives?.length > 0 && (
                   <div className="border-t border-[#4a1942]/10 pt-3 space-y-2">
                     <p className="text-xs font-bold uppercase text-[#4a1942]/40">Pro alternate whispers</p>

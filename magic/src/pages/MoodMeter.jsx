@@ -91,6 +91,18 @@ export default function MoodMeter() {
         <div className="card p-5 space-y-2 border-[#c9a227]/30">
           <p className="text-[10px] font-black uppercase text-[#c9a227]">Sealed</p>
           <p className="font-display text-2xl font-bold text-[#4a1942]">{saved.vibe}</p>
+          {saved.moonHint && (
+            <p className="text-xs text-[#4a1942]/55">Moon flavor · {saved.moonHint}</p>
+          )}
+          {saved.categories?.length > 0 && (
+            <div className="space-y-1.5">
+              {saved.categories.map((c) => (
+                <div key={c.label} className="rounded-lg bg-[#4a1942]/5 px-2.5 py-1.5 text-xs">
+                  <span className="font-bold">{c.label}</span> · {c.score}/10 — {c.note}
+                </div>
+              ))}
+            </div>
+          )}
           <ul className="text-sm text-[#4a1942]/75 space-y-1">
             {saved.tips.map((t) => (
               <li key={t}>· {t}</li>

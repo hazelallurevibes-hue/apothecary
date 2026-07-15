@@ -1,16 +1,18 @@
 /**
  * Bump APP_VERSION (and package.json version) on every user-facing release.
  */
-export const APP_VERSION = '1.9.1';
+export const APP_VERSION = '1.9.2';
 
 export const UPDATE_SPLASH = {
-  title: 'Sphere text pops — bigger + red outline',
+  title: 'Richer Pro decks + clearer sphere',
   message:
-    'Sanctum Sphere YES / NO / MAYBE answers are larger, pure white, with a red outline so they stay readable on the dark window.',
+    'More sphere answers and Moon Mirror proverbs. Pro Familiar and Storm cards add bond/territory/care and body/frame/repair layers. Mood Meter categories. Pathfinder still deep.',
   highlights: [
-    'Larger 8-ball answer text in the sphere window',
-    'White letters with red outline for contrast',
-    'Slightly larger dark window for long answers',
+    'Bigger YES/NO/MAYBE with red outline',
+    'Expanded free sphere answers + Pro proverb vault',
+    'Pro Familiar: bond, territory, care + second seal',
+    'Pro Storm: more situations + body/frame/repair layers',
+    'Mood Meter category notes + moon flavor',
   ],
 };
 

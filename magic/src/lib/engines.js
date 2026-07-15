@@ -45,6 +45,13 @@ export const ORACLE_ANSWERS = [
   { text: 'SIGNS POINT TO YES', tone: 'yes', flavor: 'Classic 8-ball certainty.' },
   { text: 'IT IS CERTAIN', tone: 'yes', flavor: 'No wobble in the window.' },
   { text: 'YOU MAY RELY ON IT', tone: 'yes', flavor: 'Steady. Kind. Forward.' },
+  { text: 'YES · GENTLY', tone: 'yes', flavor: 'Not a sprint — a soft green light.' },
+  { text: 'HEARTH SAYS YES', tone: 'yes', flavor: 'Warm coal, open door.' },
+  { text: 'ALIGNED · YES', tone: 'yes', flavor: 'Your question and path agree.' },
+  { text: 'PROCEED WITH CARE', tone: 'yes', flavor: 'Yes, with a boundary in your pocket.' },
+  { text: 'THE FAMILIAR NODS', tone: 'yes', flavor: 'Snack diplomacy approved.' },
+  { text: 'GOLD LIGHT · YES', tone: 'yes', flavor: 'Rim of the sphere catches firelight.' },
+  { text: 'YES IF YOU REST FIRST', tone: 'yes', flavor: 'Permission after one glass of water.' },
   { text: 'NO', tone: 'no', flavor: 'Not this path — not tonight.' },
   { text: 'NO', tone: 'no', flavor: 'The coal side of the coin.' },
   { text: 'NOT THIS PATH', tone: 'no', flavor: 'A closed door can be mercy.' },
@@ -52,6 +59,11 @@ export const ORACLE_ANSWERS = [
   { text: 'MY SOURCES SAY NO', tone: 'no', flavor: 'The familiar shakes its head.' },
   { text: 'OUTLOOK NOT SO GOOD', tone: 'no', flavor: 'Wait for softer weather.' },
   { text: 'THE HEARTH SAYS NO', tone: 'no', flavor: 'Stay by the fire a while.' },
+  { text: 'NOT YET', tone: 'no', flavor: 'Timing is the medicine.' },
+  { text: 'REDIRECT', tone: 'no', flavor: 'This no is a map to another door.' },
+  { text: 'PROTECT YOUR PEACE', tone: 'no', flavor: 'Decline is a form of self-love.' },
+  { text: 'LEAVE IT ON THE PORCH', tone: 'no', flavor: 'Not every package is for you.' },
+  { text: 'THE SCALES SAY NO', tone: 'no', flavor: 'Weight of the choice tips away.' },
   { text: 'MAYBE', tone: 'maybe', flavor: 'Neither yes nor no — breathe first.' },
   { text: 'ASK AGAIN LATER', tone: 'maybe', flavor: 'The answer is still steeping.' },
   { text: 'CANNOT PREDICT NOW', tone: 'maybe', flavor: 'Fog on the glass. Try again.' },
@@ -60,6 +72,11 @@ export const ORACLE_ANSWERS = [
   { text: 'REPLY HAZY', tone: 'maybe', flavor: 'Come back with a clearer ask.' },
   { text: 'BETTER NOT TELL YOU NOW', tone: 'maybe', flavor: 'Mystery for a reason.' },
   { text: 'CONCENTRATE AND ASK AGAIN', tone: 'maybe', flavor: 'The sphere wants your full heart.' },
+  { text: 'SLEEP ON IT', tone: 'maybe', flavor: 'Dawn answers differently sometimes.' },
+  { text: 'BOTH PATHS HOLD TRUTH', tone: 'maybe', flavor: 'Shared moon energy — not a trap.' },
+  { text: 'NAME THE NEED FIRST', tone: 'maybe', flavor: 'Clarity before commitment.' },
+  { text: 'CHECK YOUR BODY', tone: 'maybe', flavor: 'Gut, shoulders, jaw — then ask.' },
+  { text: 'ORACLE IS STEEPING', tone: 'maybe', flavor: 'Tea first. Verdict later.' },
 ];
 
 /** Pro-only reverse proverb vault (free gets showcase samples via freePeek path) */
@@ -86,6 +103,31 @@ const PRO_PROVERBS = [
   'Your next honest sentence is already a spell.',
   'The porch light stays on for those who return softer.',
   'Sometimes the sanctum answers with a question that frees you.',
+  'Proverb of the gold rim: hurry is not destiny.',
+  'What you water with attention becomes the garden.',
+  'A boundary spoken kindly is still a boundary.',
+  'The storm is information; the shelter is choice.',
+  'You are allowed to outgrow a path you once needed.',
+  'Rest is a strategy, not a moral failure.',
+  'Ask what the youngest part of you is afraid of — then answer that.',
+  'The familiar of envy points to a neglected wish.',
+  'If the yes needs a costume of perfection, it is still a no.',
+  'Moon Mirror: reverse the blame; keep the lesson.',
+  'Trade certainty for curiosity for one evening.',
+  'The answer under the answer is often “I want to feel safe.”',
+  'Pro seal: name three options, then burn the fourth imaginary one.',
+  'What would you choose if no one were watching the score?',
+  'The hearth does not grade your feelings — only how you carry them.',
+  'A delayed decision is still a decision: protect the pause.',
+  'If both paths hurt a little, pick the pain that grows you.',
+  'The sphere prefers honest fog to a pretty lie.',
+  'Sanctum counsel: put the phone down; put the question in the body.',
+  'Your reputation is not the same as your soul’s work.',
+  'Pro depth: the third option is often “ask for help.”',
+  'When the mirror fogs, wipe with kindness, not force.',
+  'The coin of Heaven & Ember has two faces; so does most loyalty.',
+  'What you call procrastination may be unfinished grief.',
+  'Let one small ritual mark the choice so your nervous system can rest.',
 ];
 
 export function askOracle(question, mode = 'classic') {
@@ -321,6 +363,42 @@ export function translatePet({ hope, fileName, durationHint, freePeek = false } 
     'lap real estate claims',
     'vacuum tribunal',
   ];
+  const proCategories = [
+    {
+      label: 'Bond seal',
+      text: pick(
+        [
+          'Tonight: one uninterrupted presence block (no phone) for five minutes.',
+          'Name one need of theirs without solving it first.',
+          'Offer a treat treaty — negotiated, not demanded.',
+        ],
+        seed + 'bond',
+      ),
+    },
+    {
+      label: 'Territory note',
+      text: pick(
+        [
+          'They claim a window, a lap, or a sock. Respect the claim; share the rest.',
+          'Zoomies after dark are ritual, not rebellion.',
+          'Shoes on the floor are fair game under ancient familiar law.',
+        ],
+        seed + 'terr',
+      ),
+    },
+    {
+      label: 'Care reminder',
+      text: pick(
+        [
+          'Water, rest, and a soft voice beat one more toy.',
+          'If behavior changed suddenly, check health with a real vet — this is whimsy only.',
+          'Play is medicine when schedules get loud.',
+        ],
+        seed + 'care',
+      ),
+    },
+  ];
+
   return {
     translation: phrase,
     hopeLine,
@@ -328,6 +406,9 @@ export function translatePet({ hope, fileName, durationHint, freePeek = false } 
     mood: pick(moods, seed),
     aura: pick(['gold', 'violet', 'rose', 'amber', 'moon'], seed),
     alternatives: alt,
+    proCategories,
+    secondaryWhisper: pick(packs.petPhrases, seed + 'sec'),
+    ritualScore: 60 + (hashStr(seed) % 35),
     seal: 'Full vault whisper · Pro',
     librarySize: packs.counts?.petPhrases || packs.petPhrases?.length || 0,
     freePeek: false,
@@ -369,6 +450,47 @@ export function coachArgument({ situation, stage, detail, freePeek = false } = {
   if (filtered.length < 5) filtered = pool;
   const primary = pick(filtered, seed);
   const alts = [1, 2, 3, 4].map((n) => pick(filtered, seed + n)).filter(Boolean);
+  const proLayers = [
+    {
+      label: 'Body check',
+      text: pick(
+        [
+          'Before the talk: jaw soft, feet on floor, one full exhale.',
+          'If your voice shakes, slow the pace — not the honesty.',
+          'Hands unclenched. Heart still allowed to care.',
+        ],
+        seed + 'body',
+      ),
+    },
+    {
+      label: 'One-issue frame',
+      text: pick(
+        [
+          `Situation filter: ${situation || 'general'} — keep the talk inside this room only.`,
+          'Name the topic in one sentence before any history tour.',
+          'If scorekeeping starts, pause and return to the single issue.',
+        ],
+        seed + 'frame',
+      ),
+    },
+    {
+      label: 'Repair seed',
+      text: pick(
+        [
+          'End with one shared next step and a time — vague peace rarely holds.',
+          'Thank them for staying in the hard talk, even if unfinished.',
+          'If unsafe, stop. Entertainment tips are not crisis care.',
+        ],
+        seed + 'repair',
+      ),
+    },
+    {
+      label: 'Detail echo',
+      text: detail?.trim()
+        ? `You named: “${String(detail).trim().slice(0, 120)}” — let that be the map, not the whole war.`
+        : 'No detail given — Pro still filters by situation and stage; add a sentence next draw for sharper cards.',
+    },
+  ];
   return {
     primary: {
       ...primary,
@@ -378,16 +500,20 @@ export function coachArgument({ situation, stage, detail, freePeek = false } = {
           'Hands soft · shoulders down · one genuine question',
           'Set a timer · no scorekeeping · reconvene with tea',
           'One issue only · one next step · one kind close',
+          'Stand · stretch · then sit for the first sentence',
+          'Phone face-down · timer on · kindness on purpose',
         ],
         seed,
       ),
-      aura: pick(['plum', 'gold', 'moon', 'rose'], seed),
+      aura: pick(['plum', 'gold', 'moon', 'rose', 'violet', 'amber'], seed),
     },
     alternatives: alts,
+    proLayers,
     librarySize: pool.length,
     freePeek: false,
     depth: 'full',
     seal: 'Storm deck · Pro full draw',
+    ritualScore: 55 + (hashStr(seed) % 40),
     proUnlocks: [],
     disclaimer:
       'Insight cards are scripted entertainment and pattern language — not therapy or legal counsel.',

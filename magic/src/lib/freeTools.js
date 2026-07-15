@@ -29,6 +29,10 @@ function pickBlurb(seed) {
     'Entertainment only — use for low-stakes choices.',
     'Share the winner, keep the kindness.',
     'A small yes is still a yes.',
+    'If the dice feel unfair, rematch once — then trust the second seal.',
+    'List only options you could live with. The dice are not a trap.',
+    'Pass the phone. Let someone else read the winner aloud.',
+    'Sanctum Dice free forever — Desk Orb keeps the ritual one tap away.',
   ];
   return lines[hashStr(String(seed)) % lines.length];
 }
@@ -73,7 +77,42 @@ export function moodReading({ energy = 5, peace = 5, connection = 5 } = {}) {
   if (p <= 4) tips.push('Five quiet minutes without the group chat.');
   if (c <= 4) tips.push('Send one kind text — or sit with yourself kindly.');
   if (e >= 7) tips.push('Aim that spark at one concrete next step.');
+  if (p >= 7 && e <= 5) tips.push('Peace is high — protect it with one soft boundary.');
+  if (c >= 7 && p <= 4) tips.push('Heart open, nerves loud — shorter visits, deeper presence.');
   if (tips.length === 0) tips.push('You are balanced enough to choose something gentle.');
+
+  const categories = [
+    {
+      label: 'Energy',
+      score: e,
+      note:
+        e >= 7
+          ? 'Spark is high — aim it, do not scatter it.'
+          : e <= 3
+            ? 'Body asks for rest before ambition.'
+            : 'Steady middle — good for small commitments.',
+    },
+    {
+      label: 'Peace',
+      score: p,
+      note:
+        p >= 7
+          ? 'Nervous system has room for kindness.'
+          : p <= 3
+            ? 'Shield the day from extra noise.'
+            : 'Workable calm — one quiet pocket helps.',
+    },
+    {
+      label: 'Connection',
+      score: c,
+      note:
+        c >= 7
+          ? 'Heart-forward — choose who gets that gift.'
+          : c <= 3
+            ? 'Solo is allowed; loneliness is optional.'
+            : 'Open enough for one real conversation.',
+    },
+  ];
 
   return {
     energy: e,
@@ -83,6 +122,8 @@ export function moodReading({ energy = 5, peace = 5, connection = 5 } = {}) {
     vibe,
     color,
     tips,
+    categories,
+    moonHint: freeMoonPhase().name,
     seal: 'Mood Meter · free',
     blurb: 'Entertainment snapshot — not therapy. Pro storm cards go deeper when talks get hard.',
   };

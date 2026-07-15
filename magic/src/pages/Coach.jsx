@@ -15,13 +15,16 @@ import { HAZEL_LINKS } from '../lib/hazel';
 const SITUATIONS = [
   'chores', 'money', 'in-laws', 'plans', 'tone of voice', 'lateness', 'phones at dinner',
   'work stress', 'boundaries', 'holidays', 'friend drama', 'parenting style', 'emotional labor',
-  'shared calendar chaos', 'family group chat',
+  'shared calendar chaos', 'family group chat', 'intimacy mismatch', 'screen time',
+  'caregiving load', 'travel plans', 'jealousy spark', 'house rules', 'future goals',
+  'religion or values', 'pet care', 'friendship loyalty',
 ];
 
 const STAGES = [
   'you feel unheard', 'they feel attacked', 'both are tired', 'timing is wrong',
   'pride is in the room', 'someone needs a pause', 'feelings are loud', 'facts are fuzzy',
-  'scorekeeping started', 'a boundary was crossed',
+  'scorekeeping started', 'a boundary was crossed', 'you want repair', 'they want space',
+  'someone is flooding', 'apology is stuck', 'you need a decision tonight',
 ];
 
 export default function Coach() {
@@ -155,6 +158,23 @@ export default function Coach() {
                   </p>
                 )}
                 <p className="text-xs text-[#4a1942]/55">{out.primary.blurb}</p>
+
+                {out.proLayers?.length > 0 && (
+                  <div className="space-y-2 border-t border-[#4a1942]/10 pt-3">
+                    <p className="text-xs font-bold uppercase text-[#c9a227]">Pro layers · body · frame · repair</p>
+                    {out.proLayers.map((layer) => (
+                      <div key={layer.label} className="rounded-xl bg-slate-50 border border-slate-200 px-3 py-2 text-xs">
+                        <p className="font-bold text-slate-900">{layer.label}</p>
+                        <p className="text-[#4a1942]/75 mt-0.5 leading-relaxed">{layer.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {out.ritualScore != null && (
+                  <p className="text-[10px] font-bold text-[#c9a227] uppercase tracking-wide">
+                    Ritual score · {out.ritualScore}
+                  </p>
+                )}
 
                 {out.alternatives?.length > 0 && (
                   <div className="border-t border-[#4a1942]/10 pt-3 space-y-2">
