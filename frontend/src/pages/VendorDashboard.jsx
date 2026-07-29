@@ -27,7 +27,11 @@ import {
   autoDetectOnboarding,
   markOnboardingStep,
   nextIncompleteStep,
+  getSellerPath,
+  isIdStepSatisfied,
+  offersServices,
 } from '../lib/onboardingApi';
+import { getVendorSellBlockers } from '../lib/accountGates';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import { checkEmailVerified, resendVerificationEmail } from '../lib/emailVerification';
@@ -312,8 +316,8 @@ export default function VendorDashboard({ user }) {
     const hasListings = myMenu.length + myProduce.length > 0;
     if (hasListings && listingKind === 'produce') return true;
 
-    const { getVendorSellBlockers } = await import('../lib/accountGates');
-    const { getSellerPath, isIdStepSatisfied, offersServices } = await import('../lib/onboardingApi');
+    // Static imports only — dynamic import() of accountGates broke production posts
+    // after deploys (stale chunk hashes → "failed to fetch dynamically imported module").
 
     if (!launchSteps.safety_policies) {
       alert('Accept safety policies in the launch checklist before posting.');
