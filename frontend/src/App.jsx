@@ -48,6 +48,7 @@ const EmailVerifyPage = lazyWithRetry(() => import('./pages/EmailVerifyPage'));
 const AuthBridge = lazyWithRetry(() => import('./pages/AuthBridge'));
 const VendorTaxCenter = lazyWithRetry(() => import('./pages/VendorTaxCenter'));
 const VendorProSaasPage = lazyWithRetry(() => import('./pages/VendorProSaasPage'));
+const VendorMakerStudio = lazyWithRetry(() => import('./pages/VendorMakerStudio'));
 const PickupConfirmPage = lazyWithRetry(() => import('./pages/PickupConfirmPage'));
 const ProUpgrade = lazyWithRetry(() => import('./pages/ProUpgrade'));
 const ProSuccess = lazyWithRetry(() =>
@@ -438,6 +439,9 @@ function AppCore({ auth0 = null }) {
                 } />
                 <Route path="/vendor-pro-tools" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']} vendorPermission="sell"><VendorProSaasPage user={user} /></ProtectedRoute>
+                } />
+                <Route path="/vendor-maker-studio" element={
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']} vendorPermission="sell"><VendorMakerStudio user={user} /></ProtectedRoute>
                 } />
                 <Route path="/vendor/:id" element={<VendorProductPage user={user} />} />
 

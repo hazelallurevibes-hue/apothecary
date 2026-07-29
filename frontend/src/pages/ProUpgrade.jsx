@@ -15,6 +15,7 @@ import { useLocale } from '../i18n';
 import ProSocialProof from '../components/ProSocialProof';
 import ProBillingPlanPicker from '../components/ProBillingPlanPicker';
 import ProBenefitsHub from '../components/ProBenefitsHub';
+import { freeVsProRowsFromCatalog } from '../lib/makerStudioCatalog';
 
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
@@ -245,19 +246,15 @@ export default function ProUpgrade({ user }) {
                 {[
                   ['Product listings (apothecary goods)', 'Up to 5', 'Unlimited'],
                   ['Service listings', 'Up to 5', 'Unlimited'],
-                  ['POS inventory (stock, low alerts, quick adjust)', 'Basic', 'Full board + subscribe flags'],
-                  ['Product Subscribe & Save (Stripe recurring)', '—', '✓ rare for indie makers'],
-                  ['Checkout blessings & ritual add-ons (AOV)', '—', '✓'],
-                  ['Email campaigns to past shoppers', '—', '✓ warm-list sales'],
-                  ['Teaching Sanctum courses + dual pricing', '—', '✓'],
-                  ['Banner gallery, theme, international links', 'Logo / basics', 'Full storefront studio'],
-                  ['Member discounts (attract Pro seekers)', '—', '✓'],
-                  ['Team / employee seats', '1', 'Up to 50'],
-                  ['Permit badge & credential wallet', 'ID only', 'Permits + honors'],
-                  ['Shelf score + growth playbook', 'Score', 'Tips + boost levers'],
-                  ['Placement & trust signals', 'Organic', 'Pro promoted'],
-                  ['Priority support path', 'Standard', 'Pro queue'],
-                  ['Cancel anytime (Stripe portal)', '—', '✓ products stay'],
+                  ['Maker Studio hub', 'Core free tools', 'Full Pro maker toolkit'],
+                  ...freeVsProRowsFromCatalog(),
+                  ['POS inventory + Subscribe & Save', 'Basic stock', 'Full + Stripe recurring'],
+                  ['Tax pack / market-day / review QR / shift notes', '—', '✓ Pro SaaS pack'],
+                  ['Checkout blessings & gift wrap AOV', '—', '✓'],
+                  ['Email campaigns + branded footer', '—', '✓'],
+                  ['Teaching Sanctum courses', '—', '✓'],
+                  ['Team seats', '1', 'Up to 50'],
+                  ['Cancel anytime (Stripe)', '—', '✓ products stay'],
                 ].map(([feat, free, pro]) => (
                   <tr key={feat} className="hover:bg-[#faf7f9]/80">
                     <td className="px-3 py-2 text-gray-700">{feat}</td>

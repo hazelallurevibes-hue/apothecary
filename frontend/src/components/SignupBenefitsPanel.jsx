@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { VERTICAL } from '../lib/vertical';
+import { MAKER_STUDIO_FREE_SIGNUP, MAKER_STUDIO_PRO_SIGNUP } from '../lib/makerStudioCatalog';
 
 const SEEKER_FREE = [
   'Create a free seeker account',
   'Browse & book wellness practitioners',
   'Shop the apothecary & ritual goods',
-  '200+ free natural-remedy research topics',
+  '300+ free natural-remedy research monographs',
   'Daily tarot path & Sanctum sphere (entertainment)',
   'Orders, messages & basic profile',
   'Read Teaching Sanctum course catalogs',
@@ -18,13 +19,17 @@ const SEEKER_PRO = [
 ];
 
 const PRACTITIONER_FREE = [
-  'Apply free — core service & product listings (limits apply)',
-  'Store bio, logo & service video embeds',
-  'Orders, reviews & 1 team seat',
-  'Organic discovery in marketplace search',
+  ...(VERTICAL.plans?.freeVendorFeatures || [
+    'Apply free — core listings (limits apply)',
+    'Orders, reviews & 1 team seat',
+  ]),
+  ...MAKER_STUDIO_FREE_SIGNUP.slice(0, 4),
 ];
 
-const PRACTITIONER_PRO = VERTICAL.plans?.paidVendorFeatures || [];
+const PRACTITIONER_PRO = [
+  ...(VERTICAL.plans?.paidVendorFeatures || []),
+  ...MAKER_STUDIO_PRO_SIGNUP.slice(0, 6),
+];
 
 /**
  * Free vs Pro benefit columns for signup flows.

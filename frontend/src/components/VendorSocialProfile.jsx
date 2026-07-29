@@ -391,6 +391,55 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
         </section>
       )}
 
+      {vendor?.maker_studio?.maker_story &&
+        (vendor.maker_studio.maker_story.origin ||
+          vendor.maker_studio.maker_story.sourcing ||
+          vendor.maker_studio.maker_story.lineage) && (
+          <section className="mt-6 mx-2 sm:mx-0 rounded-2xl border border-[#4a1942]/10 bg-white p-4 text-sm">
+            <h2 className="text-sm font-semibold uppercase tracking-wider text-[#4a1942] mb-2">Maker story</h2>
+            {vendor.maker_studio.maker_story.origin && (
+              <p className="text-gray-700 leading-relaxed mb-2">
+                <strong className="text-[#4a1942]">Origin.</strong> {vendor.maker_studio.maker_story.origin}
+              </p>
+            )}
+            {vendor.maker_studio.maker_story.sourcing && (
+              <p className="text-gray-700 leading-relaxed mb-2">
+                <strong className="text-[#4a1942]">Sourcing.</strong> {vendor.maker_studio.maker_story.sourcing}
+              </p>
+            )}
+            {vendor.maker_studio.maker_story.lineage && (
+              <p className="text-gray-700 leading-relaxed">
+                <strong className="text-[#4a1942]">Lineage.</strong> {vendor.maker_studio.maker_story.lineage}
+              </p>
+            )}
+          </section>
+        )}
+
+      {Array.isArray(vendor?.maker_studio?.storefront_sections) &&
+        vendor.maker_studio.storefront_sections.length > 0 && (
+          <section className="mt-4 mx-2 sm:mx-0 grid sm:grid-cols-2 gap-3">
+            {vendor.maker_studio.storefront_sections.map((s) => (
+              <div key={s.id || s.title} className="rounded-2xl border border-[#c9a227]/25 bg-[#faf7f0]/60 p-3">
+                <p className="text-sm font-semibold text-[#4a1942]">{s.title}</p>
+                <p className="text-xs text-gray-600 mt-1 leading-relaxed">{s.body}</p>
+              </div>
+            ))}
+          </section>
+        )}
+
+      {vendor?.maker_studio?.wholesale?.enabled && (
+        <div className="mt-4 mx-2 sm:mx-0 rounded-2xl border border-[#4a1942]/15 bg-white px-4 py-3 text-xs text-gray-700">
+          <p className="font-semibold text-[#4a1942]">Wholesale available</p>
+          <p className="mt-1">
+            Min qty {vendor.maker_studio.wholesale.min_qty || 6}
+            {vendor.maker_studio.wholesale.discount_pct
+              ? ` · ~${vendor.maker_studio.wholesale.discount_pct}% off retail for qualifying orders`
+              : ''}
+            . {vendor.maker_studio.wholesale.wholesale_note || 'Message the maker for the wholesale list.'}
+          </p>
+        </div>
+      )}
+
       {/* Story-style highlight rings */}
       {storyImages.length > 0 && (
         <section className="mt-6 px-2" aria-label="Practitioner highlights">

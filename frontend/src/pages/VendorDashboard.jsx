@@ -1033,6 +1033,12 @@ export default function VendorDashboard({ user }) {
           >
             Pro SaaS tools
           </Link>
+          <Link
+            to="/vendor-maker-studio"
+            className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold text-center"
+          >
+            Maker Studio
+          </Link>
         </div>
       </div>
 

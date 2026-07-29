@@ -34,6 +34,8 @@ export const VENDOR_PERMISSIONS = {
   student_badges: { label: 'Student honors', description: 'Award top student and class favorite badges (paid)' },
   inventory_pos: { label: 'POS inventory', description: 'Stock counts, low-stock alerts, quick adjust' },
   product_subscriptions: { label: 'Product Subscribe & Save', description: 'Recurring Stripe subscriptions on SKUs (paid)' },
+  maker_studio: { label: 'Maker Studio', description: 'Harvest, claims, packing list, photo score (core free)' },
+  maker_studio_pro: { label: 'Maker Studio Pro', description: 'Wholesale, blends, kits, vault, seasonal skins (paid)' },
 };
 
 /** Free: core selling with limits; paid: full platform */
@@ -46,6 +48,7 @@ export const FREE_VENDOR_PERMISSIONS = [
   'employees',
   'service_video',
   'inventory_pos',
+  'maker_studio',
 ];
 
 export const PAID_VENDOR_PERMISSIONS = Object.keys(VENDOR_PERMISSIONS);
