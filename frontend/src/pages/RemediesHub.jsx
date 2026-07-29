@@ -3,19 +3,49 @@ import { Link } from 'react-router-dom';
 import MedicalResearchDisclaimer from '../components/MedicalResearchDisclaimer';
 import {
   categoryLabel,
+  getFreeRemedies,
+  getHotRemedies,
   getRemedyCategories,
   getRemedyCount,
-  getHotRemedies,
   searchRemedies,
 } from '../lib/remedies/remedyLibrary';
 
 export default function RemediesHub() {
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
+  const [tab, setTab] = useState('mixed'); // mixed | free | hot
   const categories = useMemo(() => getRemedyCategories(), []);
-  const results = useMemo(() => searchRemedies(q, { category }), [q, category]);
-  const hot = useMemo(() => getHotRemedies(), []);
+  const freeAll = useMemo(() => getFreeRemedies(), []);
+  const hotAll = useMemo(() => getHotRemedies(), []);
   const total = getRemedyCount();
+
+  const results = useMemo(() => {
+    let list = searchRemedies(q, { category, hotOnly: tab === 'hot' });
+    if (tab === 'free') list = list.filter((e) => !e.hot);
+    if (tab === 'mixed' && !q && !category) {
+      // Interleave free-first so users don't open to a Pro wall
+      const free = list.filter((e) => !e.hot);
+      const hot = list.filter((e) => e.hot);
+      const out = [];
+      let fi = 0;
+      let hi = 0;
+      while (fi < free.length || hi < hot.length) {
+        for (let k = 0; k < 3 && fi < free.length; k += 1, fi += 1) out.push(free[fi]);
+        if (hi < hot.length) {
+          out.push(hot[hi]);
+          hi += 1;
+        }
+      }
+      return out;
+    }
+    // Prefer free before hot within search results
+    return [...list].sort((a, b) => {
+      if (!!a.hot !== !!b.hot) return a.hot ? 1 : -1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [q, category, tab]);
+
+  const freeFeatured = useMemo(() => freeAll.slice(0, 9), [freeAll]);
 
   return (
     <div className="max-w-5xl mx-auto py-8 px-4 sm:px-6 pb-16">
@@ -25,15 +55,17 @@ export default function RemediesHub() {
           Common concerns &amp; natural remedies
         </h1>
         <p className="text-gray-600 mt-3 max-w-2xl leading-relaxed">
-          {total}+ educational monographs covering what clinical care often involves, traditional natural approaches,
-          historical accounts, and clear stop-and-seek-care warnings. Built to help you research wisely — then talk to a
-          real clinician.
+          {total}+ educational monographs with full free topics mixed in first — so you can read the depth of our
+          research without paying. Pro hot topics unlock the densest deep-dives for frequent researchers.
+        </p>
+        <p className="text-xs text-gray-500 mt-2">
+          {freeAll.length} free monographs · {hotAll.length} Pro hot topics · Educational only, not medical advice
         </p>
       </header>
 
       <MedicalResearchDisclaimer className="mb-8" />
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
         <label className="flex-1">
           <span className="sr-only">Search remedies</span>
           <input
@@ -61,7 +93,55 @@ export default function RemediesHub() {
         </label>
       </div>
 
-      {!q && !category && (
+      <div className="flex flex-wrap gap-2 mb-8 text-xs">
+        {[
+          { id: 'mixed', label: 'Free + Pro mixed' },
+          { id: 'free', label: `Free only (${freeAll.length})` },
+          { id: 'hot', label: `Pro hot (${hotAll.length})` },
+        ].map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setTab(t.id)}
+            className={`px-3 py-1.5 rounded-full border font-semibold ${
+              tab === t.id
+                ? 'bg-[#4a1942] text-white border-[#4a1942]'
+                : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {!q && !category && tab !== 'hot' && (
+        <section className="mb-10">
+          <div className="flex items-center justify-between gap-2 mb-3">
+            <h2 className="text-lg font-bold text-[#4a1942]">Start free — full monographs</h2>
+            <span className="text-[10px] uppercase tracking-wide text-emerald-700 font-semibold">No paywall</span>
+          </div>
+          <p className="text-sm text-gray-600 mb-3 max-w-2xl">
+            These open completely: conventional care notes, traditional approaches, history, and warnings — so you can
+            see the quality of the library before upgrading for Pro hot topics.
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {freeFeatured.map((r) => (
+              <Link
+                key={r.slug}
+                to={`/remedies/${r.slug}`}
+                className="rounded-2xl border border-emerald-200/80 bg-gradient-to-br from-emerald-50/50 to-white p-4 hover:shadow-md transition"
+              >
+                <span className="text-[10px] uppercase tracking-wider text-emerald-700 font-semibold">Free</span>
+                <p className="font-semibold text-[#4a1942] mt-1">{r.name}</p>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{r.description}</p>
+                <p className="text-[10px] text-gray-400 mt-2">{r.readMinutes} min · {categoryLabel(r.category)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {!q && !category && tab !== 'free' && (
         <section className="mb-10">
           <div className="flex items-center justify-between gap-2 mb-3">
             <h2 className="text-lg font-bold text-[#4a1942]">Hot topics (Pro deep-dives)</h2>
@@ -70,7 +150,7 @@ export default function RemediesHub() {
             </Link>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {hot.map((r) => (
+            {hotAll.slice(0, 9).map((r) => (
               <Link
                 key={r.slug}
                 to={`/remedies/${r.slug}`}
@@ -87,7 +167,7 @@ export default function RemediesHub() {
 
       <section>
         <h2 className="text-lg font-bold text-[#4a1942] mb-3">
-          {q || category ? `Results (${results.length})` : `All topics (${results.length})`}
+          {q || category ? `Results (${results.length})` : `Browse topics (${results.length})`}
         </h2>
         <ul className="divide-y divide-gray-100 rounded-2xl border border-gray-100 bg-white overflow-hidden">
           {results.map((r) => (
@@ -99,8 +179,10 @@ export default function RemediesHub() {
                 <div className="min-w-0">
                   <p className="font-medium text-[#4a1942] text-sm sm:text-base">
                     {r.name}
-                    {r.hot && (
+                    {r.hot ? (
                       <span className="ml-2 text-[10px] uppercase tracking-wide text-[#c9a227] font-semibold">Pro</span>
+                    ) : (
+                      <span className="ml-2 text-[10px] uppercase tracking-wide text-emerald-700 font-semibold">Free</span>
                     )}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
@@ -118,23 +200,6 @@ export default function RemediesHub() {
           )}
         </ul>
       </section>
-
-      <div className="mt-10 grid sm:grid-cols-3 gap-3 text-sm">
-        <Link to="/products" className="rounded-2xl border border-gray-200 p-4 hover:border-[#4a1942]/30">
-          <p className="font-semibold text-[#4a1942]">Shop apothecary</p>
-          <p className="text-xs text-gray-500 mt-1">Herbs, teas, oils from independent makers</p>
-        </Link>
-        <Link to="/services" className="rounded-2xl border border-gray-200 p-4 hover:border-[#4a1942]/30">
-          <p className="font-semibold text-[#4a1942]">Book a practitioner</p>
-          <p className="text-xs text-gray-500 mt-1">Herbalists, homeopaths, energy workers</p>
-        </Link>
-        <Link to="/learn" className="rounded-2xl border border-gray-200 p-4 hover:border-[#4a1942]/30">
-          <p className="font-semibold text-[#4a1942]">Wellness guides</p>
-          <p className="text-xs text-gray-500 mt-1">How to choose practitioners wisely</p>
-        </Link>
-      </div>
-
-      <MedicalResearchDisclaimer variant="footer" className="mt-10" />
     </div>
   );
 }

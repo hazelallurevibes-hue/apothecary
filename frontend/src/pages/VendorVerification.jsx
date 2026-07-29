@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { uploadVerificationDoc } from '../lib/storageApi';
@@ -27,8 +27,19 @@ export default function VendorVerification({ user }) {
   const [requireLegalName, setRequireLegalName] = useState(true);
   const [requireIdBack, setRequireIdBack] = useState(true);
   const [message, setMessage] = useState('');
+  const [messageTone, setMessageTone] = useState('info'); // success | error | info
   const [uploading, setUploading] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const messageRef = useRef(null);
   const canPermit = vendorCan(user, 'permit_verify');
+
+  const flashMessage = (text, tone = 'info') => {
+    setMessage(text);
+    setMessageTone(tone);
+    requestAnimationFrame(() => {
+      messageRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+  };
 
   useEffect(() => {
     fetchPlatformSettings().then((s) => {
@@ -57,34 +68,52 @@ export default function VendorVerification({ user }) {
       if (kind === 'permit') {
         await submitPermitVerification(vendorId, { documentUrl: url });
         setPermits(await fetchPermitVerifications(vendorId));
-        setMessage('Permit submitted for admin review.');
+        flashMessage('Permit submitted for admin review. You do not need to submit again.', 'success');
       }
     } catch (e) {
-      setMessage(e.message);
+      flashMessage(e.message || 'Upload failed', 'error');
     }
     setUploading('');
   };
 
+  const alreadyPending = ['pending', 'submitted', 'in_review', 'under_review'].includes(
+    String(identity?.status || '').toLowerCase(),
+  );
+  const alreadyApproved = String(identity?.status || '').toLowerCase() === 'approved';
+
   const submitIdentity = async () => {
+    if (submitting) return;
+    if (alreadyApproved) {
+      flashMessage('Your ID is already approved. No need to resubmit.', 'success');
+      return;
+    }
+    if (alreadyPending) {
+      flashMessage(
+        'Your ID is already in the review queue. Our team will update the status here — please do not submit again unless we request new photos.',
+        'success',
+      );
+      return;
+    }
     if (!urls.front || !urls.selfie) {
-      setMessage('Upload ID front and a selfie holding your ID.');
+      flashMessage('Upload ID front and a selfie holding your ID.', 'error');
       return;
     }
     if (requireIdBack && !urls.back) {
-      setMessage('Upload the back of your ID — your legal name must be visible.');
+      flashMessage('Upload the back of your ID — your legal name must be visible.', 'error');
       return;
     }
     if (requireLegalName) {
       const err = validateLegalName(legalName);
       if (err) {
-        setMessage(err);
+        flashMessage(err, 'error');
         return;
       }
       if (!legalNameConfirm) {
-        setMessage('Confirm that your legal name matches your government ID exactly.');
+        flashMessage('Confirm that your legal name matches your government ID exactly.', 'error');
         return;
       }
     }
+    setSubmitting(true);
     try {
       const row = await submitIdentityVerification(vendorId, {
         idFrontUrl: urls.front,
@@ -95,14 +124,21 @@ export default function VendorVerification({ user }) {
       setIdentity(row);
       if (row?.status === 'approved') {
         await markOnboardingStep(vendorId, 'id_verification', true).catch(() => {});
-        setMessage('Identity verified — you can post your first listing when other launch steps are complete.');
+        flashMessage(
+          '✓ Identity verified! You can post your first listing when other launch steps are complete.',
+          'success',
+        );
       } else {
         await markOnboardingStep(vendorId, 'id_verification', false).catch(() => {});
-        setMessage('Identity submitted for admin review. You can post your first listing once your ID is approved.');
+        flashMessage(
+          '✓ Got it — your ID was submitted for admin review. Status is now pending. You only need to submit once; we will email or update this page when approved.',
+          'success',
+        );
       }
     } catch (e) {
-      setMessage(e.message);
+      flashMessage(e.message || 'Could not submit identity', 'error');
     }
+    setSubmitting(false);
   };
 
   if (!vendorId) {
@@ -125,9 +161,35 @@ export default function VendorVerification({ user }) {
       <div className="bg-white border rounded-3xl p-6 mb-6 space-y-4">
         <h2 className="font-semibold">Photo ID (all practitioners)</h2>
         <p className="text-xs text-gray-500">
-          Status: <strong>{identity?.status || 'not submitted'}</strong>
+          Status:{' '}
+          <strong
+            className={
+              alreadyApproved
+                ? 'text-emerald-700'
+                : alreadyPending
+                  ? 'text-amber-800'
+                  : 'text-gray-800'
+            }
+          >
+            {identity?.status || 'not submitted'}
+          </strong>
           {identity?.legal_name ? <> · Legal name on file: <strong>{identity.legal_name}</strong></> : null}
         </p>
+        {alreadyPending && (
+          <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 py-3 text-sm text-emerald-950 shadow-sm">
+            <p className="font-bold text-base">✓ Already submitted — waiting on admin review</p>
+            <p className="mt-1 text-emerald-900/90 leading-relaxed">
+              Your photos are in the queue. Please do not click Submit again unless support asks for clearer images.
+              When approved, this status will change to <strong>approved</strong> and you can finish launch steps.
+            </p>
+          </div>
+        )}
+        {alreadyApproved && (
+          <div className="rounded-2xl border-2 border-emerald-500 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+            <p className="font-bold">✓ Identity approved</p>
+            <p className="mt-1">You are cleared on the ID step. Continue other onboarding items from the dashboard.</p>
+          </div>
+        )}
 
         {requireLegalName && (
           <div className="space-y-3 p-4 bg-[#f5f0e8]/60 border border-[#4a1942]/10 rounded-2xl">
@@ -187,9 +249,25 @@ export default function VendorVerification({ user }) {
         {uploading && (
           <p className="text-xs text-gray-500">Uploading {uploading}…</p>
         )}
-        <button type="button" onClick={submitIdentity} className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm">
-          Submit for review
+        <button
+          type="button"
+          onClick={submitIdentity}
+          disabled={submitting || alreadyApproved || !!uploading}
+          className="px-5 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {submitting
+            ? 'Submitting…'
+            : alreadyApproved
+              ? 'Already approved'
+              : alreadyPending
+                ? 'Already in review (tap for status)'
+                : 'Submit for review'}
         </button>
+        {alreadyPending && (
+          <p className="text-xs text-amber-800 font-medium">
+            Tip: one submission is enough. Extra clicks do not speed up review.
+          </p>
+        )}
       </div>
 
       <div className="bg-white border rounded-3xl p-6 space-y-4">
@@ -211,7 +289,26 @@ export default function VendorVerification({ user }) {
         )}
       </div>
 
-      {message && <p className="mt-4 text-sm text-gray-700">{message}</p>}
+      {message && (
+        <div
+          ref={messageRef}
+          role="status"
+          aria-live="polite"
+          className={`mt-6 rounded-2xl border-2 px-4 py-4 text-sm leading-relaxed shadow-md animate-pulse ${
+            messageTone === 'success'
+              ? 'border-emerald-500 bg-emerald-50 text-emerald-950'
+              : messageTone === 'error'
+                ? 'border-rose-400 bg-rose-50 text-rose-950'
+                : 'border-[#4a1942]/30 bg-[#faf7f9] text-[#4a1942]'
+          }`}
+          style={{ animationIterationCount: 2, animationDuration: '1.2s' }}
+        >
+          <p className="font-bold text-base mb-1">
+            {messageTone === 'success' ? 'Confirmation' : messageTone === 'error' ? 'Action needed' : 'Notice'}
+          </p>
+          <p>{message}</p>
+        </div>
+      )}
     </div>
   );
 }

@@ -8,11 +8,13 @@ import { isAuth0Configured } from './lib/auth0Config'
 import Auth0ProviderWithNavigate from './components/Auth0ProviderWithNavigate'
 import { initMonitoring } from './lib/monitoring'
 import { LocaleProvider } from './i18n'
+import ScrollToTop from './components/ScrollToTop'
 
 initMonitoring()
 
 const appTree = (
   <BrowserRouter>
+    <ScrollToTop />
     <LocaleProvider>
       {isAuth0Configured() ? (
         <Auth0ProviderWithNavigate>

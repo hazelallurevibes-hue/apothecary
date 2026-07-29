@@ -46,6 +46,7 @@ import SellerGrowthTips from '../components/SellerGrowthTips';
 import ShelfScoreCard from '../components/ShelfScoreCard';
 import VendorBoostStrip from '../components/VendorBoostStrip';
 import VendorPosInventory from '../components/VendorPosInventory';
+import VendorProWorthPanel from '../components/VendorProWorthPanel';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -1013,6 +1014,7 @@ export default function VendorDashboard({ user }) {
       )}
 
       <VendorBoostStrip isPro={isProPractitioner} />
+      <VendorProWorthPanel isPro={isProPractitioner} className="mb-6" />
       <SellerGrowthTips isPro={isProPractitioner} />
       {storefrontVendor && (
         <ShelfScoreCard

@@ -245,18 +245,19 @@ export default function ProUpgrade({ user }) {
                 {[
                   ['Product listings (apothecary goods)', 'Up to 5', 'Unlimited'],
                   ['Service listings', 'Up to 5', 'Unlimited'],
-                  ['POS inventory board (stock, low alerts)', '✓', '✓ + deeper tools'],
-                  ['Product Subscribe & Save (recurring revenue)', '—', '✓ Stripe auto-bill'],
+                  ['POS inventory (stock, low alerts, quick adjust)', 'Basic', 'Full board + subscribe flags'],
+                  ['Product Subscribe & Save (Stripe recurring)', '—', '✓ rare for indie makers'],
                   ['Checkout blessings & ritual add-ons (AOV)', '—', '✓'],
+                  ['Email campaigns to past shoppers', '—', '✓ warm-list sales'],
                   ['Teaching Sanctum courses + dual pricing', '—', '✓'],
-                  ['Email campaigns to past shoppers', '—', '✓'],
-                  ['Banner gallery & theme studio', 'Logo only', 'Full brand kit'],
+                  ['Banner gallery, theme, international links', 'Logo / basics', 'Full storefront studio'],
                   ['Member discounts (attract Pro seekers)', '—', '✓'],
                   ['Team / employee seats', '1', 'Up to 50'],
-                  ['International storefront links', '—', '✓'],
-                  ['Shelf score, growth hub & pro analytics', 'Shelf score', 'Full playbook'],
-                  ['Priority placement signals', 'Organic', 'Pro promoted'],
-                  ['Cancel anytime (Stripe portal)', '—', '✓ keep products'],
+                  ['Permit badge & credential wallet', 'ID only', 'Permits + honors'],
+                  ['Shelf score + growth playbook', 'Score', 'Tips + boost levers'],
+                  ['Placement & trust signals', 'Organic', 'Pro promoted'],
+                  ['Priority support path', 'Standard', 'Pro queue'],
+                  ['Cancel anytime (Stripe portal)', '—', '✓ products stay'],
                 ].map(([feat, free, pro]) => (
                   <tr key={feat} className="hover:bg-[#faf7f9]/80">
                     <td className="px-3 py-2 text-gray-700">{feat}</td>
