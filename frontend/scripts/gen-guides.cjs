@@ -1,0 +1,133 @@
+﻿const fs = require('fs');
+const sec = (heading, body) => ({ heading, body });
+const articles = [];
+
+function add(slug, title, description, keywords, readMinutes, sections) {
+  articles.push({
+    slug, title, description, keywords, readMinutes,
+    sections: sections.map(([h, b]) => sec(h, b)),
+  });
+}
+
+add('holistic-wellness-basics',
+  'Holistic Wellness: Finding Practitioners You Can Trust',
+  'A practical field guide to evaluating wellness practitioners, reading disclaimers, booking sessions across traditions, and protecting your safety and budget.',
+  'holistic wellness, book practitioner, spiritual wellness, natural healing',
+  14, [
+    ['Wellness is not a substitute for medical care', 'Hazel Allure connects you with independent practitioners for spiritual, educational, and complementary support. Serious symptoms such as chest pain, trouble breathing, suicidal thoughts, sudden neurological changes, or high fever in infants belong with licensed emergency or medical professionals first. Complementary care works best beside clinical care, not instead of it. If a practitioner pressures you to stop prescribed medication or skip diagnostic tests, leave and seek a second medical opinion.'],
+    ['Start with your intention, not a trend', 'Before you book, write one sentence about what you hope to explore such as stress, grief, ritual skill, herbal education, or curiosity. Clear intention filters listings that over-promise cures. Prefer practitioners who describe process, session length, and scope rather than guaranteed outcomes. On Hazel Allure, service listings should state modality, duration, delivery method, and what is not included.'],
+    ['Read profiles like a contract', 'Look for clear scope of practice, credentials or lineage notes where relevant, honest photos and video previews, cancellation language, and structure or function language on products rather than disease claims. Check reviews for patterns in punctuality, communication, and respect for boundaries. Message the practitioner before booking if anything is unclear.'],
+    ['Red flags to walk away from', 'Guaranteed health or financial outcomes, pressure to buy expensive packages on the first call, requests to move payment off-platform without reason, shaming questions, claims that only they can fix you, or secrecy that isolates you from family or clinicians are hard stops. Healthy practitioners encourage autonomy and medical teams.'],
+    ['How booking works on Hazel Allure', 'Browse Services, open a listing, review media and description, then book or message. Keep receipts in Orders. If something goes wrong, document dates and use platform messaging so there is a record. Report policy violations with report tools rather than relying only on private off-site chats.'],
+    ['Budgeting and membership', 'Free seekers can browse and book. Pro Members may unlock discounts from Pro practitioners, course pricing tiers, favorites, hot remedy monographs, and priority support. Upgrade only if the perks match how often you book. Cancel Pro anytime from Account Settings; free marketplace access remains.'],
+    ['After the session', 'Hydrate, rest if needed, and journal what landed. Give feedback when you can rate. If a session left you distressed, contact a licensed mental health resource. Platform entertainment features such as tarot and the Magic sphere are not therapy.'],
+  ]);
+
+add('natural-apothecary-guide',
+  'Building a Natural Apothecary at Home',
+  'How to curate essential oils, herbs, incense, and ritual goods with intention including sourcing, safety, storage, and shopping from independent artisans.',
+  'natural apothecary, essential oils guide, herbal remedies, ritual goods',
+  16, [
+    ['Quality over quantity', 'A small set of well-sourced oils, teas, and tools beats a cabinet of mystery blends. Start with three to five staples you will actually use: a carrier oil, one calming tea, one scent practice you tolerate, a simple candle, and a journal. Expand only when a real practice emerges.'],
+    ['Read labels carefully', 'Look for botanical names, plant part, extraction method, origin when stated, and allergen notes. Avoid products that claim to diagnose, treat, cure, or prevent disease unless the seller is lawfully authorized. Structure and function language is the marketplace standard. If you take medications, are pregnant, or have allergies, message the artisan and ask your clinician before use.'],
+    ['Essential oils basics', 'Most essential oils should be diluted in a carrier oil for skin use. Do not ingest unless under qualified professional guidance. Keep away from eyes and pets that are sensitive, especially cats. Patch-test new oils. Store in dark glass, cool and dry. Diffusing is not risk-free for asthma; ventilate and start low.'],
+    ['Herbs and teas', 'Dried herbs lose potency with heat, light, and moisture. Label with purchase date. Start with culinary herbs before stronger botanicals. Herbs can interact with blood thinners, antidepressants, and other drugs. Natural is not a synonym for safe for everyone.'],
+    ['Incense and smoke-free alternatives', 'If smoke bothers lungs, try hydrosols, room sprays, or simmer pots. When burning, use heat-safe dishes, never leave unattended, and air out rooms. Respect cultural context of sacred smoke practices and buy from people who name sourcing honestly.'],
+    ['Shopping on the apothecary market', 'Filter by category such as oils, incense, crystals, ritual kits, and herbal goods. Prefer listings with clear photos, ingredient lists, and intended-use notes. Use favorites if you have Pro. Read shipping and pickup windows before checkout.'],
+    ['Storage and organization', 'Group by use such as calm, cleanse, or celebrate. Keep a simple inventory so you do not rebuy duplicates. Childproof cabinets. Dispose of rancid oils when smell or skin feel changes.'],
+    ['Ethics and community', 'Support woman-owned and culturally rooted makers when possible. Ask about wildcrafting sustainability. Tip fairly for custom work. Leave reviews that help the next seeker.'],
+  ]);
+
+add('worldwide-wellness-traditions',
+  'Wellness Traditions Worldwide',
+  'A respectful introduction to curanderismo, Ayurveda, energy work, ancestral practices, and how to engage without appropriation on a global marketplace.',
+  'curandera, ayurveda, energy healing, worldwide wellness',
+  15, [
+    ['Approach with respect', 'Traditions are living lineages, not aesthetics. Seek practitioners who belong to or were trained within the tradition they offer, and honor boundaries around closed or initiatory practices. Paying for a session does not purchase the right to rebrand someone else ceremony as content.'],
+    ['Curanderismo and folk healing', 'Curanderas and curanderos often work with prayer, plants, limpia cleansing, and community care. Ask about background and what a session includes. Evaluate safety, consent, and fit rather than demanding disrespectful proof of spirit.'],
+    ['Ayurveda and lifestyle', 'Ayurvedic practitioners may discuss diet, routine, and herbs. This is not a substitute for medical diagnosis. Be wary of extreme cleanses sold as one-size-fits-all. Prefer practitioners who coordinate with your medical team when herbs and pharmaceuticals might interact.'],
+    ['Energy work and Reiki-style modalities', 'Energy sessions are complementary and subjective. Consent for touch or no-touch methods must be explicit. You may feel calm, emotional, or nothing at all. Track how you feel over days, not minutes.'],
+    ['Psychic and divinatory arts', 'Readings are entertainment and personal reflection tools on Hazel Allure, not legal, medical, or financial advice. Good readers set boundaries, refuse dependency, and do not claim certainty about death dates or guaranteed romance.'],
+    ['Booking across cultures', 'Use specialty filters, read bios for lineage language, and message with respectful questions. Avoid slang that flattens sacred roles. Tip and review fairly. Report discrimination or exploitation.'],
+    ['Traditions on modern platforms', 'Video sessions expand access but can flatten ceremony. Ask what translates well online versus in person. Protect privacy; do not share full legal name, address, or bank details in chat beyond checkout needs.'],
+  ]);
+
+const extra = [
+  ['essential-oils-safety','Essential Oils Safety for Home Use','Dilution, pets, pregnancy cautions, storage, and ethical shopping for essential oils.','essential oil safety, dilute oils, oils and pets',13,
+    [['Why dilution matters','Essential oils are concentrated plant chemistry. Undiluted use on skin raises irritation risk. A common educational starting range for adult topical use is about 1 to 2 percent in carrier oil for general body application, lower for face. Follow clinician or qualified aromatherapist guidance for medical contexts.'],
+     ['Pets and children','Many oils are unsafe for cats; birds and small animals are sensitive to diffusion. Keep bottles locked away from children. Never force oils on children skin.'],
+     ['Photosensitivity and pitfalls','Citrus oils can increase sun sensitivity. Stop if rash develops. Do not put oils in eyes or ear canals. Marketing claims about detox reactions are often irritation, not proof of benefit.'],
+     ['Buying well','Prefer listings that name botanical species. Message artisans about testing if offered. Avoid miracle disease claims on Hazel Allure listings.']]],
+  ['crystal-care-ethics','Crystals with Care: Ethics and Display','How to choose crystals, clean without harm, and avoid unethical marketing myths.','crystal ethics, cleanse crystals, buy crystals',11,
+    [['Ethics first','Ask sellers about origin when possible. Be skeptical of claims that a stone cures illness. Crystals can be meaningful ritual tools without medical claims.'],
+     ['Physical care','Some stones dissolve in water or fade in sun. Research hardness before soaking. Soft cloth dusting is enough for many specimens.'],
+     ['Ritual cleaning myths','Smoke, sound, or intention are cultural practices, not laboratory sterilization. Do not replace medical hygiene with crystal myths.'],
+     ['Shopping','Compare photos for color treatment disclosure. Prefer artisans who admit dyed or synthetic materials when relevant.']]],
+  ['first-ritual-kit','Building Your First Ritual Kit','A beginner checklist for candles, journal, cloth, and simple tools without overwhelm.','ritual kit beginner, altar setup',10,
+    [['Minimum viable altar','One candle, one cloth, one journal, one cup of water is enough to begin. Add items only when they earn a place through use.'],
+     ['Fire safety','Never leave candles unattended. Use stable holders. Keep away from curtains and pets.'],
+     ['Household consent','If you share space, agree on smoke, scent, and quiet times. Ritual is not an excuse to ignore asthma or boundaries.'],
+     ['Where to shop','Browse ritual kits and candles on the apothecary market. Read descriptions for materials and symbolic use.']]],
+  ['booking-online-sessions','How to Book Online Wellness Sessions','Tech checks, privacy, time zones, and etiquette for video readings and energy sessions.','book online reiki, virtual psychic reading',12,
+    [['Tech and space','Test camera and mic, use headphones, choose a private room, and set a do not disturb signal for household members.'],
+     ['Time zones','Confirm the practitioner time zone in the listing or messages. Add calendar buffers before and after.'],
+     ['Privacy','Do not record without consent. Practitioners should not pressure you for sensitive medical details beyond what you choose to share.'],
+     ['Payment','Prefer on-platform checkout for records. Off-platform payment increases risk if a dispute arises.']]],
+  ['herbal-tea-rituals','Herbal Tea Rituals for Daily Rhythm','Morning, afternoon, and evening tea practices with safety notes and shopping tips.','herbal tea ritual, evening tea wellness',11,
+    [['Rhythm over perfection','Tie tea to existing habits after waking, after lunch, or before screens off. Consistency beats elaborate ceremony you skip.'],
+     ['Safety','Herbs interact with medications. Pregnant people should verify each herb with a clinician. Limit very strong herbs until you know your response.'],
+     ['Sourcing','Buy from listings that name ingredients clearly. Avoid mystery detox blends with medical claims.']]],
+  ['moon-aware-self-care','Moon-Aware Self-Care Without Pressure','Gentle ways to use lunar symbolism for reflection, not fortune telling or medical cycles.','moon self care, lunar journaling',9,
+    [['Symbol not mandate','Lunar calendars can structure journaling and rest. They do not replace medical cycle tracking when you need clinical accuracy.'],
+     ['Simple practices','New moon: set one intention. Full moon: release one unhelpful habit in writing. Keep it light.'],
+     ['Community','Seasonal banners on Hazel Allure are atmospheric entertainment and culture, not commands.']]],
+  ['seeker-safety-checklist','Seeker Safety Checklist','Boundaries, red flags, emergency plans, and how to use report tools on the platform.','spiritual safety, healer red flags',13,
+    [['Before you book','Screenshot listing claims. Note price and duration. Ask about touch consent and cancellation.'],
+     ['During','You may pause or end a session. You do not owe emotional labor to a practitioner who crosses lines.'],
+     ['After','If harmed, document, report on-platform, and contact local resources. For medical or legal emergencies, use emergency services.'],
+     ['Platform tools','Use report buttons, messaging history, and support.']]],
+  ['pro-member-value','Is Pro Membership Worth It for Seekers?','A transparent breakdown of Pro Member perks, when to upgrade, and how to cancel.','hazel allure pro member',10,
+    [['What free includes','Browse, book, shop apothecary goods, free remedy research topics, and basic account tools.'],
+     ['What Pro adds','Member discounts, favorites, loyalty, profile studio, Hearth thread starts, hot remedy monographs, Sanctum progress tools.'],
+     ['When to upgrade','If you book monthly, take courses, or use research heavily. Otherwise stay free.'],
+     ['Cancel anytime','Use Manage or cancel Pro in Account Settings via the Stripe portal. Perks revert; account remains.']]],
+  ['practitioner-first-listing','Practitioners: Your First Listing That Converts','How to write honest service listings, add media, and avoid disease claims.','write wellness listing, practitioner profile tips',14,
+    [['Headline and scope','Name the modality, session length, and who it is for. Avoid guaranteed outcomes.'],
+     ['Media','Add a calm video preview and clear photos of your real workspace.'],
+     ['Language compliance','Structure and function for products; no unauthorized drug claims. Include complementary care disclaimers.'],
+     ['Operations','Set pickup, shipping, or virtual delivery clearly. Respond to messages within your stated window.']]],
+  ['teaching-sanctum-start','Launch a Course in Teaching Sanctum','Outline, video hosting, pricing, and student care for Pro practitioners.','sell online course spiritual, teaching sanctum',12,
+    [['Curriculum sketch','Define 4 to 8 lessons with one skill each. Promise education, not miracles.'],
+     ['Video','Host on YouTube or Vimeo as supported. Keep audio clear.'],
+     ['Pricing','Consider dual free versus Pro member pricing if enabled. State refund policy.'],
+     ['Support','Set office hours expectations so students have a human response path.']]],
+  ['hearth-community-etiquette','The Hearth: Community Etiquette','How to post, support others, and keep gathering spaces safe.','wellness community etiquette',9,
+    [['Assume good intent, verify facts','Share experience, not medical orders. Point people to clinicians for symptoms.'],
+     ['No spam','Soft self-promo only where rules allow. No multi-level marketing.'],
+     ['Pro threads','Starting topics may require Pro Membership while replies still build connection on open threads.']]],
+  ['allergy-apothecary','Allergies and the Apothecary','How to navigate fragrance, botanicals, and sensitive skin when shopping ritual goods.','fragrance sensitivity, essential oil allergy',11,
+    [['Disclose and ask','Message sellers about nut carriers, lanolin, or strong scents. List allergens in preferences when available.'],
+     ['Patch test','New topicals on inner arm first. Stop at itch or swelling and seek care if breathing is affected.'],
+     ['Scent free options','Choose unscented candles, hydrosols, or visual ritual tools when needed.']]],
+  ['seasonal-sabbat-shopping','Seasonal and Sabbat Shopping Without Burnout','Plan apothecary purchases for seasonal celebrations with budget and shipping in mind.','sabbat shopping, seasonal ritual supplies',10,
+    [['Plan early','Popular handmade goods sell out. Order weeks ahead for major seasons.'],
+     ['Budget caps','Set a number before browsing. Intention is not measured in cart size.'],
+     ['Local pickup','If available, reduce shipping impact and support nearby practitioners.']]],
+  ['grief-and-ritual','Gentle Ritual Support in Grief','Non-clinical ideas for remembrance rituals and when to seek professional grief care.','grief ritual, memorial candle',12,
+    [['Keep it simple','Light a candle, say a name, drink water. That is enough.'],
+     ['Not therapy','If grief is immobilizing or includes self-harm thoughts, contact licensed care or crisis lines immediately.'],
+     ['Community','Memorial posts on The Hearth should respect privacy of the deceased and family.']]],
+  ['boundaries-with-practitioners','Boundaries With Practitioners','Scripts for saying no, ending sessions early, and declining upsells.','client boundaries healing session',10,
+    [['Scripts','I need to pause. I am not buying packages today. Please keep this educational, not diagnostic.'],
+     ['Upsells','Checkout blessings are optional. You never owe an add-on to be a good client.'],
+     ['Reports','Document pressure tactics and report if policies are broken.']]],
+  ['checkout-blessings-guide','Checkout Blessings and Ritual Add-ons Explained','How optional blessings, charms, and mini readings work at checkout for seekers and Pro practitioners.','checkout blessing, ritual add on',9,
+    [['For seekers','Add-ons are optional extras such as a protection blessing, intention setting, or sample sachet. They are not medical treatment. Decline freely.'],
+     ['For practitioners','Pro practitioners configure add-ons in Storefront Editor. Use clear names, prices, and short descriptions without disease claims.'],
+     ['Refunds','Treat add-ons like other order items per your refund policy. Communicate if ritual timing needs to be scheduled after shipping.']]],
+];
+
+for (const row of extra) add(...row);
+
+fs.writeFileSync('src/lib/seoLiteratureHazelData.json', JSON.stringify(articles, null, 0));
+console.log('wrote', articles.length, 'articles');

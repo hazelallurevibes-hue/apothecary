@@ -92,6 +92,15 @@ export const PRO_MEMBER_BENEFIT_CARDS = [
     tier: 'signature',
   },
   {
+    id: 'remedies',
+    icon: '🌿',
+    titleKey: 'pro.hub.member.remedies.title',
+    descKey: 'pro.hub.member.remedies.desc',
+    ctaKey: 'pro.hub.open',
+    to: '/remedies',
+    tier: 'signature',
+  },
+  {
     id: 'support',
     icon: '🛟',
     titleKey: 'pro.hub.member.support.title',

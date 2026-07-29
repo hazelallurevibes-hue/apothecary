@@ -22,7 +22,7 @@ export const VENDOR_PERMISSIONS = {
   permit_verify: { label: 'Permit upload', description: 'Upload business, wellness, or product permits (paid)' },
   pickup_qr: { label: 'Pickup QR', description: 'Scan-to-confirm pickup handoff (paid)' },
   highlight_photo: { label: 'Highlight photo', description: 'Hero image on storefront (paid)' },
-  checkout_upsells: { label: 'Checkout upsells', description: 'Offer drinks & sides at checkout (paid)' },
+  checkout_upsells: { label: 'Checkout blessings & add-ons', description: 'Offer blessings, charms, mini readings at checkout (Pro)' },
   international_storefront: { label: 'International storefronts', description: 'Amazon, eBay, WooCommerce links & shipping rules (paid)' },
   customer_insights: { label: 'Customer likes & dislikes', description: 'Anonymous regional preference trends (paid)' },
   member_discounts: { label: 'Member discounts', description: 'Auto discounts for Pro & free seekers at checkout (paid)' },

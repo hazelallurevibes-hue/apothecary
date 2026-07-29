@@ -65,7 +65,7 @@ export async function addVendorEmployee({ vendorId, email, permissions, plan }) 
   if (activeCount >= limit) {
     throw new Error(
       limit === 1
-        ? 'Free plan allows only 1 employee. Upgrade to Paid for unlimited staff.'
+        ? 'Free plan allows only 1 employee. Upgrade to Pro Practitioner for more staff seats.'
         : `Employee limit reached (${limit}).`
     );
   }
@@ -88,7 +88,20 @@ export async function addVendorEmployee({ vendorId, email, permissions, plan }) 
     .select()
     .single();
 
-  if (error) throw new Error(error.message || 'Could not add employee');
+  if (error) {
+    const msg = error.message || 'Could not add employee';
+    if (/relation|does not exist|42P01|vendor_employee/i.test(msg)) {
+      throw new Error(
+        'Staff table is not set up on this database yet. Ask an admin to run frontend/sql/ENSURE_VENDOR_EMPLOYEES.sql in Supabase, then try again.',
+      );
+    }
+    if (/permission|policy|rls|row-level/i.test(msg)) {
+      throw new Error(
+        'Could not add employee — permission denied. Confirm you own this storefront and RLS policies are applied (ENSURE_VENDOR_EMPLOYEES.sql).',
+      );
+    }
+    throw new Error(msg);
+  }
   return data;
 }
 

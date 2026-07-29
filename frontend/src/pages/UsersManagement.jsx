@@ -304,10 +304,27 @@ export default function AdminPortal({ user, onLogout }) {
             { key: 'automation', label: `${ADMIN_TABS.automation.icon} ${ADMIN_TABS.automation.label}` },
             { key: 'users', label: `${ADMIN_TABS.users.icon} ${ADMIN_TABS.users.label}` },
             { key: 'vendors', label: `${ADMIN_TABS.vendors.icon} ${ADMIN_TABS.vendors.label}` },
-            { key: 'verification', label: `${ADMIN_TABS.verification.icon}${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0) ? ` (${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)})` : ''}` },
+            {
+              key: 'verification',
+              label: `${ADMIN_TABS.verification.icon} ${ADMIN_TABS.verification.label}${
+                (pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)
+                  ? ` (${(pendingVerifications.identity?.length || 0) + (pendingVerifications.permits?.length || 0)})`
+                  : ''
+              }`,
+            },
             ...(ADMIN_TABS.advertising ? [{ key: 'advertising', label: `${ADMIN_TABS.advertising.icon} ${ADMIN_TABS.advertising.label}` }] : []),
-            { key: 'campaigns', label: `${ADMIN_TABS.campaigns.icon}${pendingCampaigns.length ? ` (${pendingCampaigns.length})` : ''}` },
-            { key: 'compliance', label: `${ADMIN_TABS.compliance.icon}${listingReports.length ? ` (${listingReports.length})` : ''}` },
+            {
+              key: 'campaigns',
+              label: `${ADMIN_TABS.campaigns.icon} ${ADMIN_TABS.campaigns.label}${
+                pendingCampaigns.length ? ` (${pendingCampaigns.length})` : ''
+              }`,
+            },
+            {
+              key: 'compliance',
+              label: `${ADMIN_TABS.compliance.icon} ${ADMIN_TABS.compliance.label}${
+                listingReports.length ? ` (${listingReports.length})` : ''
+              }`,
+            },
             { key: 'orders', label: `${ADMIN_TABS.orders.icon} ${ADMIN_TABS.orders.label}` },
             { key: 'content', label: `${ADMIN_TABS.content.icon} ${ADMIN_TABS.content.label}` },
             { key: 'magic', label: `${ADMIN_TABS.magic.icon} ${ADMIN_TABS.magic.label}` },

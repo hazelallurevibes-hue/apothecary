@@ -4,18 +4,18 @@ import { getCustomerContext, getVendorContext, isCustomerPro, isProPlan, isVendo
 import ProMemberActiveStrip from './ProMemberActiveStrip';
 import ProVendorActiveStrip from './ProVendorActiveStrip';
 
-const CUSTOMER_BENEFIT_KEYS = [
-  'pro.benefit.discounts',
-  'pro.benefit.courses',
-  'pro.benefit.loyalty',
-  'pro.benefit.express',
+const CUSTOMER_BENEFITS = [
+  { key: 'pro.benefit.discounts', to: '/pro-upgrade?type=customer&from=discounts' },
+  { key: 'pro.benefit.courses', to: '/courses' },
+  { key: 'pro.benefit.loyalty', to: '/pro-upgrade?type=customer&from=loyalty' },
+  { key: 'pro.benefit.express', to: '/pro-upgrade?type=customer&from=express' },
 ];
 
-const VENDOR_BENEFIT_KEYS = [
-  'pro.benefit.listings',
-  'pro.benefit.teaching',
-  'pro.benefit.campaigns',
-  'pro.benefit.analytics',
+const VENDOR_BENEFITS = [
+  { key: 'pro.benefit.listings', to: '/pro-upgrade?type=vendor&from=listings' },
+  { key: 'pro.benefit.teaching', to: '/pro-upgrade?type=vendor&from=teaching' },
+  { key: 'pro.benefit.campaigns', to: '/pro-upgrade?type=vendor&from=campaigns' },
+  { key: 'pro.benefit.analytics', to: '/pro-upgrade?type=vendor&from=analytics' },
 ];
 
 export default function ProBenefitsStrip({ user, variant = 'auto', compact = false }) {
@@ -42,7 +42,7 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
     return <ProVendorActiveStrip compact={compact} />;
   }
 
-  const benefitKeys = planType === 'vendor' ? VENDOR_BENEFIT_KEYS : CUSTOMER_BENEFIT_KEYS;
+  const benefits = planType === 'vendor' ? VENDOR_BENEFITS : CUSTOMER_BENEFITS;
   const upgradePath = `/pro-upgrade?type=${planType}`;
   const title = planType === 'vendor' ? t('pro.strip.vendorTitle') : t('pro.strip.memberTitle');
   const subtitle = planType === 'vendor' ? t('pro.strip.vendorSubtitle') : t('pro.strip.memberSubtitle');
@@ -51,21 +51,21 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
 
   if (compact) {
     return (
-      <div className="mt-4 mb-2 rounded-2xl border border-[#c9a227]/30 bg-gradient-to-r from-[#4a1942]/5 to-[#f5f0e8] p-4">
+      <Link
+        to={upgradePath}
+        className="mt-4 mb-2 block rounded-2xl border border-[#c9a227]/30 bg-gradient-to-r from-[#4a1942]/5 to-[#f5f0e8] p-4 hover:shadow-md transition"
+      >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-[#4a1942]">{title}</p>
             <p className="text-sm text-gray-600 mt-0.5">{subtitle}</p>
           </div>
-          <Link
-            to={upgradePath}
-            className="shrink-0 px-4 py-2 bg-[#4a1942] text-white rounded-xl text-sm font-medium hover:opacity-95"
-          >
+          <span className="shrink-0 px-4 py-2 bg-[#4a1942] text-white rounded-xl text-sm font-medium">
             {cta}
-          </Link>
+          </span>
         </div>
         <p className="text-[10px] text-gray-500 mt-2">{t('pro.socialProof')}</p>
-      </div>
+      </Link>
     );
   }
 
@@ -91,15 +91,17 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
         </div>
       </div>
       <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {benefitKeys.map((key) => (
-          <li
-            key={key}
-            className="flex items-start gap-2 text-sm text-gray-700 bg-white/80 border border-[#4a1942]/10 rounded-2xl px-3 py-2.5"
-          >
-            <span className="text-emerald-600 shrink-0" aria-hidden>
-              ✓
-            </span>
-            <span>{t(key)}</span>
+        {benefits.map((b) => (
+          <li key={b.key}>
+            <Link
+              to={b.to}
+              className="flex items-start gap-2 text-sm text-gray-700 bg-white/80 border border-[#4a1942]/10 rounded-2xl px-3 py-2.5 hover:border-[#c9a227]/40 hover:shadow-sm transition h-full"
+            >
+              <span className="text-emerald-600 shrink-0" aria-hidden>
+                ✓
+              </span>
+              <span>{t(b.key)}</span>
+            </Link>
           </li>
         ))}
       </ul>

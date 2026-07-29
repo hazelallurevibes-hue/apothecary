@@ -50,7 +50,7 @@ export function createEmptyUpsell() {
     id: `upsell_${Date.now()}`,
     name: '',
     price: '',
-    category: 'drink',
+    category: 'blessing',
     description: '',
   };
 }

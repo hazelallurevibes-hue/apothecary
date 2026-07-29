@@ -71,11 +71,18 @@ export default function VendorNearbySearch({ vendors = [], loading = false, onNe
         setUserCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocating(false);
       },
-      () => {
-        setLocError('Could not get your location. Allow location access or search by city / postal code.');
+      (err) => {
+        const code = err?.code;
+        if (code === 1) {
+          setLocError('Location permission denied. Allow location for this site in browser settings, or type a city / postal code below.');
+        } else if (code === 3) {
+          setLocError('Location timed out. Try again, or search by city / postal code.');
+        } else {
+          setLocError('Could not get your location. Allow location access or search by city / postal code.');
+        }
         setLocating(false);
       },
-      { enableHighAccuracy: false, timeout: 12000, maximumAge: 300000 },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 60000 },
     );
   };
 

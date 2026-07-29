@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   addVendorEmployee,
   availablePermissionsForVendorPlan,
@@ -91,9 +92,13 @@ export default function EmployeeManagement({ user, vendorId, plan }) {
             <span className="font-medium">{planBadgeLabel(plan, 'vendor')}</span> — {activeCount}/{limit === 50 ? '∞' : limit} seat{limit !== 1 ? 's' : ''} used.
           </p>
         </div>
-        {plan === 'free' && (
+        {(plan === 'free' || !plan || plan === 'basic') && (
           <div className="text-xs bg-amber-50 border border-amber-200 text-amber-800 px-3 py-2 rounded-2xl">
-            Free plan: 1 employee max. Upgrade to Paid for full staff access.
+            Free plan: 1 employee seat.{" "}
+            <Link to="/pro-upgrade?type=vendor&from=employees" className="font-semibold underline">
+              Upgrade to Pro
+            </Link>{" "}
+            for more staff seats. If add fails with a missing table error, run ENSURE_VENDOR_EMPLOYEES.sql in Supabase.
           </div>
         )}
       </div>

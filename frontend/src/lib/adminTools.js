@@ -9,7 +9,7 @@ export const ADMIN_TABS = {
   overview: { key: 'overview', label: 'Overview', icon: '📊', path: '/users?tab=overview' },
   users: { key: 'users', label: 'Users', icon: '👥', path: '/users?tab=users' },
   vendors: { key: 'vendors', label: vendorPlural, icon: verticalFeature('farmersMarketMode') ? '🌾' : '🔮', path: '/users?tab=vendors' },
-  verification: { key: 'verification', label: 'ID & Permits', icon: '🪪', path: '/users?tab=verification' },
+  verification: { key: 'verification', label: 'ID, Permits & Licenses', icon: '🪪', path: '/users?tab=verification' },
   automation: { key: 'automation', label: 'Automation', icon: '⚡', path: '/users?tab=automation' },
   campaigns: { key: 'campaigns', label: 'Campaigns', icon: '📧', path: '/users?tab=campaigns' },
   ...(verticalFeature('adReinvestment')

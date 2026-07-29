@@ -137,22 +137,32 @@ export default function AccountSettings({ user, onProfileUpdate }) {
   const vendorCtx = getVendorContext(user);
   const role = (user?.role || '').toLowerCase();
 
+  const [twoFABusy, setTwoFABusy] = useState(false);
+
   const setup2FA = async () => {
-    if (!user?.email) return;
+    if (!user?.email || twoFABusy) return;
     setStatus('');
+    setTwoFABusy(true);
     try {
       const data = await enrollTotp('Hazel Allure authenticator');
+      const qr = data.totp?.qr_code || '';
       setTwoFA({
         enabled: false,
         factorId: data.id,
-        qrCode: data.totp?.qr_code || '',
+        qrCode: qr,
         secret: data.totp?.secret || '',
         uri: data.totp?.uri || '',
         token: '',
       });
-      setStatus('Scan the QR code or copy the secret into your authenticator app, then enter the 6-digit code.');
+      setStatus(
+        qr
+          ? 'Scan the QR code (or enter the secret) in Google Authenticator / Authy, then enter the 6-digit code below.'
+          : 'Copy the secret into your authenticator app, then enter the 6-digit code below.',
+      );
     } catch (e) {
       setStatus(e.message || '2FA setup failed. Sign out and back in, then try again.');
+    } finally {
+      setTwoFABusy(false);
     }
   };
 
@@ -376,13 +386,18 @@ export default function AccountSettings({ user, onProfileUpdate }) {
                 }}
                 className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
               >
-                Manage billing
+                {billingLoading ? 'Opening…' : 'Manage / cancel Pro'}
               </button>
             </div>
           ) : (
             <Link to="/pro-upgrade?type=customer" className="text-sm px-4 py-2 bg-[#4a1942] text-white rounded-2xl font-medium">
               Be a Pro Member
             </Link>
+          )}
+          {isCustomerPro(user) && (
+            <p className="text-[11px] text-gray-500 w-full mt-2">
+              Cancel anytime in Stripe. When Pro ends, hot remedy monographs and paid seeker perks revert to free limits — your account and orders stay.
+            </p>
           )}
           {!isCustomerPro(user) && !customerCtx.canRate && (
             <div className="text-xs bg-amber-50 text-amber-800 px-3 py-2 rounded-2xl w-full sm:w-auto">
@@ -433,7 +448,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
                   }}
                   className="text-sm px-4 py-2 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
                 >
-                  Manage billing
+                  {billingLoading ? 'Opening…' : 'Manage / cancel Pro'}
                 </button>
               </div>
             ) : (
@@ -442,9 +457,26 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               </Link>
             )}
           </div>
-          <Link to={STOREFRONT_SETTINGS_PATH} className="inline-block mt-3 text-sm text-[#4a1942] font-medium hover:underline">
-            Edit storefront logo &amp; photos →
-          </Link>
+          {isVendorPro(user) && (
+            <p className="text-[11px] text-gray-500 mt-2">
+              Cancel anytime via Manage / cancel Pro (Stripe). When Pro ends, listing limits, Teaching Sanctum, campaigns, and other Pro-only tools revert to free — your storefront, listings, and orders remain.
+            </p>
+          )}
+          <div className="flex flex-wrap gap-3 mt-3">
+            <Link to={STOREFRONT_SETTINGS_PATH} className="text-sm text-[#4a1942] font-medium hover:underline">
+              Edit storefront →
+            </Link>
+            {vendorCtx?.vendorId && (
+              <a
+                href={`/vendor/${vendorCtx.vendorId}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-[#4a1942] font-medium hover:underline"
+              >
+                Preview how seekers see your store ↗
+              </a>
+            )}
+          </div>
         </div>
       )}
 
@@ -598,34 +630,65 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         </div>
 
         {!twoFA.enabled && !twoFA.factorId && (
-          <button type="button" onClick={setup2FA} className="px-8 py-3 bg-black text-white rounded-3xl font-semibold">
-            Set Up 2FA
+          <button
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setup2FA();
+            }}
+            disabled={twoFABusy}
+            className="px-8 py-3 bg-black text-white rounded-3xl font-semibold disabled:opacity-60"
+          >
+            {twoFABusy ? 'Starting…' : 'Set Up 2FA'}
           </button>
         )}
 
         {!twoFA.enabled && twoFA.factorId && (
-          <div className="mt-4 p-4 bg-gray-50 border rounded-2xl text-sm">
+          <div className="mt-4 p-4 bg-gray-50 border rounded-2xl text-sm space-y-2">
             <div className="font-medium">1. Scan this QR code in your authenticator app:</div>
             {twoFA.qrCode && (
-              <img src={twoFA.qrCode} alt="2FA QR code" className="mt-2 w-40 h-40 rounded-xl border bg-white" />
+              <img
+                src={twoFA.qrCode}
+                alt="2FA QR code"
+                className="mt-2 w-44 h-44 rounded-xl border bg-white p-1"
+              />
             )}
             {twoFA.secret && (
-              <p className="mt-2 text-xs text-gray-600">
-                Or enter secret manually: <code className="bg-white px-1 py-0.5 rounded border">{twoFA.secret}</code>
+              <p className="mt-2 text-xs text-gray-600 break-all">
+                Or enter secret manually:{' '}
+                <code className="bg-white px-1 py-0.5 rounded border select-all">{twoFA.secret}</code>
               </p>
             )}
-            <div className="mt-3">2. Enter the 6-digit code:</div>
-            <input
-              value={twoFA.token}
-              onChange={(e) => setTwoFA({ ...twoFA, token: e.target.value.replace(/\D/g, '') })}
-              maxLength={6}
-              inputMode="numeric"
-              className="mt-1 w-40 border p-3 font-mono rounded-2xl tracking-[6px]"
-              placeholder="123456"
-            />
-            <button type="button" onClick={verify2FA} className="ml-3 px-6 py-3 bg-emerald-700 text-white rounded-3xl text-sm">
-              Verify &amp; Enable
-            </button>
+            <div className="mt-3 font-medium">2. Enter the 6-digit code from the app:</div>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                value={twoFA.token}
+                onChange={(e) => setTwoFA({ ...twoFA, token: e.target.value.replace(/\D/g, '') })}
+                maxLength={6}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                className="w-40 border p-3 font-mono rounded-2xl tracking-[6px]"
+                placeholder="123456"
+              />
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  verify2FA();
+                }}
+                className="px-6 py-3 bg-emerald-700 text-white rounded-3xl text-sm font-semibold"
+              >
+                Verify &amp; Enable
+              </button>
+              <button
+                type="button"
+                onClick={() => setTwoFA({ enabled: false, factorId: '', qrCode: '', secret: '', uri: '', token: '' })}
+                className="text-xs text-gray-500 underline"
+              >
+                Cancel setup
+              </button>
+            </div>
           </div>
         )}
 

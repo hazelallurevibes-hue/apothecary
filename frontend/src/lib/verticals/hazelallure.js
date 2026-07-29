@@ -135,7 +135,7 @@ export const HAZELALLURE_VERTICAL = {
       'International storefront links & shipping rules',
       'Email campaigns, banners & elegant theme',
       'Revenue analytics — reinvest into advertising',
-      'Checkout upsells & full team tools',
+      'Checkout blessings & ritual add-ons + full team tools',
       'Upload credentials & issue digital student honors',
       'Practitioner lounge — peer threads & Sanctum craft',
     ],

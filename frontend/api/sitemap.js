@@ -27,7 +27,27 @@ const STATIC_ENTRIES = [
 const VERTICAL_ID = (process.env.VITE_VERTICAL_ID || 'hazelallure').toLowerCase();
 const LITERATURE_SLUGS = {
   bpicius: ['farm-to-table', 'food-safety-home-kitchen', 'sell-at-farmers-markets', 'local-food-worldwide'],
-  hazelallure: ['holistic-wellness-basics', 'natural-apothecary-guide', 'worldwide-wellness-traditions'],
+  hazelallure: [
+    'holistic-wellness-basics',
+    'natural-apothecary-guide',
+    'worldwide-wellness-traditions',
+    'essential-oils-safety',
+    'crystal-care-ethics',
+    'first-ritual-kit',
+    'booking-online-sessions',
+    'herbal-tea-rituals',
+    'moon-aware-self-care',
+    'seeker-safety-checklist',
+    'pro-member-value',
+    'practitioner-first-listing',
+    'teaching-sanctum-start',
+    'hearth-community-etiquette',
+    'allergy-apothecary',
+    'seasonal-sabbat-shopping',
+    'grief-and-ritual',
+    'boundaries-with-practitioners',
+    'checkout-blessings-guide',
+  ],
 };
 
 /** Remedy catalog slugs for SEO indexing (educational monographs). */

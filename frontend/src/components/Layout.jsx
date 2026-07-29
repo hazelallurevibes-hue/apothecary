@@ -437,9 +437,9 @@ export default function Layout({ user, onLogout, children }) {
             <Link to="/contact">{t('footer.contact')}</Link>
             <Link to="/faq">{t('footer.faq')}</Link>
             {verticalFeature('seoLiterature') && (
-              <Link to="/learn">Guides</Link>
+              <Link to="/learn">{t('footer.guides')}</Link>
             )}
-            <Link to="/remedies">Remedies research</Link>
+            <Link to="/remedies">{t('footer.remedies')}</Link>
             <Link to="/sitemap">Site Map</Link>
             <a href={blogUrl('/alluring-news')} target="_blank" rel="noopener noreferrer">Alluring News</a>
             <Link to="/agreements">{t('footer.terms')}</Link>

@@ -38,6 +38,7 @@ export default function StorefrontSettings({ user }) {
   const plan = ctx?.plan || 'free';
   const isPaid = isProPlan(plan);
   const isProPractitioner = isVendorPro(user);
+  const storefrontPreviewUrl = vendorId ? `/vendor/${vendorId}` : null;
 
   const [vendor, setVendor] = useState(null);
   const [banners, setBanners] = useState([]);
@@ -212,10 +213,50 @@ export default function StorefrontSettings({ user }) {
 
   return (
     <div>
-      <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
+      <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-2">Storefront Editor</h1>
           <p className="text-gray-600">
+            Design your public practice — then preview exactly what seekers see.
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {storefrontPreviewUrl && (
+            <a
+              href={storefrontPreviewUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-4 py-2 rounded-2xl bg-[#4a1942] text-white text-sm font-semibold hover:bg-[#3d1536]"
+            >
+              Preview storefront ↗
+            </a>
+          )}
+          <Link to="/vendor-dashboard" className="px-4 py-2 rounded-2xl border text-sm font-medium text-[#4a1942]">
+            Dashboard
+          </Link>
+        </div>
+      </div>
+
+      {storefrontPreviewUrl && (
+        <div className="mb-8 rounded-3xl border border-[#4a1942]/15 overflow-hidden bg-white shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 bg-[#faf7f9] border-b text-xs text-gray-600">
+            <span className="font-medium text-[#4a1942]">Live storefront viewer</span>
+            <a href={storefrontPreviewUrl} target="_blank" rel="noopener noreferrer" className="underline">
+              Open full page
+            </a>
+          </div>
+          <iframe
+            title="Storefront preview"
+            src={storefrontPreviewUrl}
+            className="w-full h-[420px] bg-white"
+            loading="lazy"
+          />
+        </div>
+      )}
+
+      <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
+        <div>
+          <p className="text-gray-600 text-sm">
             Public profile for{' '}
             <Link to={`/vendor/${vendorId}`} className="font-medium" style={{ color: accent }}>
               your storefront page
@@ -593,14 +634,25 @@ export default function StorefrontSettings({ user }) {
       </div>
 
       <div className="mt-8 bg-white border rounded-3xl p-8 space-y-6">
-        <h2 className="font-semibold text-lg">Checkout upsells</h2>
-        {vendorCan(user, 'checkout_upsells') && isPaid ? (
-          <CheckoutUpsellsEditor value={checkoutUpsells} onChange={setCheckoutUpsells} disabled={saving} />
-        ) : (
-          <p className="text-sm text-gray-600">
-            Paid vendors can offer drinks and sides at checkout — e.g. lemonade, fries — to increase order value.
-          </p>
-        )}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="font-semibold text-lg">Checkout blessings &amp; add-ons</h2>
+          {vendor?.id && (
+            <a
+              href={`/vendor/${vendor.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#4a1942]/30 text-[#4a1942] hover:bg-[#faf7f9]"
+            >
+              Preview storefront ↗
+            </a>
+          )}
+        </div>
+        <CheckoutUpsellsEditor
+          value={checkoutUpsells}
+          onChange={setCheckoutUpsells}
+          disabled={saving || !(vendorCan(user, 'checkout_upsells') && isPaid)}
+          isPro={vendorCan(user, 'checkout_upsells') && isPaid}
+        />
       </div>
 
       <div className="mt-8 bg-white border rounded-3xl p-8 space-y-6">
