@@ -28,6 +28,11 @@ import { WELLNESS_MARKET_FILTERS } from '../lib/wellnessPreferences';
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 import VendorNearbySearch from '../components/VendorNearbySearch';
 import { fetchVendorsWithRatings } from '../lib/reviewsApi';
+import ShopByConcern from '../components/ShopByConcern';
+import ProductKitsStrip from '../components/ProductKitsStrip';
+import ReferralInviteStrip from '../components/ReferralInviteStrip';
+import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
+import RestockAlertCard from '../components/RestockAlertCard';
 
 export default function ApothecaryMarket({ user }) {
   const { requireVerification } = useProviderInteractionGate(user);
@@ -50,6 +55,19 @@ export default function ApothecaryMarket({ user }) {
   const [nearbyVendorIds, setNearbyVendorIds] = useState(null);
   const [profileAllergens, setProfileAllergens] = useState([]);
   const navigate = useNavigate();
+
+  // Deep-link ?q= and ?category= from shop-by-concern / kits
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get('q');
+      const cat = params.get('category');
+      if (q) setSearch(q);
+      if (cat) setCategoryFilter(cat);
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     if (!user?.email) {
@@ -217,6 +235,12 @@ export default function ApothecaryMarket({ user }) {
         onNearbyVendors={(ids) => setNearbyVendorIds(ids?.length ? ids : null)}
         searchQuery={search}
       />
+
+      <ShopByConcern />
+      <ProductKitsStrip />
+      <SubscribeSaveStrip user={user} className="mb-6" />
+      <RestockAlertCard className="mb-6" />
+      <ReferralInviteStrip className="mb-8" />
 
       <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
         <div>

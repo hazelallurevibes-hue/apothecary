@@ -41,18 +41,18 @@ export default function ProUpgrade({ user }) {
   const resolveVendorIdForCheckout = async () => {
     let vid = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
     if (vid) return Number(vid);
-    // Heal missing vendor_id on the user profile
+    // Heal missing vendor_id — vendors link by email (no vendors.user_id column)
     try {
       const { supabase } = await import('../lib/supabaseClient');
       const email = user.email?.trim().toLowerCase();
       if (!email) return null;
-      const { data } = await supabase
+      const { data: rows } = await supabase
         .from('vendors')
         .select('id')
         .ilike('email', email)
         .order('id', { ascending: true })
-        .limit(1)
-        .maybeSingle();
+        .limit(1);
+      const data = rows?.[0];
       if (data?.id) {
         await supabase.from('users').update({ vendor_id: data.id }).ilike('email', email);
         return Number(data.id);

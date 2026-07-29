@@ -89,35 +89,41 @@ Deno.serve(async (req: Request) => {
         }, 403);
       }
 
-      // Prefer explicit body id, then users.vendor_id, then lookup by email / user_id
-      const bodyVid = body.vendor_id ? Number(body.vendor_id) : null;
-      vendorId = bodyVid || userRow.vendor_id || null;
+      // Prefer body.vendor_id, then users.vendor_id, then vendors.email match
+      // (schema uses email + users.vendor_id — there is no vendors.user_id column)
+      const bodyVid = body.vendor_id ? Number(body.vendor_id) : NaN;
+      vendorId = Number.isFinite(bodyVid) && bodyVid > 0
+        ? bodyVid
+        : (userRow.vendor_id ? Number(userRow.vendor_id) : null);
 
       if (!vendorId) {
-        const { data: byEmail } = await supabase
+        const { data: byEmail, error: emailErr } = await supabase
           .from("vendors")
-          .select("id, plan, email, user_id")
+          .select("id, plan, email")
           .ilike("email", verifiedEmail)
           .order("id", { ascending: true })
-          .limit(1);
-        if (byEmail?.[0]?.id) vendorId = byEmail[0].id;
+          .limit(5);
+        if (emailErr) {
+          return jsonResponse({ ok: false, error: `Vendor lookup failed: ${emailErr.message}` }, 500);
+        }
+        if (byEmail?.[0]?.id) vendorId = Number(byEmail[0].id);
       }
 
-      if (!vendorId && userRow.id) {
-        const { data: byUser } = await supabase
+      // Also try matching vendor name/email from approved applications loosely
+      if (!vendorId) {
+        const { data: allMine } = await supabase
           .from("vendors")
-          .select("id, plan")
-          .eq("user_id", userRow.id)
-          .order("id", { ascending: true })
+          .select("id, plan, email, status")
+          .or(`email.ilike.${verifiedEmail}`)
           .limit(1);
-        if (byUser?.[0]?.id) vendorId = byUser[0].id;
+        if (allMine?.[0]?.id) vendorId = Number(allMine[0].id);
       }
 
       if (!vendorId) {
         return jsonResponse({
           ok: false,
           error:
-            "No vendor storefront linked to this account. Finish practitioner signup / approval so a storefront exists, then try Pro again.",
+            "No storefront linked to this account. Open Vendor Dashboard once after approval (so your shop profile exists), then try Go Pro again. If still stuck, contact support with your login email.",
         }, 400);
       }
 
@@ -126,20 +132,24 @@ Deno.serve(async (req: Request) => {
         await supabase.from("users").update({ vendor_id: vendorId }).eq("id", userRow.id);
       }
 
-      const { data: vendor } = await supabase
+      const { data: vendor, error: vendorErr } = await supabase
         .from("vendors")
-        .select("id, plan")
+        .select("id, plan, email, status")
         .eq("id", vendorId)
         .maybeSingle();
 
+      if (vendorErr) {
+        return jsonResponse({ ok: false, error: `Vendor load failed: ${vendorErr.message}` }, 500);
+      }
       if (!vendor) {
         return jsonResponse({
           ok: false,
           error:
-            "Vendor storefront record not found. Contact support or re-apply as a practitioner so your shop profile is created.",
+            "Storefront record not found for this account. Re-open Vendor Dashboard or contact support so your shop row can be re-linked.",
         }, 404);
       }
-      if ((vendor.plan || "free") === "paid" || (vendor.plan || "").toLowerCase() === "pro") {
+      const plan = String(vendor.plan || "free").toLowerCase();
+      if (plan === "paid" || plan === "pro") {
         return jsonResponse({ ok: false, error: "already_pro", message: "You already have Pro Vendor access" }, 409);
       }
     } else {
@@ -153,43 +163,75 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const stripe = stripeClient();
-    const siteUrl = await resolveSiteUrl(supabase);
-    const priceId = priceIdForPlan(settings, planType, billingInterval);
-    const customerId = await getOrCreateStripeCustomer(stripe, supabase, {
-      email: verifiedEmail,
-      userId: userRow.id,
-      name: userRow.name,
-    });
+    let stripe;
+    let priceId: string;
+    let siteUrl: string;
+    try {
+      stripe = stripeClient();
+      siteUrl = await resolveSiteUrl(supabase);
+      priceId = priceIdForPlan(settings, planType, billingInterval);
+    } catch (cfgErr) {
+      return jsonResponse({
+        ok: false,
+        error: String(cfgErr?.message || cfgErr),
+      }, 500);
+    }
 
-    const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      customer: customerId,
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${siteUrl}/pro/success?type=${planType}&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl}/pro/cancel?type=${planType}`,
-      allow_promotion_codes: true,
-      billing_address_collection: "auto",
-      customer_update: { address: "auto", name: "auto" },
-      metadata: {
-        plan_type: planType,
-        billing_interval: billingInterval,
-        user_id: String(userRow.id),
-        vendor_id: vendorId ? String(vendorId) : "",
+    let customerId: string;
+    try {
+      customerId = await getOrCreateStripeCustomer(stripe, supabase, {
         email: verifiedEmail,
-      },
-      subscription_data: {
+        userId: userRow.id,
+        name: userRow.name,
+      });
+    } catch (custErr) {
+      return jsonResponse({
+        ok: false,
+        error: `Stripe customer error: ${String(custErr?.message || custErr)}`,
+      }, 500);
+    }
+
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: "subscription",
+        customer: customerId,
+        line_items: [{ price: priceId, quantity: 1 }],
+        success_url: `${siteUrl}/pro/success?type=${planType}&session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${siteUrl}/pro/cancel?type=${planType}`,
+        allow_promotion_codes: true,
+        billing_address_collection: "auto",
+        customer_update: { address: "auto", name: "auto" },
         metadata: {
           plan_type: planType,
           billing_interval: billingInterval,
           user_id: String(userRow.id),
           vendor_id: vendorId ? String(vendorId) : "",
+          email: verifiedEmail,
         },
-      },
-    });
+        subscription_data: {
+          metadata: {
+            plan_type: planType,
+            billing_interval: billingInterval,
+            user_id: String(userRow.id),
+            vendor_id: vendorId ? String(vendorId) : "",
+          },
+        },
+      });
 
-    return jsonResponse({ ok: true, url: session.url, session_id: session.id });
+      if (!session?.url) {
+        return jsonResponse({ ok: false, error: "Stripe did not return a checkout URL" }, 500);
+      }
+      return jsonResponse({ ok: true, url: session.url, session_id: session.id });
+    } catch (stripeErr) {
+      const msg = String(stripeErr?.message || stripeErr);
+      return jsonResponse({
+        ok: false,
+        error: msg.includes("No such price")
+          ? "Stripe price ID is invalid. Check Admin → Pro Payments price IDs match your Stripe mode (test vs live)."
+          : `Stripe checkout error: ${msg}`,
+      }, 500);
+    }
   } catch (e) {
-    return jsonResponse({ ok: false, error: String(e) }, 500);
+    return jsonResponse({ ok: false, error: String(e?.message || e) }, 500);
   }
 });

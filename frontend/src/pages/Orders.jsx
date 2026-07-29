@@ -8,6 +8,9 @@ import { getVendorContext, vendorCan } from '../lib/plans';
 import { CustomerPickupQR, VendorPickupScanner } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
 import CheckoutDeliveryPicker, { formatDeliverySuccessNote } from '../components/CheckoutDeliveryPicker';
+import ReorderPanel from '../components/ReorderPanel';
+import ReferralInviteStrip from '../components/ReferralInviteStrip';
+import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
 
 export default function Orders({ user }) {
   const [orders, setOrders] = useState([]);
@@ -96,6 +99,14 @@ export default function Orders({ user }) {
         <>
           <p className="text-gray-600 mb-4 -mt-4">Incoming orders for your storefront. Update status in the admin portal or mark fulfilled when complete.</p>
           {vendorCan(user, 'pickup_qr') && <VendorPickupScanner user={user} />}
+        </>
+      )}
+
+      {!isVendor && (
+        <>
+          <ReorderPanel orders={orders} />
+          <SubscribeSaveStrip user={user} className="mb-6" />
+          <ReferralInviteStrip className="mb-6" />
         </>
       )}
 

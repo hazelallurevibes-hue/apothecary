@@ -10,6 +10,11 @@ import FirstVisitorGlow from '../components/FirstVisitorGlow';
 import DailyOracleCard from '../components/DailyOracleCard';
 import TarotCollectionPanel from '../components/TarotCollectionPanel';
 import HomeOracleTeaser from '../components/HomeOracleTeaser';
+import ShopByConcern from '../components/ShopByConcern';
+import ProductKitsStrip from '../components/ProductKitsStrip';
+import ReferralInviteStrip from '../components/ReferralInviteStrip';
+import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
+import RestockAlertCard from '../components/RestockAlertCard';
 import { isDev } from '../lib/config';
 import { VERTICAL } from '../lib/vertical';
 
@@ -244,6 +249,12 @@ function CustomerHome({ user, liveStats }) {
       {user?.email && <TarotCollectionPanel user={user} compact className="mb-6" />}
 
       {user && <ProBenefitsStrip user={user} variant="auto" />}
+
+      <ShopByConcern />
+      <ProductKitsStrip />
+      <SubscribeSaveStrip user={user} className="mb-6" />
+      <RestockAlertCard className="mb-6" />
+      <ReferralInviteStrip className="mb-8" />
 
       <FeaturedPractitioners limit={3} />
 

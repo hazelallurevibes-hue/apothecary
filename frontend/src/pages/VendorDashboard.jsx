@@ -42,6 +42,9 @@ import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
 import AdvertisingAccountBadge from '../components/AdvertisingAccountBadge';
 import ThankYouComposer from '../components/ThankYouComposer';
+import SellerGrowthTips from '../components/SellerGrowthTips';
+import ShelfScoreCard from '../components/ShelfScoreCard';
+import VendorBoostStrip from '../components/VendorBoostStrip';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -110,6 +113,7 @@ export default function VendorDashboard({ user }) {
   const [editMenuId, setEditMenuId] = useState(null);
   const [editProduceId, setEditProduceId] = useState(null);
   const [vendorIdentityVerified, setVendorIdentityVerified] = useState(false);
+  const [storefrontVendor, setStorefrontVendor] = useState(null);
   const [requireIdBeforeListing, setRequireIdBeforeListing] = useState(true);
   const [launchSteps, setLaunchSteps] = useState({});
   /** Force amber verify banner when listing is blocked (banner may not show if check is still pending). */
@@ -178,10 +182,15 @@ export default function VendorDashboard({ user }) {
     if (!myVendorId) return;
     supabase
       .from('vendors')
-      .select('identity_verified')
+      .select(
+        'id, name, logo, highlight_photo, banner_images, bio, city, state, latitude, longitude, category, phone, email, identity_verified, plan, slogan, theme_color'
+      )
       .eq('id', Number(myVendorId))
       .maybeSingle()
-      .then(({ data }) => setVendorIdentityVerified(!!data?.identity_verified));
+      .then(({ data }) => {
+        setVendorIdentityVerified(!!data?.identity_verified);
+        if (data) setStorefrontVendor(data);
+      });
     fetchPlatformSettings().then((s) => {
       setRequireIdBeforeListing(s.require_id_before_listing === 'true');
     });
@@ -1000,6 +1009,16 @@ export default function VendorDashboard({ user }) {
         <ProVendorActiveStrip compact />
       ) : (
         <UpgradeBanner plan={vendorPlan} user={user} />
+      )}
+
+      <VendorBoostStrip isPro={isProPractitioner} />
+      <SellerGrowthTips isPro={isProPractitioner} />
+      {storefrontVendor && (
+        <ShelfScoreCard
+          vendor={storefrontVendor}
+          listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
+          className="mb-6"
+        />
       )}
 
       {nextIncompleteStep(launchSteps) && (
