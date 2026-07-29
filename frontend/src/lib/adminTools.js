@@ -91,8 +91,14 @@ export const AUTOMATION_SETTING_KEYS = [
   },
   {
     key: 'auto_approve_id_verification',
-    label: 'Auto-approve photo ID submissions',
-    desc: 'Trust ID uploads without manual review. Use only in trusted environments.',
+    label: 'Legacy: always auto-approve photo IDs',
+    desc: 'Force-approve every ID upload. Prefer Smart ID review below for safer automation.',
+    group: 'approvals',
+  },
+  {
+    key: 'smart_id_review',
+    label: 'Smart ID review (recommended)',
+    desc: 'Auto-approve complete clean submissions; flag incomplete or odd packages for admin. On by default.',
     group: 'approvals',
   },
   {
@@ -130,8 +136,8 @@ export const AUTOMATION_SETTING_KEYS = [
   },
   {
     key: 'require_id_before_listing',
-    label: 'Block first listing until ID is approved',
-    desc: `${vendorPlural} cannot post until admin approves their photo ID (not just submitted).`,
+    label: 'Require approved ID before *service* listings',
+    desc: `When on, session/service listings need approved ID. Product-only shops are never blocked by photo ID.`,
     group: 'verification',
   },
   {

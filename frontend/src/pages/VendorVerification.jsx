@@ -122,16 +122,29 @@ export default function VendorVerification({ user }) {
         legalName: requireLegalName ? legalName.trim() : null,
       });
       setIdentity(row);
-      if (row?.status === 'approved') {
-        await markOnboardingStep(vendorId, 'id_verification', true).catch(() => {});
+      const st = String(row?.status || '').toLowerCase();
+      if (st === 'approved') {
+        await markOnboardingStep(vendorId, 'id_verification', true, {
+          id_verification_status: 'approved',
+        }).catch(() => {});
         flashMessage(
-          '✓ Identity verified! You can post your first listing when other launch steps are complete.',
+          '✓ Identity auto-approved! Your launch checklist ID step is complete. Continue other steps and list products or services.',
+          'success',
+        );
+      } else if (st === 'flagged') {
+        await markOnboardingStep(vendorId, 'id_verification', true, {
+          id_verification_status: 'flagged',
+        }).catch(() => {});
+        flashMessage(
+          '✓ Submitted — smart review flagged a detail for admin (e.g. name format). Your checklist still counts this as done. No need to re-submit unless we ask.',
           'success',
         );
       } else {
-        await markOnboardingStep(vendorId, 'id_verification', false).catch(() => {});
+        await markOnboardingStep(vendorId, 'id_verification', true, {
+          id_verification_status: 'pending',
+        }).catch(() => {});
         flashMessage(
-          '✓ Got it — your ID was submitted for admin review. Status is now pending. You only need to submit once; we will email or update this page when approved.',
+          '✓ Got it — ID submitted for review. Checklist progress is saved while you wait. Product-only sellers can skip ID entirely via the launch checklist path.',
           'success',
         );
       }
@@ -149,9 +162,17 @@ export default function VendorVerification({ user }) {
     <div className="max-w-2xl">
       <h1 className="text-3xl font-bold mb-2">Practitioner verification</h1>
       <p className="text-gray-600 mb-6">
-        Photo ID builds seeker trust. Documents are admin-only and never shown publicly.
+        Photo ID is for sellers who offer <strong>sessions / services</strong>. Product-only apothecary shops can skip this
+        and finish the launch checklist with email + policies + first product. Documents are admin-only and never shown publicly.
         {requireLegalName ? ' Enter the name exactly as printed on your government-issued ID.' : ''}
       </p>
+      <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
+        <p className="font-semibold">Smart review</p>
+        <p className="text-xs mt-1 leading-relaxed">
+          Complete packages (front, selfie, legal name) can auto-approve. Soft issues are flagged for admin while your
+          checklist still counts the step as submitted. You do not need to click Submit repeatedly.
+        </p>
+      </div>
       {isVendorPro(user) ? (
         <ProVendorActiveStrip compact />
       ) : (

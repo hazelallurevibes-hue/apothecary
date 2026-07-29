@@ -129,6 +129,8 @@ export const HAZELALLURE_VERTICAL = {
       'Unlimited product & service listings (no free-tier caps)',
       'Product Subscribe & Save — shoppers auto-reorder via Stripe (rare for small makers)',
       'POS inventory board: stock counts, low-stock alerts, quick adjust',
+      'Personalized Pro dashboard studio (widgets, accent, focus mode, weekly snapshot)',
+      'Subscribe & Save pulse + featured product pin on your home panel',
       'Checkout blessings & ritual add-ons that raise average order value',
       'Email campaigns to people who already bought from you (warm list revenue)',
       'Teaching Sanctum courses with dual free/Pro student pricing',

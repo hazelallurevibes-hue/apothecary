@@ -47,6 +47,7 @@ import ShelfScoreCard from '../components/ShelfScoreCard';
 import VendorBoostStrip from '../components/VendorBoostStrip';
 import VendorPosInventory from '../components/VendorPosInventory';
 import VendorProWorthPanel from '../components/VendorProWorthPanel';
+import VendorDashboardStudio from '../components/VendorDashboardStudio';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -300,30 +301,63 @@ export default function VendorDashboard({ user }) {
     return false;
   };
 
-  const passesLaunchGate = async () => {
-    // Always enforce live email verification (fixes prior bypass when other listings existed)
+  /**
+   * listingKind: 'produce' (products) | 'menu' (services)
+   * Products never need photo ID. Services need ID submitted; approved only if platform requires it.
+   */
+  const passesLaunchGate = async (listingKind = 'produce') => {
     if (!(await ensureEmailVerifiedForListing())) return false;
 
     const hasListings = myMenu.length + myProduce.length > 0;
-    // After first live listing, still require email (done above) but skip other one-time steps
-    if (hasListings) return true;
+    if (hasListings && listingKind === 'produce') return true;
 
-    const blockers = ['safety_policies', 'id_verification'].filter((id) => !launchSteps[id]);
-    // Also block if checklist still marks email incomplete (belt + suspenders)
-    if (!launchSteps.verify_email) {
-      // live check already failed above if truly unverified; if checklist lags, force re-check UI
-      if (!(await checkEmailVerified(user))) return false;
+    const { getVendorSellBlockers } = await import('../lib/accountGates');
+    const { getSellerPath, isIdStepSatisfied, offersServices } = await import('../lib/onboardingApi');
+
+    if (!launchSteps.safety_policies) {
+      alert('Accept safety policies in the launch checklist before posting.');
+      return false;
     }
-
-    if (blockers.length) {
-      const step = VENDOR_ONBOARDING_STEPS.find((s) => s.id === blockers[0]);
-      const stepNum = VENDOR_ONBOARDING_STEPS.findIndex((s) => s.id === blockers[0]) + 1;
-      alert(`Complete launch checklist step ${stepNum} first: ${step?.label || blockers[0]}.`);
+    if (!getSellerPath(launchSteps)) {
+      alert('Choose Products only, Services, or Both in the launch checklist first.');
+      document.getElementById('seller-path')?.scrollIntoView({ behavior: 'smooth' });
       return false;
     }
 
-    if (requireIdBeforeListing && !vendorIdentityVerified) {
-      alert('Photo ID must be admin-approved before your first listing. Complete verification under ID Verification — pending review is not enough.');
+    if (listingKind === 'menu') {
+      // Services require ID path
+      if (!offersServices(launchSteps) && getSellerPath(launchSteps) === 'products') {
+        alert('Your path is Products only. Switch to Services or Both in the checklist to post sessions, or post an apothecary product instead.');
+        return false;
+      }
+      if (!isIdStepSatisfied(launchSteps) && !vendorIdentityVerified) {
+        alert('Submit photo ID before posting services (sessions). Product listings do not need ID.');
+        return false;
+      }
+      if (requireIdBeforeListing && !vendorIdentityVerified) {
+        // Platform still requires full approval for services
+        if (!['pending', 'flagged', 'approved'].includes(String(launchSteps.id_verification_status || ''))) {
+          alert('Photo ID must be submitted before service listings.');
+          return false;
+        }
+        // If require approved only — check setting interpretation: keep strict only when verified false AND not pending submitted
+        // User asked: pending should not block product path; for services allow pending unless requireIdBeforeListing means approved.
+        // We soften: pending/flagged allows service draft but warn
+        if (!vendorIdentityVerified && launchSteps.id_verification_status === 'needed') {
+          alert('Photo ID must be submitted before service listings.');
+          return false;
+        }
+      }
+    }
+
+    const blockers = getVendorSellBlockers(launchSteps, {
+      identityVerified: vendorIdentityVerified,
+      requireApprovedIdForServices: false,
+      listingKind,
+    });
+    if (blockers.length) {
+      const step = VENDOR_ONBOARDING_STEPS.find((s) => s.id === blockers[0]);
+      alert(`Complete launch checklist: ${step?.label || blockers[0]}.`);
       return false;
     }
     return true;
@@ -437,7 +471,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const requestAddMenuItem = async () => {
-    if (!(await passesLaunchGate())) return;
+    if (!(await passesLaunchGate('menu'))) return;
     if (!newItem.name || !newItem.price || !myVendorId) return;
     if (!editMenuId && listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
       alert(`Free plan limit: ${listingLimits.menu} wellness services. Upgrade to Paid for unlimited listings.`);
@@ -574,7 +608,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const requestAddProduceItem = async () => {
-    if (!(await passesLaunchGate())) return;
+    if (!(await passesLaunchGate('produce'))) return;
     if (!newProduce.name || !newProduce.price || !myVendorId) return;
     if (!editProduceId && listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
       alert(`Free plan limit: ${listingLimits.produce} apothecary listings. Upgrade to Paid for unlimited.`);
@@ -684,8 +718,8 @@ export default function VendorDashboard({ user }) {
   const handleQuickAddService = (payload) =>
     new Promise((resolve, reject) => {
       (async () => {
-        if (!(await passesLaunchGate())) {
-          reject(new Error('Complete your launch checklist before your first listing. If email is unverified, check the yellow banner — we re-send a confirmation link automatically.'));
+        if (!(await passesLaunchGate('menu'))) {
+          reject(new Error('Complete launch checklist for services (email, policies, path, ID submitted). Product-only sellers should use product quick-add.'));
           return;
         }
         if (listingLimits.menu != null && myMenu.length >= listingLimits.menu) {
@@ -700,8 +734,8 @@ export default function VendorDashboard({ user }) {
   const handleQuickAddProduct = (payload) =>
     new Promise((resolve, reject) => {
       (async () => {
-        if (!(await passesLaunchGate())) {
-          reject(new Error('Complete your launch checklist before your first listing. If email is unverified, check the yellow banner — we re-send a confirmation link automatically.'));
+        if (!(await passesLaunchGate('produce'))) {
+          reject(new Error('Complete launch checklist (email, policies, choose Products path). Photo ID is not required for products.'));
           return;
         }
         if (listingLimits.produce != null && myProduce.length >= listingLimits.produce) {
@@ -1013,23 +1047,29 @@ export default function VendorDashboard({ user }) {
         <UpgradeBanner plan={vendorPlan} user={user} />
       )}
 
-      <VendorBoostStrip isPro={isProPractitioner} />
-      <VendorProWorthPanel isPro={isProPractitioner} className="mb-6" />
-      <SellerGrowthTips isPro={isProPractitioner} />
-      {storefrontVendor && (
-        <ShelfScoreCard
-          vendor={storefrontVendor}
-          listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
-          className="mb-6"
-        />
-      )}
-      {myVendorId && (
-        <VendorPosInventory
-          vendorId={myVendorId}
-          plan={vendorPlan}
-          className="mb-6"
-        />
-      )}
+      <VendorDashboardStudio
+        vendorId={myVendorId}
+        isPro={isProPractitioner}
+        vendor={storefrontVendor}
+        listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
+        produceCount={myProduce?.length || 0}
+        menuCount={myMenu?.length || 0}
+        childrenById={{
+          boost: <VendorBoostStrip isPro={isProPractitioner} />,
+          worth: <VendorProWorthPanel isPro={isProPractitioner} className="mb-6" />,
+          growth: <SellerGrowthTips isPro={isProPractitioner} />,
+          shelf: storefrontVendor ? (
+            <ShelfScoreCard
+              vendor={storefrontVendor}
+              listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
+              className="mb-6"
+            />
+          ) : null,
+          pos: myVendorId ? (
+            <VendorPosInventory vendorId={myVendorId} plan={vendorPlan} className="mb-6" />
+          ) : null,
+        }}
+      />
 
       {nextIncompleteStep(launchSteps) && (
         <div className="mb-4 text-sm bg-amber-50 border-2 border-amber-400 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 animate-pulse">
@@ -1037,7 +1077,11 @@ export default function VendorDashboard({ user }) {
             Still need: <strong>{nextIncompleteStep(launchSteps)?.label}</strong>
             {nextIncompleteStep(launchSteps)?.id === 'verify_email'
               ? ' — email verify stays highlighted until you confirm the link.'
-              : ' — finish this before new first-time launch steps lock in.'}
+              : nextIncompleteStep(launchSteps)?.id === 'seller_path'
+                ? ' — pick Products only (no ID) or Services (ID required).'
+                : nextIncompleteStep(launchSteps)?.id === 'id_verification'
+                  ? ' — only for services; product shops can choose Products only to skip.'
+                  : ' — finish this to complete launch.'}
           </span>
           <a
             href={`#launch-step-${nextIncompleteStep(launchSteps)?.id}`}
