@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import ProFeatureLink from './ProFeatureLink';
 
 /**
  * Vendor revenue boosters: featured placement, Pro tools, AOV tips.
@@ -21,6 +22,15 @@ export default function VendorBoostStrip({ isPro = false, className = '' }) {
           <p className="text-[11px] text-gray-600 mt-1">
             Group 3–4 related goods (tea + oil + candle). Shoppers love ready-made shelves.
           </p>
+          <ProFeatureLink
+            to="/vendor-maker-studio"
+            requiresPro={false}
+            isPro={isPro}
+            feature="cross_kits"
+            className="inline-block mt-2 text-[11px] font-semibold text-[#4a1942] underline"
+          >
+            Maker Studio kits →
+          </ProFeatureLink>
         </li>
         <li className="rounded-xl bg-white/80 border border-[#4a1942]/8 p-3">
           <p className="font-semibold text-[#4a1942]">
@@ -31,22 +41,37 @@ export default function VendorBoostStrip({ isPro = false, className = '' }) {
               ? 'Offer a small blessing, charm, or sample at checkout.'
               : 'Pro unlocks blessings & upsells that raise ticket size without ads.'}
           </p>
+          <ProFeatureLink
+            to="/storefront-settings"
+            requiresPro
+            isPro={isPro}
+            feature="checkout_upsells"
+            className="inline-block mt-2 text-[11px] font-semibold text-[#4a1942] underline"
+          >
+            {isPro ? 'Edit blessings →' : 'Unlock blessings →'}
+          </ProFeatureLink>
         </li>
         <li className="rounded-xl bg-white/80 border border-[#4a1942]/8 p-3">
           <p className="font-semibold text-[#4a1942]">Featured placement</p>
           <p className="text-[11px] text-gray-600 mt-1">
             Strong shelf score + Pro status helps you surface in top makers and home kits.
           </p>
+          <Link to="/vendor-growth" className="inline-block mt-2 text-[11px] font-semibold text-[#4a1942] underline">
+            Growth hub →
+          </Link>
         </li>
       </ul>
       <div className="mt-3 flex flex-wrap gap-2">
         {!isPro && (
-          <Link
-            to="/pro-upgrade?type=vendor&from=boost-strip"
+          <ProFeatureLink
+            to="/pro-upgrade?type=vendor"
+            requiresPro
+            isPro={false}
+            feature="pro"
             className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#4a1942] text-white"
           >
             Unlock Vendor Pro →
-          </Link>
+          </ProFeatureLink>
         )}
         <Link
           to="/vendor-growth"

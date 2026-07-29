@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { compressImage, formatBytes } from '../lib/imageCompress';
 import { resolveListingPhoto } from '../lib/listingPhotos';
+import { useImageAdjust } from './ImageAdjustModal';
 
 /**
- * Optional listing thumbnail with client-side compression before upload.
+ * Optional listing thumbnail with adjust (zoom/crop/bg) then compression.
  * onChange: ({ url, file, preview }) — file is set when a new image is chosen.
  */
 export default function ListingThumbnailField({
@@ -11,11 +12,12 @@ export default function ListingThumbnailField({
   onChange,
   disabled = false,
   label = 'Listing photo (optional)',
-  hint = 'Photos are resized automatically to save storage and load faster.',
+  hint = 'Adjust zoom, crop, and background — then we resize for fast loading.',
 }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [stats, setStats] = useState(null);
+  const { requestAdjust, modal } = useImageAdjust();
 
   const preview = value?.preview || resolveListingPhoto(value?.url);
 
@@ -24,8 +26,13 @@ export default function ListingThumbnailField({
     setError('');
     setBusy(true);
     try {
-      const originalSize = file.size;
-      const compressed = await compressImage(file);
+      const adjusted = await requestAdjust(file, 'Adjust product photo');
+      if (!adjusted) {
+        setBusy(false);
+        return;
+      }
+      const originalSize = adjusted.size;
+      const compressed = await compressImage(adjusted);
       const previewUrl = URL.createObjectURL(compressed);
       setStats({ before: originalSize, after: compressed.size });
       onChange?.({ url: value?.url || '', file: compressed, preview: previewUrl });
@@ -44,6 +51,7 @@ export default function ListingThumbnailField({
 
   return (
     <div className="border rounded-2xl p-4 bg-gray-50/80">
+      {modal}
       <div className="text-sm font-medium mb-1">{label}</div>
       <p className="text-xs text-gray-500 mb-3">{hint}</p>
       <div className="flex flex-col sm:flex-row gap-4 items-start">

@@ -16,6 +16,7 @@ import {
 } from '../lib/studentBadgesApi';
 import { fetchVendorCourses } from '../lib/teachingPlatform';
 import { trackAchievementEvent } from '../lib/achievements';
+import { useImageAdjust } from './ImageAdjustModal';
 
 export default function VendorCertificateStudio({ user, vendorId }) {
   const canUse = vendorCan(user, 'certificates');
@@ -33,6 +34,7 @@ export default function VendorCertificateStudio({ user, vendorId }) {
   const [badgeType, setBadgeType] = useState('top_student');
   const [enrollees, setEnrollees] = useState([]);
   const [message, setMessage] = useState('');
+  const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
 
   useEffect(() => {
     if (!canUse || !vendorId) return;
@@ -101,15 +103,30 @@ export default function VendorCertificateStudio({ user, vendorId }) {
     setMessage(`Honors sent to ${studentEmail.split('@')[0]}.`);
   };
 
+  const onPickCertFile = async (e) => {
+    const raw = e.target.files?.[0];
+    e.target.value = '';
+    if (!raw) return;
+    if (raw.type?.startsWith('image/')) {
+      const adjusted = await requestAdjust(raw, 'Adjust certificate image');
+      if (!adjusted) return;
+      setFile(adjusted);
+      return;
+    }
+    setFile(raw);
+  };
+
   return (
     <div className="space-y-8">
+      {imageAdjustModal}
       <section className="rounded-2xl border border-[#4a1942]/10 p-5 bg-white">
         <h3 className="font-semibold text-[#4a1942] mb-3">Upload credentials</h3>
         <p className="text-sm text-gray-500 mb-4">Licenses, training certificates, or credentials shown on your storefront.</p>
         <div className="grid sm:grid-cols-2 gap-3 mb-3">
           <input value={title} onChange={(e) => setTitle(e.target.value)} className="border rounded-xl px-3 py-2 text-sm" placeholder="Certificate title" />
           <input value={issuer} onChange={(e) => setIssuer(e.target.value)} className="border rounded-xl px-3 py-2 text-sm" placeholder="Issuing body (optional)" />
-          <input type="file" accept="image/*,.pdf" onChange={(e) => setFile(e.target.files?.[0])} className="text-sm sm:col-span-2" />
+          <input type="file" accept="image/*,.pdf" onChange={onPickCertFile} className="text-sm sm:col-span-2" />
+          {file && <p className="text-[11px] text-gray-500 sm:col-span-2">Ready: {file.name}</p>}
         </div>
         <button type="button" onClick={onUpload} className="px-4 py-2 rounded-full bg-[#4a1942] text-white text-sm">Upload</button>
         <ul className="mt-4 space-y-2">

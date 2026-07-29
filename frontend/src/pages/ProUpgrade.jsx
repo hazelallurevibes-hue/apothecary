@@ -16,11 +16,16 @@ import ProSocialProof from '../components/ProSocialProof';
 import ProBillingPlanPicker from '../components/ProBillingPlanPicker';
 import ProBenefitsHub from '../components/ProBenefitsHub';
 import { freeVsProRowsFromCatalog } from '../lib/makerStudioCatalog';
+import { PRO_FEATURE_HIGHLIGHTS } from '../components/ProFeatureLink';
 
 export default function ProUpgrade({ user }) {
   const { t, formatCurrency } = useLocale();
   const [searchParams] = useSearchParams();
   const billingDefault = searchParams.get('interval') === 'annual' ? 'annual' : 'monthly';
+  const highlightKey = searchParams.get('highlight') || searchParams.get('from') || '';
+  const highlightLabel =
+    PRO_FEATURE_HIGHLIGHTS[highlightKey] ||
+    (highlightKey && highlightKey !== 'feature-card' ? highlightKey.replace(/_/g, ' ') : '');
   const [billingInterval, setBillingInterval] = useState(billingDefault);
   const [pricing, setPricing] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -184,6 +189,16 @@ export default function ProUpgrade({ user }) {
         <div className="inline-block px-4 py-1.5 rounded-full bg-[#4a1942]/8 text-[#4a1942] text-xs font-semibold uppercase tracking-widest mb-4 border border-[#4a1942]/10">
           Hazel Allure Pro
         </div>
+        {highlightLabel && vendorOnly && (
+          <div
+            id="pro-feature-highlight"
+            className="mb-4 mx-auto max-w-lg rounded-2xl border-2 border-[#c9a227] bg-[#faf7f0] px-4 py-3 text-sm text-[#4a1942] shadow-sm animate-pulse"
+          >
+            <p className="text-[10px] uppercase tracking-widest text-[#c9a227] font-bold">You selected</p>
+            <p className="font-semibold mt-0.5">{highlightLabel}</p>
+            <p className="text-xs text-gray-600 mt-1">Unlock this with Pro Practitioner below — cancel anytime.</p>
+          </div>
+        )}
         <h1 className="text-4xl md:text-5xl font-bold tracking-tight heading-font text-[#4a1942]">
           {vendorOnly ? 'Practitioner Pro' : t('pro.title')}
         </h1>

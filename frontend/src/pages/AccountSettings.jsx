@@ -36,6 +36,7 @@ import {
   hasVerifiedTotp,
   listTotpFactors,
 } from '../lib/twoFactorApi';
+import { useImageAdjust } from '../components/ImageAdjustModal';
 
 function familiarTierFromStreak(streak) {
   const n = streak?.current_streak || 0;
@@ -46,6 +47,7 @@ function familiarTierFromStreak(streak) {
 }
 
 export default function AccountSettings({ user, onProfileUpdate }) {
+  const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
   const [name, setName] = useState(user?.name || '');
   const [avatar, setAvatar] = useState(user?.avatar || '');
 
@@ -285,7 +287,12 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     setUploading(true);
     setStatus('');
     try {
-      const url = await uploadProfileAvatar(file, user);
+      const adjusted = await requestAdjust(file, 'Adjust profile photo');
+      if (!adjusted) {
+        setUploading(false);
+        return;
+      }
+      const url = await uploadProfileAvatar(adjusted, user);
       setAvatar(url);
       await persistUserAvatar(user, url, onProfileUpdate);
       setStatus('Profile picture saved.');
@@ -297,6 +304,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
 
   return (
     <div className="max-w-2xl">
+      {imageAdjustModal}
       <h1 className="text-4xl font-bold tracking-tight mb-2">Account Settings</h1>
       <p className="text-gray-600 mb-8">Manage your profile, plan, and security.</p>
 

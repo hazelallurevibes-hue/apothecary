@@ -9,6 +9,7 @@ import {
   requiresCookingTemp,
 } from '../lib/foodCategories';
 import { uploadTempPhoto } from '../lib/storageApi';
+import { useImageAdjust } from './ImageAdjustModal';
 
 export default function FoodSafetyFields({ value, onChange, disabled, user, vendorId, context = 'menu' }) {
   const defaultCat = defaultFoodCategoryForContext(context);
@@ -21,6 +22,7 @@ export default function FoodSafetyFields({ value, onChange, disabled, user, vend
   };
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
 
   const set = (patch) => onChange({ ...v, ...patch });
 
@@ -28,8 +30,10 @@ export default function FoodSafetyFields({ value, onChange, disabled, user, vend
   const needsTemp = requiresCookingTemp(category) && !v.safety_opt_out;
   const catInfo = getFoodCategory(category);
 
-  const handlePhoto = async (file) => {
-    if (!file || !user || !vendorId) return;
+  const handlePhoto = async (rawFile) => {
+    if (!rawFile || !user || !vendorId) return;
+    const file = await requestAdjust(rawFile, 'Adjust thermometer photo');
+    if (!file) return;
     setUploading(true);
     setUploadError('');
     try {
@@ -146,6 +150,7 @@ export default function FoodSafetyFields({ value, onChange, disabled, user, vend
                 />
               </div>
               <div>
+                {imageAdjustModal}
                 <label className="text-xs text-gray-600">Thermometer photo (optional proof)</label>
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   <input

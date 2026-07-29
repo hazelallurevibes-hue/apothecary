@@ -16,6 +16,7 @@ import FamiliarPicker from './FamiliarPicker';
 import { fetchBadgesForStudent, STUDENT_BADGE_TYPES } from '../lib/studentBadgesApi';
 import { fetchUnlockedAchievements, getAchievementMeta } from '../lib/achievements';
 import { trackAchievementEvent } from '../lib/achievements';
+import { useImageAdjust } from './ImageAdjustModal';
 
 export default function ProfileCustomizer({ user, onUpdate }) {
   const [bio, setBio] = useState('');
@@ -33,6 +34,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   const [message, setMessage] = useState('');
   const [framePrefOn, setFramePrefOn] = useState(() => isProMemberPrefEnabled('profile_frame'));
   const [bannerPrefOn, setBannerPrefOn] = useState(() => isProMemberPrefEnabled('profile_banner'));
+  const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
 
   const isPro = canUseProProfileFeatures(user);
   const canPinFeatures = customerCan(user, 'profile_custom');
@@ -103,8 +105,11 @@ export default function ProfileCustomizer({ user, onUpdate }) {
   };
 
   const onBannerUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !canBanner) return;
+    const raw = e.target.files?.[0];
+    e.target.value = '';
+    if (!raw || !canBanner) return;
+    const file = await requestAdjust(raw, 'Adjust profile banner');
+    if (!file) return;
     setBannerUploading(true);
     setMessage('');
     try {
@@ -129,6 +134,7 @@ export default function ProfileCustomizer({ user, onUpdate }) {
 
   return (
     <section className="rounded-2xl border border-[#4a1942]/10 bg-white p-6 space-y-6">
+      {imageAdjustModal}
       <div>
         <h2 className="text-xl font-semibold text-[#4a1942]">Profile studio</h2>
         <p className="text-sm text-gray-500 mt-1">Shape how you appear across the gathering and Sanctum.</p>

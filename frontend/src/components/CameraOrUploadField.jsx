@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
+import { useImageAdjust } from './ImageAdjustModal';
 
 /**
  * Mobile-friendly capture: take a new photo (camera) or choose existing file.
+ * Opens adjust modal (zoom/crop/bg) before calling onFile.
  * @param {'environment'|'user'} facing — rear for ID docs, front for selfie
  */
 export default function CameraOrUploadField({
@@ -11,6 +13,7 @@ export default function CameraOrUploadField({
   disabled,
   hasFile,
   onFile,
+  skipAdjust = false,
 }) {
   const fileRef = useRef(null);
   const cameraRef = useRef(null);
@@ -18,6 +21,17 @@ export default function CameraOrUploadField({
   const streamRef = useRef(null);
   const [live, setLive] = useState(false);
   const [err, setErr] = useState('');
+  const { requestAdjust, modal } = useImageAdjust();
+
+  const deliver = async (file) => {
+    if (!file) return;
+    if (skipAdjust) {
+      onFile?.(file);
+      return;
+    }
+    const adjusted = await requestAdjust(file, `Adjust ${label || 'photo'}`);
+    if (adjusted) onFile?.(adjusted);
+  };
 
   const stopStream = () => {
     streamRef.current?.getTracks?.().forEach((t) => t.stop());
@@ -71,7 +85,7 @@ export default function CameraOrUploadField({
         if (!blob) return;
         const file = new File([blob], `${kind}-${Date.now()}.jpg`, { type: 'image/jpeg' });
         stopStream();
-        onFile?.(file);
+        deliver(file);
       },
       'image/jpeg',
       0.92,
@@ -80,6 +94,7 @@ export default function CameraOrUploadField({
 
   return (
     <div className="border rounded-xl p-3 space-y-2 bg-white">
+      {modal}
       <span className="text-xs font-medium block text-[#4a1942]">
         {label}
         {hasFile && <span className="ml-2 text-emerald-700 font-semibold">✓ Ready</span>}
@@ -152,7 +167,7 @@ export default function CameraOrUploadField({
         disabled={disabled}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onFile?.(f);
+          if (f) deliver(f);
           e.target.value = '';
         }}
       />
@@ -164,7 +179,7 @@ export default function CameraOrUploadField({
         disabled={disabled}
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onFile?.(f);
+          if (f) deliver(f);
           e.target.value = '';
         }}
       />

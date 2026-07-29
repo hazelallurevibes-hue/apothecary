@@ -19,6 +19,7 @@ import PractitionerBadges from '../components/PractitionerBadges';
 import { parseBusinessBadges, resolveAdminBadges } from '../lib/practitionerBadges';
 import { applySabbaticalExpiry } from '../lib/sabbaticalUtils';
 import StorefrontLivePreview from '../components/StorefrontLivePreview';
+import { useImageAdjust } from '../components/ImageAdjustModal';
 
 function parseBanners(raw) {
   if (Array.isArray(raw)) return raw;
@@ -57,6 +58,7 @@ export default function StorefrontSettings({ user }) {
   const logoRef = useRef(null);
   const highlightRef = useRef(null);
   const bannerRef = useRef(null);
+  const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
 
   useEffect(() => {
     if (window.location.hash === '#photos') {
@@ -215,8 +217,12 @@ export default function StorefrontSettings({ user }) {
     return true;
   };
 
-  const handleUpload = async (file, kind) => {
-    if (!file || !vendorId) return;
+  const handleUpload = async (rawFile, kind) => {
+    if (!rawFile || !vendorId) return;
+    const title =
+      kind === 'logo' ? 'Adjust logo' : kind === 'highlight' ? 'Adjust highlight photo' : 'Adjust banner';
+    const file = await requestAdjust(rawFile, title);
+    if (!file) return;
     setUploading(kind);
     setMessage('');
     try {
@@ -289,6 +295,7 @@ export default function StorefrontSettings({ user }) {
 
   return (
     <div>
+      {imageAdjustModal}
       <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
         <div>
           <h1 className="text-4xl font-bold tracking-tight mb-2">Storefront Editor</h1>

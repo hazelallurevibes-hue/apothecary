@@ -97,9 +97,10 @@ Deno.serve(async (req: Request) => {
         : (userRow.vendor_id ? Number(userRow.vendor_id) : null);
 
       if (!vendorId) {
+        // Do not select plan here — older DBs may lack vendors.plan (see migration 20260729180000)
         const { data: byEmail, error: emailErr } = await supabase
           .from("vendors")
-          .select("id, plan, email")
+          .select("id, email")
           .ilike("email", verifiedEmail)
           .order("id", { ascending: true })
           .limit(5);
@@ -138,16 +139,16 @@ Deno.serve(async (req: Request) => {
         let { data: created, error: createErr } = await supabase
           .from("vendors")
           .insert(insertPayload)
-          .select("id, plan, email, status")
+          .select("id, email, status")
           .single();
 
-        // Retry with minimal columns if optional fields missing from schema
+        // Retry with minimal columns if optional fields (e.g. plan) missing from schema
         if (createErr) {
           const minimal = { name: displayName, email: verifiedEmail, status: "approved" };
           const retry = await supabase
             .from("vendors")
             .insert(minimal)
-            .select("id, plan, email, status")
+            .select("id, email, status")
             .single();
           created = retry.data;
           createErr = retry.error;
@@ -171,14 +172,34 @@ Deno.serve(async (req: Request) => {
         await supabase.from("users").update(heal).eq("id", userRow.id);
       }
 
-      const { data: vendor, error: vendorErr } = await supabase
-        .from("vendors")
-        .select("id, plan, email, status")
-        .eq("id", vendorId)
-        .maybeSingle();
+      // Prefer plan when column exists; fall back without plan if schema is incomplete
+      let vendor: { id: number; plan?: string; email?: string; status?: string } | null = null;
+      let vendorErr: { message?: string } | null = null;
+      {
+        const full = await supabase
+          .from("vendors")
+          .select("id, plan, email, status")
+          .eq("id", vendorId)
+          .maybeSingle();
+        if (full.error && /plan/i.test(full.error.message || "")) {
+          const minimal = await supabase
+            .from("vendors")
+            .select("id, email, status")
+            .eq("id", vendorId)
+            .maybeSingle();
+          vendor = minimal.data ? { ...minimal.data, plan: "free" } : null;
+          vendorErr = minimal.error;
+        } else {
+          vendor = full.data;
+          vendorErr = full.error;
+        }
+      }
 
       if (vendorErr) {
-        return jsonResponse({ ok: false, error: `Vendor load failed: ${vendorErr.message}` }, 500);
+        return jsonResponse({
+          ok: false,
+          error: `Vendor load failed: ${vendorErr.message}. If this mentions plan, run SQL: ALTER TABLE vendors ADD COLUMN IF NOT EXISTS plan TEXT DEFAULT 'free';`,
+        }, 500);
       }
       if (!vendor) {
         return jsonResponse({

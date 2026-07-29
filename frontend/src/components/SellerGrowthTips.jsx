@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+import ProFeatureLink from './ProFeatureLink';
 
 const TIPS = [
   {
@@ -6,24 +6,48 @@ const TIPS = [
     body: 'Hero products with clear photos convert better than long service menus. Aim for 8–15 live goods.',
     to: '/vendor-dashboard',
     cta: 'Add products',
+    pro: false,
+    feature: '',
   },
   {
     title: 'Checkout blessings',
     body: 'Pro: offer a small blessing, charm, or sample at checkout to lift order value.',
     to: '/storefront-settings',
     cta: 'Storefront',
+    pro: true,
+    feature: 'checkout_upsells',
   },
   {
-    title: 'Shelf score',
-    body: 'Logo, bio, location, and product count raise trust. Improve your score weekly.',
-    to: '/storefront-settings',
-    cta: 'Edit store',
+    title: 'Maker Studio',
+    body: 'Claims helper, harvest calendar, packing lists, wholesale & blends.',
+    to: '/vendor-maker-studio',
+    cta: 'Open studio',
+    pro: false,
+    feature: 'maker_studio',
   },
   {
-    title: 'Pro control guide',
-    body: 'Plain-language map of every Pro tool — listings, campaigns, cancel anytime.',
-    to: '/learn/pro-seller-control-panel',
-    cta: 'Read guide',
+    title: 'Growth Hub',
+    body: 'All growth paths in one place — free tools and Pro upgrades.',
+    to: '/vendor-growth',
+    cta: 'Open hub',
+    pro: false,
+    feature: '',
+  },
+  {
+    title: 'Pro SaaS toolkit',
+    body: 'Tax pack, market day, review QR, shift notes — Pro only.',
+    to: '/vendor-pro-tools',
+    cta: 'Open tools',
+    pro: true,
+    feature: 'saas_toolkit',
+  },
+  {
+    title: 'Subscribe & Save',
+    body: 'Recurring product revenue on staples you can restock reliably.',
+    to: '/vendor-dashboard',
+    cta: 'Enable',
+    pro: true,
+    feature: 'product_subscriptions',
   },
 ];
 
@@ -37,21 +61,35 @@ export default function SellerGrowthTips({ isPro = false, className = '' }) {
       <ul className="mt-3 grid sm:grid-cols-2 gap-3">
         {TIPS.map((t) => (
           <li key={t.title} className="rounded-xl border border-gray-100 bg-[#faf7f9]/60 p-3">
-            <p className="text-sm font-semibold text-[#4a1942]">{t.title}</p>
+            <p className="text-sm font-semibold text-[#4a1942]">
+              {t.title}
+              {t.pro && !isPro && (
+                <span className="ml-1 text-[10px] uppercase text-[#c9a227] font-bold">Pro</span>
+              )}
+            </p>
             <p className="text-[11px] text-gray-600 mt-1 leading-snug">{t.body}</p>
-            <Link to={t.to} className="inline-block mt-2 text-[11px] font-semibold text-[#4a1942] underline">
-              {t.cta} →
-            </Link>
+            <ProFeatureLink
+              to={t.to}
+              requiresPro={t.pro}
+              isPro={isPro}
+              feature={t.feature || 'pro'}
+              className="inline-block mt-2 text-[11px] font-semibold text-[#4a1942] underline"
+            >
+              {t.pro && !isPro ? `Unlock ${t.cta}` : t.cta} →
+            </ProFeatureLink>
           </li>
         ))}
       </ul>
       {!isPro && (
-        <Link
-          to="/pro-upgrade?type=vendor&from=growth-tips"
+        <ProFeatureLink
+          to="/pro-upgrade?type=vendor"
+          requiresPro
+          isPro={false}
+          feature="pro"
           className="inline-flex mt-3 text-xs font-semibold px-3 py-1.5 rounded-full bg-[#4a1942] text-white"
         >
           Compare Free vs Pro →
-        </Link>
+        </ProFeatureLink>
       )}
     </div>
   );
