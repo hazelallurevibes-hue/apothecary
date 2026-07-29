@@ -1,8 +1,15 @@
-/** Visual artistry for tarot cards — original motifs (no copyrighted deck art). */
+/** Visual artistry for tarot cards — painted deck art + SVG fallback motifs. */
 
 const MAJOR_SYMBOLS = [
   '☆', '∞', '☽', '♀', '♂', '✠', '♡', '☸', '♌', '⛰',
   '◎', '⚖', '△', '☠', '⚗', '⛧', '⚡', '✦', '☾', '☀', '♃', '◉',
+];
+
+const MAJOR_SLUGS = [
+  'fool', 'magician', 'high-priestess', 'empress', 'emperor',
+  'hierophant', 'lovers', 'chariot', 'strength', 'hermit',
+  'wheel', 'justice', 'hanged-man', 'death', 'temperance',
+  'devil', 'tower', 'star', 'moon', 'sun', 'judgement', 'world',
 ];
 
 const MAJOR_ART = [
@@ -31,15 +38,20 @@ const MAJOR_ART = [
 ];
 
 const SUIT_ART = {
-  Wands: { symbol: '🜂', element: 'Fire · Wands', gradient: 'from-amber-950 via-orange-900 to-rose-950', accent: '#f59e0b', border: 'border-amber-400/50', motif: 'Passion, creativity, spark' },
-  Cups: { symbol: '🜄', element: 'Water · Cups', gradient: 'from-indigo-950 via-blue-900 to-violet-950', accent: '#60a5fa', border: 'border-sky-400/50', motif: 'Emotion, intuition, flow' },
-  Swords: { symbol: '🜁', element: 'Air · Swords', gradient: 'from-slate-900 via-zinc-800 to-indigo-950', accent: '#94a3b8', border: 'border-slate-300/40', motif: 'Mind, truth, discernment' },
-  Pentacles: { symbol: '🜃', element: 'Earth · Pentacles', gradient: 'from-emerald-950 via-teal-900 to-amber-950', accent: '#c9a227', border: 'border-emerald-400/45', motif: 'Body, craft, material roots' },
+  Wands: { symbol: '🜂', element: 'Fire · Wands', gradient: 'from-amber-950 via-orange-900 to-rose-950', accent: '#f59e0b', border: 'border-amber-400/50', motif: 'Passion, creativity, spark', slug: 'wands' },
+  Cups: { symbol: '🜄', element: 'Water · Cups', gradient: 'from-indigo-950 via-blue-900 to-violet-950', accent: '#60a5fa', border: 'border-sky-400/50', motif: 'Emotion, intuition, flow', slug: 'cups' },
+  Swords: { symbol: '🜁', element: 'Air · Swords', gradient: 'from-slate-900 via-zinc-800 to-indigo-950', accent: '#94a3b8', border: 'border-slate-300/40', motif: 'Mind, truth, discernment', slug: 'swords' },
+  Pentacles: { symbol: '🜃', element: 'Earth · Pentacles', gradient: 'from-emerald-950 via-teal-900 to-amber-950', accent: '#c9a227', border: 'border-emerald-400/45', motif: 'Body, craft, material roots', slug: 'pentacles' },
 };
 
 const RANK_GLYPH = {
   Ace: 'I', Two: 'II', Three: 'III', Four: 'IV', Five: 'V', Six: 'VI', Seven: 'VII',
   Eight: 'VIII', Nine: 'IX', Ten: 'X', Page: 'P', Knight: 'N', Queen: 'Q', King: 'K',
+};
+
+const RANK_SLUG = {
+  Ace: 'ace', Two: 'two', Three: 'three', Four: 'four', Five: 'five', Six: 'six', Seven: 'seven',
+  Eight: 'eight', Nine: 'nine', Ten: 'ten', Page: 'page', Knight: 'knight', Queen: 'queen', King: 'king',
 };
 
 const RANK_MOTIF = {
@@ -65,8 +77,28 @@ function patternFor(art) {
   return PATTERN_STYLES[art.pattern] || PATTERN_STYLES.mandala;
 }
 
+/** Public URL for painted card art (files live in /public/tarot/). */
+export function getCardImageUrl(card) {
+  if (!card) return null;
+  if (card.arcana === 'major') {
+    const slug = MAJOR_SLUGS[card.id];
+    if (!slug) return null;
+    const n = String(card.id).padStart(2, '0');
+    return `/tarot/major-${n}-${slug}.jpg`;
+  }
+  const suit = SUIT_ART[card.suit];
+  if (!suit) return null;
+  const rank = card.name.split(' ')[0];
+  const rankSlug = RANK_SLUG[rank];
+  if (!rankSlug) return null;
+  return `/tarot/${suit.slug}-${rankSlug}.jpg`;
+}
+
+export const CARD_BACK_IMAGE = '/tarot/card-back.jpg';
+
 export function getCardArt(card) {
   if (!card) return null;
+  const imageUrl = getCardImageUrl(card);
   if (card.arcana === 'major') {
     const major = MAJOR_ART[card.id] || MAJOR_ART[0];
     return {
@@ -81,6 +113,7 @@ export function getCardArt(card) {
       meaning: major.meaning,
       pattern: patternFor(major),
       illustration: major.pattern,
+      imageUrl,
     };
   }
   const suit = SUIT_ART[card.suit] || SUIT_ART.Wands;
@@ -97,10 +130,12 @@ export function getCardArt(card) {
     meaning: card.vibe || `${rank} of ${card.suit} — ${suit.motif.toLowerCase()}.`,
     pattern: `radial-gradient(circle at 50% 0%, ${suit.accent}33 0%, transparent 55%)`,
     illustration: card.suit?.toLowerCase(),
+    imageUrl,
   };
 }
 
 export const CARD_BACK_ART = {
   gradient: 'from-[#0f0610] via-[#2d1230] to-[#1a0a18]',
   pattern: 'repeating-conic-gradient(from 0deg, rgba(201,162,39,0.08) 0deg 10deg, transparent 10deg 20deg)',
+  imageUrl: CARD_BACK_IMAGE,
 };
