@@ -150,6 +150,7 @@ export const HAZELALLURE_VERTICAL = {
       'Profile studio — banner, frames, pinned class honors',
       'Start threads in The Hearth gathering',
       'Sanctum lesson progress & achievement shelf',
+      'Pro hot remedy monographs (high-demand research topics)',
     ],
     advertising: {
       freeAccountMeta: 'Free practitioner account — organic discovery only',
@@ -162,48 +163,94 @@ export const HAZELALLURE_VERTICAL = {
   seo: {
     logo: LOGO_IMG,
     defaultKeywords: [
-      'woman-owned business',
-      'holistic wellness',
-      'natural apothecary',
-      'spiritual wellness',
-      'psychic readings',
-      'reiki',
-      'curandera',
-      'essential oils',
-      'herbal remedies',
-      'energy work',
       'Hazel Allure',
+      'woman-owned apothecary',
+      'holistic wellness marketplace',
+      'natural apothecary',
+      'natural remedies research',
+      'traditional herbal remedies',
+      'spiritual wellness',
+      'psychic readings online',
+      'reiki practitioners',
+      'curandera',
+      'essential oils shop',
+      'herbal remedies',
+      'energy work sessions',
+      'homeopathy consultation',
+      'Ayurveda wellness',
+      'ritual goods',
+      'incense and crystals',
+      'Teaching Sanctum',
       'New Mexico wellness',
+      'book wellness practitioners',
+      'common cold natural remedies',
+      'migraine traditional support',
     ].join(', '),
     routes: {
       '/': {
-        title: 'Hazel Allure — Woman-Owned Holistic Wellness & Natural Apothecary',
+        title: 'Hazel Allure Apothecary — Book Practitioners & Shop Natural Wellness',
         description:
-          'Book psychics, practitioners, curanderas, and holistic wellness guides worldwide. Shop essential oils, incense, and apothecary goods from a woman-owned spiritual wellness marketplace.',
+          'Woman-owned holistic wellness marketplace. Book psychics, reiki, curanderas, homeopaths, and energy workers worldwide. Shop essential oils, herbs, incense, crystals, and artisan apothecary goods.',
       },
       '/about': {
         title: 'About Hazel Allure — Woman-Owned Wellness Marketplace',
         description:
-          'Meet the woman-owned team behind Hazel Allure. Generational wellness wisdom, worldwide practitioners, and a curated apothecary rooted in intention and care.',
+          'Meet the woman-owned team behind Hazel Allure. Generational wellness wisdom, worldwide practitioners, and a curated natural apothecary rooted in intention and care.',
       },
       '/services': {
-        title: 'Wellness Services — Book Practitioners | Hazel Allure',
+        title: 'Book Wellness Practitioners — Readings, Reiki & Holistic Care | Hazel Allure',
         description:
-          'Book homeopathy, reiki, psychic readings, curandera sessions, Ayurveda, energy work, and holistic wellness services from independent practitioners worldwide.',
+          'Book homeopathy, reiki, psychic readings, curandera sessions, Ayurveda, energy work, and holistic wellness services from independent practitioners worldwide on Hazel Allure.',
       },
       '/products': {
-        title: 'Natural Apothecary — Oils, Herbs & Ritual Goods | Hazel Allure',
+        title: 'Natural Apothecary Shop — Oils, Herbs, Crystals & Ritual Goods | Hazel Allure',
         description:
-          'Shop organic essential oils, incense, crystals, herbal remedies, ritual kits, and artisan apothecary goods from independent practitioners.',
+          'Shop organic essential oils, incense, crystals, herbal remedies, ritual kits, and artisan apothecary goods from independent practitioners on Hazel Allure.',
+      },
+      '/marketplace': {
+        title: 'Wellness Services Marketplace | Hazel Allure Apothecary',
+        description:
+          'Explore bookable wellness services — spiritual readings, energy work, herbal consults, and more from verified independent practitioners.',
+      },
+      '/courses': {
+        title: 'Teaching Sanctum Courses — Wellness Learning | Hazel Allure',
+        description:
+          'Learn from Pro practitioners in the Teaching Sanctum — courses on holistic wellness, spiritual craft, and apothecary arts. Entertainment and education only.',
+      },
+      '/top-vendors': {
+        title: 'Top Practitioners — Trusted Wellness Guides | Hazel Allure',
+        description:
+          'Discover top-rated independent practitioners on Hazel Allure — psychics, healers, herbalists, and wellness guides trusted by the community.',
+      },
+      '/gathering': {
+        title: 'The Hearth — Community Gathering | Hazel Allure',
+        description:
+          'Join The Hearth community on Hazel Allure — peer threads, gathering space, and spiritual wellness conversation (not medical advice).',
       },
       '/learn': {
-        title: 'Wellness Guides & Resources | Hazel Allure',
+        title: 'Wellness Guides & Apothecary Resources | Hazel Allure',
         description:
-          'Free guides on holistic wellness, apothecary traditions, and booking independent practitioners — written for seekers worldwide.',
+          'Free SEO guides on holistic wellness, natural apothecary traditions, booking practitioners, and spiritual wellness — written for seekers worldwide.',
       },
       '/pro-upgrade': {
-        title: 'Pro Membership — Hazel Allure',
-        description: 'Unlock Pro benefits for seekers and practitioners — discounts, teaching tools, and premium marketplace features.',
+        title: 'Hazel Allure Pro — Seeker & Practitioner Membership',
+        description:
+          'Unlock Pro benefits for seekers and practitioners: member discounts, Teaching Sanctum tools, Magic Sanctum libraries, campaigns, and premium marketplace features.',
+      },
+      '/vendor-signup': {
+        title: 'Become a Practitioner | List on Hazel Allure Apothecary',
+        description:
+          'Apply to list wellness services and apothecary goods on Hazel Allure — woman-owned marketplace for independent practitioners worldwide.',
+      },
+      '/faq': {
+        title: 'FAQ — Hazel Allure Apothecary & Wellness Marketplace',
+        description:
+          'Answers about booking practitioners, shopping the natural apothecary, verification, licenses, Pro plans, and platform policies.',
+      },
+      '/contact': {
+        title: 'Contact Hazel Allure Apothecary',
+        description:
+          'Reach Hazel Allure LLC for support, practitioner inquiries, or questions about orders on the woman-owned wellness marketplace.',
       },
     },
   },

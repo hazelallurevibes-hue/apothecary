@@ -20,6 +20,7 @@ import {
 } from '../lib/seekerOathPledge';
 import { logSeekerOathAcceptance } from '../lib/seekerOathApi';
 import PasswordInput from '../components/PasswordInput';
+import SignupBenefitsPanel from '../components/SignupBenefitsPanel';
 
 export default function CustomerSignUp({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -225,9 +226,12 @@ export default function CustomerSignUp({ onLogin }) {
   }
 
   return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Seeker Sign Up</h1>
-      <div className="bg-white border rounded-3xl p-8 relative">
+    <div className="max-w-5xl mx-auto px-2">
+      <h1 className="text-3xl font-bold tracking-tight mb-2 text-center lg:text-left">Seeker Sign Up</h1>
+      <p className="text-sm text-gray-500 mb-6 text-center lg:text-left">Free research library, marketplace access, and optional Pro upgrades.</p>
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
+      <SignupBenefitsPanel audience="seeker" className="order-2 lg:order-1" />
+      <div className="bg-white border rounded-3xl p-8 relative order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0">
         {!googleMode && googleSignInEnabled && (
           <>
             <GoogleLoginButton redirectPath="/customer-signup" disabled={loading} />
@@ -338,6 +342,7 @@ export default function CustomerSignUp({ onLogin }) {
         <p className="text-center mt-2 text-sm text-gray-500">
           Already have an account? <Link to="/login" className="text-[#4a1942]">Log in</Link>
         </p>
+      </div>
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ const STATIC_ENTRIES = [
   { path: '/faq', changefreq: 'monthly', priority: '0.6' },
   { path: '/sitemap', changefreq: 'monthly', priority: '0.4' },
   { path: '/learn', changefreq: 'weekly', priority: '0.7' },
+  { path: '/remedies', changefreq: 'weekly', priority: '0.9' },
   { path: '/agreements', changefreq: 'monthly', priority: '0.5' },
   { path: '/policies-procedures', changefreq: 'monthly', priority: '0.5' },
   { path: '/customer-use-agreement', changefreq: 'monthly', priority: '0.5' },
@@ -28,6 +29,28 @@ const LITERATURE_SLUGS = {
   bpicius: ['farm-to-table', 'food-safety-home-kitchen', 'sell-at-farmers-markets', 'local-food-worldwide'],
   hazelallure: ['holistic-wellness-basics', 'natural-apothecary-guide', 'worldwide-wellness-traditions'],
 };
+
+/** Remedy catalog slugs for SEO indexing (educational monographs). */
+function loadRemedySlugs() {
+  try {
+    const fs = require('fs');
+    const path = require('path');
+    const candidates = [
+      path.join(process.cwd(), 'src/lib/remedies/catalog.json'),
+      path.join(process.cwd(), 'frontend/src/lib/remedies/catalog.json'),
+      path.join(__dirname, '../src/lib/remedies/catalog.json'),
+    ];
+    for (const file of candidates) {
+      if (fs.existsSync(file)) {
+        const cat = JSON.parse(fs.readFileSync(file, 'utf8'));
+        return (cat.entries || []).map((e) => e.slug);
+      }
+    }
+  } catch {
+    /* catalog optional */
+  }
+  return [];
+}
 
 function escapeXml(str) {
   return String(str)
@@ -95,7 +118,13 @@ export default async function handler(req, res) {
       priority: '0.65',
     }));
 
-    const staticUrls = [...STATIC_ENTRIES, ...literatureEntries].map((entry) =>
+    const remedyEntries = loadRemedySlugs().map((slug) => ({
+      path: `/remedies/${slug}`,
+      changefreq: 'monthly',
+      priority: '0.7',
+    }));
+
+    const staticUrls = [...STATIC_ENTRIES, ...literatureEntries, ...remedyEntries].map((entry) =>
       urlEntry(`${BASE}${entry.path}`, today, entry.changefreq, entry.priority),
     );
 

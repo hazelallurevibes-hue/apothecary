@@ -258,6 +258,21 @@ export default function PoliciesProcedures() {
         </div>
       </section>
 
+      {/* 12b — remedies research library */}
+      <section id="remedies-research" className="mb-10">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">12B. Natural remedies research library</h2>
+        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-4 text-sm text-amber-950">
+          <strong>Not medical advice.</strong> Educational monographs on {VERTICAL.appUrl}/remedies are for research purposes only. They do not diagnose, treat, cure, or prevent disease. Seek licensed medical care for symptoms. Call emergency services for life-threatening situations.
+        </div>
+        <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
+          <li>Content may describe typical hospital or clinic pathways and traditional natural approaches. Descriptions are general and may be incomplete or outdated relative to local standards of care.</li>
+          <li>&quot;Success stories&quot; and historical notes are anecdotal or cultural context — not clinical trials or proof of efficacy.</li>
+          <li>High-demand topics may be offered as a Pro Member feature; free seekers retain access to a large open catalog and always see stop-and-seek-care warnings on gated pages.</li>
+          <li>Users must not use the library to delay emergency or primary care. {VERTICAL.legalEntity} disclaims liability for reliance on research pages.</li>
+          <li>Practitioners must not copy monographs into listings as disease-treatment claims. Structure/function and educational framing only.</li>
+        </ul>
+      </section>
+
       {/* 13 */}
       <section id="homeopathic" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">13. Homeopathic &amp; herbal disclaimers (structure/function)</h2>

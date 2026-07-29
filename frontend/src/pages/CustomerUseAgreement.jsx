@@ -40,6 +40,9 @@ export default function CustomerUseAgreement() {
             <li>Never delay or discontinue medical treatment based on platform content or practitioner guidance.</li>
             <li>Apothecary products (homeopathic remedies, herbs, oils, tinctures, supplements) are not evaluated by {VERTICAL.legalEntity} and may not be appropriate for your condition.</li>
             <li>FDA structure/function statements on listings have not been evaluated by the FDA unless the practitioner is lawfully authorized to make such representations.</li>
+            <li>
+              The <strong>Natural Remedies Research Library</strong> (/remedies) is educational only. Hospital-care summaries, traditional remedies, and anecdotal accounts are not instructions to treat disease. If you have a health issue, stop researching and seek licensed medical attention.
+            </li>
             <li>For medical emergencies, call emergency services (e.g., 911 in the United States) immediately.</li>
           </ul>
         </section>

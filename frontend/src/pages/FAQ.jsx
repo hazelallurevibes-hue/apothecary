@@ -23,7 +23,11 @@ const legalSafetySections = [
       {
         title: 'What is Hazel Allure\'s stance on homeopathy, herbalism, and energy work?',
         body: 'Hazel Allure welcomes diverse wellness traditions — homeopathy, herbalism, naturopathic wellness, energy work, psychic readings, curanderismo, Ayurveda, and related modalities — as listings by independent practitioners. We do not evaluate efficacy, safety, or legality of these practices. Practitioners must use lawful structure/function language for products (not impermissible disease claims). Seekers must research modalities independently and consult licensed healthcare providers for medical conditions.',
-        link: '/policies-procedures#homeopathic',
+      },
+      {
+        title: 'What is the Natural Remedies Research Library?',
+        body: 'The /remedies library offers 200+ educational monographs covering common concerns: what clinical care often involves, traditional natural approaches, historical notes, and clear warnings to seek medical attention. It is research-only content — not medical advice. Hot high-demand topics may require Pro Membership; free seekers keep access to a large open catalog and always see emergency stop-and-seek-care guidance.',
+        link: '/remedies',
       },
       {
         title: 'Who is responsible for verifying practitioner licenses?',

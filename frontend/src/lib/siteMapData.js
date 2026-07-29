@@ -12,6 +12,8 @@ export const SITEMAP_SECTIONS = [
       { path: '/courses', label: 'Teaching Sanctum — Courses', priority: '0.8', changefreq: 'weekly' },
       { path: '/top-vendors', label: 'Top Practitioners', priority: '0.8', changefreq: 'weekly' },
       { path: '/gathering', label: 'The Hearth — Seeker Gathering', priority: '0.7', changefreq: 'daily' },
+      { path: '/remedies', label: 'Natural Remedies Research Library', priority: '0.9', changefreq: 'weekly' },
+      { path: '/learn', label: 'Wellness Guides', priority: '0.7', changefreq: 'weekly' },
     ],
   },
   {

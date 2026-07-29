@@ -439,6 +439,7 @@ export default function Layout({ user, onLogout, children }) {
             {verticalFeature('seoLiterature') && (
               <Link to="/learn">Guides</Link>
             )}
+            <Link to="/remedies">Remedies research</Link>
             <Link to="/sitemap">Site Map</Link>
             <a href={blogUrl('/alluring-news')} target="_blank" rel="noopener noreferrer">Alluring News</a>
             <Link to="/agreements">{t('footer.terms')}</Link>

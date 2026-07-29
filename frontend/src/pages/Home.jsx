@@ -286,6 +286,12 @@ function CustomerHome({ user, liveStats }) {
           <h3 className="font-semibold text-xl">🌿 Apothecary &amp; Goods</h3>
           <p className="text-sm text-gray-600 mt-2">Essential oils, incense, potions, crystals, and ritual kits.</p>
         </Link>
+        <Link to="/remedies" className="bg-white border border-emerald-200/60 rounded-3xl p-6 hover:shadow-sm transition block">
+          <h3 className="font-semibold text-xl">Natural remedies research</h3>
+          <p className="text-sm text-gray-600 mt-2">
+            200+ educational topics — conventional care notes, traditional approaches, and clear medical warnings. Research only.
+          </p>
+        </Link>
         <Link to="/customer-portal" className="bg-white border rounded-3xl p-6 hover:shadow-sm transition block">
           <h3 className="font-semibold text-xl">Seeker Portal</h3>
           <p className="text-sm text-gray-600 mt-2">Your orders, favorites, and account.</p>

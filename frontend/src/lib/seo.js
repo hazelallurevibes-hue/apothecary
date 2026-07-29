@@ -33,19 +33,23 @@ const SHARED_ROUTE_SEO = {
     title: `${VERTICAL.labels.productsMarket} | ${VERTICAL.name}`,
     description: VERTICAL.copy.platformDescription,
   },
-  '/courses': {
+  '/courses': VERTICAL.seo?.routes?.['/courses'] || {
     title: `${VERTICAL.labels.courses} | ${VERTICAL.name}`,
     description: `Explore courses and lessons from Pro ${VERTICAL.labels.vendors.toLowerCase()}s on ${VERTICAL.name}.`,
   },
-  '/top-vendors': {
+  '/top-vendors': VERTICAL.seo?.routes?.['/top-vendors'] || {
     title: `Top ${VERTICAL.labels.vendors} | ${VERTICAL.name}`,
     description: `Explore top-rated ${VERTICAL.labels.vendors.toLowerCase()}s trusted by the ${VERTICAL.name} community.`,
   },
-  '/faq': {
+  '/gathering': VERTICAL.seo?.routes?.['/gathering'] || {
+    title: `The Hearth — Community | ${VERTICAL.name}`,
+    description: `Peer gathering space on ${VERTICAL.name} — community threads and wellness conversation.`,
+  },
+  '/faq': VERTICAL.seo?.routes?.['/faq'] || {
     title: `FAQ — ${VERTICAL.name}`,
     description: `Answers about ${VERTICAL.labels.marketplace.toLowerCase()}, ${VERTICAL.labels.productsMarket.toLowerCase()}, verification, and platform policies.`,
   },
-  '/contact': {
+  '/contact': VERTICAL.seo?.routes?.['/contact'] || {
     title: `Contact ${VERTICAL.name}`,
     description: `Reach our team for support, ${VERTICAL.labels.vendor.toLowerCase()} inquiries, or questions about orders on ${VERTICAL.name}.`,
   },
@@ -65,11 +69,16 @@ const SHARED_ROUTE_SEO = {
     title: `Guides & Resources | ${VERTICAL.name}`,
     description: VERTICAL.copy.platformDescription,
   },
+  '/remedies': {
+    title: `Natural Remedies Research Library | ${VERTICAL.name}`,
+    description:
+      '200+ educational monographs on common concerns: conventional care pathways, traditional natural approaches, safety warnings, and when to seek medical attention. Research only — not medical advice.',
+  },
   '/pro-upgrade': VERTICAL.seo?.routes?.['/pro-upgrade'] || {
     title: `Pro Membership — ${VERTICAL.name}`,
     description: `Unlock Pro benefits on ${VERTICAL.name} — premium marketplace features for ${VERTICAL.labels.vendors.toLowerCase()} and ${VERTICAL.labels.customer.toLowerCase()}s.`,
   },
-  '/vendor-signup': {
+  '/vendor-signup': VERTICAL.seo?.routes?.['/vendor-signup'] || {
     title: `Become a ${VERTICAL.labels.vendor} | ${VERTICAL.name}`,
     description: `Apply to list on ${VERTICAL.name} — ${VERTICAL.labels.servicesMarket.toLowerCase()} and ${VERTICAL.labels.productsMarket.toLowerCase()}.`,
   },
@@ -84,6 +93,14 @@ const SHARED_ROUTE_SEO = {
   '/account-settings': {
     title: `Account Settings | ${VERTICAL.name}`,
     description: `Manage your ${VERTICAL.labels.customer.toLowerCase()} or ${VERTICAL.labels.vendor.toLowerCase()} profile, billing, and platform preferences on ${VERTICAL.name}.`,
+  },
+  '/vendor-dashboard': {
+    title: `${VERTICAL.labels.vendor} Dashboard | ${VERTICAL.name}`,
+    description: `Manage listings, bookings, and ${VERTICAL.labels.productsMarket.toLowerCase()} on ${VERTICAL.name}.`,
+  },
+  '/customer-portal': {
+    title: `${VERTICAL.labels.customer} Portal | ${VERTICAL.name}`,
+    description: `Orders, favorites, and account tools for ${VERTICAL.labels.customer.toLowerCase()}s on ${VERTICAL.name}.`,
   },
 };
 
@@ -109,6 +126,17 @@ export function resolveSeo(pathname) {
     if (article) return literatureSeoForArticle(article);
     return ROUTE_SEO['/learn'] || ROUTE_SEO['/'];
   }
+  if (path.startsWith('/remedies/')) {
+    // Full per-slug meta is set by RemedyDetail via document title + PageSeo override;
+    // keep hub-level fallback so the main bundle does not import the full catalog.
+    const slug = path.replace('/remedies/', '').replace(/-/g, ' ');
+    return {
+      title: `${slug.replace(/\b\w/g, (c) => c.toUpperCase())} — Remedies Research | ${VERTICAL.name}`,
+      description:
+        'Educational overview of conventional care pathways and traditional natural approaches. Research only — not medical advice. Seek licensed care for symptoms.',
+    };
+  }
+  if (path === '/remedies') return ROUTE_SEO['/remedies'];
   if (path.startsWith('/courses/')) return ROUTE_SEO['/courses'];
   if (path.startsWith('/vendor/')) {
     return {

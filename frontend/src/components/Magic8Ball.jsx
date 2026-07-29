@@ -43,7 +43,7 @@ export default function Magic8Ball({ user }) {
   const ask = useCallback(() => {
     if (!isLoggedIn && !canGuestAskOracle(user)) {
       setGuestFlash(
-        `You've used your ${GUEST_ORACLE_LIMIT} free questions. Create an account or log in to keep asking.`,
+        `You've used your ${GUEST_ORACLE_LIMIT} free questions. Create a free account or log in to keep asking — plus free remedy research and marketplace access.`,
       );
       setAnswer(null);
       return;

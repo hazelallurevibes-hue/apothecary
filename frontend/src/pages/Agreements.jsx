@@ -98,6 +98,7 @@ export default function Agreements() {
           <p><strong>3.19 Sabbatical.</strong> Practitioners may display sabbatical status on storefronts. Sabbatical flags auto-expire after the stated return date. Hazel Allure does not guarantee response times during declared rest periods.</p>
           <p><strong>3.20 Gratitude wall.</strong> Short moderated blessings on The Hearth may be auto-approved or queued for review. Not endorsements by Hazel Allure.</p>
           <p><strong>3.21 Familiar quests &amp; grimoire slips.</strong> Daily quests, lunar familiar moods, and printable order grimoire slips are entertainment only.</p>
+          <p><strong>3.22 Natural remedies research library.</strong> The /remedies section publishes educational monographs summarizing common clinical pathways and traditional natural approaches for research purposes only. Content is not medical advice, diagnosis, or treatment. High-demand (&quot;hot&quot;) monographs may be gated as a Pro Member benefit. Hazel Allure does not warrant accuracy, completeness, or outcomes. Users must stop and seek licensed medical care for symptoms or emergencies. Success stories and historical notes are anecdotal, not clinical evidence.</p>
         </div>
       </section>
 

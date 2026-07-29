@@ -4,6 +4,12 @@
 const DISMISS_PREFIX = 'hazel_pro_hint_';
 
 export const PRO_HINTS = {
+  remedies_hot: {
+    plan: 'customer',
+    title: 'Pro remedy monographs',
+    body: 'High-demand natural-remedy research topics unlock with Pro Membership — full conventional-care notes and traditional detail.',
+    cta: 'Unlock Pro research',
+  },
   community_post: {
     title: 'Join the conversation with Pro',
     body: 'Pro Members can start new threads in the Gathering. You can still read and reply to open discussions.',

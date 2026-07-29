@@ -19,6 +19,7 @@ import {
 } from '../lib/vendorIntegrityPledge';
 import { logVendorIntegrityAcceptance } from '../lib/vendorIntegrityApi';
 import PasswordInput from '../components/PasswordInput';
+import SignupBenefitsPanel from '../components/SignupBenefitsPanel';
 
 export default function VendorSignUp({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -172,9 +173,12 @@ export default function VendorSignUp({ onLogin }) {
   const successMessage = message.includes('submitted') || message.includes('saved') || message.includes('signed in');
 
   return (
-    <div className="max-w-md mx-auto">
-      <h1 className="text-3xl font-bold tracking-tight mb-6">Practitioner Sign Up</h1>
-      <div className="bg-white border rounded-3xl p-8 relative">
+    <div className="max-w-5xl mx-auto px-2">
+      <h1 className="text-3xl font-bold tracking-tight mb-2 text-center lg:text-left">Practitioner Sign Up</h1>
+      <p className="text-sm text-gray-500 mb-6 text-center lg:text-left">Free core listings with limits · Pro unlocks Teaching Sanctum, campaigns &amp; more.</p>
+      <div className="grid lg:grid-cols-2 gap-8 items-start">
+      <SignupBenefitsPanel audience="practitioner" className="order-2 lg:order-1" />
+      <div className="bg-white border rounded-3xl p-8 relative order-1 lg:order-2 max-w-md w-full mx-auto lg:mx-0">
         {!googleMode && googleSignInEnabled && (
           <>
             <GoogleLoginButton redirectPath="/vendor-signup" disabled={loading} />
@@ -321,6 +325,7 @@ export default function VendorSignUp({ onLogin }) {
           Already have an account? <Link to="/login" className="text-[#4a1942]">Log in</Link>
         </p>
         <p className="text-center text-xs text-gray-500 mt-3">Applications are reviewed by admins. You will be notified when approved.</p>
+      </div>
       </div>
     </div>
   );
