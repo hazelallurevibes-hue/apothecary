@@ -10,6 +10,7 @@ export const DASHBOARD_WIDGETS = [
   { id: 'subscribers', label: 'Subscribe & Save pulse (Pro)', free: false },
   { id: 'featured', label: 'Featured product pin (Pro)', free: false },
   { id: 'welcome', label: 'Custom welcome banner (Pro)', free: false },
+  { id: 'saas', label: 'Pro SaaS toolkit (Pro)', free: false },
 ];
 
 export const DEFAULT_PREFS = {

@@ -174,6 +174,13 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
       next.delete('booked');
       setSearchParams(next, { replace: true });
     }
+    if (searchParams.get('review') === '1') {
+      setActiveTab('reviews');
+      setBookingToast('Thanks for shopping — leave a short review when you are ready.');
+      requestAnimationFrame(() => {
+        document.getElementById('tabpanel-reviews')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
@@ -366,6 +373,23 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
         </div>
       </section>
       </PractitionerAuraGlow>
+
+      {vendor?.market_day_mode && (
+        <div className="mt-4 mx-2 sm:mx-0 rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 py-3 text-sm text-emerald-950">
+          <p className="font-bold">🌿 Market day · local pickup only</p>
+          <p className="text-xs mt-1 leading-relaxed">
+            {vendor.market_day_note ||
+              'This shop is in market-day mode — orders are set up for in-person pickup, not shipping.'}
+          </p>
+        </div>
+      )}
+
+      {vendor?.story_video_url && (
+        <section className="mt-6 px-2 sm:px-0" aria-label="Shop story video">
+          <h2 className="text-sm font-semibold uppercase tracking-wider text-[#4a1942] mb-2 px-1">Shop story</h2>
+          <VideoEmbed url={vendor.story_video_url} title={`${vendor.name} story`} />
+        </section>
+      )}
 
       {/* Story-style highlight rings */}
       {storyImages.length > 0 && (

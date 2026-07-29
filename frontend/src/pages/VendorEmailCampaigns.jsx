@@ -98,10 +98,17 @@ export default function VendorEmailCampaigns({ user }) {
     setSaving(true);
     setMessage('');
     try {
+      const bodyWithBrand = wrapCampaignBody(
+        form.bodyText,
+        vendorId,
+        vendor?.name,
+        vendor?.branded_email_footer || '',
+      );
+      // Store raw body for editing; wrap again at send if needed — also embed branded footer in body_text for send path
       const draft = await createCampaignDraft({
         vendorId,
         subject: form.subject,
-        bodyText: form.bodyText,
+        bodyText: bodyWithBrand,
         recipientEmails: form.recipients,
         createdByEmail: user?.email,
         templateId: form.templateId,
@@ -142,7 +149,9 @@ export default function VendorEmailCampaigns({ user }) {
     setSaving(false);
   };
 
-  const previewBody = form.bodyText.trim() ? wrapCampaignBody(form.bodyText, vendorId, vendor?.name) : '';
+  const previewBody = form.bodyText.trim()
+    ? wrapCampaignBody(form.bodyText, vendorId, vendor?.name, vendor?.branded_email_footer || '')
+    : '';
 
   if (!vendorId) {
     return (

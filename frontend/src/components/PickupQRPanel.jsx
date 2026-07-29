@@ -21,6 +21,7 @@ export function CustomerPickupQR({ order }) {
 export function VendorPickupScanner({ user }) {
   const [token, setToken] = useState('');
   const [msg, setMsg] = useState('');
+  const [reviewUrl, setReviewUrl] = useState('');
 
   const confirm = async () => {
     if (!token.trim()) return;
@@ -28,11 +29,21 @@ export function VendorPickupScanner({ user }) {
       .from('orders')
       .update({ status: 'delivered', picked_up_at: new Date().toISOString() })
       .eq('pickup_qr_token', token.trim())
-      .select()
+      .select('id, vendor_id')
       .maybeSingle();
-    if (error) setMsg(error.message);
-    else if (!data) setMsg('Invalid or already used pickup code.');
-    else setMsg(`Order #${data.id} marked picked up.`);
+    if (error) {
+      setMsg(error.message);
+      setReviewUrl('');
+    } else if (!data) {
+      setMsg('Invalid or already used pickup code.');
+      setReviewUrl('');
+    } else {
+      setMsg(`Order #${data.id} marked picked up.`);
+      if (data.vendor_id) {
+        const url = `${window.location.origin}/vendor/${data.vendor_id}?review=1`;
+        setReviewUrl(url);
+      }
+    }
   };
 
   return (
@@ -48,6 +59,18 @@ export function VendorPickupScanner({ user }) {
         Mark picked up
       </button>
       {msg && <p className="text-xs mt-2 text-gray-600">{msg}</p>}
+      {reviewUrl && (
+        <div className="mt-3 p-3 rounded-xl border border-[#c9a227]/40 bg-[#faf7f0]">
+          <p className="text-xs font-semibold text-[#4a1942]">Ask for a review</p>
+          <p className="text-[11px] text-gray-600 mt-0.5">Show this QR so the customer can leave feedback in 30 seconds.</p>
+          <img
+            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(reviewUrl)}`}
+            alt="Review request QR"
+            className="mt-2 border rounded-lg"
+          />
+          <p className="mt-1 text-[10px] font-mono break-all text-gray-500">{reviewUrl}</p>
+        </div>
+      )}
     </div>
   );
 }

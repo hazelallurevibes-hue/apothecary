@@ -8,9 +8,13 @@ export function buildStorefrontUrl(vendorId) {
   return `${APP_URL}/vendor/${vendorId}`;
 }
 
-export function wrapCampaignBody(bodyText, vendorId, vendorName) {
+export function wrapCampaignBody(bodyText, vendorId, vendorName, brandedFooter = '') {
   const storefront = buildStorefrontUrl(vendorId);
-  const footer = `\n\n—\nShop ${vendorName || 'this vendor'} on Hazel Allure:\n${storefront}\n\nAll orders and messaging happen on Hazel Allure. This email was sent via Hazel Allure Vendor Campaigns.`;
+  const custom = (brandedFooter || '').trim();
+  const brandBlock = custom
+    ? `\n\n—\n${custom}`
+    : `\n\n—\nShop ${vendorName || 'this vendor'} on Hazel Allure:\n${storefront}`;
+  const footer = `${brandBlock}\n\nAll orders and messaging happen on Hazel Allure. This email was sent via Hazel Allure Vendor Campaigns.`;
   return `${bodyText.trim()}${footer}`;
 }
 
