@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getVendorContext, isVendorPro, vendorCan } from '../lib/plans';
+import { getVendorContext, isVendorPro } from '../lib/plans';
 import { MAKER_STUDIO_TOOLS } from '../lib/makerStudioCatalog';
 import {
   emptyStudio,

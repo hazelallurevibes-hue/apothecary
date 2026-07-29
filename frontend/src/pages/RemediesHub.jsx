@@ -55,8 +55,8 @@ export default function RemediesHub() {
           Common concerns &amp; natural remedies
         </h1>
         <p className="text-gray-600 mt-3 max-w-2xl leading-relaxed">
-          {total}+ educational monographs with full free topics mixed in first — so you can read the depth of our
-          research without paying. Pro hot topics unlock the densest deep-dives for frequent researchers.
+          {total}+ educational monographs, free topics first — full conventional care notes, traditional approaches,
+          history, and red-flag warnings without paying. Pro hot topics unlock the densest deep-dives for frequent researchers.
         </p>
         <p className="text-xs text-gray-500 mt-2">
           {freeAll.length} free monographs · {hotAll.length} Pro hot topics · Educational only, not medical advice

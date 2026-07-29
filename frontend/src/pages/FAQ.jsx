@@ -26,7 +26,7 @@ const legalSafetySections = [
       },
       {
         title: 'What is the Natural Remedies Research Library?',
-        body: 'The /remedies library offers 200+ educational monographs covering common concerns: what clinical care often involves, traditional natural approaches, historical notes, and clear warnings to seek medical attention. It is research-only content — not medical advice. Hot high-demand topics may require Pro Membership; free seekers keep access to a large open catalog and always see emergency stop-and-seek-care guidance.',
+        body: 'The /remedies library offers 400+ educational monographs covering common concerns: what clinical care often involves, traditional natural approaches, historical notes, and clear warnings to seek medical attention. Free monographs open fully so you can evaluate quality; hot high-demand topics may require Pro Membership. Always see emergency stop-and-seek-care guidance. Research only — not medical advice.',
         link: '/remedies',
       },
       {
@@ -60,7 +60,7 @@ const legalSafetySections = [
     items: [
       {
         title: 'What is the practitioner launch checklist?',
-        body: 'Before a practitioner\'s first public listing, they must complete four steps in order: (1) verify email, (2) review and accept safety policies & vendor agreements, (3) submit photo ID for admin review, and (4) post their first listing. Hazel Allure may block listing creation until prior steps are complete. ID approval is at admin discretion and is not credential verification.',
+        body: 'Launch checklist: (1) verify email, (2) accept safety policies, (3) choose seller path — products only, services, or both, (4) submit photo ID if you offer services (product-only shops can skip ID), (5) post first listing. Pending ID still counts as checklist progress while review finishes. Smart review may auto-approve complete packages or flag soft issues for admin. ID review is fraud reduction only — not credential verification.',
         link: '/onboarding',
       },
       {
@@ -89,8 +89,18 @@ const legalSafetySections = [
       },
       {
         title: 'How does photo ID verification work?',
-        body: 'Practitioners submit government ID and selfie for admin review. Documents are not shown publicly. Approval is not guaranteed. Hazel Allure uses verification to reduce fraud — it is not a background check, health inspection, business license check, or professional credential verification.',
+        body: 'Required when you offer sessions/services (or choose Both). Product-only shops can skip ID. Submit government ID + selfie; documents are never public. Smart review may auto-approve complete packages or flag soft issues for admin while your checklist still advances. Approval is fraud reduction only — not a background check, license check, or credential verification.',
         link: '/vendor-verification',
+      },
+      {
+        title: 'What is Maker Studio?',
+        body: 'Maker Studio is the seller toolkit for herbalists, oil and candle makers, ritual goods shops, and natural skincare brands: harvest calendars, claim-language helper, photo quality score, packing lists, wholesale mode, custom blend requests, gift wrap, kits, client vault, seasonal skins, and more. Free includes core tools; Pro unlocks the full suite used in our Free vs Pro marketing table. Open it from the Vendor Dashboard.',
+        link: '/vendor-maker-studio',
+      },
+      {
+        title: 'What is the Pro SaaS toolkit?',
+        body: 'Pro SaaS tools help run the shop like software: tax pack CSV for your CPA, market-day pickup-only mode, review-request QR after handoff, branded campaign footers, staff shift notes, shop story video pin, POS Subscribe & Save, and dashboard personalization. Available under Pro SaaS tools on the dashboard.',
+        link: '/vendor-pro-tools',
       },
       {
         title: 'Who is liable for adverse reactions or dissatisfaction?',
@@ -155,7 +165,7 @@ const legalSafetySections = [
       },
       {
         title: 'What is Hazel Allure Pro?',
-        body: 'Pro is our paid tier for practitioners and seekers. Pro Practitioner unlocks unlimited listings, service video embeds, member discounts, Teaching Sanctum courses, international storefront links, email campaigns, analytics, and more. Pro Member unlocks ratings, favorites, loyalty, priority support, and member pricing on eligible listings. Subscriptions are billed monthly or annually through Stripe.',
+        body: 'Pro is our paid tier for practitioners and seekers. Pro Practitioner unlocks unlimited listings, Maker Studio Pro (wholesale, custom blends, gift wrap, kits, client vault, seasonal skins, voice-to-listing), POS Subscribe & Save, tax pack, market-day mode, review QR, campaigns, Teaching Sanctum, analytics, and more. Pro Member unlocks hot remedy monographs, discounts where enabled, favorites, loyalty, and course pricing. Billed monthly or annually via Stripe; cancel anytime in the billing portal.',
         link: '/pro-upgrade',
       },
       {

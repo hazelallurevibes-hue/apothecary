@@ -18,6 +18,9 @@ export default function PoliciesProcedures() {
           ['#moderation', 'Moderation'],
           ['#prohibited', 'Prohibited'],
           ['#apothecary', 'Apothecary'],
+          ['#remedies-research', 'Remedies'],
+          ['#maker-studio', 'Maker Studio'],
+          ['#pro-saas', 'Pro tools'],
           ['#magic-sanctum', 'Magic Sanctum'],
           ['#verification', 'Verification'],
           ['#dmca', 'DMCA'],
@@ -127,11 +130,20 @@ export default function PoliciesProcedures() {
       {/* 8 */}
       <section id="verification" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">8. Practitioner verification disclaimers</h2>
+        <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 mb-4 text-sm text-sky-950">
+          <strong>Product sellers vs service providers.</strong> Photo government ID is required when a seller offers
+          wellness <em>sessions/services</em> (or chooses a path that includes services). Sellers who list{' '}
+          <strong>apothecary products only</strong> may complete a standard product launch path (email verification,
+          safety policies, first product listing) without photo ID. Choosing &quot;Both&quot; or adding services later
+          requires ID submission. Pending or flagged ID submissions count as progress on the launch checklist while
+          admin or automated review finishes.
+        </div>
         <div className="bg-amber-50 border border-amber-300 rounded-2xl p-5 mb-4 text-sm text-amber-950">
           <strong>Verification is limited.</strong> {VERTICAL.legalEntity} does not verify professional licenses, board certifications, educational credentials, insurance coverage, criminal history, or business permits. Photo ID review is for identity and fraud reduction only.
         </div>
         <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
-          <li><strong>Launch checklist:</strong> Practitioners must verify email, accept safety policies, submit photo ID for admin review, and complete first listing in prescribed order. Completion does not constitute platform endorsement.</li>
+          <li><strong>Launch checklist:</strong> Practitioners verify email, accept safety policies, choose a seller path (products only, services, or both), complete ID when services are offered, and post a first listing. Completion does not constitute platform endorsement.</li>
+          <li><strong>Smart ID review:</strong> Complete photo ID packages may be auto-approved by automated completeness checks. Soft issues may be flagged for admin review while the seller&apos;s checklist progress is preserved. Auto-approval is fraud-reduction only — not credential verification.</li>
           <li><strong>&quot;Practitioner-certified&quot; badge:</strong> Indicates the practitioner attested to compliance before publishing — not independent inspection, laboratory testing, or credential verification by {VERTICAL.legalEntity}.</li>
           <li><strong>Opt-out:</strong> Listings without certification display &quot;Not practitioner-certified.&quot; Per-listing attestations are logged with timestamp and practitioner email.</li>
           <li><strong>Seeker responsibility:</strong> Seekers must independently verify practitioner qualifications, reviews, and suitability before booking or purchasing.</li>
@@ -267,9 +279,40 @@ export default function PoliciesProcedures() {
         <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
           <li>Content may describe typical hospital or clinic pathways and traditional natural approaches. Descriptions are general and may be incomplete or outdated relative to local standards of care.</li>
           <li>&quot;Success stories&quot; and historical notes are anecdotal or cultural context — not clinical trials or proof of efficacy.</li>
-          <li>High-demand topics may be offered as a Pro Member feature; free seekers retain access to a large open catalog and always see stop-and-seek-care warnings on gated pages.</li>
+          <li>The open catalog includes hundreds of free monographs so seekers can evaluate research depth before upgrading. High-demand &quot;hot&quot; topics may require Pro Membership; free seekers always see stop-and-seek-care warnings on gated pages.</li>
           <li>Users must not use the library to delay emergency or primary care. {VERTICAL.legalEntity} disclaims liability for reliance on research pages.</li>
-          <li>Practitioners must not copy monographs into listings as disease-treatment claims. Structure/function and educational framing only.</li>
+          <li>Practitioners must not copy monographs into listings as disease-treatment claims. Use Maker Studio claim-language tools and structure/function framing only.</li>
+          <li>Read times are approximate educational estimates based on word count; they are not medical time guidance.</li>
+        </ul>
+      </section>
+
+      {/* Maker Studio */}
+      <section id="maker-studio" className="mb-10">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">12C. Maker Studio (seller tools)</h2>
+        <p className="text-gray-700 text-sm leading-relaxed mb-3">
+          Maker Studio provides optional software tools for independent artisans and practitioners (harvest calendars,
+          claim-language helpers, packing lists, wholesale notes, blend request inboxes, consignment trackers, client
+          vault notes, seasonal storefront skins, and related features) at {VERTICAL.appUrl}/vendor-maker-studio.
+        </p>
+        <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
+          <li><strong>Not legal, tax, or medical advice.</strong> State herbal/cottage notes, claim rewrites, and label card text are educational templates. Sellers remain solely responsible for lawful labeling, claims, permits, and taxes in every jurisdiction they sell.</li>
+          <li><strong>Free vs Pro.</strong> Core tools (e.g., limited harvest dates, claim helper, photo checklist, packing list) may be available on Free. Wholesale, custom blend workflows, gift wrap configuration, kits, client vault, seasonal skins, voice-to-listing drafts, and supplier alerts require Pro Practitioner unless otherwise stated on the upgrade page.</li>
+          <li><strong>Data.</strong> Studio preferences and notes may be stored with the seller account (including JSON configuration on the vendor profile). Client vault notes are seller-managed private notes — not a HIPAA medical record system.</li>
+          <li><strong>Blend requests &amp; wholesale.</strong> Custom blend and wholesale arrangements are contracts between seller and buyer. Deposits, timelines, and fulfillment are the seller&apos;s responsibility.</li>
+          <li><strong>Auto-replies &amp; sabbatical.</strong> Quiet-hour and sabbatical templates are optional copy aids. Sellers must still honor applicable consumer protection and refund laws for orders already placed.</li>
+        </ul>
+      </section>
+
+      {/* Pro SaaS */}
+      <section id="pro-saas" className="mb-10">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">12D. Pro SaaS toolkit &amp; subscriptions</h2>
+        <ul className="list-disc pl-6 space-y-2 text-gray-700 text-sm">
+          <li><strong>Pro Practitioner tools</strong> may include tax pack CSV exports, market-day (pickup-only) mode, review-request QR codes, branded campaign email footers, staff shift notes, shop story video pins, POS inventory, product Subscribe &amp; Save, dashboard personalization, and related features described on the Pro upgrade page.</li>
+          <li><strong>Tax pack downloads</strong> are informational estimates only. {VERTICAL.legalEntity} does not file sales tax, income tax, or information returns on sellers&apos; behalf. Consult a licensed CPA.</li>
+          <li><strong>Product Subscribe &amp; Save</strong> uses Stripe recurring checkout for eligible products. Sellers must only enable subscriptions on SKUs they can restock reliably. Cancellation and billing disputes follow Stripe and applicable consumer law.</li>
+          <li><strong>Abandoned-cart templates</strong> are copy aids. Sellers must comply with SMS/email consent, CAN-SPAM, TCPA, CASL, GDPR, and similar laws; purchased lists and spam are prohibited.</li>
+          <li><strong>Market-day mode</strong> is a storefront messaging preference. Sellers remain responsible for accurate fulfillment promises and order handling.</li>
+          <li><strong>Pro Member</strong> (seeker) features may include hot remedy monographs, member discounts where enabled, loyalty tools, and course pricing tiers. Cancel anytime via the Stripe billing portal; free marketplace access remains after cancel.</li>
         </ul>
       </section>
 
