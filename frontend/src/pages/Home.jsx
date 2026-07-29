@@ -175,7 +175,7 @@ function CustomerHome({ user, liveStats }) {
               <span aria-hidden="true">✦</span> Woman-owned
             </span>
             <span className="trust-badge" role="listitem">
-              <span aria-hidden="true">✓</span> Verified practitioners
+              <span aria-hidden="true">✓</span> Verified sellers
             </span>
             <span className="trust-badge" role="listitem">
               <span aria-hidden="true">🔒</span> Secure checkout
@@ -187,31 +187,31 @@ function CustomerHome({ user, liveStats }) {
 
           <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-delay">
             <Link
-              to={VERTICAL.routes.servicesMarket}
+              to={VERTICAL.routes.productsMarket}
               className="btn-accent flex-col sm:flex-row !py-4 !px-8 text-center sm:text-left group"
             >
               <span className="flex flex-col">
                 <span className="text-[17px]">{VERTICAL.labels.shopHero}</span>
-                <span className="text-xs font-normal opacity-80 mt-0.5">{VERTICAL.labels.marketplace}</span>
+                <span className="text-xs font-normal opacity-80 mt-0.5">Oils · herbs · skincare · ritual goods</span>
               </span>
               <span className="hidden sm:inline text-lg opacity-70 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
             </Link>
             <Link
-              to={VERTICAL.routes.productsMarket}
+              to="/remedies"
               className="btn-ghost-light flex-col sm:flex-row !py-4 !px-8 text-center sm:text-left group"
             >
               <span className="flex flex-col">
-                <span className="text-[17px]">{VERTICAL.labels.productsMarket}</span>
-                <span className="text-xs font-normal opacity-70 mt-0.5">Oils, incense, crystals &amp; ritual goods</span>
+                <span className="text-[17px]">Remedies research</span>
+                <span className="text-xs font-normal opacity-70 mt-0.5">200+ educational topics</span>
               </span>
               <span className="hidden sm:inline text-lg opacity-60 group-hover:translate-x-0.5 transition-transform" aria-hidden="true">→</span>
             </Link>
           </div>
 
           <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-1 text-[10px] tracking-widest text-white/45 font-mono">
-            <span>LIVE: {liveStats.vendors} PRACTITIONERS</span>
+            <span>LIVE: {liveStats.vendors} SELLERS</span>
             <span className="hidden sm:inline text-white/25" aria-hidden="true">•</span>
-            <span>{liveStats.items} OFFERINGS</span>
+            <span>{liveStats.items} PRODUCTS &amp; OFFERINGS</span>
           </div>
         </div>
 

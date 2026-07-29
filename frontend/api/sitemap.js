@@ -47,6 +47,7 @@ const LITERATURE_SLUGS = {
     'grief-and-ritual',
     'boundaries-with-practitioners',
     'checkout-blessings-guide',
+    'pro-seller-control-panel',
   ],
 };
 

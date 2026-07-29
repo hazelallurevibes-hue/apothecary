@@ -38,6 +38,31 @@ export default function ProUpgrade({ user }) {
     getProPricing().then(setPricing).catch(() => setPricing(null));
   }, []);
 
+  const resolveVendorIdForCheckout = async () => {
+    let vid = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+    if (vid) return Number(vid);
+    // Heal missing vendor_id on the user profile
+    try {
+      const { supabase } = await import('../lib/supabaseClient');
+      const email = user.email?.trim().toLowerCase();
+      if (!email) return null;
+      const { data } = await supabase
+        .from('vendors')
+        .select('id')
+        .ilike('email', email)
+        .order('id', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (data?.id) {
+        await supabase.from('users').update({ vendor_id: data.id }).ilike('email', email);
+        return Number(data.id);
+      }
+    } catch {
+      /* ignore */
+    }
+    return null;
+  };
+
   const startCheckout = async () => {
     if (!user?.email) {
       setError('Sign in to upgrade to Pro.');
@@ -46,14 +71,28 @@ export default function ProUpgrade({ user }) {
     setLoading(true);
     setError('');
     try {
+      let vendorId;
+      if (vendorOnly) {
+        vendorId = await resolveVendorIdForCheckout();
+        if (!vendorId) {
+          setError(
+            'No storefront linked to this account yet. Finish practitioner signup (and admin approval if required), open Vendor Dashboard once, then try Go Pro again.',
+          );
+          setLoading(false);
+          return;
+        }
+      }
       const { url } = await createProCheckout({
         planType: vendorOnly ? 'vendor' : 'customer',
         billingInterval,
         email: user.email,
-        vendorId: vendorOnly ? vendorCtx?.vendorId : undefined,
+        vendorId,
       });
-      if (url) window.location.href = url;
-      else setError('Checkout could not be started. Contact support.');
+      if (url) {
+        window.location.href = url;
+        return;
+      }
+      setError('Checkout could not be started. Contact support.');
     } catch (e) {
       if (e.code === 'already_pro') {
         setError(e.message);
@@ -161,14 +200,57 @@ export default function ProUpgrade({ user }) {
           </div>
         )}
 
-        <ul className="space-y-2.5 mb-6">
-          {planFeatures.map((f) => (
-            <li key={f} className="text-sm text-gray-700 flex gap-2.5 items-start">
-              <span className="text-[#c9a227] font-bold shrink-0" aria-hidden="true">✓</span>
-              <span>{f}</span>
-            </li>
-          ))}
-        </ul>
+        {vendorOnly ? (
+          <div className="mb-6 overflow-x-auto rounded-2xl border border-[#4a1942]/10">
+            <table className="w-full text-sm text-left min-w-[320px]">
+              <thead className="bg-[#faf7f9] text-xs uppercase tracking-wide text-gray-500">
+                <tr>
+                  <th className="px-3 py-2.5 font-semibold">Feature</th>
+                  <th className="px-3 py-2.5 font-semibold">Free</th>
+                  <th className="px-3 py-2.5 font-semibold text-[#4a1942]">Pro</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {[
+                  ['Product listings (apothecary goods)', 'Up to 5', 'Unlimited'],
+                  ['Service listings', 'Up to 5', 'Unlimited'],
+                  ['Checkout blessings & add-ons', '—', '✓'],
+                  ['Teaching Sanctum courses', '—', '✓'],
+                  ['Email campaigns & banners', '—', '✓'],
+                  ['Analytics & insights', 'Basic', 'Full'],
+                  ['Team / employee seats', '1', 'Up to 50'],
+                  ['International storefront links', '—', '✓'],
+                  ['Theme, photos & storefront polish', 'Limited', 'Full studio'],
+                ].map(([feat, free, pro]) => (
+                  <tr key={feat} className="hover:bg-[#faf7f9]/80">
+                    <td className="px-3 py-2 text-gray-700">{feat}</td>
+                    <td className="px-3 py-2 text-gray-500">{free}</td>
+                    <td className="px-3 py-2 font-medium text-[#4a1942]">{pro}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <ul className="space-y-2.5 mb-6">
+            {planFeatures.map((f) => (
+              <li key={f} className="text-sm text-gray-700 flex gap-2.5 items-start">
+                <span className="text-[#c9a227] font-bold shrink-0" aria-hidden="true">✓</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {vendorOnly && (
+          <ul className="space-y-1.5 mb-6 text-xs text-gray-600">
+            {planFeatures.slice(0, 8).map((f) => (
+              <li key={f} className="flex gap-2">
+                <span className="text-[#c9a227]">✓</span> {f}
+              </li>
+            ))}
+          </ul>
+        )}
 
         {error && <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-2xl px-4 py-3 mb-4" role="alert">{error}</p>}
 

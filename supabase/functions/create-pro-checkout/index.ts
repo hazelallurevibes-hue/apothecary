@@ -83,14 +83,47 @@ Deno.serve(async (req: Request) => {
     if (planType === "vendor") {
       const role = (userRow.role || "").toLowerCase();
       if (role !== "vendor" && role !== "admin") {
-        return jsonResponse({ ok: false, error: "Vendor Pro is for vendor accounts only" }, 403);
+        return jsonResponse({
+          ok: false,
+          error: "Vendor Pro is for practitioner accounts. Apply as a practitioner first, then upgrade.",
+        }, 403);
       }
-      vendorId = userRow.vendor_id;
-      if (!vendorId && role === "admin") {
-        vendorId = body.vendor_id ? Number(body.vendor_id) : null;
-      }
+
+      // Prefer explicit body id, then users.vendor_id, then lookup by email / user_id
+      const bodyVid = body.vendor_id ? Number(body.vendor_id) : null;
+      vendorId = bodyVid || userRow.vendor_id || null;
+
       if (!vendorId) {
-        return jsonResponse({ ok: false, error: "No vendor storefront linked to this account" }, 400);
+        const { data: byEmail } = await supabase
+          .from("vendors")
+          .select("id, plan, email, user_id")
+          .ilike("email", verifiedEmail)
+          .order("id", { ascending: true })
+          .limit(1);
+        if (byEmail?.[0]?.id) vendorId = byEmail[0].id;
+      }
+
+      if (!vendorId && userRow.id) {
+        const { data: byUser } = await supabase
+          .from("vendors")
+          .select("id, plan")
+          .eq("user_id", userRow.id)
+          .order("id", { ascending: true })
+          .limit(1);
+        if (byUser?.[0]?.id) vendorId = byUser[0].id;
+      }
+
+      if (!vendorId) {
+        return jsonResponse({
+          ok: false,
+          error:
+            "No vendor storefront linked to this account. Finish practitioner signup / approval so a storefront exists, then try Pro again.",
+        }, 400);
+      }
+
+      // Heal users.vendor_id when missing so future checkouts work
+      if (!userRow.vendor_id && vendorId) {
+        await supabase.from("users").update({ vendor_id: vendorId }).eq("id", userRow.id);
       }
 
       const { data: vendor } = await supabase
@@ -99,8 +132,14 @@ Deno.serve(async (req: Request) => {
         .eq("id", vendorId)
         .maybeSingle();
 
-      if (!vendor) return jsonResponse({ ok: false, error: "Vendor not found" }, 404);
-      if ((vendor.plan || "free") === "paid") {
+      if (!vendor) {
+        return jsonResponse({
+          ok: false,
+          error:
+            "Vendor storefront record not found. Contact support or re-apply as a practitioner so your shop profile is created.",
+        }, 404);
+      }
+      if ((vendor.plan || "free") === "paid" || (vendor.plan || "").toLowerCase() === "pro") {
         return jsonResponse({ ok: false, error: "already_pro", message: "You already have Pro Vendor access" }, 409);
       }
     } else {

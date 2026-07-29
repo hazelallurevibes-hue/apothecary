@@ -7,6 +7,7 @@ import {
   incrementGuestOracle,
   GUEST_ORACLE_LIMIT,
 } from '../lib/guestOracle';
+import { useDraggablePosition } from '../hooks/useDraggablePosition';
 
 const ANSWERS = [
   { text: 'YES', tone: 'text-emerald-700 bg-emerald-50' },
@@ -35,6 +36,7 @@ export default function Magic8Ball({ user }) {
   const [coinFace, setCoinFace] = useState(null); // yes | no
 
   const isLoggedIn = !!user?.email;
+  const drag = useDraggablePosition('magic8-fab', { x: 24, y: 24, corner: 'bl' });
 
   useEffect(() => {
     setRemaining(guestOracleRemaining(user));
@@ -97,28 +99,48 @@ export default function Magic8Ball({ user }) {
 
   const atGuestLimit = !isLoggedIn && !canGuestAskOracle(user);
 
+  const fabStyle =
+    drag.pos.corner === 'custom' && drag.pos.y != null
+      ? { position: 'fixed', left: drag.pos.x, top: drag.pos.y, zIndex: 85 }
+      : { position: 'fixed', left: 24, bottom: 24, zIndex: 85 };
+
   return (
     <>
-      <div className="fixed bottom-6 left-6 z-[85] flex flex-col items-center gap-1">
+      <div
+        className="flex flex-col items-center gap-1 touch-none select-none"
+        style={fabStyle}
+        onPointerDown={drag.onPointerDown}
+        onPointerMove={drag.onPointerMove}
+        onPointerUp={drag.onPointerUp}
+        onPointerCancel={drag.onPointerUp}
+      >
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1a0a18] to-[#4a1942] text-white shadow-lg border border-[#c9a227]/40 flex items-center justify-center text-lg font-bold hover:scale-105 transition-transform"
-          aria-label="Ask the Sanctum sphere"
-          title="Ask any question"
+          onClick={() => {
+            if (drag.didDrag()) return;
+            setOpen((v) => !v);
+          }}
+          className="w-12 h-12 rounded-full bg-gradient-to-br from-[#1a0a18] to-[#4a1942] text-white shadow-lg border border-[#c9a227]/40 flex items-center justify-center text-lg font-bold hover:scale-105 transition-transform cursor-grab active:cursor-grabbing"
+          aria-label="Ask the Sanctum sphere — drag to move"
+          title="Drag to move · click to open"
         >
           8
         </button>
         {!open && (
           <span className="text-[9px] text-[#4a1942]/60 whitespace-nowrap pointer-events-none text-center max-w-[88px] leading-tight">
-            {isLoggedIn ? 'Ask any question' : `${remaining ?? GUEST_ORACLE_LIMIT} free tries`}
+            {isLoggedIn ? 'Drag or ask' : `${remaining ?? GUEST_ORACLE_LIMIT} free · drag me`}
           </span>
         )}
       </div>
 
       {open && (
         <div
-          className="fixed bottom-20 left-6 z-[86] w-[min(320px,calc(100vw-3rem))] rounded-2xl border border-[#4a1942]/20 bg-white/95 backdrop-blur shadow-xl p-4"
+          className="fixed z-[86] w-[min(320px,calc(100vw-3rem))] rounded-2xl border border-[#4a1942]/20 bg-white/95 backdrop-blur shadow-xl p-4"
+          style={
+            drag.pos.corner === 'custom' && drag.pos.y != null
+              ? { left: Math.min(drag.pos.x, window.innerWidth - 340), top: Math.min(drag.pos.y - 8, window.innerHeight - 360), bottom: 'auto' }
+              : { left: 24, bottom: 88 }
+          }
           role="dialog"
           aria-label="Sanctum sphere"
         >

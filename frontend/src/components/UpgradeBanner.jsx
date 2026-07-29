@@ -1,57 +1,28 @@
 import { Link } from 'react-router-dom';
-import { PAID_VENDOR_UPGRADE_FEATURES, isProPlan, isVendorPro, planBadgeLabel } from '../lib/plans';
+import { isProPlan, isVendorPro, planBadgeLabel } from '../lib/plans';
 import { useLocale } from '../i18n';
 
+/** Compact Pro upgrade ribbon for free practitioners — not a large card ad. */
 export default function UpgradeBanner({ plan, compact = false, user = null }) {
   const { t } = useLocale();
 
   if (isProPlan(plan) || isVendorPro(user)) return null;
 
-  if (compact) {
-    return (
-      <Link
-        to="/pro-upgrade?type=vendor"
-        className="block mb-4 px-4 py-3.5 gradient-pro-banner text-white rounded-2xl text-sm font-medium hover:opacity-95 transition shadow-md border border-[#c9a227]/20"
-      >
-        <span className="text-[#c9a227] font-semibold">Pro Practitioner</span>
-        {' '}— {t('pro.banner.compact')} →
-      </Link>
-    );
-  }
-
   return (
-    <div className="mb-6 p-5 sm:p-6 border border-[#c9a227]/25 gradient-pro-banner rounded-3xl text-white shadow-lg relative overflow-hidden">
-      <div
-        className="absolute inset-0 opacity-30 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 60% 80% at 100% 0%, rgba(201,162,39,0.35) 0%, transparent 60%)',
-        }}
-        aria-hidden="true"
-      />
-      <div className="relative z-10 flex flex-wrap justify-between items-start gap-4">
-        <div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-[#c9a227] mb-1.5">
-            {planBadgeLabel(plan, 'vendor')} — limited features
-          </div>
-          <h3 className="font-semibold text-xl heading-font">{t('pro.banner.title')}</h3>
-          <p className="text-sm text-white/80 mt-1.5 max-w-xl leading-relaxed">
-            {t('pro.banner.subtitle')}
-          </p>
-        </div>
-        <Link
-          to="/pro-upgrade?type=vendor"
-          className="btn-accent !px-5 !py-2.5 !text-sm whitespace-nowrap shrink-0"
-        >
-          Upgrade to Pro
-        </Link>
-      </div>
-      <ul className="relative z-10 mt-4 grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-white/85">
-        {PAID_VENDOR_UPGRADE_FEATURES.map((f) => (
-          <li key={f} className="flex gap-1.5">
-            <span className="text-[#c9a227]" aria-hidden="true">✓</span> {f}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Link
+      to="/pro-upgrade?type=vendor"
+      className={`mb-4 flex flex-wrap items-center justify-between gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl border border-[#c9a227]/35 bg-gradient-to-r from-[#4a1942] to-[#2d1230] text-white text-xs sm:text-sm shadow-sm hover:opacity-95 transition ${compact ? '' : ''}`}
+    >
+      <span className="min-w-0">
+        <span className="font-semibold text-[#c9a227]">Pro Practitioner</span>
+        <span className="text-white/80">
+          {' '}
+          · {compact ? t('pro.banner.compact') : `${planBadgeLabel(plan, 'vendor')} — unlimited listings, Teaching Sanctum & more`}
+        </span>
+      </span>
+      <span className="shrink-0 font-semibold px-3 py-1 rounded-full bg-[#c9a227] text-[#2d1230] text-[11px]">
+        Upgrade →
+      </span>
+    </Link>
   );
 }

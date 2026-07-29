@@ -14,6 +14,7 @@ import UpgradeBanner from '../components/UpgradeBanner';
 import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import { isVendorPro } from '../lib/plans';
 import { markOnboardingStep } from '../lib/onboardingApi';
+import CameraOrUploadField from '../components/CameraOrUploadField';
 
 export default function VendorVerification({ user }) {
   const ctx = getVendorContext(user);
@@ -154,18 +155,38 @@ export default function VendorVerification({ user }) {
           </div>
         )}
 
+        <p className="text-xs text-gray-500">
+          On phone: use <strong>Take photo</strong> so you can photograph your ID live. Gallery upload still works if you already took photos.
+        </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-          {[
-            { kind: 'id-front', label: 'ID front' },
-            { kind: 'id-back', label: requireIdBack ? 'ID back (required)' : 'ID back (optional)' },
-            { kind: 'selfie', label: 'Selfie with ID' },
-          ].map(({ kind, label }) => (
-            <label key={kind} className="border rounded-xl p-3 cursor-pointer">
-              <span className="text-xs font-medium block mb-2">{label}</span>
-              <input type="file" accept="image/*" disabled={!!uploading} onChange={(e) => handleUpload(e.target.files?.[0], kind)} />
-            </label>
-          ))}
+          <CameraOrUploadField
+            label="ID front"
+            kind="id-front"
+            facing="environment"
+            disabled={!!uploading}
+            hasFile={!!urls.front}
+            onFile={(file) => handleUpload(file, 'id-front')}
+          />
+          <CameraOrUploadField
+            label={requireIdBack ? 'ID back (required)' : 'ID back (optional)'}
+            kind="id-back"
+            facing="environment"
+            disabled={!!uploading}
+            hasFile={!!urls.back}
+            onFile={(file) => handleUpload(file, 'id-back')}
+          />
+          <CameraOrUploadField
+            label="Selfie holding ID"
+            kind="selfie"
+            facing="user"
+            disabled={!!uploading}
+            hasFile={!!urls.selfie}
+            onFile={(file) => handleUpload(file, 'selfie')}
+          />
         </div>
+        {uploading && (
+          <p className="text-xs text-gray-500">Uploading {uploading}…</p>
+        )}
         <button type="button" onClick={submitIdentity} className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm">
           Submit for review
         </button>

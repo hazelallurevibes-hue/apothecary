@@ -95,8 +95,9 @@ export default function Layout({ user, onLogout, children }) {
   const mainLinks = (
     <>
       <NavLink to="/" onNavigate={closeMobile}>{t('nav.home')}</NavLink>
-      <NavLink to={VERTICAL.routes.servicesMarket} onNavigate={closeMobile}>{t('nav.marketplace')}</NavLink>
       <NavLink to={VERTICAL.routes.productsMarket} onNavigate={closeMobile}>{t('nav.apothecary')}</NavLink>
+      <NavLink to="/remedies" onNavigate={closeMobile}>{t('nav.remedies')}</NavLink>
+      <NavLink to={VERTICAL.routes.servicesMarket} onNavigate={closeMobile}>{t('nav.marketplace')}</NavLink>
       <NavLink to={VERTICAL.routes.topPractitioners} onNavigate={closeMobile}>{t('nav.topVendors')}</NavLink>
       <NavLink to={VERTICAL.routes.courses} onNavigate={closeMobile}>{VERTICAL.labels.courses}</NavLink>
       <NavLink to="/gathering" onNavigate={closeMobile}>The Hearth</NavLink>
@@ -194,7 +195,7 @@ export default function Layout({ user, onLogout, children }) {
       <UpdateSplash />
       <PageSeo />
       <JsonLd />
-      <nav className="bg-white/92 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-50 shadow-sm shadow-ha-primary/5">
+      <nav className="bg-white/95 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-[100] shadow-md shadow-ha-primary/5 supports-[backdrop-filter]:bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <div className="flex items-center gap-x-2 sm:gap-x-3 shrink-0 order-1">
@@ -212,8 +213,9 @@ export default function Layout({ user, onLogout, children }) {
 
             <div className="hidden md:flex flex-1 flex-wrap items-center justify-center gap-x-3 lg:gap-x-4 gap-y-1 min-w-0 order-3 md:order-2 text-[13px] lg:text-sm font-medium">
               <Link to="/" className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.home')}</Link>
-              <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.marketplace')}</Link>
-              <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.apothecary')}</Link>
+              <Link to={VERTICAL.routes.productsMarket} className="hover:text-[#4a1942] whitespace-nowrap font-semibold text-[#4a1942]">{t('nav.apothecary')}</Link>
+              <Link to="/remedies" className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.remedies')}</Link>
+              <Link to={VERTICAL.routes.servicesMarket} className="hover:text-[#4a1942] whitespace-nowrap text-gray-600">{t('nav.marketplace')}</Link>
               <Link to={VERTICAL.routes.topPractitioners} className="hover:text-[#4a1942] whitespace-nowrap">{t('nav.topVendors')}</Link>
               <Link to={VERTICAL.routes.courses} className="hover:text-[#4a1942] whitespace-nowrap">{VERTICAL.labels.courses}</Link>
               <a

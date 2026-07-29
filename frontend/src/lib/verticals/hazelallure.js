@@ -7,11 +7,11 @@ export const HAZELALLURE_VERTICAL = {
   id: 'hazelallure',
   name: 'Hazel Allure',
   legalEntity: 'Hazel Allure LLC',
-  tagline: 'Wellness with intention. Shop with spirit.',
-  heroTitle: ['Ancient wisdom.', 'Modern wellness.', 'Your path.'],
+  tagline: 'Natural health products. Shop with intention.',
+  heroTitle: ['Your natural health shelf.', 'Worldwide makers.', 'One marketplace.'],
   heroSubtitle:
-    'Connect with psychics, homeopaths, herbalists, energy workers, curanderas, naturopathic practitioners, and artisans worldwide — book sessions and discover remedies, oils, incense, and apothecary goods made with care.',
-  heroBadge: 'ORGANIC • VEGAN • NATURAL • WORLDWIDE',
+    'Shop essential oils, herbs, natural skincare, incense, crystals, and apothecary goods from independent makers worldwide — plus remedies research and optional wellness sessions when you want them.',
+  heroBadge: 'ORGANIC • VEGAN • NATURAL • PRODUCTS FIRST',
   contactEmail: 'hazelallurevibes@gmail.com',
   contactPhone: '(505) 479-7475',
   ownerEmail: 'hazelallurevibes@gmail.com',
@@ -52,16 +52,16 @@ export const HAZELALLURE_VERTICAL = {
   },
 
   labels: {
-    vendor: 'Practitioner',
-    vendors: 'Practitioners',
-    customer: 'Seeker',
-    servicesMarket: 'Services',
-    productsMarket: 'Apothecary & Goods',
+    vendor: 'Seller',
+    vendors: 'Sellers',
+    customer: 'Shopper',
+    servicesMarket: 'Sessions',
+    productsMarket: 'Shop Apothecary',
     apothecary: 'Apothecary',
     farmersMarket: 'Apothecary',
-    marketplace: 'Wellness Services',
-    shopHero: 'Book a Session',
-    exploreHero: 'Browse Apothecary →',
+    marketplace: 'Natural Health Marketplace',
+    shopHero: 'Shop products',
+    exploreHero: 'Browse the full shelf →',
     courses: 'Teaching Sanctum',
   },
 
@@ -188,9 +188,9 @@ export const HAZELALLURE_VERTICAL = {
     ].join(', '),
     routes: {
       '/': {
-        title: 'Hazel Allure Apothecary — Book Practitioners & Shop Natural Wellness',
+        title: 'Hazel Allure — Natural Health Products & Apothecary Marketplace',
         description:
-          'Woman-owned holistic wellness marketplace. Book psychics, reiki, curanderas, homeopaths, and energy workers worldwide. Shop essential oils, herbs, incense, crystals, and artisan apothecary goods.',
+          'Woman-owned natural health marketplace. Shop essential oils, herbs, natural skincare, incense, crystals, and apothecary goods from independent makers worldwide. Remedies research and optional wellness sessions.',
       },
       '/about': {
         title: 'About Hazel Allure — Woman-Owned Wellness Marketplace',
