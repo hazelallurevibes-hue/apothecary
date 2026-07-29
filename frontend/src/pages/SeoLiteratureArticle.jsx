@@ -64,7 +64,19 @@ export default function SeoLiteratureArticle() {
             <h2 className="text-xl font-bold text-[var(--color-primary)] heading-font mb-3">
               {section.heading}
             </h2>
-            <p className="text-gray-700 leading-relaxed">{section.body}</p>
+            {(section.body || '')
+              .split(/\n\n+/)
+              .flatMap((chunk) => chunk.split(/(?<=\.)\s+(?=[A-Z])/).reduce((acc, sentence, i, arr) => {
+                // Group ~2–3 sentences per paragraph for readable depth
+                if (i % 2 === 0) acc.push(sentence + (arr[i + 1] ? ` ${arr[i + 1]}` : ''));
+                return acc;
+              }, []))
+              .filter(Boolean)
+              .map((para, i) => (
+                <p key={i} className="text-gray-700 leading-relaxed mb-3 last:mb-0">
+                  {para.trim()}
+                </p>
+              ))}
           </section>
         ))}
       </div>

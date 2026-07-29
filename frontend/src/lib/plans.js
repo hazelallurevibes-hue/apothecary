@@ -32,6 +32,8 @@ export const VENDOR_PERMISSIONS = {
   certificates: { label: 'Certificates & credentials', description: 'Upload credentials and issue digital student honors (paid)' },
   vendor_gathering: { label: 'Practitioner gathering', description: 'Private vendor lounge threads and topics (paid)' },
   student_badges: { label: 'Student honors', description: 'Award top student and class favorite badges (paid)' },
+  inventory_pos: { label: 'POS inventory', description: 'Stock counts, low-stock alerts, quick adjust' },
+  product_subscriptions: { label: 'Product Subscribe & Save', description: 'Recurring Stripe subscriptions on SKUs (paid)' },
 };
 
 /** Free: core selling with limits; paid: full platform */
@@ -43,6 +45,7 @@ export const FREE_VENDOR_PERMISSIONS = [
   'orders',
   'employees',
   'service_video',
+  'inventory_pos',
 ];
 
 export const PAID_VENDOR_PERMISSIONS = Object.keys(VENDOR_PERMISSIONS);

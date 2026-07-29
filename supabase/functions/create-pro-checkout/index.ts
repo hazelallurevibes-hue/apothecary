@@ -109,27 +109,66 @@ Deno.serve(async (req: Request) => {
         if (byEmail?.[0]?.id) vendorId = Number(byEmail[0].id);
       }
 
-      // Also try matching vendor name/email from approved applications loosely
+      // Vendor applications table (if present)
       if (!vendorId) {
-        const { data: allMine } = await supabase
+        const { data: apps } = await supabase
+          .from("vendor_applications")
+          .select("id, vendor_id, email, business_name, status")
+          .ilike("email", verifiedEmail)
+          .order("id", { ascending: false })
+          .limit(3);
+        const withVid = (apps || []).find((a) => a.vendor_id);
+        if (withVid?.vendor_id) vendorId = Number(withVid.vendor_id);
+      }
+
+      // Auto-provision a free storefront so incomplete onboarding still allows Pro checkout
+      if (!vendorId) {
+        const displayName =
+          (userRow.name && String(userRow.name).trim()) ||
+          verifiedEmail.split("@")[0] ||
+          "New practice";
+        const insertPayload: Record<string, unknown> = {
+          name: displayName,
+          email: verifiedEmail,
+          status: "approved",
+          plan: "free",
+          bio: "Welcome to my Hazel Allure storefront — still setting up.",
+          category: "Apothecary",
+        };
+        let { data: created, error: createErr } = await supabase
           .from("vendors")
+          .insert(insertPayload)
           .select("id, plan, email, status")
-          .or(`email.ilike.${verifiedEmail}`)
-          .limit(1);
-        if (allMine?.[0]?.id) vendorId = Number(allMine[0].id);
+          .single();
+
+        // Retry with minimal columns if optional fields missing from schema
+        if (createErr) {
+          const minimal = { name: displayName, email: verifiedEmail, status: "approved" };
+          const retry = await supabase
+            .from("vendors")
+            .insert(minimal)
+            .select("id, plan, email, status")
+            .single();
+          created = retry.data;
+          createErr = retry.error;
+        }
+
+        if (createErr || !created?.id) {
+          return jsonResponse({
+            ok: false,
+            error:
+              `Could not create a storefront for Pro checkout (${createErr?.message || "unknown"}). ` +
+              "Open Vendor Dashboard once after signup, then try again — or contact support with your login email.",
+          }, 400);
+        }
+        vendorId = Number(created.id);
       }
 
-      if (!vendorId) {
-        return jsonResponse({
-          ok: false,
-          error:
-            "No storefront linked to this account. Open Vendor Dashboard once after approval (so your shop profile exists), then try Go Pro again. If still stuck, contact support with your login email.",
-        }, 400);
-      }
-
-      // Heal users.vendor_id when missing so future checkouts work
-      if (!userRow.vendor_id && vendorId) {
-        await supabase.from("users").update({ vendor_id: vendorId }).eq("id", userRow.id);
+      // Heal users.vendor_id (+ ensure role vendor) so dashboard + future checkouts work
+      if (vendorId) {
+        const heal: Record<string, unknown> = { vendor_id: vendorId };
+        if ((userRow.role || "").toLowerCase() !== "admin") heal.role = "vendor";
+        await supabase.from("users").update(heal).eq("id", userRow.id);
       }
 
       const { data: vendor, error: vendorErr } = await supabase

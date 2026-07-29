@@ -45,6 +45,7 @@ import ThankYouComposer from '../components/ThankYouComposer';
 import SellerGrowthTips from '../components/SellerGrowthTips';
 import ShelfScoreCard from '../components/ShelfScoreCard';
 import VendorBoostStrip from '../components/VendorBoostStrip';
+import VendorPosInventory from '../components/VendorPosInventory';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -1017,6 +1018,13 @@ export default function VendorDashboard({ user }) {
         <ShelfScoreCard
           vendor={storefrontVendor}
           listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
+          className="mb-6"
+        />
+      )}
+      {myVendorId && (
+        <VendorPosInventory
+          vendorId={myVendorId}
+          plan={vendorPlan}
           className="mb-6"
         />
       )}

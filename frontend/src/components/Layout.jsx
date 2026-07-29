@@ -30,6 +30,7 @@ import { VERTICAL, blogUrl, verticalFeature } from '../lib/vertical';
 import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
 import UpdateSplash from './UpdateSplash';
 import { APP_VERSION } from '../lib/appVersion';
+import BetaGrowthBanner from './BetaGrowthBanner';
 
 const LOGO_IMG =
   'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:120,cg:true';
@@ -195,6 +196,7 @@ export default function Layout({ user, onLogout, children }) {
       <UpdateSplash />
       <PageSeo />
       <JsonLd />
+      <BetaGrowthBanner />
       <nav className="bg-white/95 backdrop-blur-lg border-b border-ha-lavender/50 sticky top-0 z-[100] shadow-md shadow-ha-primary/5 supports-[backdrop-filter]:bg-white/90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-10 py-2">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">

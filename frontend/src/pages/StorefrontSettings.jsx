@@ -18,6 +18,7 @@ import PractitionerBadgeEditor from '../components/PractitionerBadgeEditor';
 import PractitionerBadges from '../components/PractitionerBadges';
 import { parseBusinessBadges, resolveAdminBadges } from '../lib/practitionerBadges';
 import { applySabbaticalExpiry } from '../lib/sabbaticalUtils';
+import StorefrontLivePreview from '../components/StorefrontLivePreview';
 
 function parseBanners(raw) {
   if (Array.isArray(raw)) return raw;
@@ -52,6 +53,7 @@ export default function StorefrontSettings({ user }) {
   const [restrictedShipCategories, setRestrictedShipCategories] = useState([]);
   const [archiveUrl, setArchiveUrl] = useState('');
   const [archiveTitle, setArchiveTitle] = useState('');
+  const [listingCount, setListingCount] = useState(0);
   const logoRef = useRef(null);
   const highlightRef = useRef(null);
   const bannerRef = useRef(null);
@@ -64,10 +66,11 @@ export default function StorefrontSettings({ user }) {
 
   useEffect(() => {
     if (!vendorId) return;
+    const vid = Number(vendorId);
     supabase
       .from('vendors')
       .select('*')
-      .eq('id', Number(vendorId))
+      .eq('id', vid)
       .single()
       .then(({ data }) => {
         if (data) {
@@ -80,6 +83,12 @@ export default function StorefrontSettings({ user }) {
           setRestrictedShipCategories(parseRestrictedCategories(data.restricted_ship_categories));
         }
       });
+    Promise.all([
+      supabase.from('produce_items').select('id', { count: 'exact', head: true }).eq('vendor_id', vid),
+      supabase.from('menu_items').select('id', { count: 'exact', head: true }).eq('vendor_id', vid),
+    ]).then(([p, m]) => {
+      setListingCount((p.count || 0) + (m.count || 0));
+    });
   }, [vendorId]);
 
   const canBio = vendorCan(user, 'bio_edit');
@@ -89,12 +98,38 @@ export default function StorefrontSettings({ user }) {
   const canEmployees = vendorCan(user, 'employees');
   const canInternational = vendorCan(user, 'international_storefront') && isPaid;
 
-  const save = async () => {
-    if (!vendorId || !vendor) return;
+  /** Drop columns PostgREST schema cache does not know yet; retry until save works. */
+  const updateVendorResilient = async (payload) => {
+    let body = { ...payload };
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const { error } = await supabase.from('vendors').update(body).eq('id', Number(vendorId));
+      if (!error) return { error: null, stripped: attempt > 0 };
+      const msg = error.message || '';
+      const colMatch =
+        msg.match(/['"]([a-zA-Z0-9_]+)['"] column/i) ||
+        msg.match(/column\s+['"]?([a-zA-Z0-9_]+)['"]?/i) ||
+        msg.match(/Could not find the '([a-zA-Z0-9_]+)' column/i);
+      if (colMatch?.[1] && Object.prototype.hasOwnProperty.call(body, colMatch[1])) {
+        const { [colMatch[1]]: _removed, ...rest } = body;
+        body = rest;
+        continue;
+      }
+      if (/business_badges/i.test(msg) && body.business_badges !== undefined) {
+        const { business_badges: _b, ...rest } = body;
+        body = rest;
+        continue;
+      }
+      return { error, stripped: attempt > 0 };
+    }
+    return { error: new Error('Could not save storefront after stripping unknown columns'), stripped: true };
+  };
+
+  const save = async (overridePayload = null) => {
+    if (!vendorId || !vendor) return false;
     setSaving(true);
     setMessage('');
 
-    const payload = {
+    const payload = overridePayload || {
       name: vendor.name,
       bio: vendor.bio,
       category: vendor.category,
@@ -108,53 +143,76 @@ export default function StorefrontSettings({ user }) {
       business_badges: parseBusinessBadges(vendor.business_badges),
     };
 
-    if (canBio && isPaid) payload.slogan = vendor.slogan || '';
-    if (canProfile) {
-      payload.logo = vendor.logo;
-      payload.highlight_photo = vendor.highlight_photo;
-    }
-    if (canTheme) payload.theme_color = vendor.theme_color || '#4a1942';
-    if (canBanners) payload.banner_images = banners;
+    if (!overridePayload) {
+      if (canBio && isPaid) payload.slogan = vendor.slogan || '';
+      if (canProfile) {
+        payload.logo = vendor.logo;
+        payload.highlight_photo = vendor.highlight_photo;
+      }
+      if (canTheme) payload.theme_color = vendor.theme_color || '#4a1942';
+      if (canBanners) payload.banner_images = banners;
 
-    payload.stream_youtube = vendor.stream_youtube || null;
-    payload.stream_twitch = vendor.stream_twitch || null;
-    payload.stream_rumble = vendor.stream_rumble || null;
-    payload.stream_platform = vendor.stream_platform || null;
-    payload.stream_archives = archives;
-    if (vendorCan(user, 'pickup_hours')) payload.pickup_hours = pickupHours;
-    if (vendorCan(user, 'in_person_events')) payload.in_person_events = inPersonEvents;
-    if (vendorCan(user, 'checkout_upsells') && isPaid) {
-      payload.checkout_upsells = normalizeUpsellsForSave(checkoutUpsells);
-    }
-    payload.sabbatical_active = !!vendor.sabbatical_active;
-    payload.sabbatical_note = vendor.sabbatical_note || null;
-    payload.sabbatical_returns_at = vendor.sabbatical_returns_at || null;
-    payload.aura_color = vendor.aura_color || null;
-    payload.aura_follow_moon = vendor.aura_follow_moon !== false;
+      payload.stream_youtube = vendor.stream_youtube || null;
+      payload.stream_twitch = vendor.stream_twitch || null;
+      payload.stream_rumble = vendor.stream_rumble || null;
+      payload.stream_platform = vendor.stream_platform || null;
+      payload.stream_archives = archives;
+      if (vendorCan(user, 'pickup_hours')) payload.pickup_hours = pickupHours;
+      if (vendorCan(user, 'in_person_events')) payload.in_person_events = inPersonEvents;
+      if (vendorCan(user, 'checkout_upsells') && isPaid) {
+        payload.checkout_upsells = normalizeUpsellsForSave(checkoutUpsells);
+      }
+      payload.sabbatical_active = !!vendor.sabbatical_active;
+      payload.sabbatical_note = vendor.sabbatical_note || null;
+      payload.sabbatical_returns_at = vendor.sabbatical_returns_at || null;
+      payload.aura_color = vendor.aura_color || null;
+      payload.aura_follow_moon = vendor.aura_follow_moon !== false;
 
-    if (canInternational) {
-      payload.ships_domestically = vendor.ships_domestically !== false;
-      payload.ships_internationally = !!vendor.ships_internationally;
-      payload.international_via_external = vendor.international_via_external !== false;
-      payload.external_store_urls = vendor.external_store_urls || {};
-      payload.shipping_notes = vendor.shipping_notes || '';
-      payload.restricted_ship_categories = restrictedShipCategories;
-      payload.sell_regions = vendor.sell_regions || ['US'];
-    }
-
-    let { error } = await supabase.from('vendors').update(payload).eq('id', Number(vendorId));
-    if (error && /business_badges/i.test(error.message)) {
-      const { business_badges: _badges, ...fallback } = payload;
-      const retry = await supabase.from('vendors').update(fallback).eq('id', Number(vendorId));
-      error = retry.error;
-      if (!error) {
-        setMessage('Storefront saved (badges need SQL migration 24 — run in Supabase SQL Editor).');
-        setSaving(false);
-        return;
+      if (canInternational) {
+        payload.ships_domestically = vendor.ships_domestically !== false;
+        payload.ships_internationally = !!vendor.ships_internationally;
+        payload.international_via_external = vendor.international_via_external !== false;
+        payload.external_store_urls = vendor.external_store_urls || {};
+        payload.shipping_notes = vendor.shipping_notes || '';
+        payload.restricted_ship_categories = restrictedShipCategories;
+        payload.sell_regions = vendor.sell_regions || ['US'];
       }
     }
+
+    const { error, stripped } = await updateVendorResilient(payload);
     setSaving(false);
-    setMessage(error ? error.message : 'Storefront saved.');
+    if (error) {
+      setMessage(
+        /contact site admin|schema cache|column/i.test(error.message)
+          ? `${error.message} — if this mentions region/badges, we now auto-skip missing columns; try Save again. Or ask admin to run the latest SQL migration.`
+          : error.message,
+      );
+      return false;
+    }
+    setMessage(
+      stripped
+        ? 'Storefront saved (some optional fields were skipped until SQL migration is applied).'
+        : 'Storefront saved.',
+    );
+    return true;
+  };
+
+  const savePhotosOnly = async (nextVendor = vendor) => {
+    if (!vendorId || !nextVendor || !canProfile) return false;
+    setSaving(true);
+    setMessage('');
+    const { error } = await updateVendorResilient({
+      logo: nextVendor.logo || null,
+      highlight_photo: nextVendor.highlight_photo || null,
+      ...(canBanners ? { banner_images: banners } : {}),
+    });
+    setSaving(false);
+    if (error) {
+      setMessage(error.message || 'Could not save photos');
+      return false;
+    }
+    setMessage('Profile pictures published to your storefront.');
+    return true;
   };
 
   const handleUpload = async (file, kind) => {
@@ -163,14 +221,32 @@ export default function StorefrontSettings({ user }) {
     setMessage('');
     try {
       const url = await uploadVendorAsset(file, user, vendorId, kind);
+      let nextVendor = vendor;
       if (kind === 'logo') {
-        setVendor((v) => ({ ...v, logo: url }));
+        nextVendor = { ...vendor, logo: url };
+        setVendor(nextVendor);
       } else if (kind === 'highlight') {
-        setVendor((v) => ({ ...v, highlight_photo: url }));
+        nextVendor = { ...vendor, highlight_photo: url };
+        setVendor(nextVendor);
       } else if (kind === 'banner') {
         setBanners((prev) => [...prev, url].slice(0, 6));
       }
-      setMessage(`${kind === 'logo' ? 'Logo' : kind === 'highlight' ? 'Highlight photo' : 'Banner'} uploaded — click Save Changes to publish.`);
+      // Auto-publish logo / highlight so sellers don't hunt for Save
+      if (kind === 'logo' || kind === 'highlight') {
+        const { error } = await updateVendorResilient({
+          logo: kind === 'logo' ? url : nextVendor?.logo || null,
+          highlight_photo: kind === 'highlight' ? url : nextVendor?.highlight_photo || null,
+        });
+        if (error) {
+          setMessage(
+            `${kind === 'logo' ? 'Logo' : 'Highlight'} uploaded but not published: ${error.message}. Use Save photos below.`,
+          );
+        } else {
+          setMessage(`${kind === 'logo' ? 'Logo' : 'Highlight photo'} uploaded and published.`);
+        }
+      } else {
+        setMessage('Banner uploaded — click Save Changes (or Save photos) to publish the gallery.');
+      }
     } catch (e) {
       setMessage(e.message);
     }
@@ -237,22 +313,13 @@ export default function StorefrontSettings({ user }) {
         </div>
       </div>
 
-      {storefrontPreviewUrl && (
-        <div className="mb-8 rounded-3xl border border-[#4a1942]/15 overflow-hidden bg-white shadow-sm">
-          <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-2 bg-[#faf7f9] border-b text-xs text-gray-600">
-            <span className="font-medium text-[#4a1942]">Live storefront viewer</span>
-            <a href={storefrontPreviewUrl} target="_blank" rel="noopener noreferrer" className="underline">
-              Open full page
-            </a>
-          </div>
-          <iframe
-            title="Storefront preview"
-            src={storefrontPreviewUrl}
-            className="w-full h-[420px] bg-white"
-            loading="lazy"
-          />
-        </div>
-      )}
+      <div className="mb-8">
+        <StorefrontLivePreview
+          vendor={vendor}
+          banners={banners}
+          listingCount={listingCount}
+        />
+      </div>
 
       <div className="flex flex-wrap justify-between items-start gap-4 mb-8">
         <div>
@@ -424,14 +491,18 @@ export default function StorefrontSettings({ user }) {
 
           <button
             type="button"
-            onClick={save}
+            onClick={() => save()}
             disabled={saving}
             className="px-8 py-3 text-white rounded-3xl font-semibold disabled:opacity-60"
             style={{ backgroundColor: accent }}
           >
             {saving ? 'Saving…' : 'Save Changes'}
           </button>
-          {message && <p className="text-sm text-emerald-600">{message}</p>}
+          {message && (
+            <p className={`text-sm ${/could not|error|fail|missing|schema/i.test(message) ? 'text-red-700' : 'text-emerald-700'}`}>
+              {message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -506,6 +577,20 @@ export default function StorefrontSettings({ user }) {
                     {uploading === 'highlight' ? 'Uploading…' : 'Upload highlight'}
                   </button>
                 </div>
+              </div>
+              <div className="mt-4 flex flex-wrap gap-2 items-center">
+                <button
+                  type="button"
+                  onClick={() => savePhotosOnly()}
+                  disabled={saving || uploading}
+                  className="text-sm font-semibold px-4 py-2 rounded-2xl text-white disabled:opacity-60"
+                  style={{ backgroundColor: accent }}
+                >
+                  {saving ? 'Saving photos…' : 'Save photos'}
+                </button>
+                <p className="text-[11px] text-gray-500">
+                  Uploads auto-publish when possible. Use this button if you need to re-save logo / highlight.
+                </p>
               </div>
             </div>
           )}

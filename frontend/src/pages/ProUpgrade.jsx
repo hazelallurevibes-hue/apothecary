@@ -54,9 +54,41 @@ export default function ProUpgrade({ user }) {
         .limit(1);
       const data = rows?.[0];
       if (data?.id) {
-        await supabase.from('users').update({ vendor_id: data.id }).ilike('email', email);
+        await supabase.from('users').update({ vendor_id: data.id, role: 'vendor' }).ilike('email', email);
         return Number(data.id);
       }
+      // Create a free storefront shell so Pro checkout works mid-onboarding
+      const displayName = (user.name || email.split('@')[0] || 'My practice').trim();
+      let created = null;
+      let createErr = null;
+      const full = await supabase
+        .from('vendors')
+        .insert({
+          name: displayName,
+          email,
+          status: 'approved',
+          plan: 'free',
+          bio: 'Welcome — storefront is being set up.',
+          category: 'Apothecary',
+        })
+        .select('id')
+        .single();
+      created = full.data;
+      createErr = full.error;
+      if (createErr) {
+        const min = await supabase
+          .from('vendors')
+          .insert({ name: displayName, email, status: 'approved' })
+          .select('id')
+          .single();
+        created = min.data;
+        createErr = min.error;
+      }
+      if (created?.id) {
+        await supabase.from('users').update({ vendor_id: created.id, role: 'vendor' }).ilike('email', email);
+        return Number(created.id);
+      }
+      console.warn('resolveVendorIdForCheckout create failed', createErr?.message);
     } catch {
       /* ignore */
     }
@@ -74,13 +106,7 @@ export default function ProUpgrade({ user }) {
       let vendorId;
       if (vendorOnly) {
         vendorId = await resolveVendorIdForCheckout();
-        if (!vendorId) {
-          setError(
-            'No storefront linked to this account yet. Finish practitioner signup (and admin approval if required), open Vendor Dashboard once, then try Go Pro again.',
-          );
-          setLoading(false);
-          return;
-        }
+        // Edge function will also auto-create if needed — only hard-stop when email missing
       }
       const { url } = await createProCheckout({
         planType: vendorOnly ? 'vendor' : 'customer',
@@ -94,10 +120,15 @@ export default function ProUpgrade({ user }) {
       }
       setError('Checkout could not be started. Contact support.');
     } catch (e) {
-      if (e.code === 'already_pro') {
-        setError(e.message);
+      const msg = e.message || '';
+      if (e.code === 'already_pro' || msg === 'already_pro') {
+        setError(e.message || 'You already have Pro access.');
+      } else if (/vendor not found|storefront|No storefront/i.test(msg)) {
+        setError(
+          `${msg} Tip: open Vendor Dashboard once (even with empty listings), then return here. We also auto-create a free shop shell when possible.`,
+        );
       } else {
-        setError(e.message || 'Payment setup incomplete. Admin must configure Stripe price IDs.');
+        setError(msg || 'Payment setup incomplete. Admin must configure Stripe price IDs.');
       }
     }
     setLoading(false);
@@ -214,13 +245,18 @@ export default function ProUpgrade({ user }) {
                 {[
                   ['Product listings (apothecary goods)', 'Up to 5', 'Unlimited'],
                   ['Service listings', 'Up to 5', 'Unlimited'],
-                  ['Checkout blessings & add-ons', '—', '✓'],
-                  ['Teaching Sanctum courses', '—', '✓'],
-                  ['Email campaigns & banners', '—', '✓'],
-                  ['Analytics & insights', 'Basic', 'Full'],
+                  ['POS inventory board (stock, low alerts)', '✓', '✓ + deeper tools'],
+                  ['Product Subscribe & Save (recurring revenue)', '—', '✓ Stripe auto-bill'],
+                  ['Checkout blessings & ritual add-ons (AOV)', '—', '✓'],
+                  ['Teaching Sanctum courses + dual pricing', '—', '✓'],
+                  ['Email campaigns to past shoppers', '—', '✓'],
+                  ['Banner gallery & theme studio', 'Logo only', 'Full brand kit'],
+                  ['Member discounts (attract Pro seekers)', '—', '✓'],
                   ['Team / employee seats', '1', 'Up to 50'],
                   ['International storefront links', '—', '✓'],
-                  ['Theme, photos & storefront polish', 'Limited', 'Full studio'],
+                  ['Shelf score, growth hub & pro analytics', 'Shelf score', 'Full playbook'],
+                  ['Priority placement signals', 'Organic', 'Pro promoted'],
+                  ['Cancel anytime (Stripe portal)', '—', '✓ keep products'],
                 ].map(([feat, free, pro]) => (
                   <tr key={feat} className="hover:bg-[#faf7f9]/80">
                     <td className="px-3 py-2 text-gray-700">{feat}</td>

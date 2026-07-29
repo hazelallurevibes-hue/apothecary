@@ -92,6 +92,11 @@ async function handleCheckoutCompleted(
     return;
   }
 
+  if (checkoutType === "product_subscribe" || meta.plan_type === "product_subscribe") {
+    await handleProductSubscribeCheckout(supabase, session, meta);
+    return;
+  }
+
   const planType = (meta.plan_type || "customer") as PlanType;
   const userId = meta.user_id ? Number(meta.user_id) : null;
   const vendorId = meta.vendor_id ? Number(meta.vendor_id) : null;
@@ -172,6 +177,38 @@ async function handleSessionBookingCheckout(
       status: "confirmed",
     }).eq("id", bookingId);
   }
+}
+
+/** Product Subscribe & Save — do NOT grant platform Pro access */
+async function handleProductSubscribeCheckout(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+  meta: Record<string, string>,
+) {
+  const userId = meta.user_id ? Number(meta.user_id) : null;
+  const vendorId = meta.vendor_id ? Number(meta.vendor_id) : null;
+  const produceItemId = meta.produce_item_id ? Number(meta.produce_item_id) : null;
+  const email = (meta.email || session.customer_email || "").toLowerCase();
+  const subId = typeof session.subscription === "string"
+    ? session.subscription
+    : session.subscription?.id;
+
+  if (!produceItemId || !email) return;
+
+  await supabase.from("product_subscriptions").upsert(
+    {
+      user_id: userId,
+      vendor_id: vendorId,
+      produce_item_id: produceItemId,
+      email,
+      status: "active",
+      stripe_checkout_session_id: session.id,
+      stripe_subscription_id: subId || null,
+      unit_amount_cents: session.amount_total || null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,produce_item_id" },
+  );
 }
 
 async function handleSubscriptionChange(

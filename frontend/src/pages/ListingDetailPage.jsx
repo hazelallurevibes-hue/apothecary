@@ -17,6 +17,7 @@ import { getApothecaryCategoryLabel, isMedicinalCategory } from '../lib/apotheca
 import { getMarketplaceCategoryLabel } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VideoEmbed from '../components/VideoEmbed';
+import ProductSubscribeButton from '../components/ProductSubscribeButton';
 import { VERTICAL } from '../lib/vertical';
 import { useSeoContext } from '../components/SeoContext';
 import { getVendorContext } from '../lib/plans';
@@ -213,6 +214,13 @@ export default function ListingDetailPage({ user }) {
           {vendor && <PractitionerBadges vendor={vendor} />}
 
           <p className="text-gray-700">{item.description}</p>
+
+          {itemType === 'produce' && (
+            <ProductSubscribeButton
+              user={user}
+              item={{ ...item, itemType: 'produce', type: 'produce' }}
+            />
+          )}
 
           <div className="flex flex-wrap gap-2">
             <AllergenBadges allergens={item.allergens} />
