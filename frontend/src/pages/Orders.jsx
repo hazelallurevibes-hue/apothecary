@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { fetchBuyerOrders, markBuyerOrderPaid } from '../lib/ordersApi';
 import { CustomerPickupQR } from '../components/PickupQRPanel';
@@ -7,18 +7,25 @@ import OrderModificationCard from '../components/OrderModificationCard';
 import ReorderPanel from '../components/ReorderPanel';
 import ReferralInviteStrip from '../components/ReferralInviteStrip';
 import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
+import { startOrderCardCheckout, openPaypalForOrder } from '../lib/orderCheckoutApi';
+import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
 
 /**
- * Seeker “My Orders” — purchase history only.
+ * Seeker “My Orders” — purchase history + resume unpaid payments.
  */
 export default function Orders({ user }) {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
+  const [banner, setBanner] = useState('');
   const { cart } = useCart();
   const cartCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
   const justOrdered = location.state?.justOrdered;
+  const paidFlag = searchParams.get('paid') === '1' || location.state?.paid;
+  const cancelFlag = searchParams.get('checkout') === 'cancel';
+  const focusOrder = searchParams.get('order') || justOrdered;
 
   const reload = async () => {
     if (!user) return;
@@ -35,7 +42,28 @@ export default function Orders({ user }) {
   useEffect(() => {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email, user?.id, justOrdered]);
+  }, [user?.email, user?.id, justOrdered, paidFlag]);
+
+  useEffect(() => {
+    if (paidFlag) {
+      setBanner(
+        focusOrder
+          ? `Thanks! Card payment for order #${focusOrder} is processing — status updates to paid when Stripe confirms (usually a few seconds). Refresh if needed.`
+          : 'Thanks! Card payment received — refreshing your orders…',
+      );
+      // Webhook may lag slightly
+      const t = window.setTimeout(() => reload(), 2000);
+      return () => window.clearTimeout(t);
+    }
+    if (cancelFlag) {
+      setBanner(
+        focusOrder
+          ? `Card checkout was canceled for order #${focusOrder}. It is still unpaid — you can retry Pay with card below.`
+          : 'Card checkout was canceled. Unpaid orders stay in the list so you can retry.',
+      );
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [paidFlag, cancelFlag, focusOrder]);
 
   const getStatusColor = (status, paymentStatus) => {
     if (paymentStatus === 'unpaid' || status === 'awaiting_payment') {
@@ -51,8 +79,48 @@ export default function Orders({ user }) {
     try {
       await markBuyerOrderPaid(order.id, user.email);
       await reload();
+      setBanner(`Order #${order.id} marked paid.`);
     } catch (e) {
       alert(e.message || 'Could not update payment status');
+    }
+    setBusyId(null);
+  };
+
+  const payCard = async (order) => {
+    setBusyId(order.id);
+    try {
+      await startOrderCardCheckout({
+        orderId: order.id,
+        email: user.email,
+        redirect: true,
+      });
+    } catch (e) {
+      alert(e.message || 'Could not start card payment');
+      setBusyId(null);
+    }
+  };
+
+  const payPaypal = async (order) => {
+    setBusyId(order.id);
+    try {
+      let paypalId = null;
+      if (order.vendor_id) {
+        const v = await fetchVendorPaymentMethods(order.vendor_id);
+        paypalId = v?.paypal_account_id;
+      }
+      if (!paypalId) {
+        // try parse from payment_note
+        const m = String(order.payment_note || '').match(/PayPal to ([^\s—]+)/i);
+        paypalId = m?.[1] || null;
+      }
+      if (!paypalId) {
+        alert('This maker has no PayPal on file. Use card or contact them.');
+        setBusyId(null);
+        return;
+      }
+      openPaypalForOrder({ paypalId, amount: order.total, orderId: order.id });
+    } catch (e) {
+      alert(e.message || 'Could not open PayPal');
     }
     setBusyId(null);
   };
@@ -65,7 +133,7 @@ export default function Orders({ user }) {
           My orders
         </h1>
         <p className="text-sm text-gray-600 mt-1">
-          Your purchases and pickups. To buy more items, use your cart.
+          Your purchases and pickups. Unpaid card/PayPal orders can be completed here.
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           <Link
@@ -87,7 +155,13 @@ export default function Orders({ user }) {
         </div>
       </div>
 
-      {justOrdered && (
+      {banner && (
+        <p className="mb-4 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          {banner}
+        </p>
+      )}
+
+      {justOrdered && !banner && (
         <p className="mb-4 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           Order #{justOrdered} was just saved. It should appear in the list below.
         </p>
@@ -124,10 +198,22 @@ export default function Orders({ user }) {
           </p>
         )}
         {orders.map((order) => {
-          const pay = order.payment_status || (order.status === 'awaiting_payment' ? 'unpaid' : order.payment_method === 'cash' ? 'cod' : null);
+          const pay =
+            order.payment_status ||
+            (order.status === 'awaiting_payment'
+              ? 'unpaid'
+              : order.payment_method === 'cash'
+                ? 'cod'
+                : null);
           const unpaid = pay === 'unpaid' || order.status === 'awaiting_payment';
+          const method = (order.payment_method || '').toLowerCase();
           return (
-            <div key={order.id} className="border-b py-3 last:border-0">
+            <div
+              key={order.id}
+              className={`border-b py-3 last:border-0 ${
+                String(focusOrder) === String(order.id) ? 'bg-amber-50/50 -mx-2 px-2 rounded-xl' : ''
+              }`}
+            >
               <div className="flex justify-between gap-2">
                 <div>
                   <div className="font-medium">
@@ -165,6 +251,26 @@ export default function Orders({ user }) {
               </div>
               {unpaid && (
                 <div className="mt-2 flex flex-wrap gap-2">
+                  {(method === 'card' || !method || method === 'stripe') && (
+                    <button
+                      type="button"
+                      disabled={busyId === order.id}
+                      onClick={() => payCard(order)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-[#4a1942] text-white font-medium disabled:opacity-50"
+                    >
+                      {busyId === order.id ? 'Opening…' : 'Pay with card (Stripe)'}
+                    </button>
+                  )}
+                  {(method === 'paypal' || !method) && (
+                    <button
+                      type="button"
+                      disabled={busyId === order.id}
+                      onClick={() => payPaypal(order)}
+                      className="text-xs px-3 py-1.5 rounded-full bg-[#0070ba] text-white font-medium disabled:opacity-50"
+                    >
+                      Open PayPal
+                    </button>
+                  )}
                   <button
                     type="button"
                     disabled={busyId === order.id}
@@ -174,7 +280,7 @@ export default function Orders({ user }) {
                     {busyId === order.id ? 'Updating…' : 'I paid — mark as paid'}
                   </button>
                   <span className="text-[11px] text-amber-800 self-center">
-                    Only mark paid after you finished PayPal/card payment.
+                    Card auto-marks paid after Stripe. PayPal needs “I paid” after you finish.
                   </span>
                 </div>
               )}

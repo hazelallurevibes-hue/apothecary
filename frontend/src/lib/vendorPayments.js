@@ -63,16 +63,16 @@ export function describeVendorPaymentMethods(vendor) {
   if (isValidStripeAccountId(vendor?.stripe_account_id)) {
     methods.unshift({
       id: 'card',
-      label: 'Card (via maker Stripe)',
+      label: 'Card (Stripe Checkout)',
       available: true,
-      hint: 'Recorded as card intent — maker collects via their linked Stripe.',
+      hint: 'Secure card payment — you are redirected to Stripe; order marks paid automatically.',
     });
   } else {
     methods.push({
       id: 'card',
       label: 'Card (when maker links Stripe)',
       available: false,
-      hint: 'This maker has not linked Stripe yet. Choose cash or PayPal if available.',
+      hint: 'This maker has not linked Stripe Connect yet. Choose cash or PayPal if available.',
     });
   }
   if (isValidPaypalEmail(vendor?.paypal_account_id)) {
@@ -80,7 +80,7 @@ export function describeVendorPaymentMethods(vendor) {
       id: 'paypal',
       label: 'PayPal',
       available: true,
-      hint: `Pay ${vendor.paypal_account_id} on PayPal after placing the order.`,
+      hint: `Pay ${vendor.paypal_account_id} on PayPal after placing — then tap “I paid” on My Orders.`,
       paypalId: vendor.paypal_account_id,
     });
   } else {

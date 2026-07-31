@@ -10,12 +10,13 @@ import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate'
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
 import { buildPaypalPayLink, describeVendorPaymentMethods } from '../lib/vendorPayments';
+import { startOrderCardCheckout } from '../lib/orderCheckoutApi';
 
 /**
  * Seeker cart & checkout.
  * - Cash/COD: order placed as pay-on-delivery
- * - PayPal: order saved as awaiting_payment, then PayPal opens — not free
- * - Card: same (awaiting_payment) until Stripe checkout is fully wired
+ * - PayPal: order saved unpaid → PayPal opens → buyer marks paid on My Orders
+ * - Card: order saved unpaid → Stripe Checkout redirect → webhook marks paid
  */
 export default function CartPage({ user }) {
   const navigate = useNavigate();
@@ -110,7 +111,7 @@ export default function CartPage({ user }) {
             paymentMethod === 'paypal' && vendorPay?.paypal_account_id
               ? `PayPal to ${vendorPay.paypal_account_id} — unpaid until completed on PayPal`
               : paymentMethod === 'card' && vendorPay?.stripe_account_id
-                ? `Card intent via Stripe ${vendorPay.stripe_account_id} — unpaid until paid`
+                ? `Card via Stripe Connect ${vendorPay.stripe_account_id} — unpaid until Checkout completes`
                 : 'Cash on delivery / pickup',
           tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner' : '',
         },
@@ -119,6 +120,41 @@ export default function CartPage({ user }) {
 
       const placed = await placeOrderApi(orderData, user);
       setLastOrderId(placed?.id || null);
+
+      // Card → Stripe Checkout (redirect). Keep cart until redirect succeeds.
+      if (paymentMethod === 'card' && placed?.id) {
+        setMsg(`Order #${placed.id} saved. Redirecting to secure card payment…`);
+        try {
+          const checkout = await startOrderCardCheckout({
+            orderId: placed.id,
+            email: user.email,
+            redirect: true,
+          });
+          if (checkout?.already_paid || checkout?.free) {
+            clearCart();
+            navigate('/orders', { replace: false, state: { justOrdered: placed.id, paid: true } });
+            return;
+          }
+          // If we got a URL, browser is navigating away — still clear cart
+          if (checkout?.url) {
+            clearCart();
+            return;
+          }
+          throw new Error('Stripe did not return a checkout URL. Open My Orders and tap Pay with card.');
+        } catch (stripeErr) {
+          console.error('[cart] stripe checkout', stripeErr);
+          clearCart();
+          setErr(
+            `${stripeErr.message || 'Card checkout failed.'} Your order #${placed.id} is saved as awaiting payment — open My Orders to retry card or switch method.`,
+          );
+          setMsg(`Order #${placed.id} saved (unpaid).`);
+          window.setTimeout(() => {
+            navigate('/orders', { replace: false, state: { justOrdered: placed.id } });
+          }, 1200);
+          setPlacing(false);
+          return;
+        }
+      }
 
       if (paymentMethod === 'paypal' && vendorPay?.paypal_account_id) {
         const payUrl = buildPaypalPayLink({
@@ -134,8 +170,8 @@ export default function CartPage({ user }) {
       const payHint = isCash
         ? ' Pay the maker when you pick up or receive delivery.'
         : paymentMethod === 'paypal'
-          ? ' Complete payment in the PayPal tab that opened (order is awaiting payment until then).'
-          : ' Card payment is recorded as awaiting payment until the maker confirms or Stripe checkout is completed.';
+          ? ' Complete payment in the PayPal tab, then on My Orders tap “I paid”.'
+          : '';
 
       const baseMsg = `Order #${placed?.id || '—'} saved. Total: $${Number(orderData.total).toFixed(2)}${formatDeliverySuccessNote(deliveryMethod)}.${payHint}`;
       offerSpellReceiptDownload({
@@ -154,7 +190,6 @@ export default function CartPage({ user }) {
       setAddress({ street: '', city: '', zip: '' });
       setMsg(baseMsg);
 
-      // Go to My Orders so the new order is visible immediately
       window.setTimeout(() => {
         navigate('/orders', { replace: false, state: { justOrdered: placed?.id } });
       }, 900);
@@ -174,8 +209,8 @@ export default function CartPage({ user }) {
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#c9a227] font-bold">Seeker checkout</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#4a1942] heading-font">Your cart</h1>
         <p className="text-sm text-gray-600 mt-1">
-          Cash = pay the maker on delivery. PayPal/card create an order that is <strong>unpaid</strong> until you
-          finish payment.
+          Cash = pay on delivery. Card = Stripe Checkout (auto-marks paid). PayPal = pay maker, then confirm on My
+          Orders.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <Link to="/orders" className="px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
@@ -354,8 +389,9 @@ export default function CartPage({ user }) {
               <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-[11px] text-amber-950">
                 <strong>Cash</strong> = order is live; you pay the maker on pickup/delivery.
                 <br />
-                <strong>PayPal / Card</strong> = order is saved as <em>awaiting payment</em> until you finish paying
-                (not free).
+                <strong>Card</strong> = order saved, then Stripe Checkout; webhook marks paid automatically.
+                <br />
+                <strong>PayPal</strong> = order saved unpaid; finish on PayPal, then confirm on My Orders.
               </div>
               <div className="flex gap-3 mt-4">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">
@@ -393,8 +429,11 @@ export default function CartPage({ user }) {
                 </div>
                 <div>
                   <strong>Payment:</strong> {selectedMeta?.label || paymentMethod}
-                  {paymentMethod !== 'cash' && (
-                    <span className="text-amber-800"> · unpaid until completed</span>
+                  {paymentMethod === 'card' && (
+                    <span className="text-emerald-800"> · Stripe Checkout next</span>
+                  )}
+                  {paymentMethod === 'paypal' && (
+                    <span className="text-amber-800"> · unpaid until PayPal + confirm</span>
                   )}
                 </div>
                 <div>
@@ -413,11 +452,13 @@ export default function CartPage({ user }) {
                     className="flex-1 py-3 bg-emerald-600 text-white rounded-3xl font-semibold disabled:opacity-60"
                   >
                     {placing
-                      ? 'Saving…'
+                      ? paymentMethod === 'card'
+                        ? 'Opening Stripe…'
+                        : 'Saving…'
                       : paymentMethod === 'paypal'
                         ? 'Place order & pay with PayPal'
                         : paymentMethod === 'card'
-                          ? 'Place order (pay card next)'
+                          ? 'Place order & pay with card'
                           : 'Place order (pay on delivery)'}
                   </button>
                 ) : (

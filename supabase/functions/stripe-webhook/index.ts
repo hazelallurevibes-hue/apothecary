@@ -92,6 +92,11 @@ async function handleCheckoutCompleted(
     return;
   }
 
+  if (checkoutType === "marketplace_order") {
+    await handleMarketplaceOrderCheckout(supabase, session, meta);
+    return;
+  }
+
   if (checkoutType === "product_subscribe" || meta.plan_type === "product_subscribe") {
     await handleProductSubscribeCheckout(supabase, session, meta);
     return;
@@ -221,6 +226,49 @@ async function handleSessionBookingCheckout(
       stripe_checkout_session_id: session.id,
       status: "confirmed",
     }).eq("id", bookingId);
+  }
+}
+
+/** Marketplace cart order — mark paid after Stripe Checkout succeeds */
+async function handleMarketplaceOrderCheckout(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+  meta: Record<string, string>,
+) {
+  if (session.payment_status && session.payment_status !== "paid") {
+    // still unpaid (e.g. async methods) — leave awaiting_payment
+    return;
+  }
+
+  const orderId = Number(meta.order_id || session.client_reference_id);
+  if (!orderId) return;
+
+  const paymentIntent = typeof session.payment_intent === "string"
+    ? session.payment_intent
+    : session.payment_intent?.id;
+
+  const patch: Record<string, unknown> = {
+    payment_status: "paid",
+    status: "placed",
+    payment_method: "card",
+    stripe_checkout_session_id: session.id,
+    stripe_payment_intent_id: paymentIntent || null,
+    paid_at: new Date().toISOString(),
+    payment_note: `Paid via Stripe Checkout ${session.id}`,
+  };
+
+  let { error } = await supabase.from("orders").update(patch).eq("id", orderId);
+  if (error && /column|schema cache|does not exist/i.test(error.message || "")) {
+    const minimal = {
+      payment_status: "paid",
+      status: "placed",
+      stripe_checkout_session_id: session.id,
+    };
+    const retry = await supabase.from("orders").update(minimal).eq("id", orderId);
+    error = retry.error;
+  }
+  if (error) {
+    console.error("handleMarketplaceOrderCheckout:", error.message);
   }
 }
 
