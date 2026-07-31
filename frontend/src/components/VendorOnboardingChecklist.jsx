@@ -79,14 +79,20 @@ export default function VendorOnboardingChecklist({
     return !!steps[step.id];
   };
 
+  // Fully complete → hide permanently (session + local preference)
+  if (complete) {
+    try {
+      localStorage.setItem(`ha_launch_done_${vendorId}`, '1');
+    } catch {
+      /* ignore */
+    }
+    return null;
+  }
+
   return (
     <div
       id="seller-path"
-      className={`mb-8 rounded-3xl p-6 border-2 scroll-mt-24 ${
-        complete
-          ? 'bg-gradient-to-r from-emerald-50 to-white border-emerald-200'
-          : 'bg-gradient-to-r from-amber-50 via-[#4a1942]/5 to-white border-amber-400 shadow-md'
-      }`}
+      className="mb-8 rounded-3xl p-6 border-2 scroll-mt-24 bg-gradient-to-r from-amber-50 via-[#4a1942]/5 to-white border-amber-400 shadow-md"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div>

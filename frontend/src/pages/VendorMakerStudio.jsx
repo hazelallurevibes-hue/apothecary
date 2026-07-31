@@ -13,6 +13,7 @@ import {
 } from '../lib/makerStudioApi';
 import { downloadText } from '../lib/csvExport';
 import { supabase } from '../lib/supabaseClient';
+import { resolveVendorIdForUser } from '../lib/vendorCatalogLoad';
 
 const TABS = [
   { id: 'overview', label: 'Overview' },
@@ -58,8 +59,8 @@ function ProLock({ isPro, children }) {
 
 export default function VendorMakerStudio({ user }) {
   const ctx = getVendorContext(user);
-  const vendorId = ctx?.vendorId;
   const isPro = isVendorPro(user);
+  const [vendorId, setVendorId] = useState(ctx?.vendorId || user?.vendor_id || null);
   const [tab, setTab] = useState('overview');
   const [studio, setStudio] = useState(emptyStudio());
   const [vendorName, setVendorName] = useState('');
@@ -80,12 +81,38 @@ export default function VendorMakerStudio({ user }) {
   const [blends, setBlends] = useState([]);
   const [listings, setListings] = useState([]);
 
+  // Heal missing vendor_id so studio does not sit on "Loading…" forever
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (vendorId || !user?.email) {
+        if (!vendorId && !user?.email) setLoading(false);
+        return;
+      }
+      const vid = await resolveVendorIdForUser(user);
+      if (!cancelled) {
+        if (vid) setVendorId(vid);
+        else {
+          setLoading(false);
+          setMsg('No storefront linked — open Vendor Dashboard once or re-apply as a practitioner.');
+        }
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user, vendorId]);
+
   const load = useCallback(async () => {
-    if (!vendorId) return;
+    if (!vendorId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
+    setMsg('');
     try {
       const { studio: s, vendorName: n, missingColumn } = await fetchMakerStudio(vendorId);
-      setStudio(s);
+      setStudio(s || emptyStudio());
       setVendorName(n || '');
       if (missingColumn) setMsg('Run maker_studio SQL migration to persist tools permanently.');
       const [{ data: produce }, { data: menu }, { data: reqs }] = await Promise.all([
@@ -102,9 +129,11 @@ export default function VendorMakerStudio({ user }) {
         ...(produce || []).map((p) => ({ ...p, kind: 'product' })),
         ...(menu || []).map((m) => ({ ...m, kind: 'service' })),
       ]);
+      // Missing blend table is OK
       setBlends(reqs || []);
     } catch (e) {
-      setMsg(e.message);
+      setMsg(e.message || 'Could not load Maker Studio');
+      setStudio(emptyStudio());
     }
     setLoading(false);
   }, [vendorId]);

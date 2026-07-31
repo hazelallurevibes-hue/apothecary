@@ -34,15 +34,26 @@ export function emptyStudio() {
 }
 
 export async function fetchMakerStudio(vendorId) {
-  const { data, error } = await supabase
-    .from('vendors')
-    .select('maker_studio, name, id')
-    .eq('id', Number(vendorId))
-    .maybeSingle();
-  if (error && error.code === '42703') {
-    return { studio: emptyStudio(), vendorName: data?.name, missingColumn: true };
+  const vid = Number(vendorId);
+  if (!vid) return { studio: emptyStudio(), vendorName: '', missingColumn: false };
+
+  // Prefer full select; fall back if maker_studio column missing
+  let data = null;
+  let missingColumn = false;
+  {
+    const full = await supabase.from('vendors').select('maker_studio, name, id').eq('id', vid).maybeSingle();
+    if (full.error && (/maker_studio|42703|column/i.test(full.error.message || '') || full.error.code === '42703')) {
+      missingColumn = true;
+      const min = await supabase.from('vendors').select('name, id').eq('id', vid).maybeSingle();
+      if (min.error) throw new Error(min.error.message);
+      data = min.data;
+    } else if (full.error) {
+      throw new Error(full.error.message);
+    } else {
+      data = full.data;
+    }
   }
-  if (error) throw new Error(error.message);
+
   const raw = data?.maker_studio;
   let studio = emptyStudio();
   if (raw && typeof raw === 'object') studio = { ...studio, ...raw };
@@ -53,7 +64,7 @@ export async function fetchMakerStudio(vendorId) {
       /* keep default */
     }
   }
-  return { studio, vendorName: data?.name, missingColumn: false };
+  return { studio, vendorName: data?.name || '', missingColumn };
 }
 
 export async function saveMakerStudio(vendorId, studio) {

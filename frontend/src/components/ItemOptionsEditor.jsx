@@ -45,8 +45,10 @@ export default function ItemOptionsEditor({ value = [], onChange, disabled }) {
     <div className="border rounded-2xl p-4 bg-gray-50/80 space-y-3 min-w-0 w-full max-w-full overflow-hidden">
       <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-start">
         <div className="min-w-0">
-          <h4 className="text-sm font-semibold">Customer options</h4>
-          <p className="text-[11px] text-gray-500 break-words">Let buyers choose add-ons like salt, pepper, fork, or spoon.</p>
+          <h4 className="text-sm font-semibold">Buyer options &amp; add-ons</h4>
+          <p className="text-[11px] text-gray-500 break-words">
+            Let seekers choose extras — size, scent, crystal type, gift wrap, blessing, or refill bottle.
+          </p>
         </div>
         <button
           type="button"
@@ -65,7 +67,7 @@ export default function ItemOptionsEditor({ value = [], onChange, disabled }) {
       {groups.map((group, gIdx) => (
         <div key={group.id || gIdx} className="bg-white border rounded-xl p-3 space-y-2 min-w-0 overflow-hidden">
           <input
-            placeholder="Option name (e.g. Salt)"
+            placeholder="Option name (e.g. Scent, Size, Gift wrap)"
             value={group.label}
             disabled={disabled}
             onChange={(e) => updateGroup(gIdx, { label: e.target.value })}
@@ -104,7 +106,7 @@ export default function ItemOptionsEditor({ value = [], onChange, disabled }) {
             {(group.choices || []).map((choice, cIdx) => (
               <div key={choice.id || cIdx} className="flex flex-col gap-2 min-[400px]:flex-row min-[400px]:items-center text-sm min-w-0">
                 <input
-                  placeholder="Choice (e.g. Add salt)"
+                  placeholder="Choice (e.g. Lavender, 30ml, Gift wrap + note)"
                   value={choice.label}
                   disabled={disabled}
                   onChange={(e) => updateChoice(gIdx, cIdx, { label: e.target.value })}

@@ -2,7 +2,7 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.7.3';
+export const APP_VERSION = '1.7.4';
 
 export const UPDATE_SPLASH = {
   title: 'Polish pass + deeper remedies',

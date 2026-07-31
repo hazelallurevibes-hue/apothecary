@@ -108,7 +108,7 @@ export default function VendorDashboard({ user }) {
   const [newItemPreorder, setNewItemPreorder] = useState({ ...EMPTY_PREORDER });
   const [newItemFoodLabel, setNewItemFoodLabel] = useState({});
   const [produceSection, setProduceSection] = useState('produce');
-  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
+  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
   const [newProduceAllergens, setNewProduceAllergens] = useState([]);
   const [newProduceSafety, setNewProduceSafety] = useState({ ...EMPTY_PRODUCE_SAFETY });
   const [medicinalLegalAck, setMedicinalLegalAck] = useState(false);
@@ -863,6 +863,7 @@ export default function VendorDashboard({ user }) {
           name: quick.name,
           price: quick.price,
           unit: quick.unit || 'each',
+          quantity_available: quick.quantity_available ?? quick.quantity ?? 10,
           description: quick.description || '',
           farm_story: quick.description || '',
           organic: 0,
@@ -891,7 +892,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetProduceForm = () => {
-    setNewProduce({ name: '', price: '', unit: 'each', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
+    setNewProduce({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
     setNewProduceAllergens([]);
     setNewProduceSafety({ ...EMPTY_PRODUCE_SAFETY });
     setMedicinalLegalAck(false);
@@ -1322,11 +1323,11 @@ export default function VendorDashboard({ user }) {
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{monthOrders}</div>
           <div className="text-xs text-emerald-600 mt-1 break-words">${monthRevenue.toFixed(2)} revenue · Manage →</div>
         </Link>
-        <a href="#reviews" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
+        <Link to="/vendor-reviews" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
           <div className="text-sm text-gray-500">Avg Rating</div>
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{avgRating}</div>
-          <div className="text-xs text-[#4a1942] mt-1">{analytics?.reviews?.length || 0} reviews →</div>
-        </a>
+          <div className="text-xs text-[#4a1942] mt-1">Reply · message · resolve →</div>
+        </Link>
       </div>
 
       {/* Wellness services listings */}
@@ -1571,6 +1572,15 @@ export default function VendorDashboard({ user }) {
             <div className="flex flex-col gap-2 min-[400px]:flex-row">
               <input placeholder="Price" type="number" value={newProduce.price} onChange={e=>setNewProduce({...newProduce, price:e.target.value})} className="border p-3 rounded-2xl flex-1 min-w-0 w-full box-border" />
               <input placeholder="Unit" value={newProduce.unit} onChange={e=>setNewProduce({...newProduce, unit:e.target.value})} className="border p-3 rounded-2xl w-full min-[400px]:w-24 box-border" />
+              <input
+                placeholder="Qty"
+                type="number"
+                min="0"
+                value={newProduce.quantity_available ?? ''}
+                onChange={(e) => setNewProduce({ ...newProduce, quantity_available: e.target.value })}
+                className="border p-3 rounded-2xl w-full min-[400px]:w-24 box-border"
+                title="Stock quantity"
+              />
             </div>
             <select
               value={newProduce.category}
@@ -1944,7 +1954,7 @@ export default function VendorDashboard({ user }) {
         <div className="bg-white border rounded-3xl p-6">
           <div className="font-semibold mb-2">Customer messages</div>
           <p className="text-sm text-gray-600 mb-4">
-            Real-time messaging with customers and item requests. You&apos;ll get in-app alerts for new orders and requests.
+            Chat with seekers, start a thread by email, and handle item requests. Empty inbox shows &ldquo;None yet&rdquo; — not a blank screen.
           </p>
           <Link to="/messages" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-medium">
             💬 Open inbox
@@ -2074,14 +2084,32 @@ function MyTopReviews({ reviews, myVendorId }) {
   if (!myVendorId) return null;
   return (
     <div id="reviews" className="bg-white border rounded-3xl p-8">
-      <h4 className="font-semibold mb-3">Top Reviews for Your Storefront</h4>
-      {reviews.length ? reviews.map((r) => (
-        <div key={r.id} className="text-sm py-2 border-b last:border-0">
-          {'★'.repeat(r.rating || 5)} {r.comment} {r.image_url && '📷'}
-          <ThankYouComposer vendorId={myVendorId} review={r} />
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h4 className="font-semibold">Top reviews for your storefront</h4>
+        <Link
+          to="/vendor-reviews"
+          className="text-xs font-semibold px-3 py-1.5 rounded-full bg-[#4a1942] text-white"
+        >
+          Open review inbox →
+        </Link>
+      </div>
+      <p className="text-xs text-gray-500 mb-3">
+        Reply publicly, message the seeker, and resolve low ratings so they can update their review.
+      </p>
+      {reviews.length ? (
+        reviews.map((r) => (
+          <div key={r.id} className="text-sm py-2 border-b last:border-0">
+            {'★'.repeat(r.rating || 5)} {r.comment} {r.image_url && '📷'}
+            {r.vendor_response && (
+              <p className="text-[11px] text-emerald-700 mt-1">Your reply: {r.vendor_response}</p>
+            )}
+            <ThankYouComposer vendorId={myVendorId} review={r} />
+          </div>
+        ))
+      ) : (
+        <div className="text-xs text-gray-500">
+          No reviews yet — after orders, seekers rate you here and on your public storefront.
         </div>
-      )) : (
-        <div className="text-xs text-gray-500">Reviews on your services and apothecary items will appear here and on your public storefront.</div>
       )}
     </div>
   );

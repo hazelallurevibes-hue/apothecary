@@ -332,6 +332,7 @@ export async function resolveVendorReview(reviewId, vendorId, resolutionNote) {
       resolution_note: (resolutionNote || '').trim(),
       resolved_at: new Date().toISOString(),
       vendor_response: (resolutionNote || '').trim(),
+      // Keep editable window open a bit longer after vendor engages (if column exists, harmless if ignored)
     })
     .eq('id', reviewId)
     .eq('vendor_id', vendorId)
@@ -340,6 +341,56 @@ export async function resolveVendorReview(reviewId, vendorId, resolutionNote) {
 
   if (error) throw new Error(error.message || 'Could not mark review resolved');
   return normalizeReview(data);
+}
+
+/** Public vendor reply on any review (does not change published/pending status). */
+export async function replyToVendorReview(reviewId, vendorId, responseText) {
+  const text = (responseText || '').trim();
+  if (!text) throw new Error('Write a short reply first.');
+  const { data, error } = await supabase
+    .from('reviews')
+    .update({
+      vendor_response: text,
+      vendor_responded_at: new Date().toISOString(),
+    })
+    .eq('id', reviewId)
+    .eq('vendor_id', Number(vendorId))
+    .select()
+    .single();
+  if (error) {
+    // Retry without vendor_responded_at if column missing
+    if (/vendor_responded_at/i.test(error.message || '')) {
+      const retry = await supabase
+        .from('reviews')
+        .update({ vendor_response: text })
+        .eq('id', reviewId)
+        .eq('vendor_id', Number(vendorId))
+        .select()
+        .single();
+      if (retry.error) throw new Error(retry.error.message);
+      return normalizeReview(retry.data);
+    }
+    throw new Error(error.message || 'Could not save reply');
+  }
+  return normalizeReview(data);
+}
+
+/** All reviews for vendor dashboard / review inbox (public + private pending). */
+export async function fetchVendorAllReviews(vendorId) {
+  await processReviewDeadlines();
+  const vid = Number(vendorId);
+  if (!vid) return [];
+  const { data, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('vendor_id', vid)
+    .order('created_at', { ascending: false })
+    .limit(100);
+  if (error) {
+    console.warn('fetchVendorAllReviews:', error.message);
+    return [];
+  }
+  return (data || []).map(normalizeReview);
 }
 
 export async function fetchVendorsWithRatings({ minRating = 0, search = '' } = {}) {

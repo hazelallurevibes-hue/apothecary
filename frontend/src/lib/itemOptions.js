@@ -1,4 +1,4 @@
-/** Parse and validate vendor-defined item options (salt, utensils, etc.) */
+/** Parse and validate vendor-defined item options (size, scent, gift wrap, etc.) */
 
 export function parseItemOptions(raw) {
   if (!raw) return [];

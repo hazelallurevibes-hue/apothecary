@@ -37,6 +37,7 @@ export default function ListingQuickAdd({
   const [listingType, setListingType] = useState('');
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
+  const [quantity, setQuantity] = useState('10');
   const [category, setCategory] = useState('');
   const [thumbnail, setThumbnail] = useState({ ...EMPTY_THUMBNAIL });
   const [fulfillmentMode, setFulfillmentMode] = useState('pickup_and_shipping');
@@ -60,6 +61,7 @@ export default function ListingQuickAdd({
     setListingType('');
     setName('');
     setPrice('');
+    setQuantity('10');
     setCategory('');
     setThumbnail({ ...EMPTY_THUMBNAIL });
     setFulfillmentMode('pickup_and_shipping');
@@ -126,6 +128,9 @@ export default function ListingQuickAdd({
     description: '',
     time_made: isService ? '60 min' : undefined,
     unit: isProduct ? 'each' : undefined,
+    quantity_available: isProduct
+      ? Math.max(0, Math.floor(Number(quantity) || 0))
+      : undefined,
   });
 
   const handlePublish = async () => {
@@ -252,6 +257,22 @@ export default function ListingQuickAdd({
               className={touchInput}
             />
           </label>
+          {isProduct && (
+            <label className="block">
+              <span className="text-sm font-semibold text-gray-800 mb-2 block">Stock quantity</span>
+              <input
+                type="number"
+                min="0"
+                step="1"
+                value={quantity}
+                disabled={busy}
+                onChange={(e) => { setQuantity(e.target.value); setError(''); }}
+                placeholder="10"
+                className={touchInput}
+              />
+              <span className="text-[11px] text-gray-500 mt-1 block">How many units you have ready to sell (saved as stock, not the default of 50).</span>
+            </label>
+          )}
           <label className="block">
             <span className="text-sm font-semibold text-gray-800 mb-2 block">Category</span>
             <select

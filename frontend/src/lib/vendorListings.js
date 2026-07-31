@@ -60,12 +60,16 @@ export function produceItemToFormState(item) {
     item: {
       name: item.name || '',
       price: item.price != null ? String(item.price) : '',
-      unit: item.unit || (section === 'plants_trees' ? 'each' : 'lb'),
+      unit: item.unit || (section === 'plants_trees' ? 'each' : 'each'),
       description: item.description || '',
       farm_story: item.farm_story || item.description || '',
       organic: Number(item.organic) || 0,
       category: item.category || (section === 'plants_trees' ? 'Plants' : 'Produce'),
       fulfillment_mode: item.fulfillment_mode || 'pickup_and_shipping',
+      quantity_available:
+        item.quantity_available != null && item.quantity_available !== ''
+          ? String(item.quantity_available)
+          : '1',
     },
     media: {
       videoUrl: item.service_video_url || '',
@@ -118,11 +122,18 @@ export function buildProduceItemPayload({
   photo,
 }) {
   const description = (produce.description || produce.farm_story || '').trim();
+  // Never fall back to DB default 50 — respect what the seller typed (min 0).
+  const qtyRaw = produce.quantity_available ?? produce.quantity ?? produce.qty;
+  const qty =
+    qtyRaw === '' || qtyRaw == null || Number.isNaN(Number(qtyRaw))
+      ? 1
+      : Math.max(0, Math.floor(Number(qtyRaw)));
   return {
     vendor_id: vendorId,
     name: produce.name?.trim(),
     price: parseFloat(produce.price),
     unit: produce.unit || 'each',
+    quantity_available: qty,
     description,
     farm_story: (produce.farm_story || description).trim(),
     organic: Number(produce.organic) || 0,
