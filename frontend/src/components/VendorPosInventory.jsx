@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { isProPlan } from '../lib/plans';
+import { loadVendorListings } from '../lib/vendorCatalogLoad';
 
 /**
  * Lightweight POS / inventory board for apothecary sellers.
@@ -11,63 +12,96 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
   const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
   const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
   const [filter, setFilter] = useState('all'); // all | low | out
   const isPro = isProPlan(plan);
 
   const load = useCallback(async () => {
-    if (!vendorId) return;
+    if (!vendorId) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
-    const vid = Number(vendorId);
-    const [{ data: produce }, { data: menu }] = await Promise.all([
-      supabase
-        .from('produce_items')
-        .select('id, name, price, quantity_available, unit, category, photo, subscribe_enabled, subscribe_interval_days, subscribe_discount_pct')
-        .eq('vendor_id', vid)
-        .order('name'),
-      supabase
-        .from('menu_items')
-        .select('id, name, price, availability, category, photo')
-        .eq('vendor_id', vid)
-        .order('name'),
-    ]);
+    setError('');
+    try {
+      // Prefer resilient catalog loader (handles missing subscribe columns / hangs)
+      const catalog = await loadVendorListings(vendorId);
+      if (catalog.errors?.length) {
+        setError(catalog.errors.join(' · '));
+      }
 
-    const mapped = [
-      ...(produce || []).map((p) => ({
-        key: `p-${p.id}`,
-        id: p.id,
-        kind: 'produce',
-        name: p.name,
-        price: Number(p.price) || 0,
-        qty: p.quantity_available != null ? Number(p.quantity_available) : 0,
-        unit: p.unit || 'each',
-        category: p.category || '',
-        photo: p.photo,
-        subscribe_enabled: !!p.subscribe_enabled,
-        subscribe_interval_days: p.subscribe_interval_days || 30,
-        subscribe_discount_pct: p.subscribe_discount_pct != null ? Number(p.subscribe_discount_pct) : 10,
-      })),
-      ...(menu || []).map((m) => {
-        const avail = String(m.availability || '').toLowerCase();
-        let qty = 0;
-        if (avail.includes('out') || avail.includes('sold')) qty = 0;
-        else if (/\d+/.test(avail)) qty = Number(avail.match(/\d+/)[0]);
-        else qty = avail.includes('stock') || avail === '' ? 12 : 5;
-        return {
-          key: `m-${m.id}`,
-          id: m.id,
-          kind: 'menu',
-          name: m.name,
-          price: Number(m.price) || 0,
-          qty,
-          unit: 'service',
-          category: m.category || 'service',
-          photo: m.photo,
-          availabilityRaw: m.availability,
-          subscribe_enabled: false,
-        };
-      }),
-    ];
-    setRows(mapped);
+      // Try enriched select with subscribe fields; merge onto catalog if available
+      let subscribeMap = {};
+      try {
+        const { data: enriched, error: enrErr } = await supabase
+          .from('produce_items')
+          .select('id, subscribe_enabled, subscribe_interval_days, subscribe_discount_pct, quantity_available')
+          .eq('vendor_id', Number(vendorId));
+        if (!enrErr && enriched) {
+          for (const p of enriched) {
+            subscribeMap[p.id] = p;
+          }
+        }
+      } catch {
+        /* optional */
+      }
+
+      const mapped = [
+        ...(catalog.produce || []).map((p) => {
+          const extra = subscribeMap[p.id] || {};
+          return {
+            key: `p-${p.id}`,
+            id: p.id,
+            kind: 'produce',
+            name: p.name,
+            price: Number(p.price) || 0,
+            qty:
+              extra.quantity_available != null
+                ? Number(extra.quantity_available)
+                : p.quantity_available != null
+                  ? Number(p.quantity_available)
+                  : 0,
+            unit: p.unit || 'each',
+            category: p.category || '',
+            photo: p.photo,
+            subscribe_enabled: !!extra.subscribe_enabled || !!p.subscribe_enabled,
+            subscribe_interval_days: extra.subscribe_interval_days || p.subscribe_interval_days || 30,
+            subscribe_discount_pct:
+              extra.subscribe_discount_pct != null
+                ? Number(extra.subscribe_discount_pct)
+                : p.subscribe_discount_pct != null
+                  ? Number(p.subscribe_discount_pct)
+                  : 10,
+          };
+        }),
+        ...(catalog.menu || []).map((m) => {
+          const avail = String(m.availability || '').toLowerCase();
+          let qty = m.quantity_available != null ? Number(m.quantity_available) : null;
+          if (qty == null) {
+            if (avail.includes('out') || avail.includes('sold')) qty = 0;
+            else if (/\d+/.test(avail)) qty = Number(avail.match(/\d+/)[0]);
+            else qty = avail.includes('stock') || avail === '' ? 12 : 5;
+          }
+          return {
+            key: `m-${m.id}`,
+            id: m.id,
+            kind: 'menu',
+            name: m.name,
+            price: Number(m.price) || 0,
+            qty,
+            unit: 'service',
+            category: m.category || 'service',
+            photo: m.photo,
+            availabilityRaw: m.availability,
+            subscribe_enabled: false,
+          };
+        }),
+      ];
+      setRows(mapped);
+    } catch (e) {
+      setError(e.message || 'Could not load inventory');
+      setRows([]);
+    }
     setLoading(false);
   }, [vendorId]);
 
@@ -90,18 +124,22 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
     setMessage('');
     try {
       if (row.kind === 'produce') {
-        const { error } = await supabase
+        const { error: err } = await supabase
           .from('produce_items')
           .update({ quantity_available: qty })
           .eq('id', row.id);
-        if (error) throw error;
+        if (err) throw err;
       } else {
         const availability = qty <= 0 ? 'Out of stock' : qty <= 5 ? `Low stock (${qty})` : 'In stock';
-        const { error } = await supabase
+        const { error: err } = await supabase
           .from('menu_items')
-          .update({ availability })
+          .update({ availability, quantity_available: qty })
           .eq('id', row.id);
-        if (error) throw error;
+        if (err) {
+          // quantity_available may be missing on menu
+          const retry = await supabase.from('menu_items').update({ availability }).eq('id', row.id);
+          if (retry.error) throw retry.error;
+        }
       }
       setRows((prev) => prev.map((r) => (r.key === row.key ? { ...r, qty } : r)));
       setMessage(`Updated ${row.name}`);
@@ -120,7 +158,7 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
     setSavingId(row.key);
     const next = { ...row, ...patch };
     try {
-      const { error } = await supabase
+      const { error: err } = await supabase
         .from('produce_items')
         .update({
           subscribe_enabled: !!next.subscribe_enabled,
@@ -128,10 +166,10 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
           subscribe_discount_pct: Math.min(40, Math.max(0, Number(next.subscribe_discount_pct) || 0)),
         })
         .eq('id', row.id);
-      if (error) {
-        if (/subscribe_/i.test(error.message)) {
-          setMessage('Run POS & subscriptions SQL migration to enable Subscribe & Save columns.');
-        } else throw error;
+      if (err) {
+        if (/subscribe_/i.test(err.message)) {
+          setMessage('Subscribe columns missing — run latest SQL migration (POS & subscriptions).');
+        } else throw err;
       } else {
         setRows((prev) => prev.map((r) => (r.key === row.key ? next : r)));
         setMessage(`Subscription settings saved for ${row.name}`);
@@ -154,15 +192,16 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
             Track counts like a simple POS. Low stock (≤5) and out-of-stock lists help you restock before you lose sales.
             {isPro
               ? ' Pro: enable Subscribe & Save on products so shoppers pay on a recurring cycle.'
-              : ' Upgrade to Pro to offer product Subscribe & Save (recurring revenue most website builders skip).'}
+              : ' Upgrade to Pro to offer product Subscribe & Save (recurring revenue).'}
           </p>
         </div>
         <button
           type="button"
           onClick={load}
-          className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#4a1942]/20 text-[#4a1942]"
+          disabled={loading}
+          className="text-xs font-semibold px-3 py-1.5 rounded-full border border-[#4a1942]/20 text-[#4a1942] disabled:opacity-50"
         >
-          Refresh
+          {loading ? 'Loading…' : 'Refresh'}
         </button>
       </div>
 
@@ -187,6 +226,11 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
         ))}
       </div>
 
+      {error && (
+        <p className="text-xs mb-3 px-3 py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-950">
+          {error}
+        </p>
+      )}
       {message && (
         <p className="text-xs mb-3 px-3 py-2 rounded-xl bg-[#faf7f9] border border-[#4a1942]/10 text-[#4a1942]">
           {message}
@@ -196,7 +240,9 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
       {loading ? (
         <p className="text-sm text-gray-500">Loading inventory…</p>
       ) : visible.length === 0 ? (
-        <p className="text-sm text-gray-500">No items in this filter. Add products from the dashboard first.</p>
+        <p className="text-sm text-gray-500">
+          No items in this filter. Add products from Quick Add or the forms below, then hit Refresh.
+        </p>
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
@@ -210,7 +256,7 @@ export default function VendorPosInventory({ vendorId, plan = 'free', className 
             </thead>
             <tbody className="divide-y divide-gray-100">
               {visible.map((row) => (
-                <tr key={row.key} className={row.qty <= 0 ? 'bg-rose-50/40' : row.qty <= 5 ? 'bg-amber-50/40' : ''}>
+                <tr key={row.key} className={row.qty <= 0 ? 'bg-rose-50/40' : row.qty > 0 && row.qty <= 5 ? 'bg-amber-50/40' : ''}>
                   <td className="py-2.5 pr-2">
                     <div className="font-medium text-gray-800">{row.name}</div>
                     <div className="text-[10px] text-gray-400">

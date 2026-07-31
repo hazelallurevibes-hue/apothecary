@@ -67,7 +67,27 @@ async function enrichProfile(profile) {
     profile.customer_region = row.customer_region || 'US';
   }
 
-  const vendorId = profile.vendor_id || profile.vendor;
+  let vendorId = profile.vendor_id || profile.vendor;
+  // Heal missing users.vendor_id by matching vendors.email (common Auth0 / legacy gap)
+  if ((profile.role === 'vendor' || profile.role === 'admin') && !vendorId && profile.email) {
+    const { data: byEmail } = await supabase
+      .from('vendors')
+      .select('id, plan')
+      .ilike('email', profile.email.trim())
+      .order('id', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (byEmail?.id) {
+      vendorId = byEmail.id;
+      profile.vendor_id = byEmail.id;
+      profile.vendor = byEmail.id;
+      if (byEmail.plan) profile.vendor_plan = byEmail.plan;
+      await supabase
+        .from('users')
+        .update({ vendor_id: byEmail.id, role: profile.role === 'admin' ? 'admin' : 'vendor' })
+        .ilike('email', profile.email.trim());
+    }
+  }
   if ((profile.role === 'vendor' || profile.role === 'admin') && vendorId) {
     const { data: vendor } = await supabase
       .from('vendors')

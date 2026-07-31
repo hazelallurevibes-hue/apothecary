@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { fetchVendorAnalytics } from '../lib/vendorAnalytics';
 import { getVendorContext, isPaidVendor, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
+import {
+  loadVendorListings,
+  loadVendorOrderStats,
+  resolveVendorIdForUser,
+} from '../lib/vendorCatalogLoad';
 import RatingAlertsPanel from '../components/RatingAlertsPanel';
 import VendorCustomerInsights from '../components/VendorCustomerInsights';
 import VendorNotificationsPanel from '../components/VendorNotificationsPanel';
@@ -46,13 +50,11 @@ import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
 import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
 import AdvertisingAccountBadge from '../components/AdvertisingAccountBadge';
 import ThankYouComposer from '../components/ThankYouComposer';
-import SellerGrowthTips from '../components/SellerGrowthTips';
 import ShelfScoreCard from '../components/ShelfScoreCard';
-import VendorBoostStrip from '../components/VendorBoostStrip';
 import VendorPosInventory from '../components/VendorPosInventory';
-import VendorProWorthPanel from '../components/VendorProWorthPanel';
 import VendorDashboardStudio from '../components/VendorDashboardStudio';
 import VendorProSaasHub from '../components/VendorProSaasHub';
+import VendorPaymentsPanel from '../components/VendorPaymentsPanel';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
 import { getVendorListingLimits } from '../lib/plans';
@@ -92,6 +94,8 @@ export default function VendorDashboard({ user }) {
   const [myTasks, setMyTasks] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [loadingData, setLoadingData] = useState(true);
+  const [loadError, setLoadError] = useState('');
+  const [resolvedVendorId, setResolvedVendorId] = useState(null);
   const [produceTemplates, setProduceTemplates] = useState([]);
   const [menuTemplates, setMenuTemplates] = useState([]);
   const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
@@ -139,7 +143,8 @@ export default function VendorDashboard({ user }) {
   const [adDetails, setAdDetails] = useState(null);
 
   const vendorCtx = getVendorContext(user);
-  const myVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+  const myVendorId =
+    resolvedVendorId || vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
   const vendorPlan = vendorCtx?.plan || 'free';
   const isProPractitioner = isVendorPro(user);
   const listingSaveOpts = {
@@ -149,38 +154,58 @@ export default function VendorDashboard({ user }) {
     preferRpc: user?.auth_provider === 'auth0' || !user?.authId,
   };
 
+  const userEmail = user?.email || '';
+  const seedVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+
   const refreshVendorData = useCallback(async () => {
-    if (!myVendorId) {
-      setLoadingData(false);
-      return;
-    }
     setLoadingData(true);
+    setLoadError('');
     try {
-      const stats = await fetchVendorAnalytics(myVendorId);
-      setAnalytics(stats);
-      setMyMenu(stats.menu);
-      setMyProduce(stats.produce);
-      setMyTasks(stats.tasks);
-    } catch (e) {
-      console.warn('Supabase vendor load failed, trying API fallback:', e.message);
-      try {
-        const [menu, produce, tasks] = await Promise.all([
-          fetch(`${API}/menu-items`).then((r) => r.json()),
-          fetch(`${API}/produce-items`).then((r) => r.json()),
-          fetch(`${API}/tasks`).then((r) => r.json()),
-        ]);
-        setMyMenu((menu || []).filter((i) => i.vendor_id == myVendorId));
-        setMyProduce((produce || []).filter((i) => i.vendor_id == myVendorId));
-        setMyTasks((tasks || []).filter((t) => t.vendor_id == myVendorId));
-      } catch {
+      let vid = resolvedVendorId || (seedVendorId ? Number(seedVendorId) : null);
+      if (!vid && userEmail) {
+        vid = await resolveVendorIdForUser({ email: userEmail, vendor_id: seedVendorId });
+        if (vid) setResolvedVendorId(vid);
+      }
+      if (!vid) {
         setMyMenu([]);
         setMyProduce([]);
         setMyTasks([]);
+        setLoadError(
+          'No storefront linked to this login. Open Vendor Sign-up once, or contact support with your email.',
+        );
+        setLoadingData(false);
+        return;
       }
+
+      const catalog = await loadVendorListings(vid);
+      setMyMenu(catalog.menu || []);
+      setMyProduce(catalog.produce || []);
+      if (catalog.errors?.length) {
+        setLoadError(catalog.errors.join(' · '));
+      }
+
+      // Orders/analytics non-blocking — never keep listings stuck on "Loading…"
+      loadVendorOrderStats(vid)
+        .then((stats) => {
+          if (!stats) return;
+          setAnalytics((prev) => ({
+            ...(prev || {}),
+            ...stats,
+            menu: catalog.menu,
+            produce: catalog.produce,
+            tasks: prev?.tasks || [],
+          }));
+        })
+        .catch(() => {});
+    } catch (e) {
+      console.warn('Vendor dashboard load failed:', e.message);
+      setLoadError(e.message || 'Could not load listings');
+      setMyMenu([]);
+      setMyProduce([]);
     } finally {
       setLoadingData(false);
     }
-  }, [myVendorId]);
+  }, [resolvedVendorId, seedVendorId, userEmail]);
 
   useEffect(() => {
     refreshVendorData();
@@ -188,16 +213,29 @@ export default function VendorDashboard({ user }) {
 
   useEffect(() => {
     if (!myVendorId) return;
+    const applyVendor = (data) => {
+      setVendorIdentityVerified(!!data?.identity_verified);
+      if (data) setStorefrontVendor(data);
+    };
     supabase
       .from('vendors')
       .select(
-        'id, name, logo, highlight_photo, banner_images, bio, city, state, latitude, longitude, category, phone, email, identity_verified, plan, slogan, theme_color'
+        'id, name, logo, highlight_photo, banner_images, bio, city, state, latitude, longitude, category, phone, email, identity_verified, plan, slogan, theme_color',
       )
       .eq('id', Number(myVendorId))
       .maybeSingle()
-      .then(({ data }) => {
-        setVendorIdentityVerified(!!data?.identity_verified);
-        if (data) setStorefrontVendor(data);
+      .then(({ data, error }) => {
+        if (error && /plan/i.test(error.message || '')) {
+          return supabase
+            .from('vendors')
+            .select(
+              'id, name, logo, highlight_photo, banner_images, bio, city, state, latitude, longitude, category, phone, email, identity_verified, slogan, theme_color',
+            )
+            .eq('id', Number(myVendorId))
+            .maybeSingle()
+            .then(({ data: d }) => applyVendor(d ? { ...d, plan: 'free' } : null));
+        }
+        applyVendor(data);
       });
     fetchPlatformSettings().then((s) => {
       setRequireIdBeforeListing(s.require_id_before_listing === 'true');
@@ -1058,11 +1096,7 @@ export default function VendorDashboard({ user }) {
         onStepsChange={setLaunchSteps}
       />
 
-      {isProPractitioner ? (
-        <ProVendorActiveStrip compact />
-      ) : (
-        <UpgradeBanner plan={vendorPlan} user={user} />
-      )}
+      {isProPractitioner && <ProVendorActiveStrip compact />}
 
       <VendorDashboardStudio
         vendorId={myVendorId}
@@ -1072,9 +1106,6 @@ export default function VendorDashboard({ user }) {
         produceCount={myProduce?.length || 0}
         menuCount={myMenu?.length || 0}
         childrenById={{
-          boost: <VendorBoostStrip isPro={isProPractitioner} />,
-          worth: <VendorProWorthPanel isPro={isProPractitioner} className="mb-6" />,
-          growth: <SellerGrowthTips isPro={isProPractitioner} />,
           shelf: storefrontVendor ? (
             <ShelfScoreCard
               vendor={storefrontVendor}
@@ -1132,22 +1163,29 @@ export default function VendorDashboard({ user }) {
                 : myMenu.length + myProduce.length === 0
                   ? 'Nothing posted yet — use Quick Add or the forms below.'
                   : `${myMenu.length} service(s) · ${myProduce.length} apothecary item(s)`}
+              {myVendorId ? ` · shop #${myVendorId}` : ''}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               onClick={() => refreshVendorData()}
-              className="text-xs px-3 py-1.5 border rounded-2xl hover:bg-gray-50"
+              disabled={loadingData}
+              className="text-xs px-3 py-1.5 border rounded-2xl hover:bg-gray-50 disabled:opacity-50"
             >
-              Refresh list
+              {loadingData ? 'Refreshing…' : 'Refresh list'}
             </button>
             <a href="#listing-quick-add" className="text-xs px-3 py-1.5 bg-[#4a1942] text-white rounded-2xl">
               Add listing
             </a>
           </div>
         </div>
-        {myMenu.length + myProduce.length > 0 ? (
+        {loadError && (
+          <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 mb-3">
+            {loadError}
+          </p>
+        )}
+        {!loadingData && myMenu.length + myProduce.length > 0 ? (
           <div className="space-y-2 max-h-[28rem] overflow-y-auto">
             {myMenu.map((item) => (
               <div
@@ -1228,15 +1266,12 @@ export default function VendorDashboard({ user }) {
           </div>
         ) : (
           <p className="text-sm text-gray-500">
-            After you post, every listing appears here with View / Edit / Remove — even while email verify is still
-            outstanding (verify stays highlighted above).
+            {loadingData
+              ? 'Fetching your catalog from the database…'
+              : 'After you post, every listing appears here with View / Edit / Remove. If you already posted and see nothing, tap Refresh list.'}
           </p>
         )}
       </div>
-
-      {loadingData && (
-        <div className="text-sm text-gray-500 mb-4">Refreshing live data…</div>
-      )}
 
       {vendorCan(user, 'ratings') && <VendorNotificationsPanel vendorId={myVendorId} />}
       {vendorCan(user, 'ratings') && <RatingAlertsPanel vendorId={myVendorId} />}
@@ -1794,51 +1829,25 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
 
-      {/* Vendor Payments - Stripe / PayPal Connect */}
-      <div className="mb-8 bg-white border border-blue-200 rounded-3xl p-8">
-        <h3 className="font-bold text-2xl mb-2 text-blue-900">Payment &amp; Payout Accounts</h3>
-        <p className="text-sm text-gray-600 mb-4">Link your Stripe or PayPal account so customers can pay you directly during checkout. (Integration coming in production via real Stripe Connect / PayPal OAuth.)</p>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="text-sm font-medium">Stripe Connect Account ID</label>
-            <input id="stripe-id" defaultValue={user?.stripe_account_id || ''} placeholder="acct_1234567890" className="w-full border p-3 rounded-2xl mt-1" />
-            <button onClick={() => {
-              const id = document.getElementById('stripe-id').value;
-              if (!id) return alert('Enter Stripe account ID');
-              fetch(`${API}/vendors/${myVendorId}/profile`, {
-                method: 'PATCH',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ stripe_account_id: id })
-              }).then(() => alert('Stripe account linked! Customers can now pay via your Stripe during checkout.'));
-            }} className="mt-2 px-4 py-2 bg-[#635bff] text-white rounded-2xl text-sm">Save Stripe</button>
-            <button onClick={() => {
-              const mockId = 'acct_placeholder_' + Date.now();
-              document.getElementById('stripe-id').value = mockId;
-              alert('Stripe Connect simulation. In production this would redirect to Stripe OAuth for real account linking.');
-            }} className="ml-2 px-4 py-2 border rounded-2xl text-sm">Connect with Stripe</button>
-          </div>
-          <div>
-            <label className="text-sm font-medium">PayPal Account / Merchant ID</label>
-            <input id="paypal-id" defaultValue={user?.paypal_account_id || ''} placeholder="your-paypal@email.com or merchant_id" className="w-full border p-3 rounded-2xl mt-1" />
-            <button onClick={() => {
-              const id = document.getElementById('paypal-id').value;
-              if (!id) return alert('Enter PayPal ID/email');
-              fetch(`${API}/vendors/${myVendorId}/profile`, {
-                method: 'PATCH',
-                headers: {'Content-Type':'application/json'},
-                body: JSON.stringify({ paypal_account_id: id })
-              }).then(() => alert('PayPal linked!'));
-            }} className="mt-2 px-4 py-2 bg-[#00457C] text-white rounded-2xl text-sm">Save PayPal</button>
-            <button onClick={() => {
-              const mockId = 'paypal_placeholder_' + Date.now();
-              document.getElementById('paypal-id').value = mockId;
-              alert('PayPal simulation. In production this would link your real merchant account.');
-            }} className="ml-2 px-4 py-2 border rounded-2xl text-sm">Connect PayPal</button>
-          </div>
+      <VendorPaymentsPanel vendorId={myVendorId} user={user} />
+
+      {/* Single Pro CTA at bottom — not three marketing cards at top */}
+      {!isProPractitioner && (
+        <div className="mb-8">
+          <UpgradeBanner plan={vendorPlan} user={user} />
+          <p className="text-[11px] text-gray-500 -mt-2 mb-2 px-1">
+            One upgrade path: unlimited listings, POS Subscribe &amp; Save, campaigns, Teaching Sanctum.
+            {' '}
+            <Link to="/pro-upgrade?type=vendor&from=dashboard-bottom" className="underline text-[#4a1942] font-medium">
+              Compare Free vs Pro
+            </Link>
+            {' · '}
+            <Link to="/vendor-growth" className="underline text-[#4a1942] font-medium">
+              Growth Hub
+            </Link>
+          </p>
         </div>
-        <p className="text-xs mt-4 text-gray-500">During checkout, if linked, the system will indicate payment goes to your account (platform may take small fee in real setup).</p>
-      </div>
+      )}
 
       {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
       <div className="mb-8 bg-white border rounded-3xl p-8">
