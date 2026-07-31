@@ -34,6 +34,8 @@ import {
   getSellerPath,
   isIdStepSatisfied,
   offersServices,
+  isLaunchFullyDone,
+  readLaunchDoneLocal,
 } from '../lib/onboardingApi';
 import { getVendorSellBlockers } from '../lib/accountGates';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
@@ -244,12 +246,20 @@ export default function VendorDashboard({ user }) {
 
   useEffect(() => {
     if (!myVendorId) return;
+    // Skip heavy re-detect loops once graduated
+    if (readLaunchDoneLocal(myVendorId) || isLaunchFullyDone(launchSteps)) {
+      if (!isLaunchFullyDone(launchSteps)) {
+        setLaunchSteps((prev) => ({ ...prev, launch_complete: true }));
+      }
+      return;
+    }
     autoDetectOnboarding(myVendorId, {
       menuCount: myMenu.length,
       produceCount: myProduce.length,
       user,
     }).then(setLaunchSteps);
-  }, [myVendorId, myMenu.length, myProduce.length, user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid re-running on every user object identity
+  }, [myVendorId, myMenu.length, myProduce.length, user?.email]);
 
   useEffect(() => {
     if (loadingData) return;
@@ -1123,7 +1133,7 @@ export default function VendorDashboard({ user }) {
         </div>
       )}
 
-      {nextIncompleteStep(launchSteps) && (
+      {!isLaunchFullyDone(launchSteps) && !readLaunchDoneLocal(myVendorId) && nextIncompleteStep(launchSteps) && (
         <div className="mb-4 text-sm bg-amber-50 border-2 border-amber-400 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 animate-pulse">
           <span>
             Still need: <strong>{nextIncompleteStep(launchSteps)?.label}</strong>

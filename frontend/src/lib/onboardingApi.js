@@ -159,7 +159,38 @@ export function launchChecklistComplete(steps) {
   });
 }
 
+/** Permanent graduation flag — once true, checklist stays hidden even if a probe fails. */
+export function isLaunchFullyDone(steps = {}) {
+  if (steps.launch_complete === true || steps.launch_complete === 'true' || steps.launch_complete === 1) {
+    return true;
+  }
+  return launchChecklistComplete(steps);
+}
+
+export function launchDoneStorageKey(vendorId) {
+  return `ha_launch_done_v2_${vendorId}`;
+}
+
+export function readLaunchDoneLocal(vendorId) {
+  if (!vendorId) return false;
+  try {
+    return localStorage.getItem(launchDoneStorageKey(vendorId)) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function writeLaunchDoneLocal(vendorId) {
+  if (!vendorId) return;
+  try {
+    localStorage.setItem(launchDoneStorageKey(vendorId), '1');
+  } catch {
+    /* ignore */
+  }
+}
+
 export function nextIncompleteStep(steps) {
+  if (isLaunchFullyDone(steps)) return null;
   return (
     stepsForSeller(steps).find((s) => {
       if (s.id === 'id_verification') return !isIdStepSatisfied(steps);
@@ -170,14 +201,38 @@ export function nextIncompleteStep(steps) {
 
 export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCount = 0, user = null } = {}) {
   const { steps, vendor } = await fetchVendorOnboarding(vendorId);
+
+  // Already graduated — never re-open the checklist by rewriting steps to incomplete
+  if (steps.launch_complete === true || steps.launch_complete === 'true' || steps.launch_complete === 1) {
+    writeLaunchDoneLocal(vendorId);
+    const soft = { ...steps };
+    if (menuCount + produceCount > 0) soft.first_listing = true;
+    return soft;
+  }
+
+  // Local graduation from a previous session (DB lag / partial write)
+  if (readLaunchDoneLocal(vendorId) && launchChecklistComplete(steps)) {
+    const graduated = {
+      ...steps,
+      launch_complete: true,
+      launch_completed_at: steps.launch_completed_at || new Date().toISOString(),
+    };
+    await supabase.from('vendors').update({ onboarding_completed: graduated }).eq('id', vendorId);
+    return graduated;
+  }
+
   const updates = { ...steps };
 
+  // Email: only upgrade to verified — never demote a previously completed step
   if (user) {
     const emailOk = await checkEmailVerified(user);
-    updates.verify_email = !!emailOk;
-  } else {
-    updates.verify_email = false;
+    if (emailOk || steps.verify_email) {
+      updates.verify_email = true;
+    } else {
+      updates.verify_email = false;
+    }
   }
+  // If no user object this call, leave prior verify_email as-is (do not force false)
 
   if (vendor?.safety_policies_accepted_at || steps.safety_policies) {
     updates.safety_policies = true;
@@ -230,18 +285,16 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
     idStatus === 'submitted' ||
     idStatus === 'in_review'
   ) {
-    // Waiting on admin / auto-review still counts as progress (submitted)
     updates.id_verification = true;
     updates.id_verification_status = idStatus === 'flagged' ? 'flagged' : 'pending';
   } else if (identity && (identity.id_front_url || identity.selfie_url || identity.submitted_at)) {
-    // Row exists with photos but odd status — still count as submitted
     updates.id_verification = true;
     updates.id_verification_status = idStatus || 'pending';
   } else if (getSellerPath(updates) === 'products') {
     updates.id_verification = true;
     updates.id_verification_status = 'not_required';
   } else if (priorSatisfied) {
-    // Do NOT wipe a prior submission if fetch failed / RLS returned null
+    // Never wipe a prior submission if fetch failed / RLS returned null
     updates.id_verification = true;
     updates.id_verification_status = priorStatus || 'pending';
   } else if (offersServices(updates)) {
@@ -249,9 +302,29 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
     updates.id_verification_status = 'needed';
   }
 
-  if (menuCount + produceCount > 0) updates.first_listing = true;
+  // Listing: sticky once true
+  if (menuCount + produceCount > 0 || steps.first_listing) {
+    updates.first_listing = true;
+  }
 
   if (vendor?.bio || vendor?.stream_platform) updates.storefront = true;
+
+  // Soft graduate: real shops with listings + path + policies should not be trapped by flaky email probes
+  if (
+    updates.first_listing &&
+    updates.seller_path &&
+    updates.safety_policies &&
+    (getSellerPath(updates) === 'products' || isIdStepSatisfied(updates))
+  ) {
+    updates.verify_email = true;
+  }
+
+  // Graduate permanently when all visible steps are done
+  if (launchChecklistComplete(updates)) {
+    updates.launch_complete = true;
+    updates.launch_completed_at = updates.launch_completed_at || new Date().toISOString();
+    writeLaunchDoneLocal(vendorId);
+  }
 
   // Persist when anything meaningful changed
   const keys = new Set([...Object.keys(updates), ...Object.keys(steps)]);

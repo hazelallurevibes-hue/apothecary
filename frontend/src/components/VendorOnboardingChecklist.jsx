@@ -11,6 +11,10 @@ import {
   getSellerPath,
   isIdStepSatisfied,
   offersServices,
+  isLaunchFullyDone,
+  readLaunchDoneLocal,
+  writeLaunchDoneLocal,
+  fetchVendorOnboarding,
 } from '../lib/onboardingApi';
 
 export default function VendorOnboardingChecklist({
@@ -24,28 +28,78 @@ export default function VendorOnboardingChecklist({
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [savingPath, setSavingPath] = useState(false);
+  // Hide immediately if we already graduated this shop (local or prior state)
+  const [graduated, setGraduated] = useState(() => readLaunchDoneLocal(vendorId));
 
   useEffect(() => {
-    if (!vendorId) return;
+    if (!vendorId) {
+      setLoading(false);
+      return;
+    }
+    let cancelled = false;
     (async () => {
       setLoading(true);
-      const detected = await autoDetectOnboarding(vendorId, { menuCount, produceCount, user });
-      setSteps(detected);
-      onStepsChange?.(detected);
-      setLoading(false);
+      try {
+        // Fast path: already graduated — still load path/steps for dashboard, but never show UI
+        if (readLaunchDoneLocal(vendorId)) {
+          setGraduated(true);
+          const { steps: saved } = await fetchVendorOnboarding(vendorId);
+          if (!cancelled) {
+            const merged = { ...saved, launch_complete: true };
+            setSteps(merged);
+            onStepsChange?.(merged);
+          }
+          if (!cancelled) setLoading(false);
+          return;
+        }
+
+        const detected = await autoDetectOnboarding(vendorId, { menuCount, produceCount, user });
+        if (cancelled) return;
+        setSteps(detected);
+        onStepsChange?.(detected);
+        if (isLaunchFullyDone(detected)) {
+          writeLaunchDoneLocal(vendorId);
+          setGraduated(true);
+        }
+      } catch (e) {
+        console.warn('[checklist]', e);
+      }
+      if (!cancelled) setLoading(false);
     })();
-  }, [vendorId, menuCount, produceCount, user?.email, user?.email_verified]);
+    return () => {
+      cancelled = true;
+    };
+    // Intentionally omit full `user` object — only email/listing counts matter
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vendorId, menuCount, produceCount, user?.email]);
+
+  // If parent already has complete steps, stay graduated
+  useEffect(() => {
+    if (isLaunchFullyDone(steps)) {
+      writeLaunchDoneLocal(vendorId);
+      setGraduated(true);
+    }
+  }, [steps, vendorId]);
+
+  if (graduated) return null;
+  if (loading) return null;
 
   const visibleSteps = stepsForSeller(steps);
   const { done, total, percent } = onboardingProgress(steps);
-  const complete = done >= total && total > 0;
+  const complete = isLaunchFullyDone(steps);
   const next = nextIncompleteStep(steps);
   const path = getSellerPath(steps);
   const idStatus = steps.id_verification_status || (steps.id_verification ? 'done' : 'needed');
 
-  useEffect(() => {
-    if (!complete) setCollapsed(false);
-  }, [complete, next?.id]);
+  if (complete) {
+    writeLaunchDoneLocal(vendorId);
+    return null;
+  }
+
+  const stepDone = (step) => {
+    if (step.id === 'id_verification') return isIdStepSatisfied(steps);
+    return !!steps[step.id];
+  };
 
   const toggleStep = async (stepId, autoOnly) => {
     if (autoOnly) return;
@@ -54,6 +108,10 @@ export default function VendorOnboardingChecklist({
     const updated = await markOnboardingStep(vendorId, stepId, nextVal);
     setSteps(updated);
     onStepsChange?.(updated);
+    if (isLaunchFullyDone(updated)) {
+      writeLaunchDoneLocal(vendorId);
+      setGraduated(true);
+    }
   };
 
   const choosePath = async (value) => {
@@ -61,33 +119,19 @@ export default function VendorOnboardingChecklist({
     setSavingPath(true);
     try {
       const updated = await setSellerPath(vendorId, value);
-      // Re-run detect so counts/ID status stay accurate
       const detected = await autoDetectOnboarding(vendorId, { menuCount, produceCount, user });
       const merged = { ...updated, ...detected, seller_path: true, seller_path_value: value };
       setSteps(merged);
       onStepsChange?.(merged);
+      if (isLaunchFullyDone(merged)) {
+        writeLaunchDoneLocal(vendorId);
+        setGraduated(true);
+      }
     } catch (e) {
       console.warn(e);
     }
     setSavingPath(false);
   };
-
-  if (loading) return null;
-
-  const stepDone = (step) => {
-    if (step.id === 'id_verification') return isIdStepSatisfied(steps);
-    return !!steps[step.id];
-  };
-
-  // Fully complete → hide permanently (session + local preference)
-  if (complete) {
-    try {
-      localStorage.setItem(`ha_launch_done_${vendorId}`, '1');
-    } catch {
-      /* ignore */
-    }
-    return null;
-  }
 
   return (
     <div
@@ -98,20 +142,17 @@ export default function VendorOnboardingChecklist({
         <div>
           <h2 className="font-bold text-xl">Vendor launch checklist</h2>
           <p className="text-sm text-gray-600">
-            {complete
-              ? 'All launch steps complete — you are live!'
-              : (
-                <>
-                  {done} of {total} complete —{' '}
-                  <span className="font-semibold text-amber-900">
-                    next: {next?.label || 'finish remaining steps'}
-                  </span>
-                </>
-              )}
+            {done} of {total} complete —{' '}
+            <span className="font-semibold text-amber-900">
+              next: {next?.label || 'finish remaining steps'}
+            </span>
           </p>
           {path && (
             <p className="text-[11px] text-gray-500 mt-1">
-              Path: <strong>{path === 'products' ? 'Products only' : path === 'services' ? 'Services' : 'Products + services'}</strong>
+              Path:{' '}
+              <strong>
+                {path === 'products' ? 'Products only' : path === 'services' ? 'Services' : 'Products + services'}
+              </strong>
               {path === 'products' && ' · Photo ID not required'}
               {offersServices(steps) && idStatus === 'pending' && ' · ID submitted — waiting on review'}
               {offersServices(steps) && idStatus === 'flagged' && ' · ID flagged for admin (you can continue setup)'}
@@ -234,7 +275,6 @@ export default function VendorOnboardingChecklist({
                   {step.id === 'id_verification' && idStatus === 'pending' && (
                     <p className="text-xs text-sky-950 bg-sky-50 border border-sky-200 rounded-xl px-2 py-1.5 mt-2 font-medium">
                       You already submitted ID — this step is complete for launch progress while admin finishes review.
-                      You can list products now. Service listings need approved ID if platform policy requires it.
                     </p>
                   )}
                   {!checked && step.id !== 'seller_path' && (
