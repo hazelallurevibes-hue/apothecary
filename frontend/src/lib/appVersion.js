@@ -2,15 +2,15 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.2';
+export const APP_VERSION = '1.8.3';
 
 export const UPDATE_SPLASH = {
-  title: 'Email verify actually sticks',
-  message: '“I verified — refresh status” now confirms with the server so Hazel Allure recognizes your email.',
+  title: 'Email verify fixed for real',
+  message: 'Verification emails now use a SPA-safe link so tapping Verify confirms your account immediately.',
   highlights: [
-    'Server-side email confirmation (Auth + account flag)',
-    'Refresh status works after opening the email link',
-    'Clear message if you still need to open the email first',
+    'New verify links use token_hash (works with our login system)',
+    'Opening the email link should show green “Email verified”',
+    'Resend for a fresh link — old emails will not work',
   ],
 };
 

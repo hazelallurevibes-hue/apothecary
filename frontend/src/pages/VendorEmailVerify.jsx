@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { getVendorContext } from '../lib/plans';
 import {
   refreshEmailVerificationStatus,
@@ -10,6 +10,7 @@ import { markOnboardingStep } from '../lib/onboardingApi';
 import { supabase } from '../lib/supabaseClient';
 
 export default function VendorEmailVerify({ user, onProfileUpdate }) {
+  const [searchParams] = useSearchParams();
   const ctx = getVendorContext(user);
   const vendorId = ctx?.vendorId;
   const [verified, setVerified] = useState(false);
@@ -18,6 +19,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [displayEmail, setDisplayEmail] = useState(user?.email || '');
+  const hasLinkToken = !!(searchParams.get('token_hash') || searchParams.get('token') || searchParams.get('code'));
 
   const finalizeVerified = async (email) => {
     const e = (email || user?.email || '').trim();
@@ -39,17 +41,14 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
 
   const refresh = async () => {
     setChecking(true);
-    setMessage('');
+    setMessage(hasLinkToken ? 'Confirming your email…' : '');
     try {
       const result = await refreshEmailVerificationStatus(user);
       if (result.verified) {
         await finalizeVerified(result.email || user?.email);
       } else {
         setVerified(false);
-        setMessage(
-          result.message ||
-            'Still not verified. Open the link in your Hazel Allure email first, then try again.',
-        );
+        setMessage(result.message || 'Still not verified. Resend and open the newest email link.');
       }
     } catch (e) {
       setMessage(e?.message || 'Could not check verification.');
@@ -60,7 +59,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
   useEffect(() => {
     refresh();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
+      if (event === 'SIGNED_IN' || event === 'USER_UPDATED') {
         const result = await refreshEmailVerificationStatus({
           ...user,
           email: session?.user?.email || user?.email,
@@ -73,7 +72,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
     });
     return () => subscription.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.email]);
+  }, [user?.email, searchParams.get('token_hash'), searchParams.get('code')]);
 
   const resend = async () => {
     if (!user?.email) return;
@@ -81,7 +80,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
     setMessage('');
     try {
       await resendVerificationEmail(user.email, { role: 'vendor' });
-      setMessage('Sent from Hazel Allure — open the email, tap verify, then refresh status here.');
+      setMessage('New email sent — open it and tap Verify my email. Old links will not work.');
     } catch (e) {
       setMessage(e.message || 'Could not send email.');
     }
@@ -95,7 +94,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
 
       <div className="bg-white border rounded-3xl p-8 text-center shadow-sm">
         {checking ? (
-          <p className="text-gray-500">Checking verification status…</p>
+          <p className="text-gray-500">{hasLinkToken ? 'Confirming your email…' : 'Checking verification status…'}</p>
         ) : verified ? (
           <>
             <div className="text-4xl mb-3">✅</div>
@@ -122,7 +121,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
             <div className="text-4xl mb-3">✉️</div>
             <p className="text-gray-700 mb-2">Confirm <strong>{user?.email}</strong> before continuing.</p>
             <p className="text-xs text-gray-500 mb-6">
-              Open the Hazel Allure email → Verify my email → then press refresh below.
+              Resend → open the newest Hazel Allure email → Verify my email (old links fail).
             </p>
             <div className="flex flex-col gap-2">
               <button
@@ -144,8 +143,8 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
             </div>
           </>
         )}
-        {message && (
-          <p className="mt-4 text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+        {message && !verified && (
+          <p className="mt-4 text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 text-left">
             {message}
           </p>
         )}

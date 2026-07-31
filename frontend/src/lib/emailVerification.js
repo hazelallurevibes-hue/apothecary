@@ -1,10 +1,6 @@
 import { supabase } from './supabaseClient';
 import { getAppOrigin } from './appUrl';
 
-/**
- * Where Supabase / Resend links send users after they click confirm.
- * Must match real App routes: /verify-email and /vendor-verify-email
- */
 export function getEmailVerifyRedirect(role = 'customer') {
   const base = typeof window !== 'undefined' ? window.location.origin : getAppOrigin();
   const path = role === 'vendor' ? '/vendor-verify-email' : '/verify-email';
@@ -72,24 +68,60 @@ function fnHeaders(extra = {}) {
   };
 }
 
+function mapOtpType(raw) {
+  const t = String(raw || 'signup').toLowerCase();
+  if (t === 'magiclink' || t === 'magic_link') return 'magiclink';
+  if (t === 'invite') return 'invite';
+  if (t === 'email' || t === 'email_change') return 'email';
+  if (t === 'recovery') return 'recovery';
+  return 'signup';
+}
+
+/** Read token_hash / type from current URL (email CTA). */
+export function readVerifyParamsFromUrl() {
+  if (typeof window === 'undefined') return { token_hash: null, type: null };
+  try {
+    const url = new URL(window.location.href);
+    const token_hash =
+      url.searchParams.get('token_hash') ||
+      url.searchParams.get('token') ||
+      null;
+    const type = url.searchParams.get('type') || 'signup';
+    return { token_hash, type };
+  } catch {
+    return { token_hash: null, type: null };
+  }
+}
+
+function clearVerifyParamsFromUrl() {
+  try {
+    const url = new URL(window.location.href);
+    ['token_hash', 'token', 'type', 'code'].forEach((k) => url.searchParams.delete(k));
+    window.history.replaceState({}, '', url.pathname + (url.search || '') + (url.hash || ''));
+  } catch {
+    /* ignore */
+  }
+}
+
 /**
- * Server-side confirm: forces Auth email_confirm + users.email_verified via service role.
- * Works even when client RLS blocks updates.
+ * Server confirm — pass token_hash from email OR rely on session JWT.
  */
-export async function confirmEmailVerifiedWithServer(email) {
+export async function confirmEmailVerifiedWithServer({ email, token_hash, type } = {}) {
   const base = import.meta.env.VITE_SUPABASE_URL;
   if (!base) throw new Error('Supabase URL not configured');
 
   const { data: sessionData } = await supabase.auth.getSession();
   const token = sessionData?.session?.access_token;
-  const headers = fnHeaders(
-    token ? { Authorization: `Bearer ${token}` } : {},
-  );
+  const headers = fnHeaders(token ? { Authorization: `Bearer ${token}` } : {});
 
   const res = await fetch(`${base}/functions/v1/confirm-email-verified`, {
     method: 'POST',
     headers,
-    body: JSON.stringify({ email: email?.trim().toLowerCase() || null }),
+    body: JSON.stringify({
+      email: email?.trim().toLowerCase() || null,
+      token_hash: token_hash || null,
+      type: type || 'signup',
+    }),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok || !json.ok) {
@@ -100,36 +132,168 @@ export async function confirmEmailVerifiedWithServer(email) {
 }
 
 /**
- * Full refresh of verification status — does not require app `user` to be loaded.
- * Returns { verified, email, source, message? }
+ * Establish session from email link params (token_hash, hash tokens, or PKCE code).
+ */
+export async function consumeEmailVerifyCallback() {
+  try {
+    const url = new URL(window.location.href);
+
+    // A) SPA token_hash (custom Resend email — preferred)
+    const token_hash =
+      url.searchParams.get('token_hash') || url.searchParams.get('token');
+    const type = mapOtpType(url.searchParams.get('type'));
+    if (token_hash) {
+      // Client-side verify first so session exists for the rest of the app
+      let verified = false;
+      let email = null;
+      const attempts = [type, 'signup', 'email', 'magiclink', 'invite'];
+      const tried = new Set();
+      for (const t of attempts) {
+        if (tried.has(t)) continue;
+        tried.add(t);
+        const { data, error } = await supabase.auth.verifyOtp({
+          token_hash,
+          type: t,
+        });
+        if (!error && data?.user?.email) {
+          verified = true;
+          email = data.user.email;
+          break;
+        }
+      }
+
+      // Server also confirms + writes users.email_verified (works even if client verify failed types)
+      try {
+        const server = await confirmEmailVerifiedWithServer({
+          email,
+          token_hash,
+          type,
+        });
+        if (server?.verified) {
+          verified = true;
+          email = server.email || email;
+        }
+      } catch (e) {
+        if (!verified) {
+          console.warn('[email-verify] server token_hash', e);
+        }
+      }
+
+      if (verified && email) {
+        await markEmailVerifiedInSystem(email);
+        clearVerifyParamsFromUrl();
+        return { verified: true, email, source: 'token_hash' };
+      }
+      return {
+        verified: false,
+        email: null,
+        error: 'Verification link invalid or expired. Resend a new email.',
+      };
+    }
+
+    // B) PKCE ?code=
+    const code = url.searchParams.get('code');
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error && data?.session?.user) {
+        const email = data.session.user.email;
+        try {
+          await confirmEmailVerifiedWithServer({ email });
+        } catch {
+          await markEmailVerifiedInSystem(email);
+        }
+        clearVerifyParamsFromUrl();
+        return { verified: true, email, source: 'pkce_code' };
+      }
+    }
+
+    // C) Implicit hash tokens (legacy)
+    const hashRaw = (window.location.hash || '').replace(/^#/, '');
+    if (hashRaw.includes('access_token')) {
+      const hash = new URLSearchParams(hashRaw);
+      const access_token = hash.get('access_token');
+      const refresh_token = hash.get('refresh_token');
+      if (access_token && refresh_token) {
+        const { data, error } = await supabase.auth.setSession({
+          access_token,
+          refresh_token,
+        });
+        if (!error && data?.user?.email) {
+          const email = data.user.email;
+          try {
+            await confirmEmailVerifiedWithServer({ email });
+          } catch {
+            await markEmailVerifiedInSystem(email);
+          }
+          window.history.replaceState({}, '', window.location.pathname + window.location.search);
+          return { verified: true, email, source: 'hash_tokens' };
+        }
+      }
+      // Fallback: wait for detectSessionInUrl
+      await new Promise((r) => setTimeout(r, 700));
+      const { data } = await supabase.auth.getSession();
+      const u = data?.session?.user;
+      if (u?.email) {
+        try {
+          await confirmEmailVerifiedWithServer({ email: u.email });
+        } catch {
+          await markEmailVerifiedInSystem(u.email);
+        }
+        window.history.replaceState({}, '', window.location.pathname + window.location.search);
+        return { verified: true, email: u.email, source: 'hash_detect' };
+      }
+    }
+
+    // D) Already confirmed session
+    const { data: sessionData } = await supabase.auth.getSession();
+    const su = sessionData?.session?.user;
+    if (su?.email && sessionUserIsVerified(su)) {
+      try {
+        await confirmEmailVerifiedWithServer({ email: su.email });
+      } catch {
+        await markEmailVerifiedInSystem(su.email);
+      }
+      return { verified: true, email: su.email, source: 'session' };
+    }
+  } catch (e) {
+    console.warn('[email-verify] callback', e);
+    return { verified: false, email: null, error: e?.message || String(e) };
+  }
+  return { verified: false, email: null };
+}
+
+/**
+ * Full status refresh used by the verify page + banner.
  */
 export async function refreshEmailVerificationStatus(appUser) {
-  // 1) Process any confirm tokens still in the URL
+  // 1) Always try URL tokens first (email button lands here)
   const cb = await consumeEmailVerifyCallback();
   if (cb.verified && cb.email) {
-    try {
-      await confirmEmailVerifiedWithServer(cb.email);
-    } catch {
-      await markEmailVerifiedInSystem(cb.email);
-    }
-    return { verified: true, email: cb.email, source: 'callback' };
+    return { verified: true, email: cb.email, source: cb.source || 'callback' };
+  }
+  if (cb.error && readVerifyParamsFromUrl().token_hash) {
+    return {
+      verified: false,
+      email: appUser?.email || null,
+      source: 'token_error',
+      message: cb.error,
+    };
   }
 
-  // 2) Force-refresh Auth user from Supabase (not cached session only)
+  // 2) Auth user
   let authUser = null;
   try {
     const { data, error } = await supabase.auth.getUser();
     if (!error) authUser = data?.user || null;
   } catch {
-    /* no session */
+    /* none */
   }
-
   if (!authUser) {
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      authUser = sessionData?.session?.user || null;
+      const { data } = await supabase.auth.getSession();
+      authUser = data?.session?.user || null;
     } catch {
-      /* ignore */
+      /* none */
     }
   }
 
@@ -138,30 +302,27 @@ export async function refreshEmailVerificationStatus(appUser) {
     appUser?.email?.trim().toLowerCase() ||
     null;
 
-  // 3) Already confirmed in Auth
-  if (authUser && sessionUserIsVerified(authUser)) {
-    try {
-      await confirmEmailVerifiedWithServer(authUser.email);
-    } catch {
-      await markEmailVerifiedInSystem(authUser.email);
-    }
-    return { verified: true, email: authUser.email, source: 'auth_confirmed' };
-  }
-
-  // 4) Active session after magic link — treat as verified intent and force confirm server-side
+  // 3) Confirmed in Auth or any active session → force server flag
   if (authUser?.email) {
+    if (sessionUserIsVerified(authUser)) {
+      try {
+        await confirmEmailVerifiedWithServer({ email: authUser.email });
+      } catch {
+        await markEmailVerifiedInSystem(authUser.email);
+      }
+      return { verified: true, email: authUser.email, source: 'auth_confirmed' };
+    }
     try {
-      const server = await confirmEmailVerifiedWithServer(authUser.email);
+      const server = await confirmEmailVerifiedWithServer({ email: authUser.email });
       if (server?.verified) {
         return { verified: true, email: authUser.email, source: 'server_confirm' };
       }
     } catch (e) {
-      // continue to DB check
       console.warn('[email-verify] server confirm', e);
     }
   }
 
-  // 5) public.users flag
+  // 4) users table
   if (email) {
     try {
       const { data: row } = await supabase
@@ -178,7 +339,6 @@ export async function refreshEmailVerificationStatus(appUser) {
     }
   }
 
-  // 6) Cache / profile flags
   if (appUser && isEmailKnownVerified(appUser)) {
     return { verified: true, email: appUser.email, source: 'profile_cache' };
   }
@@ -188,19 +348,45 @@ export async function refreshEmailVerificationStatus(appUser) {
     email,
     source: 'none',
     message:
-      'Not verified yet. Open the verification email from Hazel Allure (check spam), tap “Verify my email”, wait until this page reloads, then press “I verified — refresh status” again.',
+      'Not verified yet. Tap Resend for a fresh Hazel Allure email, open that new link (not an old one), and you should see a green confirmation right away.',
   };
 }
 
-/** Supabase Auth email confirmation, or legacy/local auth fallback. */
 export async function checkEmailVerified(user) {
-  const result = await refreshEmailVerificationStatus(user);
-  return !!result.verified;
+  // Lightweight checks first — avoid full URL consume on every gate call
+  if (isEmailKnownVerified(user)) return true;
+  try {
+    const { data } = await supabase.auth.getUser();
+    if (data?.user && sessionUserIsVerified(data.user)) {
+      writeEmailVerifiedCache(user?.email || data.user.email, true);
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  if (user?.email) {
+    try {
+      const { data: row } = await supabase
+        .from('users')
+        .select('email_verified')
+        .ilike('email', user.email.trim())
+        .maybeSingle();
+      if (row?.email_verified) {
+        writeEmailVerifiedCache(user.email, true);
+        return true;
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  // On verify page with tokens, full refresh is appropriate
+  if (typeof window !== 'undefined' && window.location.pathname.includes('verify-email')) {
+    const result = await refreshEmailVerificationStatus(user);
+    return !!result.verified;
+  }
+  return false;
 }
 
-/**
- * After magic-link / signup confirm lands, mark users.email_verified and local cache.
- */
 export async function markEmailVerifiedInSystem(email) {
   const normalized = email?.trim().toLowerCase();
   if (!normalized) return false;
@@ -212,68 +398,11 @@ export async function markEmailVerifiedInSystem(email) {
       .ilike('email', normalized);
     if (error) console.warn('[email-verify] users update', error.message);
   } catch {
-    /* column may not exist */
+    /* ignore */
   }
   return true;
 }
 
-/**
- * Process URL hash/query from Supabase confirm email (tokens in fragment or code).
- */
-export async function consumeEmailVerifyCallback() {
-  try {
-    const url = new URL(window.location.href);
-    const code = url.searchParams.get('code');
-    if (code) {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-      if (!error && data?.session?.user) {
-        const email = data.session.user.email;
-        await markEmailVerifiedInSystem(email);
-        url.searchParams.delete('code');
-        window.history.replaceState({}, '', url.pathname + url.search);
-        return { verified: true, email };
-      }
-    }
-
-    // Hash-based tokens (implicit flow)
-    const hash = window.location.hash || '';
-    if (
-      hash.includes('access_token') ||
-      hash.includes('type=signup') ||
-      hash.includes('type=magiclink') ||
-      hash.includes('type=invite') ||
-      hash.includes('type=email')
-    ) {
-      // Let supabase-js parse hash (detectSessionInUrl)
-      await new Promise((r) => setTimeout(r, 600));
-      const { data } = await supabase.auth.getSession();
-      let u = data?.session?.user;
-      if (!u) {
-        const gu = await supabase.auth.getUser();
-        u = gu.data?.user;
-      }
-      if (u?.email) {
-        await markEmailVerifiedInSystem(u.email);
-        window.history.replaceState({}, '', window.location.pathname + window.location.search);
-        return { verified: true, email: u.email };
-      }
-    }
-
-    const { data: sessionData } = await supabase.auth.getSession();
-    const su = sessionData?.session?.user;
-    if (su?.email && sessionUserIsVerified(su)) {
-      await markEmailVerifiedInSystem(su.email);
-      return { verified: true, email: su.email };
-    }
-  } catch (e) {
-    console.warn('[email-verify] callback', e);
-  }
-  return { verified: false, email: null };
-}
-
-/**
- * Resend verification via Hazel Allure branded edge function (Resend).
- */
 export async function resendVerificationEmail(email, { role = 'customer' } = {}) {
   const normalized = email?.trim().toLowerCase();
   if (!normalized) throw new Error('Email is required.');

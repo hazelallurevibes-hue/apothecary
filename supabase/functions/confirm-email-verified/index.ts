@@ -11,9 +11,20 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+function mapOtpType(raw: string | null | undefined): "signup" | "magiclink" | "invite" | "email" | "recovery" {
+  const t = (raw || "signup").toLowerCase();
+  if (t === "magiclink" || t === "magic_link") return "magiclink";
+  if (t === "invite") return "invite";
+  if (t === "email" || t === "email_change") return "email";
+  if (t === "recovery") return "recovery";
+  return "signup";
+}
+
 /**
- * Marks the caller's email as verified in Auth + public.users.
- * Requires a valid Supabase session JWT (from magic-link / confirm click).
+ * Confirms email via:
+ * A) token_hash + type from email link (verifyOtp) — primary, works with PKCE SPA
+ * B) existing session JWT — secondary
+ * Then forces Auth email_confirm + public.users.email_verified.
  */
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -21,52 +32,83 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
+    const tokenHash = String(body.token_hash || body.tokenHash || "").trim();
+    const otpType = mapOtpType(body.type);
     const authHeader = req.headers.get("Authorization") || "";
-    if (!authHeader.startsWith("Bearer ") || authHeader.length < 30) {
-      return json({
-        ok: false,
-        error:
-          "Open the verification link in your Hazel Allure email first (that signs you in), then tap “I verified — refresh status”.",
-      }, 401);
-    }
-
-    const userClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY, {
-      global: { headers: { Authorization: authHeader } },
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { data, error } = await userClient.auth.getUser();
-    if (error || !data?.user?.id || !data.user.email) {
-      return json({
-        ok: false,
-        error:
-          "Session expired or missing. Open the verify link from your email again, then press refresh.",
-      }, 401);
-    }
-
-    const authUser = data.user;
-    const email = authUser.email!.toLowerCase();
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // Force Auth email confirmed
-    const { error: updErr } = await admin.auth.admin.updateUserById(authUser.id, {
-      email_confirm: true,
-    });
-    if (updErr) {
-      console.warn("updateUserById", updErr.message);
+    let email: string | null = null;
+    let userId: string | null = null;
+
+    // --- Path A: email link token_hash (no session required) ---
+    if (tokenHash) {
+      const { data, error } = await admin.auth.verifyOtp({
+        token_hash: tokenHash,
+        type: otpType,
+      });
+      if (error) {
+        // try alternate types if first fails
+        let ok = false;
+        for (const alt of ["signup", "email", "magiclink", "invite"] as const) {
+          if (alt === otpType) continue;
+          const retry = await admin.auth.verifyOtp({ token_hash: tokenHash, type: alt });
+          if (!retry.error && retry.data?.user) {
+            email = retry.data.user.email?.toLowerCase() || null;
+            userId = retry.data.user.id;
+            ok = true;
+            break;
+          }
+        }
+        if (!ok) {
+          return json({
+            ok: false,
+            error:
+              error.message ||
+              "This verification link is invalid or expired. Tap Resend for a new email.",
+          }, 400);
+        }
+      } else {
+        email = data?.user?.email?.toLowerCase() || null;
+        userId = data?.user?.id || null;
+      }
     }
 
-    // public.users flag for app gates / banners
+    // --- Path B: existing JWT session ---
+    if (!userId && authHeader.startsWith("Bearer ") && authHeader.length > 30) {
+      const userClient = createClient(SUPABASE_URL, ANON_KEY || SERVICE_KEY, {
+        global: { headers: { Authorization: authHeader } },
+        auth: { autoRefreshToken: false, persistSession: false },
+      });
+      const { data, error } = await userClient.auth.getUser();
+      if (!error && data?.user) {
+        email = data.user.email?.toLowerCase() || null;
+        userId = data.user.id;
+      }
+    }
+
+    if (!userId || !email) {
+      return json({
+        ok: false,
+        error:
+          "Could not verify. Open the newest “Verify my email” link from Hazel Allure (check spam), or resend a fresh email.",
+      }, 401);
+    }
+
+    // Force confirmed in Auth (idempotent)
+    const { error: updErr } = await admin.auth.admin.updateUserById(userId, {
+      email_confirm: true,
+    });
+    if (updErr) console.warn("updateUserById", updErr.message);
+
     const { error: dbErr } = await admin
       .from("users")
       .update({ email_verified: true })
       .ilike("email", email);
-
-    if (dbErr) {
-      console.warn("users.email_verified", dbErr.message);
-    }
+    if (dbErr) console.warn("users.email_verified", dbErr.message);
 
     return json({
       ok: true,

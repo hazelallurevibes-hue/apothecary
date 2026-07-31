@@ -5,7 +5,6 @@ import { loadPlatformEmailConfig } from "../_shared/platformConfig.ts";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SB_PUBLISHABLE_KEY") || "";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +12,11 @@ const cors = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+/**
+ * Sends a branded Hazel Allure verification email.
+ * Uses generateLink hashed_token in OUR app URL so the SPA can call verifyOtp
+ * (admin action_link + PKCE client is broken — never establishes a session).
+ */
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: cors });
@@ -35,50 +39,58 @@ Deno.serve(async (req: Request) => {
     });
     const cfg = await loadPlatformEmailConfig(admin);
 
-    // Must match live SPA routes (aliases also exist for legacy links)
     const verifyPath = role === "vendor" ? "/vendor-verify-email" : "/verify-email";
-    // Prefer request origin when provided (preview / custom domains)
     const origin = String(body.origin || cfg.siteUrl || "").replace(/\/$/, "");
     const redirectTo = `${origin}${verifyPath}`;
 
-    // Generate a confirmation / magic link with Admin API
+    let hashedToken: string | null = null;
+    let linkType = "signup";
     let actionLink: string | null = null;
     let linkError: string | null = null;
 
-    // Prefer signup confirmation (sets email_confirmed_at), then magiclink, then invite
     for (const type of ["signup", "magiclink", "invite"] as const) {
       const { data, error } = await admin.auth.admin.generateLink({
         type,
         email,
         options: { redirectTo },
       });
-      if (!error && data?.properties?.action_link) {
-        actionLink = data.properties.action_link;
+      if (error) {
+        linkError = error.message;
+        continue;
+      }
+      const props = data?.properties as Record<string, string> | undefined;
+      const ht = props?.hashed_token || props?.email_otp || null;
+      if (ht) {
+        hashedToken = ht;
+        linkType = type === "magiclink" ? "magiclink" : type === "invite" ? "invite" : "signup";
+        actionLink = props?.action_link || data?.properties?.action_link || null;
         break;
       }
-      linkError = error?.message || linkError;
+      if (props?.action_link) {
+        actionLink = props.action_link;
+        linkType = type;
+        break;
+      }
     }
 
-    if (!actionLink) {
-      // Last resort: invite user if they don't exist yet
-      const { data: invited, error: invErr } = await admin.auth.admin.inviteUserByEmail(email, {
-        redirectTo,
+    // Build SPA-native verify URL (works with PKCE via verifyOtp)
+    let verifyUrl: string | null = null;
+    if (hashedToken) {
+      const q = new URLSearchParams({
+        token_hash: hashedToken,
+        type: linkType,
       });
-      if (!invErr && invited?.user) {
-        // invite sends its own email via Supabase — still send branded Resend if we can get a link
-        const { data: again } = await admin.auth.admin.generateLink({
-          type: "magiclink",
-          email,
-          options: { redirectTo },
-        });
-        actionLink = again?.properties?.action_link || null;
-      }
-      if (!actionLink) {
-        return json({
-          ok: false,
-          error: linkError || invErr?.message || "Could not create verification link for this email",
-        }, 400);
-      }
+      verifyUrl = `${redirectTo}?${q.toString()}`;
+    } else if (actionLink) {
+      // Last resort: Supabase hosted verify (may fail under PKCE)
+      verifyUrl = actionLink;
+    }
+
+    if (!verifyUrl) {
+      return json({
+        ok: false,
+        error: linkError || "Could not create verification link for this email",
+      }, 400);
     }
 
     const subject =
@@ -98,13 +110,13 @@ Deno.serve(async (req: Request) => {
             Tap the button below to verify <strong>${email}</strong> and unlock bookings, orders, and messages with practitioners.
           </p>
           <p style="text-align:center;margin:28px 0">
-            <a href="${actionLink}"
+            <a href="${verifyUrl}"
                style="display:inline-block;background:#4a1942;color:#fff;padding:14px 28px;border-radius:999px;text-decoration:none;font-weight:600;font-size:15px">
               Verify my email
             </a>
           </p>
           <p style="font-size:12px;color:#777;margin:0 0 8px">Or copy this link:</p>
-          <p style="font-size:11px;word-break:break-all;color:#4a1942;margin:0 0 20px">${actionLink}</p>
+          <p style="font-size:11px;word-break:break-all;color:#4a1942;margin:0 0 20px">${verifyUrl}</p>
           <p style="font-size:12px;color:#888;margin:0">
             If you did not create a Hazel Allure account, you can ignore this message.
           </p>
@@ -117,6 +129,10 @@ Deno.serve(async (req: Request) => {
       </div>
     `;
 
+    const fromHeader = cfg.notifyFrom.includes("Hazel")
+      ? cfg.notifyFrom
+      : `Hazel Allure <${cfg.settings.email_from_address || "noreply@hazelallure.com"}>`;
+
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -124,9 +140,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: cfg.notifyFrom.includes("Hazel")
-          ? cfg.notifyFrom
-          : `Hazel Allure <${cfg.settings.email_from_address || "noreply@hazelallure.com"}>`,
+        from: fromHeader,
         reply_to: cfg.replyTo,
         to: [email],
         subject,
@@ -139,17 +153,22 @@ Deno.serve(async (req: Request) => {
       return json({ ok: false, error: `Email send failed: ${errText}` }, 502);
     }
 
-    // Mark users table for bookkeeping (optional column)
     try {
       await admin
         .from("users")
         .update({ email_verify_sent_at: new Date().toISOString() })
         .ilike("email", email);
     } catch {
-      /* column may not exist */
+      /* optional */
     }
 
-    return json({ ok: true, emailed: true, from: "Hazel Allure", to: email });
+    return json({
+      ok: true,
+      emailed: true,
+      from: "Hazel Allure",
+      to: email,
+      mode: hashedToken ? "token_hash" : "action_link",
+    });
   } catch (e) {
     return json({ ok: false, error: String(e) }, 500);
   }
