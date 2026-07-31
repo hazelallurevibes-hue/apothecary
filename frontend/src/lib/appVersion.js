@@ -2,15 +2,15 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.8';
+export const APP_VERSION = '1.8.9';
 
 export const UPDATE_SPLASH = {
-  title: 'PayPal connect + checkout that places orders',
-  message: 'Vendors must confirm PayPal with a checkbox. Buyers can always place cash orders; PayPal opens pay link when connected.',
+  title: 'Orders show in My Orders + clear payment status',
+  message: 'Buyer orders are saved with your email so they appear under My Orders. Cash is pay-on-delivery; PayPal/card start as awaiting payment.',
   highlights: [
-    'Vendor: Open PayPal → confirm email → Connect & confirm',
-    'Checkout shows only payment methods the maker supports',
-    'Orders save even without PayPal — cash always works',
+    'My Orders finds purchases by account email + user id',
+    'Cash = COD (pay maker on delivery)',
+    'PayPal/card = awaiting payment until you finish paying',
   ],
 };
 

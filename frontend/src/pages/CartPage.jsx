@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { placeOrder as placeOrderApi } from '../lib/ordersApi';
 import { buildTaxedOrderPayload } from '../lib/checkoutTax';
@@ -12,10 +12,13 @@ import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
 import { buildPaypalPayLink, describeVendorPaymentMethods } from '../lib/vendorPayments';
 
 /**
- * Seeker / buyer cart & multi-step checkout.
- * Orders always place in DB; PayPal opens pay link when maker connected.
+ * Seeker cart & checkout.
+ * - Cash/COD: order placed as pay-on-delivery
+ * - PayPal: order saved as awaiting_payment, then PayPal opens — not free
+ * - Card: same (awaiting_payment) until Stripe checkout is fully wired
  */
 export default function CartPage({ user }) {
+  const navigate = useNavigate();
   const { cart, removeFromCart, clearCart, total, formatCartLineName } = useCart();
   const { requireVerification } = useProviderInteractionGate(user);
   const [placing, setPlacing] = useState(false);
@@ -26,6 +29,7 @@ export default function CartPage({ user }) {
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [vendorPay, setVendorPay] = useState(null);
+  const [lastOrderId, setLastOrderId] = useState(null);
 
   const itemCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
   const vendorId = cart[0]?.vendor_id;
@@ -45,7 +49,6 @@ export default function CartPage({ user }) {
   const selectedMeta = payMethods.find((m) => m.id === paymentMethod) || availableMethods[0];
 
   useEffect(() => {
-    // Keep selection on an available method
     if (availableMethods.length && !availableMethods.some((m) => m.id === paymentMethod)) {
       setPaymentMethod(availableMethods[0].id);
     }
@@ -59,11 +62,19 @@ export default function CartPage({ user }) {
       setErr('Cart items are missing a maker. Remove them and add products again from a product page.');
       return;
     }
+    if (!user.email) {
+      setErr('Your account needs an email to save orders. Sign out and sign back in.');
+      return;
+    }
 
     if (paymentMethod === 'paypal' && !selectedMeta?.available) {
       setErr(
-        'This maker has not connected PayPal yet. Choose Cash on pickup, or Card if they linked Stripe — or ask them to connect PayPal in their dashboard.',
+        'This maker has not connected PayPal. Choose Cash on pickup/delivery, or ask them to connect PayPal.',
       );
+      return;
+    }
+    if (paymentMethod === 'card' && !selectedMeta?.available) {
+      setErr('This maker has not linked Stripe for cards. Choose Cash or PayPal if available.');
       return;
     }
 
@@ -72,6 +83,10 @@ export default function CartPage({ user }) {
     setErr('');
 
     try {
+      const isCash = paymentMethod === 'cash' || paymentMethod === 'cod';
+      const paymentStatus = isCash ? 'cod' : 'unpaid';
+      const orderStatus = isCash ? 'placed' : 'awaiting_payment';
+
       const orderData = await buildTaxedOrderPayload(
         {
           user_id: user.id,
@@ -89,21 +104,22 @@ export default function CartPage({ user }) {
           address: [address.street, address.city, address.zip].filter(Boolean).join(', '),
           delivery_method: deliveryMethod,
           payment_method: paymentMethod,
+          payment_status: paymentStatus,
+          status: orderStatus,
           payment_note:
             paymentMethod === 'paypal' && vendorPay?.paypal_account_id
-              ? `PayPal to ${vendorPay.paypal_account_id}`
+              ? `PayPal to ${vendorPay.paypal_account_id} — unpaid until completed on PayPal`
               : paymentMethod === 'card' && vendorPay?.stripe_account_id
-                ? `Card via Stripe ${vendorPay.stripe_account_id}`
-                : 'Cash / arranged with maker',
+                ? `Card intent via Stripe ${vendorPay.stripe_account_id} — unpaid until paid`
+                : 'Cash on delivery / pickup',
           tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner' : '',
-          status: paymentMethod === 'cash' ? 'placed' : 'placed',
         },
         vendorId,
       );
 
       const placed = await placeOrderApi(orderData, user);
+      setLastOrderId(placed?.id || null);
 
-      let successExtra = '';
       if (paymentMethod === 'paypal' && vendorPay?.paypal_account_id) {
         const payUrl = buildPaypalPayLink({
           paypalId: vendorPay.paypal_account_id,
@@ -111,14 +127,17 @@ export default function CartPage({ user }) {
           note: `Hazel Allure order #${placed?.id || ''}`,
         });
         if (payUrl) {
-          successExtra = ' Opening PayPal so you can complete payment to the maker…';
-          window.setTimeout(() => {
-            window.open(payUrl, '_blank', 'noopener,noreferrer');
-          }, 400);
+          window.open(payUrl, '_blank', 'noopener,noreferrer');
         }
       }
 
-      const baseMsg = `Order placed! Total: $${Number(orderData.total).toFixed(2)}${formatDeliverySuccessNote(deliveryMethod)}${successExtra}`;
+      const payHint = isCash
+        ? ' Pay the maker when you pick up or receive delivery.'
+        : paymentMethod === 'paypal'
+          ? ' Complete payment in the PayPal tab that opened (order is awaiting payment until then).'
+          : ' Card payment is recorded as awaiting payment until the maker confirms or Stripe checkout is completed.';
+
+      const baseMsg = `Order #${placed?.id || '—'} saved. Total: $${Number(orderData.total).toFixed(2)}${formatDeliverySuccessNote(deliveryMethod)}.${payHint}`;
       offerSpellReceiptDownload({
         successMessage: formatOrderSuccessMessage(baseMsg),
         total: orderData.total,
@@ -129,14 +148,16 @@ export default function CartPage({ user }) {
         familiarId: user?.chosen_familiar || null,
         source: 'Hazel Allure Cart',
       });
+
       clearCart();
       setCheckoutStep(1);
       setAddress({ street: '', city: '', zip: '' });
-      setMsg(
-        paymentMethod === 'paypal'
-          ? 'Order saved. Complete PayPal payment in the new tab (or send to the maker’s PayPal email). View under My Orders.'
-          : 'Order placed — view it under My Orders.',
-      );
+      setMsg(baseMsg);
+
+      // Go to My Orders so the new order is visible immediately
+      window.setTimeout(() => {
+        navigate('/orders', { replace: false, state: { justOrdered: placed?.id } });
+      }, 900);
     } catch (e) {
       console.error('[cart] place order', e);
       setErr(e.message || 'Error placing order.');
@@ -153,7 +174,8 @@ export default function CartPage({ user }) {
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#c9a227] font-bold">Seeker checkout</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#4a1942] heading-font">Your cart</h1>
         <p className="text-sm text-gray-600 mt-1">
-          Review items and place your order. Cash always works; PayPal/card appear when the maker has connected them.
+          Cash = pay the maker on delivery. PayPal/card create an order that is <strong>unpaid</strong> until you
+          finish payment.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <Link to="/orders" className="px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
@@ -171,7 +193,7 @@ export default function CartPage({ user }) {
         <p className="mb-4 text-sm text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
           {msg}{' '}
           <Link to="/orders" className="underline font-semibold">
-            Open My Orders
+            View My Orders{lastOrderId ? ` (#${lastOrderId})` : ''}
           </Link>
         </p>
       )}
@@ -179,7 +201,7 @@ export default function CartPage({ user }) {
         <p className="mb-4 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-4 py-3">{err}</p>
       )}
 
-      {cart.length === 0 ? (
+      {cart.length === 0 && !msg ? (
         <div className="bg-white border rounded-3xl p-10 text-center">
           <div className="text-4xl mb-3">🛒</div>
           <p className="font-medium text-gray-800">Your cart is empty</p>
@@ -191,7 +213,7 @@ export default function CartPage({ user }) {
             Browse apothecary →
           </Link>
         </div>
-      ) : (
+      ) : cart.length > 0 ? (
         <div className="bg-white border rounded-3xl p-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="font-semibold text-xl">Checkout</h2>
@@ -305,7 +327,7 @@ export default function CartPage({ user }) {
 
           {checkoutStep === 3 && (
             <div>
-              <label className="text-sm font-medium">Payment method</label>
+              <label className="text-sm font-medium">How will you pay?</label>
               <div className="mt-2 space-y-2 text-sm">
                 {payMethods.map((m) => (
                   <label
@@ -329,10 +351,12 @@ export default function CartPage({ user }) {
                   </label>
                 ))}
               </div>
-              <p className="text-[11px] text-gray-500 mt-3">
-                Orders are always saved on Hazel Allure. Cash = pay the maker on delivery. PayPal = we open PayPal to
-                their connected account after you place the order.
-              </p>
+              <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-[11px] text-amber-950">
+                <strong>Cash</strong> = order is live; you pay the maker on pickup/delivery.
+                <br />
+                <strong>PayPal / Card</strong> = order is saved as <em>awaiting payment</em> until you finish paying
+                (not free).
+              </div>
               <div className="flex gap-3 mt-4">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">
                   Back
@@ -369,6 +393,9 @@ export default function CartPage({ user }) {
                 </div>
                 <div>
                   <strong>Payment:</strong> {selectedMeta?.label || paymentMethod}
+                  {paymentMethod !== 'cash' && (
+                    <span className="text-amber-800"> · unpaid until completed</span>
+                  )}
                 </div>
                 <div>
                   <strong>Total:</strong> ${total.toFixed(2)}
@@ -385,7 +412,13 @@ export default function CartPage({ user }) {
                     disabled={placing}
                     className="flex-1 py-3 bg-emerald-600 text-white rounded-3xl font-semibold disabled:opacity-60"
                   >
-                    {placing ? 'Processing…' : 'Place order'}
+                    {placing
+                      ? 'Saving…'
+                      : paymentMethod === 'paypal'
+                        ? 'Place order & pay with PayPal'
+                        : paymentMethod === 'card'
+                          ? 'Place order (pay card next)'
+                          : 'Place order (pay on delivery)'}
                   </button>
                 ) : (
                   <Link
@@ -399,7 +432,7 @@ export default function CartPage({ user }) {
             </div>
           )}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

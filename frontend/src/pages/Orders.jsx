@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
-import { fetchBuyerOrders } from '../lib/ordersApi';
+import { fetchBuyerOrders, markBuyerOrderPaid } from '../lib/ordersApi';
 import { CustomerPickupQR } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
 import ReorderPanel from '../components/ReorderPanel';
@@ -10,22 +10,51 @@ import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
 
 /**
  * Seeker “My Orders” — purchase history only.
- * Cart / checkout lives at /cart. Vendor fulfillment lives at /vendor-orders.
  */
 export default function Orders({ user }) {
+  const location = useLocation();
   const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [busyId, setBusyId] = useState(null);
   const { cart } = useCart();
   const cartCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
+  const justOrdered = location.state?.justOrdered;
+
+  const reload = async () => {
+    if (!user) return;
+    setLoading(true);
+    try {
+      const list = await fetchBuyerOrders(user);
+      setOrders(list || []);
+    } catch {
+      setOrders([]);
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
-    if (!user) return;
-    fetchBuyerOrders(user).then(setOrders).catch(() => setOrders([]));
-  }, [user]);
+    reload();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.email, user?.id, justOrdered]);
 
-  const getStatusColor = (status) => {
+  const getStatusColor = (status, paymentStatus) => {
+    if (paymentStatus === 'unpaid' || status === 'awaiting_payment') {
+      return 'bg-amber-100 text-amber-900';
+    }
     if (status === 'delivered' || status === 'fulfilled') return 'bg-emerald-100 text-emerald-700';
     if (status === 'preparing') return 'bg-amber-100 text-amber-700';
     return 'bg-blue-100 text-blue-700';
+  };
+
+  const markPaid = async (order) => {
+    setBusyId(order.id);
+    try {
+      await markBuyerOrderPaid(order.id, user.email);
+      await reload();
+    } catch (e) {
+      alert(e.message || 'Could not update payment status');
+    }
+    setBusyId(null);
   };
 
   return (
@@ -45,11 +74,24 @@ export default function Orders({ user }) {
           >
             🛒 Cart{cartCount > 0 ? ` (${cartCount})` : ''} →
           </Link>
+          <button
+            type="button"
+            onClick={reload}
+            className="text-xs px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium"
+          >
+            Refresh
+          </button>
           <Link to="/" className="text-xs px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
             Keep shopping
           </Link>
         </div>
       </div>
+
+      {justOrdered && (
+        <p className="mb-4 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3">
+          Order #{justOrdered} was just saved. It should appear in the list below.
+        </p>
+      )}
 
       {cartCount > 0 && (
         <Link
@@ -57,7 +99,9 @@ export default function Orders({ user }) {
           className="mb-6 flex items-center justify-between gap-3 rounded-2xl border-2 border-[#4a1942]/20 bg-[#faf7f9] p-4 hover:border-[#4a1942]/40 transition"
         >
           <div>
-            <p className="font-semibold text-[#4a1942] text-sm">You have {cartCount} item{cartCount === 1 ? '' : 's'} in your cart</p>
+            <p className="font-semibold text-[#4a1942] text-sm">
+              You have {cartCount} item{cartCount === 1 ? '' : 's'} in your cart
+            </p>
             <p className="text-xs text-gray-500">Finish checkout when you&apos;re ready</p>
           </div>
           <span className="text-sm font-semibold text-[#4a1942]">Checkout →</span>
@@ -70,50 +114,82 @@ export default function Orders({ user }) {
 
       <div className="bg-white border rounded-3xl p-6">
         <h2 className="font-semibold text-xl mb-4">Past orders</h2>
-        {orders.length === 0 && (
+        {loading && <p className="text-sm text-gray-500">Loading your orders…</p>}
+        {!loading && orders.length === 0 && (
           <p className="text-gray-500 text-sm">
-            No orders yet.{' '}
-            <Link to="/" className="text-[#4a1942] underline font-medium">
-              Browse the apothecary
+            No orders found for <strong>{user?.email || 'your account'}</strong> yet.{' '}
+            <Link to="/cart" className="text-[#4a1942] underline font-medium">
+              Open cart
             </Link>
           </p>
         )}
-        {orders.map((order) => (
-          <div key={order.id} className="border-b py-3 last:border-0">
-            <div className="flex justify-between gap-2">
-              <div>
-                <div className="font-medium">
-                  Order #{order.id} • {order.date}
+        {orders.map((order) => {
+          const pay = order.payment_status || (order.status === 'awaiting_payment' ? 'unpaid' : order.payment_method === 'cash' ? 'cod' : null);
+          const unpaid = pay === 'unpaid' || order.status === 'awaiting_payment';
+          return (
+            <div key={order.id} className="border-b py-3 last:border-0">
+              <div className="flex justify-between gap-2">
+                <div>
+                  <div className="font-medium">
+                    Order #{order.id} • {order.date}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    ${order.total} •{' '}
+                    {(() => {
+                      try {
+                        const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                        return Array.isArray(items) ? items.length : 0;
+                      } catch {
+                        return 0;
+                      }
+                    })()}{' '}
+                    items
+                    {order.payment_method ? ` · ${order.payment_method}` : ''}
+                  </div>
+                  {order.address && <div className="text-xs text-gray-500">To: {order.address}</div>}
+                  {order.payment_note && (
+                    <div className="text-xs text-gray-500 mt-0.5">{order.payment_note}</div>
+                  )}
                 </div>
-                <div className="text-sm text-gray-500">
-                  ${order.total} •{' '}
-                  {(() => {
-                    try {
-                      const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
-                      return Array.isArray(items) ? items.length : 0;
-                    } catch {
-                      return 0;
-                    }
-                  })()}{' '}
-                  items
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`px-3 py-1 text-xs rounded-3xl ${getStatusColor(order.status, pay)}`}>
+                    {unpaid ? 'awaiting payment' : order.status}
+                  </span>
+                  {pay === 'cod' && (
+                    <span className="text-[10px] text-gray-500">pay on delivery</span>
+                  )}
+                  {pay === 'paid' && (
+                    <span className="text-[10px] text-emerald-700 font-medium">paid</span>
+                  )}
                 </div>
-                {order.address && <div className="text-xs text-gray-500">To: {order.address}</div>}
               </div>
-              <span className={`px-3 py-1 text-xs rounded-3xl self-start ${getStatusColor(order.status)}`}>
-                {order.status}
-              </span>
+              {unpaid && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    disabled={busyId === order.id}
+                    onClick={() => markPaid(order)}
+                    className="text-xs px-3 py-1.5 rounded-full bg-emerald-700 text-white font-medium disabled:opacity-50"
+                  >
+                    {busyId === order.id ? 'Updating…' : 'I paid — mark as paid'}
+                  </button>
+                  <span className="text-[11px] text-amber-800 self-center">
+                    Only mark paid after you finished PayPal/card payment.
+                  </span>
+                </div>
+              )}
+              {order.delivery_method === 'shipping' && (
+                <div className="text-xs mt-1 text-blue-600">Shipping — practitioner will follow up</div>
+              )}
+              <CustomerPickupQR order={order} />
+              <OrderModificationCard
+                order={order}
+                isVendor={false}
+                onUpdated={(updated) => setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))}
+              />
             </div>
-            {order.delivery_method === 'shipping' && (
-              <div className="text-xs mt-1 text-blue-600">Shipping — practitioner will follow up</div>
-            )}
-            <CustomerPickupQR order={order} />
-            <OrderModificationCard
-              order={order}
-              isVendor={false}
-              onUpdated={(updated) => setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))}
-            />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
