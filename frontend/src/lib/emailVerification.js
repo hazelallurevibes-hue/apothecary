@@ -352,26 +352,41 @@ export async function refreshEmailVerificationStatus(appUser) {
   };
 }
 
+function withTimeout(promise, ms, fallback) {
+  return Promise.race([
+    promise,
+    new Promise((resolve) => setTimeout(() => resolve(fallback), ms)),
+  ]);
+}
+
+/** Fast gate check for checkout / messaging — never blocks the cart. */
 export async function checkEmailVerified(user) {
-  // Lightweight checks first — avoid full URL consume on every gate call
   if (isEmailKnownVerified(user)) return true;
+
+  // Session (cached) first — avoid network hang
   try {
-    const { data } = await supabase.auth.getUser();
-    if (data?.user && sessionUserIsVerified(data.user)) {
-      writeEmailVerifiedCache(user?.email || data.user.email, true);
+    const sessionResult = await withTimeout(supabase.auth.getSession(), 2500, null);
+    const su = sessionResult?.data?.session?.user;
+    if (su && sessionUserIsVerified(su)) {
+      writeEmailVerifiedCache(user?.email || su.email, true);
       return true;
     }
   } catch {
     /* ignore */
   }
+
   if (user?.email) {
     try {
-      const { data: row } = await supabase
-        .from('users')
-        .select('email_verified')
-        .ilike('email', user.email.trim())
-        .maybeSingle();
-      if (row?.email_verified) {
+      const rowResult = await withTimeout(
+        supabase
+          .from('users')
+          .select('email_verified')
+          .ilike('email', user.email.trim())
+          .maybeSingle(),
+        2500,
+        null,
+      );
+      if (rowResult?.data?.email_verified) {
         writeEmailVerifiedCache(user.email, true);
         return true;
       }
@@ -379,6 +394,7 @@ export async function checkEmailVerified(user) {
       /* ignore */
     }
   }
+
   // On verify page with tokens, full refresh is appropriate
   if (typeof window !== 'undefined' && window.location.pathname.includes('verify-email')) {
     const result = await refreshEmailVerificationStatus(user);

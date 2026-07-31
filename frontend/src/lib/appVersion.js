@@ -2,15 +2,15 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.3';
+export const APP_VERSION = '1.8.4';
 
 export const UPDATE_SPLASH = {
-  title: 'Email verify fixed for real',
-  message: 'Verification emails now use a SPA-safe link so tapping Verify confirms your account immediately.',
+  title: 'Cart works again',
+  message: 'Add to cart no longer requires email verification first. Verify is only needed at checkout.',
   highlights: [
-    'New verify links use token_hash (works with our login system)',
-    'Opening the email link should show green “Email verified”',
-    'Resend for a fresh link — old emails will not work',
+    'Add products to cart freely while browsing',
+    'Email verification still required to place an order',
+    'Faster verification status checks',
   ],
 };
 

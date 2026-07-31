@@ -109,4 +109,21 @@ export function CartProvider({ children }) {
   );
 }
 
-export const useCart = () => useContext(CartContext);
+export function useCart() {
+  const ctx = useContext(CartContext);
+  // Safe fallback so product tiles never crash if provider is missing during lazy load
+  if (!ctx) {
+    return {
+      cart: [],
+      addToCart: () => {
+        console.warn('[cart] CartProvider missing');
+      },
+      addUpsellToCart: () => {},
+      removeFromCart: () => {},
+      clearCart: () => {},
+      total: 0,
+      formatCartLineName: (item) => item?.name || '',
+    };
+  }
+  return ctx;
+}
