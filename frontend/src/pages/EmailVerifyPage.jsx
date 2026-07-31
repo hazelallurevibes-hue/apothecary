@@ -32,10 +32,12 @@ export default function EmailVerifyPage({ user }) {
     setSending(true);
     setMessage('');
     try {
-      await resendVerificationEmail(user.email, { role: 'customer' });
-      setMessage('Verification email sent — check your inbox and spam folder.');
+      await resendVerificationEmail(user.email, { role: isVendor ? 'vendor' : 'customer' });
+      setMessage(
+        'Sent from Hazel Allure — check inbox and spam for “Verify your email — Hazel Allure”.',
+      );
     } catch (e) {
-      setMessage(e.message || 'Could not send email. Try logging out and back in.');
+      setMessage(e.message || 'Could not send email. Try again in a few minutes, or contact support.');
     }
     setSending(false);
   };
@@ -81,7 +83,7 @@ export default function EmailVerifyPage({ user }) {
               Confirm <strong>{user?.email}</strong> to continue.
             </p>
             <p className="text-xs text-gray-500 mb-6">
-              Click the link in your signup email, then press refresh below.
+              Look for a message from <strong>Hazel Allure</strong>. Click the link, then press refresh below.
             </p>
             <div className="flex flex-col gap-2">
               <button

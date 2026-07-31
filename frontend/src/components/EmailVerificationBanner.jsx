@@ -91,9 +91,11 @@ export default function EmailVerificationBanner({
     setMessage('');
     try {
       await resendVerificationEmail(user.email, { role: isVendor ? 'vendor' : 'customer' });
-      setMessage('Verification email sent — check your inbox and spam folder.');
+      setMessage(
+        'Verification email sent from Hazel Allure — check inbox and spam/junk (subject: “Verify your email — Hazel Allure”).',
+      );
     } catch (e) {
-      setMessage(e.message || 'Could not send email. Try again shortly.');
+      setMessage(e.message || 'Could not send email. Try again shortly, or contact support.');
     }
     setSending(false);
   };

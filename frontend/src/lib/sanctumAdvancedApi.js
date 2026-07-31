@@ -169,17 +169,38 @@ export async function submitPeerReview({ submissionId, reviewerEmail, feedback }
 }
 
 export async function proposeGatheringTopic({ proposerEmail, title, body }) {
-  const { error } = await supabase.from('gathering_proposals').insert({
-    proposer_email: proposerEmail.trim().toLowerCase(),
-    title,
-    body,
-  });
+  const email = proposerEmail?.trim().toLowerCase();
+  const t = (title || '').trim();
+  if (!email || !t) throw new Error('Sign in and name your topic.');
+
+  const { data, error } = await supabase
+    .from('gathering_proposals')
+    .insert({
+      proposer_email: email,
+      title: t.slice(0, 200),
+      body: body || '',
+      status: 'open',
+      votes: 0,
+    })
+    .select()
+    .single();
+
   if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function voteProposal(proposalId) {
-  const { data } = await supabase.from('gathering_proposals').select('votes').eq('id', proposalId).single();
-  await supabase.from('gathering_proposals').update({ votes: (data?.votes || 0) + 1 }).eq('id', proposalId);
+  const { data, error: readErr } = await supabase
+    .from('gathering_proposals')
+    .select('votes')
+    .eq('id', proposalId)
+    .single();
+  if (readErr) throw new Error(readErr.message);
+  const { error } = await supabase
+    .from('gathering_proposals')
+    .update({ votes: (data?.votes || 0) + 1 })
+    .eq('id', proposalId);
+  if (error) throw new Error(error.message);
 }
 
 export async function checkInEvent(eventId, userEmail) {

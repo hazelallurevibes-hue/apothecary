@@ -97,10 +97,57 @@ export async function checkEmailVerified(user) {
   return false;
 }
 
+/**
+ * Resend verification via Hazel Allure branded edge function (Resend),
+ * falling back to supabase.auth.resend if the function is unavailable.
+ */
 export async function resendVerificationEmail(email, { role = 'customer' } = {}) {
   const normalized = email?.trim().toLowerCase();
   if (!normalized) throw new Error('Email is required.');
 
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : getAppOrigin();
+  const base = import.meta.env.VITE_SUPABASE_URL;
+  const anon =
+    import.meta.env.VITE_SUPABASE_ANON_KEY ||
+    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
+  // Primary: Hazel Allure branded email via Resend edge function
+  if (base && anon) {
+    try {
+      const res = await fetch(`${base}/functions/v1/send-verify-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${anon}`,
+          apikey: anon,
+        },
+        body: JSON.stringify({ email: normalized, role, origin }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.ok) return true;
+      // If function exists but failed meaningfully, surface that (unless fallback works)
+      if (res.status !== 404 && json.error) {
+        // Try Supabase Auth resend as secondary path
+        try {
+          await supabaseAuthResend(normalized, role);
+          return true;
+        } catch {
+          throw new Error(mapResendError({ message: json.error }));
+        }
+      }
+    } catch (e) {
+      if (e?.message && !/failed to fetch|network|404/i.test(e.message)) {
+        // keep going to auth resend
+      }
+    }
+  }
+
+  await supabaseAuthResend(normalized, role);
+  return true;
+}
+
+async function supabaseAuthResend(normalized, role) {
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email: normalized,
@@ -108,9 +155,7 @@ export async function resendVerificationEmail(email, { role = 'customer' } = {})
       emailRedirectTo: getEmailVerifyRedirect(role),
     },
   });
-
   if (error) throw new Error(mapResendError(error));
-  return true;
 }
 
 function mapResendError(error) {
@@ -121,7 +166,10 @@ function mapResendError(error) {
   if (msg.includes('already confirmed') || msg.includes('email address has already been verified')) {
     return 'This email is already verified. Refresh the page or sign in again.';
   }
-  return error?.message || 'Could not send verification email. Check Supabase Auth email settings.';
+  if (msg.includes('user not found') || msg.includes('unable to find')) {
+    return 'No auth account found for this email. Sign up again, or contact support@hazelallure.com.';
+  }
+  return error?.message || 'Could not send verification email. Check spam, or try again in a few minutes.';
 }
 
 /** Best-effort nudge after signup when no session (confirm-email mode). */
