@@ -24,12 +24,17 @@ export async function saveVendorPayoutFields(vendorId, fields) {
   if (fields.stripe_connect_status !== undefined) {
     payload.stripe_connect_status = fields.stripe_connect_status || 'none';
   }
+  if (fields.paypal_connected_at !== undefined) {
+    payload.paypal_connected_at = fields.paypal_connected_at;
+  }
 
   const { error } = await supabase.from('vendors').update(payload).eq('id', vid);
   if (error) {
-    // Retry without stripe_connect_status if column missing
-    if (/stripe_connect_status/i.test(error.message) && payload.stripe_connect_status !== undefined) {
-      const { stripe_connect_status, ...rest } = payload;
+    // Retry dropping optional columns if missing on older DBs
+    let rest = { ...payload };
+    if (/stripe_connect_status/i.test(error.message)) delete rest.stripe_connect_status;
+    if (/paypal_connected_at/i.test(error.message)) delete rest.paypal_connected_at;
+    if (Object.keys(rest).length !== Object.keys(payload).length) {
       const retry = await supabase.from('vendors').update(rest).eq('id', vid);
       if (retry.error) throw new Error(retry.error.message);
       return true;
@@ -37,6 +42,27 @@ export async function saveVendorPayoutFields(vendorId, fields) {
     throw new Error(error.message);
   }
   return true;
+}
+
+/** Load vendor payout methods for checkout. */
+export async function fetchVendorPaymentMethods(vendorId) {
+  const vid = Number(vendorId);
+  if (!vid) return null;
+  const { data, error } = await supabase
+    .from('vendors')
+    .select('id, name, stripe_account_id, paypal_account_id, stripe_connect_status, paypal_connected_at')
+    .eq('id', vid)
+    .maybeSingle();
+  if (error && /paypal_connected_at|stripe_connect_status/i.test(error.message || '')) {
+    const min = await supabase
+      .from('vendors')
+      .select('id, name, stripe_account_id, paypal_account_id')
+      .eq('id', vid)
+      .maybeSingle();
+    return min.data || null;
+  }
+  if (error) throw new Error(error.message);
+  return data;
 }
 
 export async function createStripeConnectLink({ vendorId, email, name }) {

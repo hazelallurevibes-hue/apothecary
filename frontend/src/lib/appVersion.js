@@ -2,15 +2,15 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.7';
+export const APP_VERSION = '1.8.8';
 
 export const UPDATE_SPLASH = {
-  title: 'Separate cart for buyers vs vendor orders',
-  message: 'The cart icon opens seeker checkout. Vendor fulfillment is on its own Incoming Orders page.',
+  title: 'PayPal connect + checkout that places orders',
+  message: 'Vendors must confirm PayPal with a checkbox. Buyers can always place cash orders; PayPal opens pay link when connected.',
   highlights: [
-    '🛒 Cart → /cart (buy products)',
-    'My Orders → your purchase history',
-    'Incoming orders → vendor fulfillment only',
+    'Vendor: Open PayPal → confirm email → Connect & confirm',
+    'Checkout shows only payment methods the maker supports',
+    'Orders save even without PayPal — cash always works',
   ],
 };
 
