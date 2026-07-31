@@ -1,27 +1,22 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-  fetchVendorProDiscount,
-  loadRevshareSettings,
-  saveVendorProDiscount,
-} from '../lib/proRevshareApi';
+import { fetchVendorProDiscount, saveVendorProDiscount } from '../lib/proRevshareApi';
 
 /**
- * Vendor controls: % off for Pro Members + optional rev-share enrollment.
+ * Vendor interest signup: Pro Member checkout discount + rewards program waitlist.
+ * Do not expose admin on/off controls to vendors.
  */
 export default function VendorProDiscountRevshare({ vendorId }) {
-  const [discountPct, setDiscountPct] = useState(0);
-  const [enrolled, setEnrolled] = useState(false);
-  const [settings, setSettings] = useState(null);
+  const [discountPct, setDiscountPct] = useState(10);
+  const [interested, setInterested] = useState(false);
   const [msg, setMsg] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!vendorId) return;
-    Promise.all([fetchVendorProDiscount(vendorId), loadRevshareSettings()]).then(([v, s]) => {
-      setDiscountPct(v.discountPct);
-      setEnrolled(v.enrolled);
-      setSettings(s);
+    fetchVendorProDiscount(vendorId).then((v) => {
+      setDiscountPct(v.discountPct > 0 ? v.discountPct : 10);
+      setInterested(v.enrolled);
     });
   }, [vendorId]);
 
@@ -30,17 +25,16 @@ export default function VendorProDiscountRevshare({ vendorId }) {
     setSaving(true);
     setMsg('');
     try {
-      const min = settings?.minDiscountPct ?? 5;
-      const wantEnroll = enrolled && discountPct >= min;
+      const pct = Math.min(50, Math.max(0, Number(discountPct) || 0));
       const res = await saveVendorProDiscount(vendorId, {
-        discountPct,
-        enrolled: wantEnroll,
+        discountPct: pct,
+        enrolled: interested && pct > 0,
       });
-      setEnrolled(res.enrolled);
+      setInterested(res.enrolled);
       setMsg(
         res.enrolled
-          ? `Saved ${res.discountPct}% Pro Member discount — enrolled in revenue share (when admin program is ON).`
-          : `Saved ${res.discountPct}% Pro discount. Enroll requires ≥${min}% and admin program ON.`,
+          ? `You're signed up: Pro Members get ${res.discountPct}% off at your checkout. We'll include you when Pro rewards share opens.`
+          : `Saved ${res.discountPct}% Pro Member discount only (not signed up for rewards share).`,
       );
     } catch (e) {
       setMsg(e.message || 'Save failed — run latest SQL migration for pro_member_discount_pct.');
@@ -52,10 +46,11 @@ export default function VendorProDiscountRevshare({ vendorId }) {
 
   return (
     <div className="mb-8 rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50/80 to-white p-5 sm:p-6">
-      <h3 className="font-bold text-lg text-[#4a1942]">Pro Member discount &amp; revenue share</h3>
+      <h3 className="font-bold text-lg text-[#4a1942]">Pro Member discounts &amp; rewards signup</h3>
       <p className="text-sm text-gray-600 mt-1 max-w-2xl">
-        Pro Members see your discount automatically at checkout. Give enough off to join the optional revenue-share
-        program (admin controls the pool formula; <strong>program default is OFF</strong> until admin enables it).
+        Offer Pro Members an automatic checkout discount to win loyal shoppers. Optionally{' '}
+        <strong>sign up for Pro rewards share</strong> — practitioners who support Pro Members may earn a portion of
+        Pro subscription revenue when the program rolls out. Signing up shows interest; you can update your discount anytime.
       </p>
       <div className="mt-4 flex flex-wrap items-end gap-4">
         <label className="text-sm">
@@ -69,13 +64,13 @@ export default function VendorProDiscountRevshare({ vendorId }) {
             onChange={(e) => setDiscountPct(Number(e.target.value) || 0)}
           />
         </label>
-        <label className="flex items-center gap-2 text-sm pb-2">
+        <label className="flex items-center gap-2 text-sm pb-2 max-w-xs">
           <input
             type="checkbox"
-            checked={enrolled}
-            onChange={(e) => setEnrolled(e.target.checked)}
+            checked={interested}
+            onChange={(e) => setInterested(e.target.checked)}
           />
-          Enroll in rev-share (min {settings?.minDiscountPct ?? 5}% discount)
+          Sign me up for Pro rewards share (interest list)
         </label>
         <button
           type="button"
@@ -83,15 +78,15 @@ export default function VendorProDiscountRevshare({ vendorId }) {
           onClick={save}
           className="px-4 py-2 rounded-full bg-[#4a1942] text-white text-sm font-semibold disabled:opacity-50"
         >
-          {saving ? 'Saving…' : 'Save Pro discount'}
+          {saving ? 'Saving…' : 'Save &amp; sign up'}
         </button>
       </div>
       <p className="text-[11px] text-gray-500 mt-3">
-        Admin program status: {settings?.enabled ? 'ON' : 'OFF'}. See{' '}
+        Pro Member checkout pricing is separate from your Pro Practitioner tools —{' '}
         <Link to="/pro-upgrade?type=vendor" className="underline">
-          Free vs Pro
-        </Link>{' '}
-        for membership pricing.
+          compare Free vs Pro
+        </Link>
+        .
       </p>
       {msg && <p className="text-sm text-emerald-900 mt-2">{msg}</p>}
     </div>

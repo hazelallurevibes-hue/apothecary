@@ -36,6 +36,7 @@ import {
   offersServices,
   isLaunchFullyDone,
   readLaunchDoneLocal,
+  markLaunchComplete,
 } from '../lib/onboardingApi';
 import { getVendorSellBlockers } from '../lib/accountGates';
 import VendorOnboardingChecklist from '../components/VendorOnboardingChecklist';
@@ -246,11 +247,24 @@ export default function VendorDashboard({ user }) {
 
   useEffect(() => {
     if (!myVendorId) return;
-    // Skip heavy re-detect loops once graduated
-    if (readLaunchDoneLocal(myVendorId) || isLaunchFullyDone(launchSteps)) {
-      if (!isLaunchFullyDone(launchSteps)) {
-        setLaunchSteps((prev) => ({ ...prev, launch_complete: true }));
-      }
+    const listingCount = myMenu.length + myProduce.length;
+    // Active shop or local flag → graduate once, hide checklist forever
+    if (
+      readLaunchDoneLocal(myVendorId, user?.email) ||
+      listingCount > 0 ||
+      isLaunchFullyDone(launchSteps, { listingCount })
+    ) {
+      markLaunchComplete(myVendorId, {
+        first_listing: listingCount > 0,
+        seller_path_value:
+          myMenu.length > 0 && myProduce.length > 0
+            ? 'both'
+            : myMenu.length > 0
+              ? 'services'
+              : 'products',
+      })
+        .then(setLaunchSteps)
+        .catch(() => setLaunchSteps((prev) => ({ ...prev, launch_complete: true })));
       return;
     }
     autoDetectOnboarding(myVendorId, {
@@ -258,7 +272,7 @@ export default function VendorDashboard({ user }) {
       produceCount: myProduce.length,
       user,
     }).then(setLaunchSteps);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- avoid re-running on every user object identity
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myVendorId, myMenu.length, myProduce.length, user?.email]);
 
   useEffect(() => {
@@ -1133,7 +1147,10 @@ export default function VendorDashboard({ user }) {
         </div>
       )}
 
-      {!isLaunchFullyDone(launchSteps) && !readLaunchDoneLocal(myVendorId) && nextIncompleteStep(launchSteps) && (
+      {!isLaunchFullyDone(launchSteps, { listingCount: myMenu.length + myProduce.length }) &&
+        !readLaunchDoneLocal(myVendorId, user?.email) &&
+        myMenu.length + myProduce.length === 0 &&
+        nextIncompleteStep(launchSteps) && (
         <div className="mb-4 text-sm bg-amber-50 border-2 border-amber-400 rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-2 animate-pulse">
           <span>
             Still need: <strong>{nextIncompleteStep(launchSteps)?.label}</strong>
@@ -1298,17 +1315,24 @@ export default function VendorDashboard({ user }) {
         <VendorCustomerInsights user={user} vendorId={myVendorId} />
       </div>
 
-      <div id="listing-quick-add" className="mb-8 scroll-mt-24">
-        <ListingQuickAdd
-          onSubmitService={handleQuickAddService}
-          onSubmitProduct={handleQuickAddProduct}
-          vendorPlan={vendorPlan}
-          disabled={adding || addingProduce || !!editMenuId || !!editProduceId}
-          user={user}
-          vendorId={myVendorId}
-          sellerPath={sellerPath}
-        />
-      </div>
+      <details id="listing-quick-add" className="mb-8 scroll-mt-24 group rounded-3xl border-2 border-[#4a1942]/20 bg-white open:shadow-sm">
+        <summary className="cursor-pointer list-none flex flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-4 font-semibold text-[#4a1942]">
+          <span>➕ Post a product or service</span>
+          <span className="text-xs font-normal text-gray-500 group-open:hidden">Tap to expand · collapsed to save space</span>
+          <span className="text-xs font-normal text-gray-500 hidden group-open:inline">Tap to collapse</span>
+        </summary>
+        <div className="px-2 sm:px-4 pb-4 border-t border-gray-100">
+          <ListingQuickAdd
+            onSubmitService={handleQuickAddService}
+            onSubmitProduct={handleQuickAddProduct}
+            vendorPlan={vendorPlan}
+            disabled={adding || addingProduce || !!editMenuId || !!editProduceId}
+            user={user}
+            vendorId={myVendorId}
+            sellerPath={sellerPath}
+          />
+        </div>
+      </details>
 
       <div id="analytics" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
         <Link to="#add-menu" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
@@ -1342,12 +1366,12 @@ export default function VendorDashboard({ user }) {
       )}
       {showServicesUi && (
       <div id="add-menu" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-3 sm:p-8 min-w-0 overflow-hidden">
-        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-4">
           <div className="flex items-center gap-3 min-w-0">
             <div className="text-3xl shrink-0">🔮</div>
             <div className="min-w-0">
               <h3 className="font-bold text-xl sm:text-2xl heading-font text-[#4a1942]">Wellness Services</h3>
-              <p className="text-sm text-gray-600">Tarot, Reiki, spellcraft, enchantments, energy work, and more — bookable sessions with photo or video preview.</p>
+              <p className="text-sm text-gray-600">Bookable sessions — form stays collapsed until you need it.</p>
             </div>
           </div>
           <Link to="/services" className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8] shrink-0 self-start">
@@ -1355,7 +1379,12 @@ export default function VendorDashboard({ user }) {
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl p-3 sm:p-6 border min-w-0 overflow-hidden">
+        <details className="bg-white rounded-2xl border min-w-0 overflow-hidden group mb-4" open={!!editMenuId}>
+          <summary className="cursor-pointer list-none px-4 py-3 font-semibold text-sm text-[#4a1942] flex justify-between gap-2">
+            <span>{editMenuId ? 'Edit service (open)' : 'Add / edit wellness service'}</span>
+            <span className="text-xs font-normal text-gray-500 group-open:hidden">Expand</span>
+          </summary>
+          <div className="p-3 sm:p-6 border-t min-w-0 overflow-hidden">
           <div className="font-semibold mb-3">{editMenuId ? 'Edit service' : 'Add wellness service'}</div>
           {vendorCan(user, 'service_video') ? (
             <ServiceMediaField
@@ -1493,7 +1522,8 @@ export default function VendorDashboard({ user }) {
           )}
           {shareMessage && <div className="mt-3 text-sm text-emerald-600">{shareMessage}</div>}
           <p className="text-xs text-gray-500 mt-2">After posting, you can open the listing to view, edit, or remove it. Save a template to start the next listing faster.</p>
-        </div>
+          </div>
+        </details>
       </div>
       )}
 
@@ -1534,12 +1564,12 @@ export default function VendorDashboard({ user }) {
 
       {/* Apothecary & ritual goods */}
       <div id="add-produce" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-4 sm:p-8 scroll-mt-24">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
           <div className="flex items-center gap-3">
             <div className="text-3xl">🌿</div>
             <div>
               <h3 className="font-bold text-2xl heading-font text-[#4a1942]">{VERTICAL.labels.productsMarket}</h3>
-              <p className="text-gray-600">Oils, incense, crystals, herbs, ritual kits, skincare, and artisan goods — disclose ingredients and quality practices honestly.</p>
+              <p className="text-gray-600">Products list below · post form stays collapsed until you need it.</p>
             </div>
           </div>
           <Link to={VERTICAL.routes.productsMarket} className="text-sm px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl font-medium hover:bg-[#f5f0e8]">Preview Apothecary</Link>
@@ -1572,7 +1602,12 @@ export default function VendorDashboard({ user }) {
           </div>
         )}
 
-        <div className="bg-white rounded-2xl p-3 sm:p-6 mb-6 border min-w-0 overflow-hidden">
+        <details className="bg-white rounded-2xl mb-6 border min-w-0 overflow-hidden group" open={!!editProduceId}>
+          <summary className="cursor-pointer list-none px-4 py-3 font-semibold text-sm text-[#4a1942] flex justify-between gap-2">
+            <span>{editProduceId ? 'Edit apothecary listing (open)' : 'Add / edit apothecary product'}</span>
+            <span className="text-xs font-normal text-gray-500 group-open:hidden">Expand</span>
+          </summary>
+          <div className="p-3 sm:p-6 border-t min-w-0 overflow-hidden">
           <div className="font-semibold mb-3">
             {editProduceId ? 'Edit apothecary listing' : 'Add apothecary item'}
           </div>
@@ -1700,7 +1735,8 @@ export default function VendorDashboard({ user }) {
               </div>
             </div>
           )}
-        </div>
+          </div>
+        </details>
 
         {produceList.length > 0 && (
           <div className="mb-6 bg-white border rounded-2xl p-4">

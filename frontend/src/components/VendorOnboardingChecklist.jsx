@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  VENDOR_ONBOARDING_STEPS,
   markOnboardingStep,
   onboardingProgress,
   autoDetectOnboarding,
@@ -15,6 +14,7 @@ import {
   readLaunchDoneLocal,
   writeLaunchDoneLocal,
   fetchVendorOnboarding,
+  markLaunchComplete,
 } from '../lib/onboardingApi';
 
 export default function VendorOnboardingChecklist({
@@ -24,12 +24,23 @@ export default function VendorOnboardingChecklist({
   user = null,
   onStepsChange,
 }) {
+  const listingCount = (Number(menuCount) || 0) + (Number(produceCount) || 0);
   const [steps, setSteps] = useState({});
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [savingPath, setSavingPath] = useState(false);
-  // Hide immediately if we already graduated this shop (local or prior state)
-  const [graduated, setGraduated] = useState(() => readLaunchDoneLocal(vendorId));
+  const [graduated, setGraduated] = useState(() =>
+    readLaunchDoneLocal(vendorId, user?.email) || listingCount > 0,
+  );
+
+  const graduate = (merged) => {
+    writeLaunchDoneLocal(vendorId, user?.email);
+    setGraduated(true);
+    if (merged) {
+      setSteps(merged);
+      onStepsChange?.(merged);
+    }
+  };
 
   useEffect(() => {
     if (!vendorId) {
@@ -40,65 +51,82 @@ export default function VendorOnboardingChecklist({
     (async () => {
       setLoading(true);
       try {
-        // Fast path: already graduated — still load path/steps for dashboard, but never show UI
-        if (readLaunchDoneLocal(vendorId)) {
-          setGraduated(true);
-          const { steps: saved } = await fetchVendorOnboarding(vendorId);
-          if (!cancelled) {
-            const merged = { ...saved, launch_complete: true };
-            setSteps(merged);
-            onStepsChange?.(merged);
-          }
+        // Instant hide for returning sellers with inventory or local flag
+        if (readLaunchDoneLocal(vendorId, user?.email) || listingCount > 0) {
+          const done = await markLaunchComplete(vendorId, {
+            first_listing: listingCount > 0,
+            seller_path_value:
+              menuCount > 0 && produceCount > 0
+                ? 'both'
+                : menuCount > 0
+                  ? 'services'
+                  : 'products',
+          }).catch(async () => {
+            const { steps: saved } = await fetchVendorOnboarding(vendorId);
+            return { ...saved, launch_complete: true };
+          });
+          if (!cancelled) graduate(done);
           if (!cancelled) setLoading(false);
           return;
         }
 
-        const detected = await autoDetectOnboarding(vendorId, { menuCount, produceCount, user });
+        const detected = await autoDetectOnboarding(vendorId, {
+          menuCount,
+          produceCount,
+          user,
+        });
         if (cancelled) return;
         setSteps(detected);
         onStepsChange?.(detected);
-        if (isLaunchFullyDone(detected)) {
-          writeLaunchDoneLocal(vendorId);
-          setGraduated(true);
+        if (isLaunchFullyDone(detected, { listingCount })) {
+          graduate(detected);
         }
       } catch (e) {
         console.warn('[checklist]', e);
+        // Last resort: hide if they have listings even on error
+        if (listingCount > 0) graduate({ launch_complete: true, first_listing: true });
       }
       if (!cancelled) setLoading(false);
     })();
     return () => {
       cancelled = true;
     };
-    // Intentionally omit full `user` object — only email/listing counts matter
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId, menuCount, produceCount, user?.email]);
 
-  // If parent already has complete steps, stay graduated
   useEffect(() => {
-    if (isLaunchFullyDone(steps)) {
-      writeLaunchDoneLocal(vendorId);
+    if (isLaunchFullyDone(steps, { listingCount }) || listingCount > 0) {
+      writeLaunchDoneLocal(vendorId, user?.email);
       setGraduated(true);
     }
-  }, [steps, vendorId]);
+  }, [steps, vendorId, listingCount, user?.email]);
 
-  if (graduated) return null;
+  if (graduated || listingCount > 0) return null;
   if (loading) return null;
 
   const visibleSteps = stepsForSeller(steps);
   const { done, total, percent } = onboardingProgress(steps);
-  const complete = isLaunchFullyDone(steps);
+  const complete = isLaunchFullyDone(steps, { listingCount });
   const next = nextIncompleteStep(steps);
   const path = getSellerPath(steps);
   const idStatus = steps.id_verification_status || (steps.id_verification ? 'done' : 'needed');
 
   if (complete) {
-    writeLaunchDoneLocal(vendorId);
+    writeLaunchDoneLocal(vendorId, user?.email);
     return null;
   }
 
   const stepDone = (step) => {
     if (step.id === 'id_verification') return isIdStepSatisfied(steps);
     return !!steps[step.id];
+  };
+
+  const dismissForever = async () => {
+    const done = await markLaunchComplete(vendorId, {
+      first_listing: listingCount > 0 || !!steps.first_listing,
+      seller_path_value: steps.seller_path_value || 'products',
+    });
+    graduate(done);
   };
 
   const toggleStep = async (stepId, autoOnly) => {
@@ -108,10 +136,7 @@ export default function VendorOnboardingChecklist({
     const updated = await markOnboardingStep(vendorId, stepId, nextVal);
     setSteps(updated);
     onStepsChange?.(updated);
-    if (isLaunchFullyDone(updated)) {
-      writeLaunchDoneLocal(vendorId);
-      setGraduated(true);
-    }
+    if (isLaunchFullyDone(updated, { listingCount })) graduate(updated);
   };
 
   const choosePath = async (value) => {
@@ -123,10 +148,7 @@ export default function VendorOnboardingChecklist({
       const merged = { ...updated, ...detected, seller_path: true, seller_path_value: value };
       setSteps(merged);
       onStepsChange?.(merged);
-      if (isLaunchFullyDone(merged)) {
-        writeLaunchDoneLocal(vendorId);
-        setGraduated(true);
-      }
+      if (isLaunchFullyDone(merged, { listingCount })) graduate(merged);
     } catch (e) {
       console.warn(e);
     }
@@ -138,7 +160,7 @@ export default function VendorOnboardingChecklist({
       id="seller-path"
       className="mb-8 rounded-3xl p-6 border-2 scroll-mt-24 bg-gradient-to-r from-amber-50 via-[#4a1942]/5 to-white border-amber-400 shadow-md"
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
         <div>
           <h2 className="font-bold text-xl">Vendor launch checklist</h2>
           <p className="text-sm text-gray-600">
@@ -153,17 +175,21 @@ export default function VendorOnboardingChecklist({
               <strong>
                 {path === 'products' ? 'Products only' : path === 'services' ? 'Services' : 'Products + services'}
               </strong>
-              {path === 'products' && ' · Photo ID not required'}
-              {offersServices(steps) && idStatus === 'pending' && ' · ID submitted — waiting on review'}
-              {offersServices(steps) && idStatus === 'flagged' && ' · ID flagged for admin (you can continue setup)'}
-              {offersServices(steps) && idStatus === 'approved' && ' · ID approved'}
             </p>
           )}
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <div className="text-sm font-semibold text-[#4a1942]">{percent}%</div>
           <button type="button" onClick={() => setCollapsed((c) => !c)} className="text-xs border px-3 py-1 rounded-2xl">
             {collapsed ? 'Expand' : 'Collapse'}
+          </button>
+          <button
+            type="button"
+            onClick={dismissForever}
+            className="text-xs font-semibold px-3 py-1.5 rounded-2xl border border-[#4a1942]/30 text-[#4a1942] bg-white"
+            title="Hide this checklist permanently — you can still post listings anytime"
+          >
+            I&apos;m done — hide permanently
           </button>
         </div>
       </div>
@@ -175,7 +201,6 @@ export default function VendorOnboardingChecklist({
           {visibleSteps.map((step, index) => {
             const checked = stepDone(step);
             const isNext = !checked && next?.id === step.id;
-            const isBlockedEmail = !checked && step.id === 'verify_email';
             return (
               <div
                 key={step.id}
@@ -183,66 +208,28 @@ export default function VendorOnboardingChecklist({
                 className={`flex gap-3 p-4 rounded-2xl border-2 bg-white transition ${
                   checked
                     ? 'border-emerald-300 bg-emerald-50/50'
-                    : isNext || isBlockedEmail
-                      ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-300 animate-pulse'
+                    : isNext
+                      ? 'border-amber-500 bg-amber-50 ring-2 ring-amber-300'
                       : 'border-gray-200'
                 }`}
               >
-                {step.autoOnly || step.id === 'seller_path' ? (
-                  <div
-                    className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold ${
-                      checked
-                        ? 'bg-emerald-600 text-white'
-                        : isNext
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-[#4a1942] text-white'
-                    }`}
-                  >
-                    {checked ? '✓' : index + 1}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => toggleStep(step.id, step.autoOnly)}
-                    className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold ${
-                      checked
-                        ? 'bg-emerald-600 text-white'
-                        : isNext
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-gray-100 text-gray-500'
-                    }`}
-                    aria-label={checked ? 'Mark incomplete' : 'Mark complete'}
-                  >
-                    {checked ? '✓' : index + 1}
-                  </button>
-                )}
+                <div
+                  className={`w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold ${
+                    checked ? 'bg-emerald-600 text-white' : 'bg-[#4a1942] text-white'
+                  }`}
+                >
+                  {checked ? '✓' : index + 1}
+                </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-sm">
-                    <span className="text-gray-400 mr-1">Step {index + 1}.</span>
                     {step.label}
-                    {isNext && (
-                      <span className="ml-2 text-[10px] font-black uppercase tracking-wide text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded-full">
-                        Do this now
-                      </span>
-                    )}
                     {step.id === 'id_verification' && idStatus === 'pending' && (
-                      <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">
-                        Submitted · in review
-                      </span>
-                    )}
-                    {step.id === 'id_verification' && idStatus === 'flagged' && (
-                      <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-amber-900 bg-amber-100 px-2 py-0.5 rounded-full">
-                        Flagged for admin
-                      </span>
-                    )}
-                    {step.id === 'id_verification' && idStatus === 'not_required' && (
-                      <span className="ml-2 text-[10px] font-bold uppercase tracking-wide text-gray-600 bg-gray-100 px-2 py-0.5 rounded-full">
-                        Not required
+                      <span className="ml-2 text-[10px] font-bold uppercase text-sky-800 bg-sky-100 px-2 py-0.5 rounded-full">
+                        Submitted
                       </span>
                     )}
                   </div>
                   <div className="text-xs text-gray-500 mt-0.5">{step.description}</div>
-
                   {step.id === 'seller_path' && (
                     <div className="mt-2 flex flex-wrap gap-2">
                       {[
@@ -258,7 +245,7 @@ export default function VendorOnboardingChecklist({
                           className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${
                             path === opt.v
                               ? 'bg-[#4a1942] text-white border-[#4a1942]'
-                              : 'border-gray-200 text-gray-700 hover:bg-gray-50'
+                              : 'border-gray-200 text-gray-700'
                           }`}
                         >
                           {opt.l}
@@ -266,29 +253,9 @@ export default function VendorOnboardingChecklist({
                       ))}
                     </div>
                   )}
-
-                  {!checked && step.id === 'verify_email' && (
-                    <p className="text-xs text-amber-950 bg-amber-100 border border-amber-300 rounded-xl px-2 py-1.5 mt-2 font-medium">
-                      Email not confirmed yet. Check inbox + spam. Use the yellow banner Resend button.
-                    </p>
-                  )}
-                  {step.id === 'id_verification' && idStatus === 'pending' && (
-                    <p className="text-xs text-sky-950 bg-sky-50 border border-sky-200 rounded-xl px-2 py-1.5 mt-2 font-medium">
-                      You already submitted ID — this step is complete for launch progress while admin finishes review.
-                    </p>
-                  )}
                   {!checked && step.id !== 'seller_path' && (
-                    <Link
-                      to={step.path}
-                      className={`text-xs font-bold mt-2 inline-flex items-center gap-1 ${
-                        isNext ? 'text-amber-900 underline' : 'text-[#4a1942] hover:underline'
-                      }`}
-                    >
-                      {step.id === 'first_listing'
-                        ? 'Open quick add →'
-                        : step.id === 'verify_email'
-                          ? 'Open verification page →'
-                          : 'Go →'}
+                    <Link to={step.path} className="text-xs font-bold mt-2 inline-block text-[#4a1942] underline">
+                      Go →
                     </Link>
                   )}
                 </div>

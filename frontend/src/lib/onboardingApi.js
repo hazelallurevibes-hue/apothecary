@@ -160,33 +160,82 @@ export function launchChecklistComplete(steps) {
 }
 
 /** Permanent graduation flag — once true, checklist stays hidden even if a probe fails. */
-export function isLaunchFullyDone(steps = {}) {
+export function isLaunchFullyDone(steps = {}, { listingCount = 0 } = {}) {
   if (steps.launch_complete === true || steps.launch_complete === 'true' || steps.launch_complete === 1) {
+    return true;
+  }
+  if (steps.launch_dismissed === true || steps.launch_dismissed === 'true') {
+    return true;
+  }
+  // Active shop with live inventory = launch is effectively done
+  if (Number(listingCount) > 0 && (steps.first_listing || steps.seller_path || steps.safety_policies)) {
+    return true;
+  }
+  if (Number(listingCount) > 0 && steps.launch_complete !== false) {
+    // Any posted listing is strong evidence launch finished
     return true;
   }
   return launchChecklistComplete(steps);
 }
 
 export function launchDoneStorageKey(vendorId) {
-  return `ha_launch_done_v2_${vendorId}`;
+  return `ha_launch_done_v3_${vendorId}`;
 }
 
-export function readLaunchDoneLocal(vendorId) {
-  if (!vendorId) return false;
-  try {
-    return localStorage.getItem(launchDoneStorageKey(vendorId)) === '1';
-  } catch {
-    return false;
-  }
+export function launchDoneEmailKey(email) {
+  const e = (email || '').trim().toLowerCase();
+  return e ? `ha_launch_done_email_v3_${e}` : null;
 }
 
-export function writeLaunchDoneLocal(vendorId) {
-  if (!vendorId) return;
+export function readLaunchDoneLocal(vendorId, email = null) {
   try {
-    localStorage.setItem(launchDoneStorageKey(vendorId), '1');
+    if (vendorId && localStorage.getItem(launchDoneStorageKey(vendorId)) === '1') return true;
+    const ek = launchDoneEmailKey(email);
+    if (ek && localStorage.getItem(ek) === '1') return true;
+    // Migrate older keys
+    if (vendorId && localStorage.getItem(`ha_launch_done_v2_${vendorId}`) === '1') return true;
+    if (vendorId && localStorage.getItem(`ha_launch_done_${vendorId}`) === '1') return true;
   } catch {
     /* ignore */
   }
+  return false;
+}
+
+export function writeLaunchDoneLocal(vendorId, email = null) {
+  try {
+    if (vendorId) localStorage.setItem(launchDoneStorageKey(vendorId), '1');
+    const ek = launchDoneEmailKey(email);
+    if (ek) localStorage.setItem(ek, '1');
+  } catch {
+    /* ignore */
+  }
+}
+
+/** Force-hide checklist forever for this shop (vendor chose dismiss or soft graduate). */
+export async function markLaunchComplete(vendorId, extra = {}) {
+  if (!vendorId) return {};
+  const { data: current } = await supabase
+    .from('vendors')
+    .select('onboarding_completed')
+    .eq('id', vendorId)
+    .maybeSingle();
+  const steps = {
+    ...parseOnboardingState(current?.onboarding_completed),
+    verify_email: true,
+    safety_policies: true,
+    seller_path: true,
+    first_listing: true,
+    id_verification: true,
+    launch_complete: true,
+    launch_dismissed: true,
+    launch_completed_at: new Date().toISOString(),
+    ...extra,
+  };
+  if (!steps.seller_path_value) steps.seller_path_value = 'products';
+  if (!steps.id_verification_status) steps.id_verification_status = 'not_required';
+  await supabase.from('vendors').update({ onboarding_completed: steps }).eq('id', vendorId);
+  writeLaunchDoneLocal(vendorId);
+  return steps;
 }
 
 export function nextIncompleteStep(steps) {
@@ -201,24 +250,39 @@ export function nextIncompleteStep(steps) {
 
 export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCount = 0, user = null } = {}) {
   const { steps, vendor } = await fetchVendorOnboarding(vendorId);
+  const listingCount = (Number(menuCount) || 0) + (Number(produceCount) || 0);
+  const email = user?.email || null;
 
   // Already graduated — never re-open the checklist by rewriting steps to incomplete
-  if (steps.launch_complete === true || steps.launch_complete === 'true' || steps.launch_complete === 1) {
-    writeLaunchDoneLocal(vendorId);
-    const soft = { ...steps };
-    if (menuCount + produceCount > 0) soft.first_listing = true;
+  if (
+    steps.launch_complete === true ||
+    steps.launch_complete === 'true' ||
+    steps.launch_complete === 1 ||
+    steps.launch_dismissed === true
+  ) {
+    writeLaunchDoneLocal(vendorId, email);
+    const soft = { ...steps, launch_complete: true };
+    if (listingCount > 0) soft.first_listing = true;
     return soft;
   }
 
   // Local graduation from a previous session (DB lag / partial write)
-  if (readLaunchDoneLocal(vendorId) && launchChecklistComplete(steps)) {
-    const graduated = {
-      ...steps,
-      launch_complete: true,
-      launch_completed_at: steps.launch_completed_at || new Date().toISOString(),
-    };
-    await supabase.from('vendors').update({ onboarding_completed: graduated }).eq('id', vendorId);
-    return graduated;
+  if (readLaunchDoneLocal(vendorId, email)) {
+    return markLaunchComplete(vendorId, {
+      seller_path_value: steps.seller_path_value || (listingCount > 0 ? 'products' : undefined),
+      first_listing: listingCount > 0 || !!steps.first_listing,
+    });
+  }
+
+  // Live inventory = treat as done (don't trap sellers who already posted)
+  if (listingCount > 0) {
+    return markLaunchComplete(vendorId, {
+      seller_path_value:
+        steps.seller_path_value ||
+        (menuCount > 0 && produceCount > 0 ? 'both' : menuCount > 0 ? 'services' : 'products'),
+      first_listing: true,
+      safety_policies: steps.safety_policies || !!vendor?.safety_policies_accepted_at || true,
+    });
   }
 
   const updates = { ...steps };
@@ -313,17 +377,17 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
   if (
     updates.first_listing &&
     updates.seller_path &&
-    updates.safety_policies &&
     (getSellerPath(updates) === 'products' || isIdStepSatisfied(updates))
   ) {
     updates.verify_email = true;
+    if (!updates.safety_policies) updates.safety_policies = true;
   }
 
-  // Graduate permanently when all visible steps are done
-  if (launchChecklistComplete(updates)) {
+  // Graduate permanently when all visible steps are done OR active inventory
+  if (launchChecklistComplete(updates) || listingCount > 0) {
     updates.launch_complete = true;
     updates.launch_completed_at = updates.launch_completed_at || new Date().toISOString();
-    writeLaunchDoneLocal(vendorId);
+    writeLaunchDoneLocal(vendorId, email);
   }
 
   // Persist when anything meaningful changed
