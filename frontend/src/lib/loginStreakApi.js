@@ -2,7 +2,8 @@ import { supabase } from './supabaseClient';
 import { getTarotCard } from './tarotDeck';
 
 const LOCAL_KEY = 'ha_login_streak_v2';
-const FLOP_SESSION_PREFIX = 'ha_tarot_flop_shown_';
+/** Persist across logins — one flop per calendar day, not per session */
+const FLOP_DAY_PREFIX = 'ha_tarot_flop_day_';
 
 export function localDateKey(d = new Date()) {
   const y = d.getFullYear();
@@ -17,17 +18,6 @@ function yesterdayKey() {
 
 function emailKey(email) {
   return (email || '').trim().toLowerCase();
-}
-
-/** Stable 0–77 card pick for a given day (always a card, even if collection is full). */
-export function dailyTarotIndex(email, dateKey = localDateKey()) {
-  const s = `${emailKey(email)}|${dateKey}|hazel-tarot`;
-  let h = 2166136261;
-  for (let i = 0; i < s.length; i += 1) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return Math.abs(h) % 78;
 }
 
 function readLocalMap() {
@@ -65,40 +55,35 @@ function nextUncollectedIndex(cards) {
   return null;
 }
 
-function buildResult({ streak, cards, newCard, alreadyToday, reset, longest, scryingUnlocked, source }) {
-  return {
-    streak,
-    cards,
-    newCard,
-    todayCard: newCard,
-    alreadyToday: !!alreadyToday,
-    reset: !!reset,
-    longest: longest || streak,
-    scryingUnlocked: !!scryingUnlocked,
-    source: source || 'db',
-  };
+export function tarotFlopDayKey(email, dateKey = localDateKey()) {
+  return `${FLOP_DAY_PREFIX}${emailKey(email)}_${dateKey}`;
 }
 
-export function tarotFlopSessionKey(email, dateKey = localDateKey()) {
-  return `${FLOP_SESSION_PREFIX}${emailKey(email)}_${dateKey}`;
-}
-
-export function hasShownTarotFlopThisSession(email) {
-  if (!email || typeof sessionStorage === 'undefined') return false;
+/** True if the daily flop was already shown (or earned) today — survives logout/login. */
+export function hasShownTarotFlopToday(email) {
+  if (!email || typeof localStorage === 'undefined') return false;
   try {
-    return sessionStorage.getItem(tarotFlopSessionKey(email)) === '1';
+    return localStorage.getItem(tarotFlopDayKey(email)) === '1';
   } catch {
     return false;
   }
 }
 
-export function markTarotFlopShownThisSession(email) {
-  if (!email || typeof sessionStorage === 'undefined') return;
+export function markTarotFlopShownToday(email) {
+  if (!email || typeof localStorage === 'undefined') return;
   try {
-    sessionStorage.setItem(tarotFlopSessionKey(email), '1');
+    localStorage.setItem(tarotFlopDayKey(email), '1');
   } catch {
     /* ignore */
   }
+}
+
+// Back-compat aliases used by older handler
+export function hasShownTarotFlopThisSession(email) {
+  return hasShownTarotFlopToday(email);
+}
+export function markTarotFlopShownThisSession(email) {
+  markTarotFlopShownToday(email);
 }
 
 function computeStreakState(row, today) {
@@ -117,6 +102,8 @@ function computeStreakState(row, today) {
       reset: false,
       longest: Number(row?.longest_streak) || Number(row?.current_streak) || 1,
       scryingUnlocked: !!row?.scrying_unlocked || cards.length >= 39,
+      lastCardIndex:
+        cards.length > 0 ? cards[cards.length - 1] : null,
     };
   }
 
@@ -125,7 +112,6 @@ function computeStreakState(row, today) {
   } else if (last) {
     reset = true;
     streak = 1;
-    // Keep collected cards — streak breaks, collection does not wipe
   }
 
   return {
@@ -135,20 +121,8 @@ function computeStreakState(row, today) {
     reset,
     longest: Math.max(Number(row?.longest_streak) || 0, streak),
     scryingUnlocked: !!row?.scrying_unlocked || cards.length >= 39,
+    lastCardIndex: null,
   };
-}
-
-function pickCardForDay(email, today, cards, alreadyToday) {
-  // Prefer first uncollected for progression; fall back to stable daily card
-  let idx = nextUncollectedIndex(cards);
-  if (idx == null || alreadyToday) {
-    idx = dailyTarotIndex(email, today);
-  }
-  // On a fresh day, also prefer daily card if already collected all, else uncollected
-  if (!alreadyToday && nextUncollectedIndex(cards) != null) {
-    idx = nextUncollectedIndex(cards);
-  }
-  return idx;
 }
 
 async function persistDb(payload) {
@@ -159,9 +133,8 @@ async function persistDb(payload) {
 }
 
 /**
- * Record daily login + resolve today's tarot card.
- * Always returns a card object when possible so the login flop can show.
- * Falls back to localStorage if DB/RLS fails (common with hybrid auth).
+ * Record daily login. Awards at most ONE new tarot card per calendar day.
+ * Returns newCard only on the first login of the day; later logins get alreadyToday + no newCard.
  */
 export async function recordDailyLogin(email) {
   if (!email) return null;
@@ -178,8 +151,7 @@ export async function recordDailyLogin(email) {
       .eq('user_email', normalized)
       .maybeSingle();
     if (fetchErr) {
-      if (fetchErr.code === '42P01') dbOk = false;
-      else dbOk = false;
+      dbOk = false;
     } else {
       row = data;
     }
@@ -194,10 +166,42 @@ export async function recordDailyLogin(email) {
   const state = computeStreakState(row, today);
   let { streak, cards, reset, longest, scryingUnlocked, alreadyToday } = state;
 
-  const cardIndex = pickCardForDay(normalized, today, cards, alreadyToday);
-  const card = getTarotCard(cardIndex);
+  // Already logged in today → no new card, no modal
+  if (alreadyToday) {
+    const todayCardIdx =
+      state.lastCardIndex != null
+        ? state.lastCardIndex
+        : cards.length
+          ? cards[cards.length - 1]
+          : null;
+    // If UI somehow never marked shown, still don't invent a *new* card
+    return {
+      streak,
+      cards,
+      newCard: null,
+      todayCard: todayCardIdx != null ? getTarotCard(todayCardIdx) : null,
+      alreadyToday: true,
+      reset: false,
+      longest,
+      scryingUnlocked,
+      source: dbOk ? 'db' : 'local',
+    };
+  }
 
-  // Add to collection if new
+  // First login of the day: award next uncollected card (or recycle day card if complete)
+  let cardIndex = nextUncollectedIndex(cards);
+  if (cardIndex == null) {
+    // Full deck — re-show a deterministic daily pick but don't re-add
+    let h = 2166136261;
+    const s = `${normalized}|${today}|hazel-tarot`;
+    for (let i = 0; i < s.length; i += 1) {
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    cardIndex = Math.abs(h) % 78;
+  }
+
+  const card = getTarotCard(cardIndex);
   if (card && !cards.includes(cardIndex)) {
     cards = [...cards, cardIndex];
   }
@@ -216,31 +220,25 @@ export async function recordDailyLogin(email) {
 
   writeLocalRow(normalized, payload);
 
-  if (dbOk && !alreadyToday) {
+  if (dbOk) {
     try {
       await persistDb(payload);
     } catch {
-      // local already saved
-    }
-  } else if (dbOk && alreadyToday) {
-    // Refresh longest / scrying flags quietly
-    try {
-      await persistDb(payload);
-    } catch {
-      /* ignore */
+      /* local already saved */
     }
   }
 
-  return buildResult({
+  return {
     streak,
     cards,
     newCard: card,
-    alreadyToday,
+    todayCard: card,
+    alreadyToday: false,
     reset,
     longest,
     scryingUnlocked,
     source: dbOk ? 'db' : 'local',
-  });
+  };
 }
 
 export function hasScryingUnlock(streakRow) {

@@ -1,11 +1,20 @@
 import { supabase } from './supabaseClient';
 import { getAppOrigin } from './appUrl';
 
-/** Where Supabase should send users after they click the confirmation link. */
+/**
+ * Where Supabase / Resend links send users after they click confirm.
+ * Must match real App routes: /verify-email and /vendor-verify-email
+ * (aliases /email-verify and /vendor-email-verify redirect there).
+ */
 export function getEmailVerifyRedirect(role = 'customer') {
   const base = typeof window !== 'undefined' ? window.location.origin : getAppOrigin();
-  const path = role === 'vendor' ? '/vendor-email-verify' : '/email-verify';
+  const path = role === 'vendor' ? '/vendor-verify-email' : '/verify-email';
   return `${base}${path}`;
+}
+
+/** Canonical path helpers (for links in UI). */
+export function getEmailVerifyPath(role = 'customer') {
+  return role === 'vendor' ? '/vendor-verify-email' : '/verify-email';
 }
 
 const VERIFIED_CACHE_KEY = 'hazel-email-verified';
@@ -95,6 +104,73 @@ export async function checkEmailVerified(user) {
   }
 
   return false;
+}
+
+/**
+ * After magic-link / signup confirm lands, mark users.email_verified and local cache.
+ */
+export async function markEmailVerifiedInSystem(email) {
+  const normalized = email?.trim().toLowerCase();
+  if (!normalized) return false;
+  writeEmailVerifiedCache(normalized, true);
+  try {
+    await supabase
+      .from('users')
+      .update({ email_verified: true })
+      .ilike('email', normalized);
+  } catch {
+    /* column may not exist */
+  }
+  return true;
+}
+
+/**
+ * Process URL hash/query from Supabase confirm email (tokens in fragment or code).
+ * Returns { verified, email } when session is confirmed.
+ */
+export async function consumeEmailVerifyCallback() {
+  try {
+    // exchange code from PKCE if present
+    const url = new URL(window.location.href);
+    const code = url.searchParams.get('code');
+    if (code) {
+      const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+      if (!error && data?.session?.user) {
+        const email = data.session.user.email;
+        if (sessionUserIsVerified(data.session.user) || data.session.user.email) {
+          await markEmailVerifiedInSystem(email);
+          // clean code from URL without reload
+          url.searchParams.delete('code');
+          window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+          return { verified: true, email };
+        }
+      }
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const su = sessionData?.session?.user;
+    if (su?.email && (sessionUserIsVerified(su) || su.email_confirmed_at || su.confirmed_at)) {
+      await markEmailVerifiedInSystem(su.email);
+      return { verified: true, email: su.email };
+    }
+
+    // Hash tokens: detectSessionInUrl should already run; re-check
+    if (window.location.hash.includes('access_token') || window.location.hash.includes('type=signup') || window.location.hash.includes('type=magiclink')) {
+      // give client a moment then re-read
+      await new Promise((r) => setTimeout(r, 400));
+      const { data } = await supabase.auth.getSession();
+      const u = data?.session?.user;
+      if (u?.email) {
+        await markEmailVerifiedInSystem(u.email);
+        // strip hash noise
+        window.history.replaceState({}, '', window.location.pathname + window.location.search);
+        return { verified: true, email: u.email };
+      }
+    }
+  } catch (e) {
+    console.warn('[email-verify] callback', e);
+  }
+  return { verified: false, email: null };
 }
 
 /**

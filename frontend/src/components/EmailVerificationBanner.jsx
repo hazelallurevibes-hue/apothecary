@@ -67,6 +67,19 @@ export default function EmailVerificationBanner({
   }, [statusMessage]);
 
   useEffect(() => {
+    const onVerified = (ev) => {
+      const e = (ev?.detail?.email || user?.email || '').trim().toLowerCase();
+      if (!e) return;
+      if (user?.email && e !== user.email.trim().toLowerCase()) return;
+      writeEmailVerifiedCache(e, true);
+      setVerified(true);
+      onDismissForce?.();
+    };
+    window.addEventListener('hazel-email-verified', onVerified);
+    return () => window.removeEventListener('hazel-email-verified', onVerified);
+  }, [user?.email, onDismissForce]);
+
+  useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const sessionUser = session?.user;
       if (!sessionUser?.email || !user?.email) return;
@@ -155,7 +168,7 @@ export default function EmailVerificationBanner({
             {sending ? 'Sending…' : 'Resend email'}
           </button>
           <Link
-            to={isVendor ? '/vendor-email-verify' : '/verify-email'}
+            to={isVendor ? '/vendor-verify-email' : '/verify-email'}
             className="px-4 py-2 border border-[#4a1942] text-[#4a1942] rounded-2xl text-sm font-medium text-center hover:bg-white"
           >
             Verification page →

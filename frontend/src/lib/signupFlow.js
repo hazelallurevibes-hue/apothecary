@@ -48,7 +48,7 @@ export async function registerAuthUser(email, password, { captchaToken, role = '
     typeof window !== 'undefined' ? window.location.origin : getAppUrl();
 
   const options = {
-    emailRedirectTo: getEmailVerifyRedirect(role) || `${redirectBase}/email-verify`,
+    emailRedirectTo: getEmailVerifyRedirect(role) || `${redirectBase}/verify-email`,
   };
   if (captchaToken) options.captchaToken = captchaToken;
 

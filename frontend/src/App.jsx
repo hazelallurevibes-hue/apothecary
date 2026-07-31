@@ -427,14 +427,16 @@ function AppCore({ auth0 = null }) {
                 <Route path="/vendor-verification" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorVerification user={user} /></ProtectedRoute>
                 } />
+                {/* Canonical verification pages — magic-link redirects land here */}
                 <Route path="/verify-email" element={
-                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
-                    <EmailVerifyPage user={user} />
-                  </ProtectedRoute>
+                  <EmailVerifyPage user={user} onProfileUpdate={commitUserProfile} />
                 } />
                 <Route path="/vendor-verify-email" element={
-                  <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorEmailVerify user={user} /></ProtectedRoute>
+                  <VendorEmailVerify user={user} onProfileUpdate={commitUserProfile} />
                 } />
+                {/* Legacy aliases (old emails / edge function links) — avoid 404 */}
+                <Route path="/email-verify" element={<Navigate to="/verify-email" replace />} />
+                <Route path="/vendor-email-verify" element={<Navigate to="/vendor-verify-email" replace />} />
                 <Route path="/vendor-safety-acceptance" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorSafetyAcceptance user={user} /></ProtectedRoute>
                 } />

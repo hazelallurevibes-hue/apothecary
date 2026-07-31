@@ -35,7 +35,8 @@ Deno.serve(async (req: Request) => {
     });
     const cfg = await loadPlatformEmailConfig(admin);
 
-    const verifyPath = role === "vendor" ? "/vendor-email-verify" : "/email-verify";
+    // Must match live SPA routes (aliases also exist for legacy links)
+    const verifyPath = role === "vendor" ? "/vendor-verify-email" : "/verify-email";
     // Prefer request origin when provided (preview / custom domains)
     const origin = String(body.origin || cfg.siteUrl || "").replace(/\/$/, "");
     const redirectTo = `${origin}${verifyPath}`;

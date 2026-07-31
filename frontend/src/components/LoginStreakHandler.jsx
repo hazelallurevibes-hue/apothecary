@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import {
-  hasShownTarotFlopThisSession,
-  markTarotFlopShownThisSession,
+  hasShownTarotFlopToday,
+  markTarotFlopShownToday,
   recordDailyLogin,
 } from '../lib/loginStreakApi';
 import { trackAchievementEvent } from '../lib/achievements';
 import DailyTarotFlop from './DailyTarotFlop';
 
 /**
- * On login (once per browser session), draw and show the daily Sanctum tarot card.
+ * Daily Sanctum tarot — at most one card modal per calendar day.
+ * Re-login the same day does not award or show a new card.
  */
 export default function LoginStreakHandler({ user }) {
   const [flop, setFlop] = useState(null);
@@ -18,7 +19,6 @@ export default function LoginStreakHandler({ user }) {
     let active = true;
 
     const run = async () => {
-      // Still record streak every mount; only suppress modal if already shown this session
       let result = null;
       try {
         result = await recordDailyLogin(user.email);
@@ -40,20 +40,23 @@ export default function LoginStreakHandler({ user }) {
         const u = await trackAchievementEvent(user.email, 'streak_78').catch(() => null);
         if (u) window.dispatchEvent(new CustomEvent('hazel-achievement', { detail: u }));
       }
-      if (!result.alreadyToday) {
-        const u = await trackAchievementEvent(user.email, 'daily_login').catch(() => null);
-        if (u) window.dispatchEvent(new CustomEvent('hazel-achievement', { detail: u }));
+
+      // Only the first login of the day gets a new card + modal
+      if (result.alreadyToday || !result.newCard) {
+        // Ensure day flag is set so we never re-show tomorrow's logic incorrectly
+        if (result.alreadyToday) markTarotFlopShownToday(user.email);
+        return;
       }
 
-      const card = result.newCard || result.todayCard;
-      if (!card) return;
-      if (hasShownTarotFlopThisSession(user.email)) return;
+      if (hasShownTarotFlopToday(user.email)) return;
 
-      markTarotFlopShownThisSession(user.email);
-      setFlop({ ...result, newCard: card });
+      const u = await trackAchievementEvent(user.email, 'daily_login').catch(() => null);
+      if (u) window.dispatchEvent(new CustomEvent('hazel-achievement', { detail: u }));
+
+      markTarotFlopShownToday(user.email);
+      setFlop({ ...result, newCard: result.newCard });
     };
 
-    // Slight delay so layout paints first (modal doesn't fight route transitions)
     const t = window.setTimeout(run, 450);
     return () => {
       active = false;
@@ -66,7 +69,7 @@ export default function LoginStreakHandler({ user }) {
       flop={flop}
       onDismiss={() => {
         setFlop(null);
-        if (user?.email) markTarotFlopShownThisSession(user.email);
+        if (user?.email) markTarotFlopShownToday(user.email);
       }}
     />
   );
