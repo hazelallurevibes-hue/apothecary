@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getVendorContext } from '../lib/plans';
 import {
-  checkEmailVerified,
-  consumeEmailVerifyCallback,
-  markEmailVerifiedInSystem,
+  refreshEmailVerificationStatus,
   resendVerificationEmail,
   writeEmailVerifiedCache,
 } from '../lib/emailVerification';
@@ -22,34 +20,40 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
   const [displayEmail, setDisplayEmail] = useState(user?.email || '');
 
   const finalizeVerified = async (email) => {
-    const e = email || user?.email;
+    const e = (email || user?.email || '').trim();
     if (e) {
-      await markEmailVerifiedInSystem(e);
       writeEmailVerifiedCache(e, true);
       setDisplayEmail(e);
     }
     setVerified(true);
     setJustVerified(true);
+    setMessage('');
     if (vendorId) {
       await markOnboardingStep(vendorId, 'verify_email', true).catch(() => {});
     }
-    if (onProfileUpdate && user) {
-      onProfileUpdate({ ...user, email_verified: true });
+    if (onProfileUpdate) {
+      onProfileUpdate({ ...(user || {}), email: e || user?.email, email_verified: true });
     }
     window.dispatchEvent(new CustomEvent('hazel-email-verified', { detail: { email: e } }));
   };
 
   const refresh = async () => {
     setChecking(true);
-    const cb = await consumeEmailVerifyCallback();
-    if (cb.verified) {
-      await finalizeVerified(cb.email || user?.email);
-      setChecking(false);
-      return;
+    setMessage('');
+    try {
+      const result = await refreshEmailVerificationStatus(user);
+      if (result.verified) {
+        await finalizeVerified(result.email || user?.email);
+      } else {
+        setVerified(false);
+        setMessage(
+          result.message ||
+            'Still not verified. Open the link in your Hazel Allure email first, then try again.',
+        );
+      }
+    } catch (e) {
+      setMessage(e?.message || 'Could not check verification.');
     }
-    const ok = await checkEmailVerified(user);
-    if (ok) await finalizeVerified(user?.email);
-    else setVerified(false);
     setChecking(false);
   };
 
@@ -57,9 +61,12 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
     refresh();
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-        const u = session?.user;
-        if (u?.email && (u.email_confirmed_at || u.confirmed_at)) {
-          await finalizeVerified(u.email);
+        const result = await refreshEmailVerificationStatus({
+          ...user,
+          email: session?.user?.email || user?.email,
+        });
+        if (result.verified) {
+          await finalizeVerified(result.email);
           setChecking(false);
         }
       }
@@ -74,7 +81,7 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
     setMessage('');
     try {
       await resendVerificationEmail(user.email, { role: 'vendor' });
-      setMessage('Sent from Hazel Allure — check inbox and spam.');
+      setMessage('Sent from Hazel Allure — open the email, tap verify, then refresh status here.');
     } catch (e) {
       setMessage(e.message || 'Could not send email.');
     }
@@ -115,11 +122,16 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
             <div className="text-4xl mb-3">✉️</div>
             <p className="text-gray-700 mb-2">Confirm <strong>{user?.email}</strong> before continuing.</p>
             <p className="text-xs text-gray-500 mb-6">
-              Open the Hazel Allure email, tap verify, and you will return here with a success message.
+              Open the Hazel Allure email → Verify my email → then press refresh below.
             </p>
             <div className="flex flex-col gap-2">
-              <button type="button" onClick={refresh} className="py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50">
-                I verified — refresh status
+              <button
+                type="button"
+                onClick={refresh}
+                disabled={checking}
+                className="py-3 border-2 border-[#4a1942] rounded-2xl text-sm font-semibold text-[#4a1942] hover:bg-[#faf7f9] disabled:opacity-60"
+              >
+                {checking ? 'Checking…' : 'I verified — refresh status'}
               </button>
               <button
                 type="button"
@@ -132,7 +144,11 @@ export default function VendorEmailVerify({ user, onProfileUpdate }) {
             </div>
           </>
         )}
-        {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+        {message && (
+          <p className="mt-4 text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );

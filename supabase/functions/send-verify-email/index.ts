@@ -45,7 +45,8 @@ Deno.serve(async (req: Request) => {
     let actionLink: string | null = null;
     let linkError: string | null = null;
 
-    for (const type of ["magiclink", "signup", "invite"] as const) {
+    // Prefer signup confirmation (sets email_confirmed_at), then magiclink, then invite
+    for (const type of ["signup", "magiclink", "invite"] as const) {
       const { data, error } = await admin.auth.admin.generateLink({
         type,
         email,

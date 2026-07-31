@@ -43,7 +43,7 @@ async function enrichProfile(profile) {
 
   const { data: row } = await supabase
     .from('users')
-    .select('id, role, customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region')
+    .select('id, role, customer_plan, purchase_count, avatar, vendor_id, locale, region, preferred_currency, easy_mode_enabled, food_prefs_completed_at, diet_type, customer_region, email_verified')
     .ilike('email', profile.email.trim())
     .maybeSingle();
 
@@ -52,6 +52,7 @@ async function enrichProfile(profile) {
     profile.customer_plan = row.customer_plan || profile.customer_plan;
     profile.purchase_count = Number(row.purchase_count) || 0;
     profile.id = profile.id || row.id;
+    if (row.email_verified) profile.email_verified = true;
 
     if (row.avatar) profile.avatar = row.avatar;
     if (row.vendor_id) {

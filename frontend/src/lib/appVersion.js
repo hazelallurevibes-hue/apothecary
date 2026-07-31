@@ -2,15 +2,15 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.1';
+export const APP_VERSION = '1.8.2';
 
 export const UPDATE_SPLASH = {
-  title: 'Tarot once a day · verify email fix',
-  message: 'Daily tarot no longer re-draws every login. Email confirmation lands on the verification page with a clear success message.',
+  title: 'Email verify actually sticks',
+  message: '“I verified — refresh status” now confirms with the server so Hazel Allure recognizes your email.',
   highlights: [
-    'One tarot card per calendar day (not every login)',
-    'Verify email links go to /verify-email (no more 404)',
-    'Verified success message — system recognizes confirmation',
+    'Server-side email confirmation (Auth + account flag)',
+    'Refresh status works after opening the email link',
+    'Clear message if you still need to open the email first',
   ],
 };
 

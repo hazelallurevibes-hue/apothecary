@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getVendorContext } from '../lib/plans';
 import {
-  checkEmailVerified,
-  consumeEmailVerifyCallback,
-  markEmailVerifiedInSystem,
+  refreshEmailVerificationStatus,
   resendVerificationEmail,
   writeEmailVerifiedCache,
 } from '../lib/emailVerification';
@@ -12,8 +10,8 @@ import { markOnboardingStep } from '../lib/onboardingApi';
 import { supabase } from '../lib/supabaseClient';
 
 /**
- * Seeker (and shared) email verification landing page.
- * Magic-link redirects must land here — shows clear success when verified.
+ * Seeker email verification landing page.
+ * Magic-link + "I verified — refresh status" both force server-side recognition.
  */
 export default function EmailVerifyPage({ user, onProfileUpdate }) {
   const ctx = getVendorContext(user);
@@ -27,20 +25,23 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
   const [displayEmail, setDisplayEmail] = useState(user?.email || '');
 
   const finalizeVerified = async (email) => {
-    const e = email || user?.email;
+    const e = (email || user?.email || '').trim();
     if (e) {
-      await markEmailVerifiedInSystem(e);
       writeEmailVerifiedCache(e, true);
       setDisplayEmail(e);
     }
     setVerified(true);
     setJustVerified(true);
+    setMessage('');
     if (vendorId) {
       await markOnboardingStep(vendorId, 'verify_email', true).catch(() => {});
     }
-    // Notify parent so banners clear
-    if (onProfileUpdate && user) {
-      onProfileUpdate({ ...user, email_verified: true });
+    if (onProfileUpdate) {
+      onProfileUpdate({
+        ...(user || {}),
+        email: e || user?.email,
+        email_verified: true,
+      });
     }
     window.dispatchEvent(new CustomEvent('hazel-email-verified', { detail: { email: e } }));
   };
@@ -48,32 +49,35 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
   const refresh = async () => {
     setChecking(true);
     setMessage('');
-
-    // Prefer callback tokens from the confirmation email
-    const cb = await consumeEmailVerifyCallback();
-    if (cb.verified) {
-      await finalizeVerified(cb.email || user?.email);
-      setChecking(false);
-      return;
-    }
-
-    const ok = await checkEmailVerified(user);
-    if (ok) {
-      await finalizeVerified(user?.email);
-    } else {
+    try {
+      const result = await refreshEmailVerificationStatus(user);
+      if (result.verified) {
+        await finalizeVerified(result.email || user?.email);
+      } else {
+        setVerified(false);
+        setMessage(
+          result.message ||
+            'Still not verified. Open the link in your Hazel Allure email first, then try again.',
+        );
+      }
+    } catch (e) {
       setVerified(false);
+      setMessage(e?.message || 'Could not check verification. Try again.');
     }
     setChecking(false);
   };
 
   useEffect(() => {
     refresh();
-    // Also listen for auth events while on this page
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' || event === 'USER_UPDATED' || event === 'TOKEN_REFRESHED') {
-        const u = session?.user;
-        if (u?.email && (u.email_confirmed_at || u.confirmed_at)) {
-          await finalizeVerified(u.email);
+        // Re-run full refresh so server marks users.email_verified
+        const result = await refreshEmailVerificationStatus({
+          ...user,
+          email: session?.user?.email || user?.email,
+        });
+        if (result.verified) {
+          await finalizeVerified(result.email);
           setChecking(false);
         }
       }
@@ -92,10 +96,10 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
     try {
       await resendVerificationEmail(user.email, { role: isVendor ? 'vendor' : 'customer' });
       setMessage(
-        'Sent from Hazel Allure — check inbox and spam for “Verify your email — Hazel Allure”.',
+        'Sent from Hazel Allure — open that email and tap “Verify my email”, then return here and press refresh.',
       );
     } catch (e) {
-      setMessage(e.message || 'Could not send email. Try again in a few minutes, or contact support.');
+      setMessage(e.message || 'Could not send email. Try again in a few minutes.');
     }
     setSending(false);
   };
@@ -120,9 +124,7 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
             <p className="text-[10px] uppercase tracking-[0.2em] text-emerald-700 font-bold mb-2">
               {justVerified ? 'Just confirmed' : 'Verified'}
             </p>
-            <p className="font-semibold text-lg text-emerald-900">
-              Email verified
-            </p>
+            <p className="font-semibold text-lg text-emerald-900">Email verified</p>
             <p className="text-sm text-emerald-800 mt-2">
               Hazel Allure recognizes <strong>{displayEmail || user?.email || 'your email'}</strong> as confirmed.
               You can book, order, and message practitioners.
@@ -130,7 +132,7 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
             <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 text-left">
               <p className="font-medium">✓ System status: verified</p>
               <p className="text-xs mt-1 text-emerald-800/80">
-                This is saved on your account. The amber “verify email” banner will clear on the next page load.
+                Saved on your account. The amber verify banner will clear automatically.
               </p>
             </div>
             {isVendor ? (
@@ -161,15 +163,18 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
               Confirm <strong>{user?.email || 'your email'}</strong> to continue.
             </p>
             <p className="text-xs text-gray-500 mb-6">
-              Open the message from <strong>Hazel Allure</strong>, tap the verify button, and you will return here with a success confirmation.
+              1) Open the message from <strong>Hazel Allure</strong><br />
+              2) Tap <strong>Verify my email</strong><br />
+              3) You should land back here — or press the button below to sync status
             </p>
             <div className="flex flex-col gap-2">
               <button
                 type="button"
                 onClick={refresh}
-                className="py-3 border rounded-2xl text-sm font-medium hover:bg-gray-50"
+                disabled={checking}
+                className="py-3 border-2 border-[#4a1942] bg-white rounded-2xl text-sm font-semibold text-[#4a1942] hover:bg-[#faf7f9] disabled:opacity-60"
               >
-                I verified — refresh status
+                {checking ? 'Checking…' : 'I verified — refresh status'}
               </button>
               <button
                 type="button"
@@ -188,7 +193,11 @@ export default function EmailVerifyPage({ user, onProfileUpdate }) {
             </div>
           </>
         )}
-        {message && <p className="mt-4 text-sm text-gray-600">{message}</p>}
+        {message && (
+          <p className="mt-4 text-sm text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
