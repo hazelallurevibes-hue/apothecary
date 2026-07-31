@@ -17,39 +17,53 @@ async function tryBackend(path, options) {
   }
 }
 
-export async function fetchOrdersForUser(user) {
-  if (!user) return [];
-
-  const role = (user.role || '').toLowerCase();
-
-  const employeeVendorId = user.employee_vendor_id ? Number(user.employee_vendor_id) : null;
-  if (role === 'vendor' || employeeVendorId) {
-    const vendorId = Number(user.vendor_id || user.vendor || employeeVendorId);
-    if (!vendorId) return [];
+/** Orders this person bought (seeker view). Never vendor inbox. */
+export async function fetchBuyerOrders(user) {
+  if (!user?.id && !user?.email) return [];
+  const userId = user.id;
+  if (userId) {
     const { data, error } = await supabase
       .from('orders')
       .select('*')
-      .eq('vendor_id', vendorId)
+      .eq('user_id', userId)
       .order('id', { ascending: false });
     if (!error && data) return data;
-    return (await tryBackend(`/orders?vendorId=${vendorId}`)) || [];
   }
+  return (await tryBackend(`/orders?userId=${userId || ''}`)) || [];
+}
 
-  if (role === 'admin') {
+/** Incoming storefront orders (practitioner fulfillment). */
+export async function fetchVendorIncomingOrders(user) {
+  if (!user) return [];
+  const role = (user.role || '').toLowerCase();
+  const employeeVendorId = user.employee_vendor_id ? Number(user.employee_vendor_id) : null;
+  const vendorId = Number(user.vendor_id || user.vendor || employeeVendorId);
+
+  if (role === 'admin' && !vendorId) {
     const { data, error } = await supabase.from('orders').select('*').order('id', { ascending: false });
     if (!error && data) return data;
     return (await tryBackend('/orders')) || [];
   }
 
-  const userId = user.id;
+  if (!vendorId) return [];
   const { data, error } = await supabase
     .from('orders')
     .select('*')
-    .eq('user_id', userId)
+    .eq('vendor_id', vendorId)
     .order('id', { ascending: false });
-  if (!error && data?.length) return data;
+  if (!error && data) return data;
+  return (await tryBackend(`/orders?vendorId=${vendorId}`)) || [];
+}
 
-  return (await tryBackend(`/orders?userId=${userId}`)) || [];
+/** @deprecated Prefer fetchBuyerOrders or fetchVendorIncomingOrders for clear role separation. */
+export async function fetchOrdersForUser(user) {
+  if (!user) return [];
+  const role = (user.role || '').toLowerCase();
+  if (role === 'vendor' || user.employee_vendor_id) {
+    return fetchVendorIncomingOrders(user);
+  }
+  if (role === 'admin') return fetchVendorIncomingOrders(user);
+  return fetchBuyerOrders(user);
 }
 
 export async function placeOrder(orderData) {

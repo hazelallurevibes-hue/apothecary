@@ -160,10 +160,10 @@ export default function CustomerPortal({ user }) {
 
             <div className="flex gap-3">
               <Link
-                to="/orders"
+                to="/cart"
                 className="flex-1 py-2.5 text-center border rounded-2xl text-sm font-medium hover:bg-gray-50"
               >
-                Manage in Orders Page
+                Open cart &amp; checkout
               </Link>
               {showExpress && (
                 <button
@@ -187,7 +187,7 @@ export default function CustomerPortal({ user }) {
 
       <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-5">
         {showOrders && (
-          <Link to="/orders" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
+          <Link to="/cart" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
             <h3 className="font-semibold mb-4 flex items-center gap-2">Recent Orders <span className="text-xs bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">LIVE</span></h3>
             {loading ? (
               <p className="text-sm text-gray-500">Loading...</p>

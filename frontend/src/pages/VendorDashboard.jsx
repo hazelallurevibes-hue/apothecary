@@ -1076,7 +1076,7 @@ export default function VendorDashboard({ user }) {
             <Link to="/dashboard" className="px-4 py-2 border rounded-2xl text-sm font-medium hover:bg-white text-center">Platform Analytics</Link>
           )}
           {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
-            <Link to="/orders" className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium text-center">Manage Orders</Link>
+            <Link to="/vendor-orders" className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium text-center">Incoming orders</Link>
           )}
           {myVendorId && (
             <Link to={`/vendor/${myVendorId}`} className="px-4 py-2 border rounded-2xl text-sm font-medium text-center">Public Storefront</Link>
@@ -1345,7 +1345,7 @@ export default function VendorDashboard({ user }) {
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{openTasks}</div>
           <div className="text-xs text-[#4a1942] mt-1">View tasks →</div>
         </Link>
-        <Link to="/orders" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
+        <Link to="/vendor-orders" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
           <div className="text-sm text-gray-500">This Month Orders</div>
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{monthOrders}</div>
           <div className="text-xs text-emerald-600 mt-1 break-words">${monthRevenue.toFixed(2)} revenue · Manage →</div>
@@ -1890,7 +1890,7 @@ export default function VendorDashboard({ user }) {
       <div className="mb-8 bg-white border rounded-3xl p-8">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-bold text-xl">Incoming Orders</h3>
-          <Link to="/orders" className="text-sm text-[#4a1942] font-medium">Full order management →</Link>
+          <Link to="/vendor-orders" className="text-sm text-[#4a1942] font-medium">Full order management →</Link>
         </div>
         {(analytics?.recentOrders?.length ?? 0) > 0 ? (
           <div className="overflow-x-auto">

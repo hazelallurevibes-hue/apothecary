@@ -126,6 +126,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
+      { label: 'My Cart', to: '/cart', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
       { label: 'Favorites', to: '/favorites', perm: 'favorites' },
       { label: 'Support & Help', to: '/support', perm: 'support' },
@@ -166,7 +167,8 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'ID Verification', to: '/vendor-verification', perm: null },
       { label: 'Tax & SaaS Fees', to: '/vendor-taxes', perm: 'sell' },
       { label: 'Performance & Analytics', to: '/vendor-dashboard#analytics', perm: 'analytics' },
-      { label: 'Orders', to: '/orders', perm: 'orders' },
+      { label: 'Incoming orders', to: '/vendor-orders', perm: 'orders' },
+      { label: 'My shopping cart', to: '/cart', perm: null },
       { label: 'Tasks', to: '/tasks', perm: 'tasks' },
       { label: 'Invoices', to: '/invoices', perm: 'invoices' },
       { label: 'Documents', to: '/documents', perm: 'documents' },
@@ -275,11 +277,12 @@ export default function Layout({ user, onLogout, children }) {
                 </button>
               )}
               <LanguageSwitcher compact />
-              {isCustomer && (
+              {/* Cart is always the seeker buy flow — never vendor fulfillment */}
+              {(isCustomer || isGuest || isVendor || !user) && (
                 <Link
-                  to="/orders"
+                  to="/cart"
                   className="flex items-center gap-x-1 text-sm px-2.5 sm:px-3 py-1.5 bg-[#f5f0e8] hover:bg-white border border-[#e8e4f0] rounded-3xl transition"
-                  title="Cart & Orders"
+                  title="Your shopping cart"
                 >
                   🛒 <span className="font-semibold tabular-nums">{cart.reduce((s, i) => s + (i.qty || 1), 0)}</span>
                   {total > 0 && <span className="hidden lg:inline text-xs text-[#4a1942] ml-0.5 font-medium">${total.toFixed(0)}</span>}
@@ -365,7 +368,9 @@ export default function Layout({ user, onLogout, children }) {
                 <div className="text-xs font-semibold text-gray-400 px-3 pt-3">Practitioner</div>
                 <NavLink to="/vendor-dashboard" onNavigate={closeMobile}>Analytics &amp; Listings</NavLink>
                 <NavLink to={ACCOUNT_PROFILE_PATH} onNavigate={closeMobile}>Edit Profile</NavLink>
-                <NavLink to="/orders" onNavigate={closeMobile}>Orders</NavLink>
+                <NavLink to="/cart" onNavigate={closeMobile}>Cart</NavLink>
+                {isCustomer && <NavLink to="/orders" onNavigate={closeMobile}>My Orders</NavLink>}
+                {isVendor && <NavLink to="/vendor-orders" onNavigate={closeMobile}>Incoming orders</NavLink>}
                 <NavLink to="/messages" onNavigate={closeMobile}>Messages</NavLink>
                 <NavLink to="/storefront-settings" onNavigate={closeMobile}>Storefront Settings</NavLink>
                 <NavLink to={STOREFRONT_SETTINGS_PATH} onNavigate={closeMobile}>Storefront Photos</NavLink>

@@ -1,244 +1,115 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
-import { fetchOrdersForUser, placeOrder as placeOrderApi } from '../lib/ordersApi';
-import { buildTaxedOrderPayload } from '../lib/checkoutTax';
-import { formatOrderSuccessMessage } from '../lib/whimsyMessages';
-import { offerSpellReceiptDownload } from '../lib/spellReceiptExport';
-import { getVendorContext, vendorCan } from '../lib/plans';
-import { CustomerPickupQR, VendorPickupScanner } from '../components/PickupQRPanel';
+import { fetchBuyerOrders } from '../lib/ordersApi';
+import { CustomerPickupQR } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
-import CheckoutDeliveryPicker, { formatDeliverySuccessNote } from '../components/CheckoutDeliveryPicker';
 import ReorderPanel from '../components/ReorderPanel';
 import ReferralInviteStrip from '../components/ReferralInviteStrip';
 import SubscribeSaveStrip from '../components/SubscribeSaveStrip';
 
+/**
+ * Seeker “My Orders” — purchase history only.
+ * Cart / checkout lives at /cart. Vendor fulfillment lives at /vendor-orders.
+ */
 export default function Orders({ user }) {
   const [orders, setOrders] = useState([]);
-  const [placing, setPlacing] = useState(false);
-  const [checkoutStep, setCheckoutStep] = useState(1); // 1: review, 2: delivery/address, 3: payment, 4: confirm
-  const [address, setAddress] = useState({ street: '', city: '', zip: '' });
-  const [deliveryMethod, setDeliveryMethod] = useState('pickup');
-  const [paymentMethod, setPaymentMethod] = useState('card');
-  const [applyLoyalty, setApplyLoyalty] = useState(false);
-
-
-  const { cart, removeFromCart, clearCart, total } = useCart();
-
-  const loyaltyPoints = 120; // mock from previous loyalty system
-  const loyaltyDiscount = applyLoyalty ? Math.min(5, Math.floor(total * 0.1)) : 0; // 10% up to $5 mock
-  const finalTotal = Math.max(0, total - loyaltyDiscount);
-
-  const vendorCtx = getVendorContext(user);
-  const isVendor = user?.role?.toLowerCase() === 'vendor' || !!vendorCtx;
+  const { cart } = useCart();
+  const cartCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
 
   useEffect(() => {
     if (!user) return;
-    fetchOrdersForUser(user).then(setOrders).catch(() => setOrders([]));
+    fetchBuyerOrders(user).then(setOrders).catch(() => setOrders([]));
   }, [user]);
 
   const getStatusColor = (status) => {
-    if (status === 'delivered') return 'bg-emerald-100 text-emerald-700';
+    if (status === 'delivered' || status === 'fulfilled') return 'bg-emerald-100 text-emerald-700';
     if (status === 'preparing') return 'bg-amber-100 text-amber-700';
     return 'bg-blue-100 text-blue-700';
   };
 
-  const handlePlaceOrder = async () => {
-    if (cart.length === 0 || !user) return;
-
-    setPlacing(true);
-
-    const vendorId = cart[0].vendor_id;
-    // Mock: in real, fetch vendor to see if they have stripe/paypal linked
-    const orderData = await buildTaxedOrderPayload({
-      user_id: user.id,
-      vendor_id: vendorId,
-      items: cart.map(i => ({ name: i.name, qty: i.qty || 1, price: i.price })),
-      subtotal: finalTotal,
-      total: finalTotal,
-      address: `${address.street}, ${address.city} ${address.zip}`,
-      delivery_method: deliveryMethod,
-      payment_method: paymentMethod,
-      loyalty_applied: applyLoyalty ? loyaltyDiscount : 0,
-      tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner' : '',
-    }, vendorId);
-
-    try {
-      await placeOrderApi(orderData);
-      const baseMsg = `Order placed! Total: $${orderData.total.toFixed(2)}${loyaltyDiscount ? ` (saved $${loyaltyDiscount} with loyalty)` : ''}${formatDeliverySuccessNote(deliveryMethod)}`;
-      offerSpellReceiptDownload({
-        successMessage: formatOrderSuccessMessage(baseMsg),
-        total: orderData.total,
-        items: cart,
-        deliveryMethod,
-        userName: user?.name,
-        userEmail: user?.email,
-        familiarId: user?.chosen_familiar || null,
-        source: 'Hazel Allure Orders',
-      });
-      clearCart();
-      setCheckoutStep(1);
-      setAddress({ street: '', city: '', zip: '' });
-
-      const fresh = await fetchOrdersForUser(user);
-      setOrders(fresh);
-    } catch (e) {
-      alert(e.message || 'Error placing order.');
-    }
-    setPlacing(false);
-  };
-
-  const nextStep = () => setCheckoutStep(s => Math.min(4, s + 1));
-  const prevStep = () => setCheckoutStep(s => Math.max(1, s - 1));
-
   return (
-    <div>
-      <h1 className="text-4xl font-bold tracking-tight mb-6">
-        {isVendor ? 'Vendor Orders — Fulfillment' : 'My Orders & Checkout'}
-      </h1>
-      {isVendor && (
-        <>
-          <p className="text-gray-600 mb-4 -mt-4">Incoming orders for your storefront. Update status in the admin portal or mark fulfilled when complete.</p>
-          {vendorCan(user, 'pickup_qr') && <VendorPickupScanner user={user} />}
-        </>
-      )}
-
-      {!isVendor && (
-        <>
-          <ReorderPanel orders={orders} />
-          <SubscribeSaveStrip user={user} className="mb-6" />
-          <ReferralInviteStrip className="mb-6" />
-        </>
-      )}
-
-      {/* Current Cart + Fluid Multi-Step Checkout */}
-      {!isVendor && cart.length > 0 && (
-        <div className="bg-white border rounded-3xl p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="font-semibold text-xl">Checkout</h2>
-            <div className="font-semibold text-lg">Total: ${finalTotal.toFixed(2)} {loyaltyDiscount > 0 && <span className="text-green-600 text-sm">(−${loyaltyDiscount} loyalty)</span>}</div>
-          </div>
-
-          {/* Steps indicator */}
-          <div className="flex mb-6 text-sm">
-            {[1,2,3,4].map(s => (
-              <div key={s} className={`flex-1 text-center py-1 ${checkoutStep === s ? 'font-bold border-b-2 border-[#4a1942]' : 'text-gray-400'}`}>
-                {s === 1 && 'Review Cart'} {s === 2 && 'Delivery & Address'} {s === 3 && 'Payment'} {s === 4 && 'Confirm'}
-              </div>
-            ))}
-          </div>
-
-          {/* Step 1: Review */}
-          {checkoutStep === 1 && (
-            <>
-              <div className="space-y-3 mb-6">
-                {cart.map((item) => (
-                  <div key={item.cartId} className="flex justify-between items-center border-b pb-3">
-                    <div>
-                      <div className="font-medium">{item.name} × {item.qty || 1}</div>
-                      <div className="text-sm text-gray-500">${(item.price * (item.qty || 1)).toFixed(2)} from {item.vendor_name || 'vendor'}</div>
-                    </div>
-                    <button onClick={() => removeFromCart(item.cartId)} className="text-red-500 text-sm">Remove</button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-3">
-                <button onClick={nextStep} className="flex-1 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">Continue to Delivery</button>
-                <button onClick={clearCart} className="px-6 border rounded-3xl">Clear Cart</button>
-              </div>
-            </>
-          )}
-
-          {/* Step 2: Delivery & Address + Connected Apps */}
-          {checkoutStep === 2 && (
-            <div className="space-y-4">
-              <CheckoutDeliveryPicker
-                value={deliveryMethod}
-                onChange={setDeliveryMethod}
-                variant="radios"
-                selectId="orders-delivery"
-              />
-              {deliveryMethod === 'shipping' && (
-                <div className="bg-[#f5f0e8] p-3 rounded-2xl text-sm text-gray-700">
-                  Your practitioner will confirm shipping cost and timing after you place the order.
-                </div>
-              )}
-              <div>
-                <label className="text-sm">Delivery Address</label>
-                <input placeholder="Street" value={address.street} onChange={e=>setAddress({...address, street:e.target.value})} className="w-full border p-3 rounded-2xl mt-1" />
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                  <input placeholder="City" value={address.city} onChange={e=>setAddress({...address, city:e.target.value})} className="border p-3 rounded-2xl" />
-                  <input placeholder="ZIP" value={address.zip} onChange={e=>setAddress({...address, zip:e.target.value})} className="border p-3 rounded-2xl" />
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={prevStep} className="flex-1 py-3 border rounded-3xl">Back</button>
-                <button onClick={nextStep} className="flex-1 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">Continue to Payment</button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Payment (uses vendor linked accounts if available) */}
-          {checkoutStep === 3 && (
-            <div>
-              <div className="mb-4">
-                <label className="text-sm font-medium">Payment Method (will route to vendor's linked account if set)</label>
-                <div className="mt-2 space-y-2">
-                  <label className="flex items-center gap-2"><input type="radio" name="pay" value="card" checked={paymentMethod==='card'} onChange={()=>setPaymentMethod('card')} /> Credit/Debit Card (via vendor Stripe if linked)</label>
-                  <label className="flex items-center gap-2"><input type="radio" name="pay" value="paypal" checked={paymentMethod==='paypal'} onChange={()=>setPaymentMethod('paypal')} /> PayPal (via vendor PayPal if linked)</label>
-                  <label className="flex items-center gap-2"><input type="radio" name="pay" value="cash" checked={paymentMethod==='cash'} onChange={()=>setPaymentMethod('cash')} /> Cash on Delivery / Pickup</label>
-                </div>
-              </div>
-              <div className="mb-4">
-                <label className="flex items-center gap-2 text-sm">
-                  <input type="checkbox" checked={applyLoyalty} onChange={e=>setApplyLoyalty(e.target.checked)} /> Apply Loyalty Points (save up to ${loyaltyDiscount} from your {loyaltyPoints} points)
-                </label>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={prevStep} className="flex-1 py-3 border rounded-3xl">Back</button>
-                <button onClick={nextStep} className="flex-1 py-3 bg-[#4a1942] text-white rounded-3xl font-semibold">Review &amp; Confirm</button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Confirm */}
-          {checkoutStep === 4 && (
-            <div>
-              <div className="bg-gray-50 p-4 rounded-2xl mb-4 text-sm">
-                <div><strong>Fulfillment:</strong> {deliveryMethod === 'pickup' ? 'Local pickup' : 'Shipping / delivery'}</div>
-                <div><strong>Address:</strong> {address.street}, {address.city} {address.zip}</div>
-                <div><strong>Payment:</strong> {paymentMethod} {paymentMethod !== 'cash' ? '(to vendor linked account)' : ''}</div>
-                <div><strong>Total after loyalty:</strong> ${finalTotal.toFixed(2)}</div>
-              </div>
-              <div className="flex gap-3">
-                <button onClick={prevStep} className="flex-1 py-3 border rounded-3xl">Back</button>
-                <button onClick={handlePlaceOrder} disabled={placing} className="flex-1 py-3 bg-emerald-600 text-white rounded-3xl font-semibold disabled:opacity-60">
-                  {placing ? 'Processing...' : 'Place Order & Pay'}
-                </button>
-              </div>
-            </div>
-          )}
+    <div className="max-w-3xl mx-auto pb-12">
+      <div className="mb-6">
+        <p className="text-[10px] uppercase tracking-[0.2em] text-[#c9a227] font-bold">Seeker</p>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#4a1942] heading-font">
+          My orders
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Your purchases and pickups. To buy more items, use your cart.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Link
+            to="/cart"
+            className="text-xs px-3 py-1.5 rounded-full bg-[#4a1942] text-white font-semibold"
+          >
+            🛒 Cart{cartCount > 0 ? ` (${cartCount})` : ''} →
+          </Link>
+          <Link to="/" className="text-xs px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
+            Keep shopping
+          </Link>
         </div>
+      </div>
+
+      {cartCount > 0 && (
+        <Link
+          to="/cart"
+          className="mb-6 flex items-center justify-between gap-3 rounded-2xl border-2 border-[#4a1942]/20 bg-[#faf7f9] p-4 hover:border-[#4a1942]/40 transition"
+        >
+          <div>
+            <p className="font-semibold text-[#4a1942] text-sm">You have {cartCount} item{cartCount === 1 ? '' : 's'} in your cart</p>
+            <p className="text-xs text-gray-500">Finish checkout when you&apos;re ready</p>
+          </div>
+          <span className="text-sm font-semibold text-[#4a1942]">Checkout →</span>
+        </Link>
       )}
 
-      {/* Past Orders */}
+      <ReorderPanel orders={orders} />
+      <SubscribeSaveStrip user={user} className="mb-6" />
+      <ReferralInviteStrip className="mb-6" />
+
       <div className="bg-white border rounded-3xl p-6">
-        <h2 className="font-semibold text-xl mb-4">{isVendor ? 'All Incoming Orders' : 'Past Orders'}</h2>
-        {orders.length === 0 && <p className="text-gray-500">No orders yet.</p>}
-        {orders.map(order => (
+        <h2 className="font-semibold text-xl mb-4">Past orders</h2>
+        {orders.length === 0 && (
+          <p className="text-gray-500 text-sm">
+            No orders yet.{' '}
+            <Link to="/" className="text-[#4a1942] underline font-medium">
+              Browse the apothecary
+            </Link>
+          </p>
+        )}
+        {orders.map((order) => (
           <div key={order.id} className="border-b py-3 last:border-0">
-            <div className="flex justify-between">
+            <div className="flex justify-between gap-2">
               <div>
-                <div className="font-medium">Order #{order.id} • {order.date}</div>
-                <div className="text-sm text-gray-500">${order.total} • {(() => { try { const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items; return Array.isArray(items) ? items.length : 0; } catch { return 0; } })()} items</div>
-                {order.address && <div className="text-xs">To: {order.address}</div>}
+                <div className="font-medium">
+                  Order #{order.id} • {order.date}
+                </div>
+                <div className="text-sm text-gray-500">
+                  ${order.total} •{' '}
+                  {(() => {
+                    try {
+                      const items = typeof order.items === 'string' ? JSON.parse(order.items) : order.items;
+                      return Array.isArray(items) ? items.length : 0;
+                    } catch {
+                      return 0;
+                    }
+                  })()}{' '}
+                  items
+                </div>
+                {order.address && <div className="text-xs text-gray-500">To: {order.address}</div>}
               </div>
-              <span className={`px-3 py-1 text-xs rounded-3xl self-start ${getStatusColor(order.status)}`}>{order.status}</span>
+              <span className={`px-3 py-1 text-xs rounded-3xl self-start ${getStatusColor(order.status)}`}>
+                {order.status}
+              </span>
             </div>
-            {order.delivery_method === 'shipping' && <div className="text-xs mt-1 text-blue-600">Shipping — practitioner will follow up</div>}
-            {!isVendor && <CustomerPickupQR order={order} />}
+            {order.delivery_method === 'shipping' && (
+              <div className="text-xs mt-1 text-blue-600">Shipping — practitioner will follow up</div>
+            )}
+            <CustomerPickupQR order={order} />
             <OrderModificationCard
               order={order}
-              isVendor={isVendor}
+              isVendor={false}
               onUpdated={(updated) => setOrders((prev) => prev.map((o) => (o.id === updated.id ? updated : o)))}
             />
           </div>

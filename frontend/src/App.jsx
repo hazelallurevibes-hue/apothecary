@@ -16,6 +16,8 @@ const Marketplace = lazyWithRetry(() => import('./pages/Marketplace'));
 const TopVendors = lazyWithRetry(() => import('./pages/TopVendors'));
 const CustomerPortal = lazyWithRetry(() => import('./pages/CustomerPortal'));
 const Orders = lazyWithRetry(() => import('./pages/Orders'));
+const CartPage = lazyWithRetry(() => import('./pages/CartPage'));
+const VendorOrders = lazyWithRetry(() => import('./pages/VendorOrders'));
 const Favorites = lazyWithRetry(() => import('./pages/Favorites'));
 const Support = lazyWithRetry(() => import('./pages/Support'));
 const Invoices = lazyWithRetry(() => import('./pages/Invoices'));
@@ -385,9 +387,17 @@ function AppCore({ auth0 = null }) {
                     <CustomerPortal user={user} />
                   </ProtectedRoute>
                 } />
+                {/* Seeker buy flow — never vendor fulfillment */}
+                <Route path="/cart" element={<CartPage user={user} />} />
                 <Route path="/orders" element={
-                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']} customerPermission="track_orders">
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin', 'guest']}>
                     <Orders user={user} />
+                  </ProtectedRoute>
+                } />
+                {/* Practitioner fulfillment only */}
+                <Route path="/vendor-orders" element={
+                  <ProtectedRoute allowedRoles={['vendor', 'admin']}>
+                    <VendorOrders user={user} />
                   </ProtectedRoute>
                 } />
                 <Route path="/favorites" element={
