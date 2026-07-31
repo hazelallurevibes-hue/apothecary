@@ -26,10 +26,13 @@ import PractitionerSlotManager from '../components/PractitionerSlotManager';
 import PractitionerBookingsPanel from '../components/PractitionerBookingsPanel';
 import VendorCertificateStudio from '../components/VendorCertificateStudio';
 import VendorCollegeStudio from '../components/VendorCollegeStudio';
+import VendorMentorAnalytics from '../components/VendorMentorAnalytics';
+import ProToolLock from '../components/ProToolLock';
 
 const TABS = [
   { id: 'courses', label: 'Courses', icon: '📚' },
   { id: 'sessions', label: 'Live & 1:1', icon: '📡' },
+  { id: 'insights', label: 'Mentorship & insights', icon: '📊' },
   { id: 'honors', label: 'Credentials & honors', icon: '📜' },
   { id: 'academics', label: 'College studio', icon: '🏛️' },
   { id: 'guide', label: 'Learning design', icon: '✨' },
@@ -598,12 +601,30 @@ export default function VendorTeaching({ user }) {
         </div>
       )}
 
+      {activeTab === 'insights' && (
+        <VendorMentorAnalytics user={user} vendorId={vendorId} />
+      )}
+
       {activeTab === 'honors' && (
-        <VendorCertificateStudio user={user} vendorId={vendorId} />
+        <ProToolLock
+          user={user}
+          planType="vendor"
+          title="Credentials & honors"
+          blurb="Issue certificates and honors from the Teaching Sanctum — Pro Practitioner tool."
+        >
+          <VendorCertificateStudio user={user} vendorId={vendorId} />
+        </ProToolLock>
       )}
 
       {activeTab === 'academics' && (
-        <VendorCollegeStudio user={user} vendorId={vendorId} courses={courses} />
+        <ProToolLock
+          user={user}
+          planType="vendor"
+          title="College studio"
+          blurb="Syllabus, scholarships, TAs, and semester tools — Pro Teaching suite."
+        >
+          <VendorCollegeStudio user={user} vendorId={vendorId} courses={courses} />
+        </ProToolLock>
       )}
 
       {activeTab === 'guide' && (

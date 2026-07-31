@@ -75,8 +75,28 @@ export default function CustomerPortal({ user }) {
       </div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-2">
         <div>
-          <h1 className="text-4xl font-bold tracking-tight">Customer Portal</h1>
-          <p className="mt-2 text-gray-600">Your personal hub for orders, favorites, and support.</p>
+          <h1 className="text-4xl font-bold tracking-tight text-[#4a1942]">Seeker Portal</h1>
+          <p className="mt-2 text-gray-600">Your personal hub for orders, favorites, sessions, and support.</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link
+              to="/sanctum-student-hub"
+              className="text-xs px-3 py-1.5 rounded-full bg-[#4a1942] text-white font-semibold"
+            >
+              Student hub
+            </Link>
+            <Link
+              to="/gathering"
+              className="text-xs px-3 py-1.5 rounded-full border border-[#4a1942]/20 text-[#4a1942] font-medium"
+            >
+              Classes near you
+            </Link>
+            <Link
+              to="/courses"
+              className="text-xs px-3 py-1.5 rounded-full border border-[#4a1942]/20 text-[#4a1942] font-medium"
+            >
+              Teaching Sanctum
+            </Link>
+          </div>
         </div>
         <Link to={ACCOUNT_PROFILE_PATH} className="flex items-center gap-3 sm:text-right hover:opacity-90 transition self-start sm:self-auto">
           <img

@@ -34,7 +34,7 @@ export function enrichCourseWithTeachMeta(course) {
 export async function fetchPublishedCourses({ vendorId, category, search } = {}) {
   let q = supabase
     .from('vendor_courses')
-    .select('*, vendors(id, name, logo)')
+    .select('*, vendors(id, name, logo, city, state, region, zip, latitude, longitude, street_address)')
     .eq('published', true)
     .eq('approved', 1)
     .order('featured', { ascending: false })
@@ -43,12 +43,42 @@ export async function fetchPublishedCourses({ vendorId, category, search } = {})
   if (vendorId) q = q.eq('vendor_id', vendorId);
   if (category) q = q.eq('category', category);
   const { data, error } = await q;
+  // Fallback if optional vendor location columns are missing on older DBs
+  if (error && /column|does not exist|42703/i.test(error.message || '')) {
+    const retry = await supabase
+      .from('vendor_courses')
+      .select('*, vendors(id, name, logo)')
+      .eq('published', true)
+      .eq('approved', 1)
+      .order('featured', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (retry.error) throw retry.error;
+    let rows = retry.data || [];
+    if (vendorId) rows = rows.filter((c) => Number(c.vendor_id) === Number(vendorId));
+    if (category) rows = rows.filter((c) => c.category === category);
+    if (search?.trim()) {
+      const s = search.toLowerCase();
+      rows = rows.filter(
+        (c) =>
+          c.title?.toLowerCase().includes(s) ||
+          c.description?.toLowerCase().includes(s) ||
+          c.vendors?.name?.toLowerCase().includes(s),
+      );
+    }
+    return rows.map(enrichCourseWithTeachMeta);
+  }
   if (error) throw error;
   let rows = data || [];
   if (search?.trim()) {
     const s = search.toLowerCase();
     rows = rows.filter(
-      (c) => c.title?.toLowerCase().includes(s) || c.description?.toLowerCase().includes(s),
+      (c) =>
+        c.title?.toLowerCase().includes(s) ||
+        c.description?.toLowerCase().includes(s) ||
+        c.vendors?.name?.toLowerCase().includes(s) ||
+        c.vendors?.city?.toLowerCase().includes(s) ||
+        c.vendors?.state?.toLowerCase().includes(s) ||
+        c.vendors?.region?.toLowerCase().includes(s),
     );
   }
   return rows.map(enrichCourseWithTeachMeta);

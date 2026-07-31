@@ -19,10 +19,10 @@ export default function ProMemberActiveStrip({ compact = false }) {
             <p className="text-sm text-gray-600 mt-0.5">{t('pro.hub.member.subtitle')}</p>
           </div>
           <Link
-            to="/pro-upgrade?type=customer"
+            to="/sanctum-student-hub"
             className="shrink-0 px-4 py-2 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-xl text-sm font-semibold hover:bg-[#fff9eb]"
           >
-            {t('pro.hub.featuresHeading')} →
+            Your tools →
           </Link>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
@@ -51,10 +51,10 @@ export default function ProMemberActiveStrip({ compact = false }) {
           <p className="text-sm text-gray-600 mt-2 leading-relaxed">{t('pro.hub.member.subtitle')}</p>
         </div>
         <Link
-          to="/pro-upgrade?type=customer"
+          to="/account-settings"
           className="inline-flex items-center justify-center px-8 py-3 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-2xl font-semibold hover:bg-[#fff9eb] transition shrink-0"
         >
-          {t('pro.hub.featuresHeading')} →
+          Manage membership →
         </Link>
       </div>
       <ul className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

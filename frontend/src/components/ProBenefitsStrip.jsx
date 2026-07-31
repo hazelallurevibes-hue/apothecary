@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { useLocale } from '../i18n';
-import { getCustomerContext, getVendorContext, isCustomerPro, isProPlan, isVendorPro } from '../lib/plans';
+import { getCustomerContext, getVendorContext, isCustomerPro, isVendorPro } from '../lib/plans';
+import { isCustomerProUser, isVendorProUser } from '../lib/proStatus';
 import ProMemberActiveStrip from './ProMemberActiveStrip';
 import ProVendorActiveStrip from './ProVendorActiveStrip';
 
@@ -30,16 +31,17 @@ export default function ProBenefitsStrip({ user, variant = 'auto', compact = fal
   else if (variant !== 'customer' && (role === 'vendor' || vendorCtx?.isOwner)) planType = 'vendor';
   else planType = 'customer';
 
+  // Never show upgrade ads to active Pro members (any signal)
   const isPro =
     planType === 'vendor'
-      ? isVendorPro(user)
-      : isCustomerPro(user);
+      ? isVendorPro(user) || isVendorProUser(user)
+      : isCustomerPro(user) || isCustomerProUser(user);
 
   if (isPro && planType === 'customer') {
-    return <ProMemberActiveStrip compact={compact} />;
+    return compact ? null : <ProMemberActiveStrip compact={false} />;
   }
   if (isPro && planType === 'vendor') {
-    return <ProVendorActiveStrip compact={compact} />;
+    return compact ? null : <ProVendorActiveStrip compact={false} />;
   }
 
   const benefits = planType === 'vendor' ? VENDOR_BENEFITS : CUSTOMER_BENEFITS;

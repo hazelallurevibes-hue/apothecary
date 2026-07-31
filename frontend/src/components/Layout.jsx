@@ -118,14 +118,14 @@ export default function Layout({ user, onLogout, children }) {
     </>
   );
 
-  // Magic Sanctum stays in main nav only — avoid a second dead/duplicate entry under My Account
+  // Magic Sanctum stays in main nav only. Courses live under Teaching Sanctum main link — not duplicated here.
   const customerMenu = useMemo(() => {
     const items = [
       { label: 'Seeker Portal', to: '/customer-portal', perm: null },
+      { label: 'Student hub', to: '/sanctum-student-hub', perm: null },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
-      { label: 'Teaching Sanctum courses', to: '/courses', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
       { label: 'Favorites', to: '/favorites', perm: 'favorites' },
       { label: 'Support & Help', to: '/support', perm: 'support' },
@@ -146,6 +146,7 @@ export default function Layout({ user, onLogout, children }) {
   const vendorSellMenu = useMemo(() => {
     const items = [
       { label: 'Add Listings', to: '/vendor-dashboard', perm: 'sell' },
+      { label: 'Teaching Studio', to: '/vendor-teaching', perm: 'teaching_platform' },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Storefront Photos', to: STOREFRONT_SETTINGS_PATH, perm: 'bio_edit' },
       { label: 'Storefront Settings', to: '/storefront-settings', perm: 'bio_edit' },
@@ -159,6 +160,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Account Settings', to: '/account-settings', perm: null },
       { label: 'Messages', to: '/messages', perm: 'sell' },
       { label: 'Practitioner lounge', to: '/vendor-gathering', perm: 'vendor_gathering' },
+      { label: 'Mentorship insights', to: '/vendor-teaching', perm: 'teaching_platform' },
       { label: 'Email Campaigns', to: '/vendor-campaigns', perm: null },
       { label: 'Launch Checklist', to: '/onboarding', perm: null },
       { label: 'ID Verification', to: '/vendor-verification', perm: null },

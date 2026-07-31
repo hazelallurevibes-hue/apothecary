@@ -381,7 +381,9 @@ function AppCore({ auth0 = null }) {
                 
                 {/* Customer Routes */}
                 <Route path="/customer-portal" element={
-                  <ProtectedRoute allowedRoles={['customer']}><CustomerPortal user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin', 'guest']}>
+                    <CustomerPortal user={user} />
+                  </ProtectedRoute>
                 } />
                 <Route path="/orders" element={
                   <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']} customerPermission="track_orders">

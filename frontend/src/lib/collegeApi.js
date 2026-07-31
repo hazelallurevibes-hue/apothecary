@@ -141,12 +141,66 @@ export async function buildTranscript(email) {
 }
 
 // ── Mentor & opportunities ────────────────────────────────────────────────────
-export async function requestMentor({ seekerEmail, courseId, topic }) {
-  const { error } = await supabase.from('mentor_requests').insert({
-    seeker_email: seekerEmail.trim().toLowerCase(),
-    course_id: courseId || null,
-    topic,
-  });
+export async function requestMentor({ seekerEmail, courseId, topic, vendorId, seekerName }) {
+  const email = seekerEmail?.trim().toLowerCase();
+  const topicText = (topic || '').trim();
+  if (!email || !topicText) throw new Error('Sign in and describe what you want help with.');
+
+  const payload = {
+    seeker_email: email,
+    course_id: courseId ? Number(courseId) : null,
+    topic: topicText,
+    status: 'open',
+  };
+  if (vendorId) payload.vendor_id = Number(vendorId);
+  if (seekerName) payload.seeker_name = String(seekerName).slice(0, 120);
+
+  let { data, error } = await supabase.from('mentor_requests').insert(payload).select().single();
+  if (error && /vendor_id|seeker_name|column/i.test(error.message || '')) {
+    const min = { seeker_email: email, topic: topicText, status: 'open' };
+    if (courseId) min.course_id = Number(courseId);
+    const retry = await supabase.from('mentor_requests').insert(min).select().single();
+    data = retry.data;
+    error = retry.error;
+  }
+  if (error) {
+    if (error.code === '42P01') {
+      throw new Error('Mentorship is not set up on this server yet. Message a practitioner from their storefront for now.');
+    }
+    throw new Error(error.message || 'Could not send mentorship request');
+  }
+  return data;
+}
+
+/** Open mentor requests for practitioners (Pro SaaS / teaching analytics). */
+export async function fetchMentorRequestsForVendor(vendorId, { limit = 40 } = {}) {
+  // Prefer requests tagged to this vendor; also surface open unassigned for Pro teachers
+  const { data: mine, error: e1 } = await supabase
+    .from('mentor_requests')
+    .select('*')
+    .eq('vendor_id', Number(vendorId))
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (!e1 && mine?.length) return mine;
+
+  const { data: open, error: e2 } = await supabase
+    .from('mentor_requests')
+    .select('*')
+    .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (e2) {
+    if (e2.code === '42P01') return [];
+    console.warn('[mentor]', e2.message);
+    return mine || [];
+  }
+  return open || mine || [];
+}
+
+export async function updateMentorRequestStatus(id, status, note) {
+  const patch = { status };
+  if (note !== undefined) patch.vendor_note = note;
+  const { error } = await supabase.from('mentor_requests').update(patch).eq('id', id);
   if (error) throw new Error(error.message);
 }
 

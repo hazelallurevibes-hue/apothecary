@@ -23,6 +23,7 @@ import { fetchModerators } from '../lib/communityModeration';
 import { fetchPlatformSettings } from '../lib/platformSettingsApi';
 import CovenRollCall from '../components/CovenRollCall';
 import GratitudeWall from '../components/GratitudeWall';
+import HearthClassSearch from '../components/HearthClassSearch';
 
 export default function CommunityGathering({ user }) {
   const { threadId } = useParams();
@@ -150,6 +151,8 @@ export default function CommunityGathering({ user }) {
           <AmbientSoundToggle />
         </div>
       </header>
+
+      <HearthClassSearch user={user} />
 
       <CovenRollCall />
       <GratitudeWall user={user} />
