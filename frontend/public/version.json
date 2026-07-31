@@ -1,11 +1,11 @@
 {
-  "version": "1.8.5",
-  "buildId": "2026-07-31T21:48:42.696Z",
+  "version": "1.8.6",
+  "buildId": "2026-07-31T21:54:05.237Z",
   "title": "One automatic update",
   "message": "New versions apply once automatically — no repeated upgrade clicks.",
   "highlights": [
     "Auto-update when version.json is newer",
     "Reload guard prevents update loops",
-    "Version v1.8.5"
+    "Version v1.8.6"
   ]
 }

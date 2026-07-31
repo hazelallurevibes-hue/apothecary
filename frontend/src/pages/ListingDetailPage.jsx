@@ -20,7 +20,8 @@ import VideoEmbed from '../components/VideoEmbed';
 import ProductSubscribeButton from '../components/ProductSubscribeButton';
 import { VERTICAL } from '../lib/vertical';
 import { useSeoContext } from '../components/SeoContext';
-import { getVendorContext, isProPlan } from '../lib/plans';
+import { isProPlan } from '../lib/plans';
+import { canUserManageListing } from '../lib/listingOwnership';
 import {
   estimateShipLabel,
   listPrice,
@@ -38,18 +39,6 @@ export default function ListingDetailPage({ user }) {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const { setPageSeo } = useSeoContext();
-  const vendorCtx = getVendorContext(user);
-  const role = (user?.role || '').toLowerCase();
-  // Only practitioners (and their employees / admins with a vendor context) can manage.
-  // Never use a stale vendor_id on seeker accounts — that leaked Edit/Hide to customers.
-  const canManageListings =
-    role === 'vendor' ||
-    role === 'admin' ||
-    !!user?.employee_vendor_id ||
-    !!vendorCtx?.vendorId;
-  const myVendorId = canManageListings
-    ? (vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null)
-    : null;
 
   const reload = async () => {
     setLoading(true);
@@ -107,22 +96,35 @@ export default function ListingDetailPage({ user }) {
     );
   }
 
-  const isOwner =
-    canManageListings &&
-    myVendorId != null &&
-    myVendorId !== '' &&
-    item.vendor_id != null &&
-    Number(myVendorId) === Number(item.vendor_id) &&
-    !Number.isNaN(Number(myVendorId)) &&
-    !Number.isNaN(Number(item.vendor_id));
+  // Strict ownership — seekers never see manage tools
+  const isOwner = canUserManageListing(user, item.vendor_id);
 
   const toggleVisibility = async () => {
-    if (!isOwner) return;
+    if (!canUserManageListing(user, item.vendor_id)) {
+      alert('Only the listing owner can change visibility.');
+      return;
+    }
     setBusy(true);
     try {
       const next = item.approved ? 0 : 1;
-      const { error } = await supabase.from(table).update({ approved: next }).eq('id', item.id);
-      if (error) throw error;
+      // Server-side ownership check via RPC when available
+      const { data: rpcData, error: rpcError } = await supabase.rpc('vendor_set_listing_visibility', {
+        p_email: user.email,
+        p_table: table,
+        p_id: item.id,
+        p_approved: next,
+      });
+      if (rpcError) {
+        // Fallback direct update — RLS must still block non-owners
+        const { error } = await supabase
+          .from(table)
+          .update({ approved: next })
+          .eq('id', item.id)
+          .eq('vendor_id', Number(user.vendor_id || user.vendor || user.employee_vendor_id));
+        if (error) throw error;
+      } else if (rpcData && rpcData.ok === false) {
+        throw new Error(rpcData.error || 'Not authorized');
+      }
       setItem((prev) => ({ ...prev, approved: next }));
     } catch (e) {
       alert(e.message || 'Could not update visibility.');
@@ -131,12 +133,28 @@ export default function ListingDetailPage({ user }) {
   };
 
   const removeListing = async () => {
-    if (!isOwner) return;
+    if (!canUserManageListing(user, item.vendor_id)) {
+      alert('Only the listing owner can remove this listing.');
+      return;
+    }
     if (!window.confirm(`Remove “${item.name}” permanently? This cannot be undone.`)) return;
     setBusy(true);
     try {
-      const { error } = await supabase.from(table).delete().eq('id', item.id);
-      if (error) throw error;
+      const { data: rpcData, error: rpcError } = await supabase.rpc('vendor_delete_listing', {
+        p_email: user.email,
+        p_table: table,
+        p_id: item.id,
+      });
+      if (rpcError) {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq('id', item.id)
+          .eq('vendor_id', Number(user.vendor_id || user.vendor || user.employee_vendor_id));
+        if (error) throw error;
+      } else if (rpcData && rpcData.ok === false) {
+        throw new Error(rpcData.error || 'Not authorized');
+      }
       alert('Listing removed.');
       navigate('/vendor-dashboard');
     } catch (e) {
