@@ -166,6 +166,34 @@ export default function VendorVerification({ user }) {
         and finish the launch checklist with email + policies + first product. Documents are admin-only and never shown publicly.
         {requireLegalName ? ' Enter the name exactly as printed on your government-issued ID.' : ''}
       </p>
+      {identity && (
+        <div
+          className={`mb-4 rounded-2xl border px-4 py-3 text-sm ${
+            alreadyApproved
+              ? 'border-emerald-200 bg-emerald-50 text-emerald-950'
+              : alreadyPending
+                ? 'border-amber-200 bg-amber-50 text-amber-950'
+                : 'border-gray-200 bg-gray-50 text-gray-800'
+          }`}
+        >
+          <p className="font-semibold">
+            Previous submission: {String(identity.status || 'on file').toUpperCase()}
+          </p>
+          <p className="text-xs mt-1">
+            {identity.submitted_at
+              ? `Submitted ${new Date(identity.submitted_at).toLocaleString()}. `
+              : ''}
+            {alreadyApproved
+              ? 'You do not need to upload again.'
+              : alreadyPending
+                ? 'Already in the queue — do not re-submit unless we request new photos. The launch checklist should mark ID as complete while you wait.'
+                : identity.admin_notes || 'Status on file.'}
+          </p>
+          <Link to="/vendor-dashboard" className="inline-block mt-2 text-xs font-semibold underline">
+            Back to dashboard →
+          </Link>
+        </div>
+      )}
       <div className="mb-6 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-950">
         <p className="font-semibold">Smart review</p>
         <p className="text-xs mt-1 leading-relaxed">

@@ -30,6 +30,8 @@ export default function ListingQuickAdd({
   disabled = false,
   user = null,
   vendorId = null,
+  /** products | services | both | null — hides service or product choice when path is restricted */
+  sellerPath = null,
 }) {
   const formId = useId();
   const { enabled: easyMode } = useEasyMode();
@@ -205,7 +207,13 @@ export default function ListingQuickAdd({
           {[
             { id: 'service', icon: '🔮', title: 'Wellness service', hint: 'Bookable sessions — tarot, Reiki, spellcraft, enchantments, energy work, and more.' },
             { id: 'product', icon: '🧪', title: 'Apothecary product', hint: 'Potions, spells, enchanted goods, oils, incense, crystals, ritual kits, and salves.' },
-          ].map((opt) => (
+          ]
+            .filter((opt) => {
+              if (sellerPath === 'products') return opt.id === 'product';
+              if (sellerPath === 'services') return opt.id === 'service';
+              return true;
+            })
+            .map((opt) => (
             <button
               key={opt.id}
               type="button"

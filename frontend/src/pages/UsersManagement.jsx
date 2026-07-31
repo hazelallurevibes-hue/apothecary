@@ -19,6 +19,7 @@ import {
 import { ADMIN_TABS } from '../lib/adminTools';
 import PlatformEmailSettings from '../components/PlatformEmailSettings';
 import AdminProPayments from '../components/AdminProPayments';
+import AdminRevsharePanel from '../components/AdminRevsharePanel';
 import AdminVendorBadgePanel from '../components/AdminVendorBadgePanel';
 import AdminCommunityModerationPanel from '../components/AdminCommunityModerationPanel';
 import AdminCommandCenter from '../components/AdminCommandCenter';
@@ -402,11 +403,14 @@ export default function AdminPortal({ user, onLogout }) {
         )}
 
         {!loading && activeTab === 'pro-payments' && (
-          <AdminProPayments
-            users={users}
-            vendors={vendors}
-            onMessage={setAdminMessage}
-          />
+          <div className="space-y-6">
+            <AdminProPayments
+              users={users}
+              vendors={vendors}
+              onMessage={setAdminMessage}
+            />
+            <AdminRevsharePanel />
+          </div>
         )}
 
         {!loading && activeTab === 'users' && (

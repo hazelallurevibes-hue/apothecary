@@ -210,22 +210,43 @@ export async function autoDetectOnboarding(vendorId, { menuCount = 0, produceCou
   }
 
   const idStatus = String(identity?.status || '').toLowerCase();
+  const priorStatus = String(steps.id_verification_status || updates.id_verification_status || '').toLowerCase();
+  const priorSatisfied =
+    priorStatus === 'pending' ||
+    priorStatus === 'approved' ||
+    priorStatus === 'flagged' ||
+    priorStatus === 'submitted' ||
+    priorStatus === 'under_review' ||
+    priorStatus === 'not_required' ||
+    !!steps.id_verification;
+
   if (vendor?.identity_verified || idStatus === 'approved') {
     updates.id_verification = true;
     updates.id_verification_status = 'approved';
-  } else if (idStatus === 'pending' || idStatus === 'flagged' || idStatus === 'under_review' || idStatus === 'submitted') {
+  } else if (
+    idStatus === 'pending' ||
+    idStatus === 'flagged' ||
+    idStatus === 'under_review' ||
+    idStatus === 'submitted' ||
+    idStatus === 'in_review'
+  ) {
     // Waiting on admin / auto-review still counts as progress (submitted)
     updates.id_verification = true;
     updates.id_verification_status = idStatus === 'flagged' ? 'flagged' : 'pending';
+  } else if (identity && (identity.id_front_url || identity.selfie_url || identity.submitted_at)) {
+    // Row exists with photos but odd status — still count as submitted
+    updates.id_verification = true;
+    updates.id_verification_status = idStatus || 'pending';
   } else if (getSellerPath(updates) === 'products') {
     updates.id_verification = true;
     updates.id_verification_status = 'not_required';
-  } else if (!identity) {
-    // Only clear if they offer services and never submitted
-    if (offersServices(updates)) {
-      updates.id_verification = false;
-      updates.id_verification_status = 'needed';
-    }
+  } else if (priorSatisfied) {
+    // Do NOT wipe a prior submission if fetch failed / RLS returned null
+    updates.id_verification = true;
+    updates.id_verification_status = priorStatus || 'pending';
+  } else if (offersServices(updates)) {
+    updates.id_verification = false;
+    updates.id_verification_status = 'needed';
   }
 
   if (menuCount + produceCount > 0) updates.first_listing = true;

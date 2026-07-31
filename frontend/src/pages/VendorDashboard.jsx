@@ -80,6 +80,8 @@ import {
 } from '../lib/vendorListings';
 import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
 import { VERTICAL } from '../lib/vertical';
+import VendorPromotePanel from '../components/VendorPromotePanel';
+import VendorProDiscountRevshare from '../components/VendorProDiscountRevshare';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const EMPTY_MENU_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'general', safety_practices_certified: false, temp_photo_url: '' };
@@ -138,9 +140,7 @@ export default function VendorDashboard({ user }) {
   const [calcResult, setCalcResult] = useState(null);
   const [calcHistory, setCalcHistory] = useState([]);
 
-  // Ad purchase (front page promotion)
-  const [adPurchased, setAdPurchased] = useState(false);
-  const [adDetails, setAdDetails] = useState(null);
+
 
   const vendorCtx = getVendorContext(user);
   const myVendorId =
@@ -761,6 +761,10 @@ export default function VendorDashboard({ user }) {
   const handleQuickAddService = (payload) =>
     new Promise((resolve, reject) => {
       (async () => {
+        if (getSellerPath(launchSteps) === 'products') {
+          reject(new Error('Your shop is Products only. Change path to Services or Both in the launch checklist to list sessions.'));
+          return;
+        }
         if (!(await passesLaunchGate('menu'))) {
           reject(new Error('Complete launch checklist for services (email, policies, path, ID submitted). Product-only sellers should use product quick-add.'));
           return;
@@ -942,22 +946,9 @@ export default function VendorDashboard({ user }) {
     setCalcHistory(prev => [result, ...prev].slice(0, 5)); // keep last 5
   };
 
-  // Ad Purchase for front page (mocked payment, integrated into portal)
-  const purchaseAd = () => {
-    const ad = {
-      id: Date.now(),
-      vendor: user?.name,
-      duration: '7 days',
-      cost: 49,
-      status: 'Active',
-      preview: `Featured on homepage & top of Marketplace with "Sponsored by ${user?.name}" badge`
-    };
-    setAdPurchased(true);
-    setAdDetails(ad);
-    // In real: would call payment API then set featured flag on vendor or specific items
-    alert(`Ad purchased for $${ad.cost}! Your listings will now appear promoted on the front page and in search results with a clear "Ad" label.`);
-    // Mock: update a vendor flag (in real app this would be backend)
-  };
+  const sellerPath = getSellerPath(launchSteps);
+  const showServicesUi = sellerPath !== 'products';
+  const showProductsUi = sellerPath !== 'services';
 
   const toggleListingVisibility = async (item, table) => {
     const next = item.approved ? 0 : 1;
@@ -1287,6 +1278,7 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
       <VendorDiscountsPanel user={user} vendorId={myVendorId} />
+      <VendorProDiscountRevshare vendorId={myVendorId} />
       <div className="mb-6 flex items-center gap-2">
         <AdvertisingAccountBadge plan={vendorPlan} type="vendor" />
         <span className="text-xs text-gray-500">Account visibility tier</span>
@@ -1304,6 +1296,7 @@ export default function VendorDashboard({ user }) {
           disabled={adding || addingProduce || !!editMenuId || !!editProduceId}
           user={user}
           vendorId={myVendorId}
+          sellerPath={sellerPath}
         />
       </div>
 
@@ -1330,7 +1323,14 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
 
-      {/* Wellness services listings */}
+      {/* Wellness services — hidden for products-only path */}
+      {!showServicesUi && (
+        <div className="mb-6 rounded-2xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-600">
+          Your shop path is <strong>Products only</strong> — session/service posting is hidden. Change to Services or Both
+          in the launch checklist (or onboarding) if you also offer bookable sessions.
+        </div>
+      )}
+      {showServicesUi && (
       <div id="add-menu" className="mb-8 bg-gradient-to-br from-[#4a1942]/5 to-white border border-[#4a1942]/20 rounded-3xl p-3 sm:p-8 min-w-0 overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:flex-wrap sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3 min-w-0">
@@ -1485,8 +1485,10 @@ export default function VendorDashboard({ user }) {
           <p className="text-xs text-gray-500 mt-2">After posting, you can open the listing to view, edit, or remove it. Save a template to start the next listing faster.</p>
         </div>
       </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        {showServicesUi && (
         <div id="menu-listings" className="bg-white border rounded-3xl p-4 sm:p-6">
           <h3 className="font-semibold mb-4">Your wellness services · Share to social</h3>
           {myMenu.length === 0 && <p className="text-gray-500 text-sm">No services yet. Add your first session above!</p>}
@@ -1501,19 +1503,22 @@ export default function VendorDashboard({ user }) {
               onShare={shareToSocial}
               onToggleVisibility={(row) => toggleListingVisibility(row, 'menu_items')}
               onDuplicate={duplicateMenuItem}
+              onDiscountSaved={() => refreshVendorData()}
             />
           ))}
         </div>
+        )}
 
         <Link to="/tasks" className="bg-white border rounded-3xl p-6 block hover:border-[#4a1942] hover:shadow-sm transition">
-          <h3 className="font-semibold mb-4">Your Recent Tasks <span className="text-xs text-[#4a1942] font-normal">→</span></h3>
+          <h3 className="font-semibold mb-4">Your tasks <span className="text-xs text-[#4a1942] font-normal">→</span></h3>
+          <p className="text-sm text-gray-600 mb-2">ID verification, launch steps, and open orders live on the Tasks board.</p>
           {myTasks.slice(0, 5).map(task => (
             <div key={task.id} className="py-2 border-b last:border-0 text-sm flex justify-between">
               <span>{task.title}</span>
               <span className="text-gray-400">{task.status}</span>
             </div>
           ))}
-          {myTasks.length === 0 && <p className="text-gray-500 text-sm">No tasks yet.</p>}
+          {myTasks.length === 0 && <p className="text-gray-500 text-sm">Open Tasks for ID status and checklist items.</p>}
         </Link>
       </div>
 
@@ -1777,31 +1782,7 @@ export default function VendorDashboard({ user }) {
         )}
       </div>
 
-      {/* Ad Purchase for Front Page Promotion - Integrated in Vendor Portal */}
-      <div className="mb-8 border border-purple-200 bg-purple-50 rounded-3xl p-8">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="font-bold text-2xl text-purple-900">Promote Your Brand</h3>
-            <p className="text-purple-700">Get featured on the homepage &amp; top of search results. Clearly marked as sponsored.</p>
-          </div>
-          <div className="text-right text-xs font-mono bg-white px-3 py-1 rounded border">$49 / 7 days</div>
-        </div>
-
-        {!adPurchased ? (
-          <button 
-            onClick={purchaseAd} 
-            className="px-8 py-4 bg-purple-700 hover:bg-purple-800 text-white font-semibold rounded-3xl text-lg w-full md:w-auto"
-          >
-            Purchase Front-Page Ad (Mock Checkout)
-          </button>
-        ) : (
-          <div className="bg-white p-5 rounded-2xl border">
-            <div className="font-semibold text-purple-700">✅ Ad Active!</div>
-            <div className="mt-2 text-sm">{adDetails?.preview}</div>
-            <div className="text-xs mt-3 text-purple-500">Your listings now get priority placement + "Sponsored" badge on Home &amp; Marketplace. Great for peak season visibility.</div>
-          </div>
-        )}
-      </div>
+      <VendorPromotePanel vendorId={myVendorId} userEmail={user?.email} />
 
       {/* Vendor-to-Vendor B2B Purchasing + Badge on YOUR page - fully featured */}
       <div className="mb-8 bg-white border rounded-3xl p-8">

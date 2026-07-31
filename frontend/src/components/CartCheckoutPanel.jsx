@@ -5,7 +5,7 @@ import CheckoutUpsellPanel from './CheckoutUpsellPanel';
 import PreorderModificationPanel from './PreorderModificationPanel';
 import { fetchVendorTaxSettings } from '../lib/vendorTaxApi';
 import { calculateCheckoutTotals } from '../lib/vendorTax';
-import { getCustomerContext } from '../lib/plans';
+import { getCustomerContext, isProPlan } from '../lib/plans';
 import { bestCartDiscount, applyDiscountToSubtotal, fetchVendorDiscounts } from '../lib/vendorDiscounts';
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 import CheckoutDeliveryPicker from './CheckoutDeliveryPicker';
@@ -34,10 +34,21 @@ export default function CartCheckoutPanel({
   const [vendorDiscounts, setVendorDiscounts] = useState([]);
   const [modPanel, setModPanel] = useState({ modification_request: '', modification_acknowledged: false });
 
+  const [proMemberPct, setProMemberPct] = useState(0);
+
   useEffect(() => {
     if (!vendorId) return;
     fetchVendorTaxSettings(vendorId).then(setVendorTax).catch(() => setVendorTax(null));
     fetchVendorDiscounts(vendorId).then(setVendorDiscounts).catch(() => setVendorDiscounts([]));
+    // Shop-wide Pro Member discount from vendor settings
+    import('../lib/supabaseClient').then(({ supabase }) => {
+      supabase
+        .from('vendors')
+        .select('pro_member_discount_pct')
+        .eq('id', Number(vendorId))
+        .maybeSingle()
+        .then(({ data }) => setProMemberPct(Number(data?.pro_member_discount_pct) || 0));
+    });
   }, [vendorId]);
 
   const customerPlan = getCustomerContext(user)?.plan;
@@ -46,7 +57,18 @@ export default function CartCheckoutPanel({
     subtotal,
     cartLines: lines,
   });
-  const discounted = applyDiscountToSubtotal(subtotal, discountResult);
+  // Apply configured Pro Member % if better / in addition to catalog discounts
+  let discounted = applyDiscountToSubtotal(subtotal, discountResult);
+  if (isProPlan(customerPlan) && proMemberPct > 0) {
+    const proAmt = Math.round(subtotal * (proMemberPct / 100) * 100) / 100;
+    if (proAmt > (discounted.discount || 0)) {
+      discounted = {
+        subtotal: Math.max(0, subtotal - proAmt),
+        discount: proAmt,
+        discountName: `Pro Member ${proMemberPct}%`,
+      };
+    }
+  }
   const totals = calculateCheckoutTotals(discounted.subtotal, vendorTax || {});
   const panelTotal = totals.total;
 

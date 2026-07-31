@@ -101,13 +101,27 @@ async function maybeAutoApprovePermit(permitId) {
 }
 
 export async function fetchIdentityVerification(vendorId) {
-  const { data, error } = await supabase
+  const vid = Number(vendorId);
+  if (!vid) return null;
+  // Prefer latest submission (multiple rows / re-applies)
+  const { data: rows, error } = await supabase
     .from('vendor_identity_verifications')
     .select('*')
-    .eq('vendor_id', vendorId)
-    .maybeSingle();
-  if (error && error.code !== '42P01') throw new Error(error.message);
-  return data;
+    .eq('vendor_id', vid)
+    .order('submitted_at', { ascending: false })
+    .limit(1);
+  if (error && error.code === '42P01') return null;
+  if (error) {
+    // Fallback: maybeSingle for older schemas without submitted_at sort
+    const { data, error: e2 } = await supabase
+      .from('vendor_identity_verifications')
+      .select('*')
+      .eq('vendor_id', vid)
+      .maybeSingle();
+    if (e2 && e2.code !== '42P01') throw new Error(e2.message);
+    return data;
+  }
+  return rows?.[0] || null;
 }
 
 export async function submitIdentityVerification(vendorId, { idFrontUrl, idBackUrl, selfieUrl, legalName }) {

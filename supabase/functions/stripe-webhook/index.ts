@@ -97,6 +97,12 @@ async function handleCheckoutCompleted(
     return;
   }
 
+  // One-time featured placement ad
+  if (meta.purpose === "featured_ad" || checkoutType === "featured_ad") {
+    await handleFeaturedAdCheckout(supabase, session, meta);
+    return;
+  }
+
   const planType = (meta.plan_type || "customer") as PlanType;
   const userId = meta.user_id ? Number(meta.user_id) : null;
   const vendorId = meta.vendor_id ? Number(meta.vendor_id) : null;
@@ -112,6 +118,45 @@ async function handleCheckoutCompleted(
   if (subscriptionIsActive(mapStripeStatus(subscription.status))) {
     await grantProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
   }
+}
+
+async function handleFeaturedAdCheckout(
+  supabase: ReturnType<typeof createClient>,
+  session: Stripe.Checkout.Session,
+  meta: Record<string, string>,
+) {
+  const vendorId = Number(meta.vendor_id);
+  const campaignId = Number(meta.campaign_id);
+  const days = Math.max(1, Number(meta.package_days) || 7);
+  if (!vendorId || !campaignId) return;
+  if (session.payment_status && session.payment_status !== "paid") return;
+
+  const starts = new Date();
+  const ends = new Date(starts.getTime() + days * 24 * 60 * 60 * 1000);
+  const paymentIntent = typeof session.payment_intent === "string"
+    ? session.payment_intent
+    : session.payment_intent?.id;
+
+  await supabase
+    .from("vendor_ad_campaigns")
+    .update({
+      status: "active",
+      starts_at: starts.toISOString(),
+      ends_at: ends.toISOString(),
+      stripe_payment_intent_id: paymentIntent || null,
+      stripe_checkout_session_id: session.id,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", campaignId)
+    .eq("vendor_id", vendorId);
+
+  await supabase
+    .from("vendors")
+    .update({
+      featured_active: true,
+      featured_until: ends.toISOString(),
+    })
+    .eq("id", vendorId);
 }
 
 async function handleCourseEnrollmentCheckout(
