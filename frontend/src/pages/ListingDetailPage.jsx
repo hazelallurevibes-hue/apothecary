@@ -20,7 +20,13 @@ import VideoEmbed from '../components/VideoEmbed';
 import ProductSubscribeButton from '../components/ProductSubscribeButton';
 import { VERTICAL } from '../lib/vertical';
 import { useSeoContext } from '../components/SeoContext';
-import { getVendorContext } from '../lib/plans';
+import { getVendorContext, isProPlan } from '../lib/plans';
+import {
+  estimateShipLabel,
+  listPrice,
+  proMemberPrice,
+  formatStars,
+} from '../lib/productDisplay';
 
 export default function ListingDetailPage({ user }) {
   const { type, id } = useParams();
@@ -206,12 +212,53 @@ export default function ListingDetailPage({ user }) {
                 </Link>
               )}
             </div>
-            <div className="text-2xl font-bold text-[#4a1942]">
-              ${item.price}{itemType === 'produce' ? `/${item.unit || 'lb'}` : ''}
+            <div className="text-right">
+              {(() => {
+                const price = listPrice(item);
+                const proPct = Number(vendor?.pro_member_discount_pct) || 0;
+                const proP = proMemberPrice(price, proPct);
+                const isPro = isProPlan(user?.customer_plan) || !!user?.customer_pro_active;
+                return (
+                  <>
+                    <div className="text-2xl font-bold text-[#4a1942]">
+                      ${price.toFixed(2)}
+                      {itemType === 'produce' ? `/${item.unit || 'each'}` : ''}
+                    </div>
+                    {proP != null && proP < price && (
+                      <p className="text-sm text-emerald-800 font-medium mt-0.5">
+                        {isPro ? (
+                          <>Your Pro price: ${proP.toFixed(2)}</>
+                        ) : (
+                          <>
+                            Pro Members: ${proP.toFixed(2)}{' '}
+                            <Link to="/pro-upgrade?type=customer" className="underline text-xs">
+                              Unlock Pro
+                            </Link>
+                          </>
+                        )}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
             </div>
           </div>
 
-          {vendor && <PractitionerBadges vendor={vendor} />}
+          {vendor && (
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <PractitionerBadges vendor={vendor} />
+              {(vendor.avg_rating || vendor.review_count) && (
+                <span className="text-amber-500 text-sm">
+                  {formatStars(vendor.avg_rating)}{' '}
+                  <span className="text-gray-500 text-xs">
+                    ({vendor.review_count || 0} review{(vendor.review_count || 0) === 1 ? '' : 's'})
+                  </span>
+                </span>
+              )}
+            </div>
+          )}
+
+          <p className="text-sm font-medium text-[#0f766e]">{estimateShipLabel(item)}</p>
 
           <p className="text-gray-700">{item.description}</p>
 

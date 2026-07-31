@@ -118,14 +118,14 @@ export default function Layout({ user, onLogout, children }) {
     </>
   );
 
+  // Magic Sanctum stays in main nav only — avoid a second dead/duplicate entry under My Account
   const customerMenu = useMemo(() => {
     const items = [
       { label: 'Seeker Portal', to: '/customer-portal', perm: null },
-      { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true, perm: null },
       { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH, perm: null },
       { label: 'Messages', to: '/messages', perm: null },
       { label: 'The Hearth', to: '/gathering', perm: null },
-      { label: 'Sanctum student hub', to: '/sanctum-student-hub', perm: null },
+      { label: 'Teaching Sanctum courses', to: '/courses', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
       { label: 'Favorites', to: '/favorites', perm: 'favorites' },
       { label: 'Support & Help', to: '/support', perm: 'support' },
@@ -138,7 +138,6 @@ export default function Layout({ user, onLogout, children }) {
     { label: 'Top Practitioners', to: '/top-vendors' },
     { label: 'Wellness Services', to: '/services' },
     { label: 'Apothecary', to: '/products' },
-    { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true },
     { label: 'FAQ', to: '/faq' },
     { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH },
     { label: 'Account Settings', to: '/account-settings' },
@@ -158,7 +157,6 @@ export default function Layout({ user, onLogout, children }) {
   const vendorManageMenu = useMemo(() => {
     const items = [
       { label: 'Account Settings', to: '/account-settings', perm: null },
-      { label: '⑧ Magic Sanctum', href: magicBridgeUrl, external: true, perm: null },
       { label: 'Messages', to: '/messages', perm: 'sell' },
       { label: 'Practitioner lounge', to: '/vendor-gathering', perm: 'vendor_gathering' },
       { label: 'Email Campaigns', to: '/vendor-campaigns', perm: null },
