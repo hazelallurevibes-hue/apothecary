@@ -2,15 +2,14 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.8.4';
+export const APP_VERSION = '1.8.5';
 
 export const UPDATE_SPLASH = {
-  title: 'Cart works again',
-  message: 'Add to cart no longer requires email verification first. Verify is only needed at checkout.',
+  title: 'Listing manage tools for sellers only',
+  message: 'Edit / hide / remove listing controls only show to the practitioner who owns the listing — not to shoppers.',
   highlights: [
-    'Add products to cart freely while browsing',
-    'Email verification still required to place an order',
-    'Faster verification status checks',
+    'Seekers no longer see vendor manage panel on product pages',
+    'Owners still get Edit, Hide from public, and Remove',
   ],
 };
 

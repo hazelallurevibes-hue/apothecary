@@ -39,7 +39,17 @@ export default function ListingDetailPage({ user }) {
   const [busy, setBusy] = useState(false);
   const { setPageSeo } = useSeoContext();
   const vendorCtx = getVendorContext(user);
-  const myVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+  const role = (user?.role || '').toLowerCase();
+  // Only practitioners (and their employees / admins with a vendor context) can manage.
+  // Never use a stale vendor_id on seeker accounts — that leaked Edit/Hide to customers.
+  const canManageListings =
+    role === 'vendor' ||
+    role === 'admin' ||
+    !!user?.employee_vendor_id ||
+    !!vendorCtx?.vendorId;
+  const myVendorId = canManageListings
+    ? (vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null)
+    : null;
 
   const reload = async () => {
     setLoading(true);
@@ -98,9 +108,13 @@ export default function ListingDetailPage({ user }) {
   }
 
   const isOwner =
-    !!myVendorId &&
-    !!item.vendor_id &&
-    String(myVendorId) === String(item.vendor_id);
+    canManageListings &&
+    myVendorId != null &&
+    myVendorId !== '' &&
+    item.vendor_id != null &&
+    Number(myVendorId) === Number(item.vendor_id) &&
+    !Number.isNaN(Number(myVendorId)) &&
+    !Number.isNaN(Number(item.vendor_id));
 
   const toggleVisibility = async () => {
     if (!isOwner) return;
