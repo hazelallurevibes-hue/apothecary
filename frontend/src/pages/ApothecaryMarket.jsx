@@ -374,12 +374,9 @@ export default function ApothecaryMarket({ user }) {
         <EmptyState
           icon="🌿"
           title="No products match"
-          message="Try another search or clear filters. Makers list oils, teas, crystals, and ritual goods here."
-          actionLabel="Clear search"
-          onAction={() => {
-            setSearch('');
-            setCategoryFilter('');
-          }}
+          message="Try another search or clear the category filter. Makers list oils, teas, crystals, and ritual goods here."
+          actionLabel="Browse all"
+          actionTo="/products"
         />
       )}
 
