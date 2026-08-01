@@ -65,6 +65,55 @@ export async function resolveSiteUrl(supabase: SupabaseClient) {
   return cfg.siteUrl;
 }
 
+/**
+ * Connect destination-charge application fee.
+ *
+ * On destination charges the platform typically pays Stripe card fees, so we
+ * take: estimated Stripe (2.9% + $0.30) + Hazel admin % so net margin ≈ admin fee.
+ *
+ * platform_settings keys (optional):
+ *   marketplace_admin_fee_percent   default 6
+ *   marketplace_pass_stripe_fees    default true
+ *   stripe_fee_percent              default 2.9
+ *   stripe_fee_fixed_cents          default 30
+ *   platform_fee_percent            fallback admin %
+ */
+export function computeApplicationFeeCents(
+  amountCents: number,
+  settings: Record<string, string> = {},
+): {
+  applicationFeeCents: number;
+  stripeEstimateCents: number;
+  adminFeeCents: number;
+} {
+  if (!Number.isFinite(amountCents) || amountCents <= 0) {
+    return { applicationFeeCents: 0, stripeEstimateCents: 0, adminFeeCents: 0 };
+  }
+
+  const passStripe = String(settings.marketplace_pass_stripe_fees ?? "true").toLowerCase() !== "false";
+  const adminPct = Number(
+    settings.marketplace_admin_fee_percent ?? settings.platform_fee_percent ?? "6",
+  );
+  const stripePct = Number(settings.stripe_fee_percent ?? "2.9") / 100;
+  const stripeFixed = Math.round(Number(settings.stripe_fee_fixed_cents ?? "30"));
+
+  const stripeEstimateCents = passStripe
+    ? Math.round(amountCents * (Number.isFinite(stripePct) ? stripePct : 0.029)) +
+      (Number.isFinite(stripeFixed) ? stripeFixed : 30)
+    : 0;
+
+  const safeAdminPct = Number.isFinite(adminPct) && adminPct > 0 ? adminPct : 6;
+  const adminFeeCents = Math.round(amountCents * (safeAdminPct / 100));
+
+  // Leave at least 50¢ for the connected account when the charge is large enough
+  const maxFee = amountCents > 50 ? amountCents - 50 : Math.max(0, amountCents - 1);
+  let applicationFeeCents = stripeEstimateCents + adminFeeCents;
+  if (applicationFeeCents > maxFee) applicationFeeCents = maxFee;
+  if (applicationFeeCents < 0) applicationFeeCents = 0;
+
+  return { applicationFeeCents, stripeEstimateCents, adminFeeCents };
+}
+
 export async function getOrCreateStripeCustomer(
   stripe: Stripe,
   supabase: SupabaseClient,

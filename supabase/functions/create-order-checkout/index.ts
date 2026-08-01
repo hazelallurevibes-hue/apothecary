@@ -1,9 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
 import {
+  computeApplicationFeeCents,
   corsHeaders,
   getOrCreateStripeCustomer,
   jsonResponse,
+  loadStripeSettings,
   resolveSiteUrl,
   stripeClient,
 } from "../_shared/stripePro.ts";
@@ -138,20 +140,12 @@ Deno.serve(async (req: Request) => {
     }
 
     const amountCents = Math.round(amount * 100);
-    const platformFeeDollars = Number(order.platform_fee);
-    let applicationFee = Number.isFinite(platformFeeDollars) && platformFeeDollars > 0
-      ? Math.round(platformFeeDollars * 100)
-      : 0;
-    if (applicationFee <= 0) {
-      const rate = Number(vendor.platform_fee_rate);
-      const pct = Number.isFinite(rate) && rate > 0 ? rate : 2.9;
-      const sub = Number(order.subtotal ?? amount) || amount;
-      applicationFee = Math.round(sub * (pct / 100) * 100);
-    }
-    // Never take more than the charge
-    if (applicationFee >= amountCents) {
-      applicationFee = Math.max(0, Math.floor(amountCents * 0.029));
-    }
+    // Fee basis = product subtotal (not tax) when available
+    const feeBasisDollars = Number(order.subtotal ?? amount) || amount;
+    const feeBasisCents = Math.round(feeBasisDollars * 100);
+    const settings = await loadStripeSettings(supabase);
+    const fees = computeApplicationFeeCents(feeBasisCents, settings);
+    const applicationFee = fees.applicationFeeCents;
 
     let items: Array<{ name?: string; qty?: number; price?: number }> = [];
     try {
@@ -251,7 +245,9 @@ Deno.serve(async (req: Request) => {
       payment_method: "card",
       payment_status: "unpaid",
       status: "awaiting_payment",
-      payment_note: `Stripe Checkout ${session.id} → ${vendor.stripe_account_id}`,
+      platform_fee: fees.adminFeeCents / 100,
+      payment_note:
+        `Stripe Checkout ${session.id} → ${vendor.stripe_account_id} · app fee $${(applicationFee / 100).toFixed(2)} (admin $${(fees.adminFeeCents / 100).toFixed(2)} + stripe est $${(fees.stripeEstimateCents / 100).toFixed(2)})`,
     };
 
     let { error: upErr } = await supabase.from("orders").update(patch).eq("id", orderId);
@@ -274,6 +270,8 @@ Deno.serve(async (req: Request) => {
       session_id: session.id,
       order_id: orderId,
       application_fee_cents: applicationFee,
+      admin_fee_cents: fees.adminFeeCents,
+      stripe_estimate_cents: fees.stripeEstimateCents,
     });
   } catch (e) {
     console.error("create-order-checkout:", e);

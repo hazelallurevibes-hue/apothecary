@@ -210,7 +210,7 @@ export default function PractitionerSlotManager({ vendorId }) {
                   type="button"
                   className="text-red-600 text-xs underline min-h-[44px] px-2"
                   onClick={async () => {
-                    await cancelSessionSlot(s.id);
+                    await cancelSessionSlot(s.id, vendorId);
                     refresh();
                   }}
                 >

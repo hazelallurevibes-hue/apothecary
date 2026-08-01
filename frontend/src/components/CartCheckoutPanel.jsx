@@ -7,20 +7,22 @@ import { fetchVendorTaxSettings } from '../lib/vendorTaxApi';
 import { calculateCheckoutTotals } from '../lib/vendorTax';
 import { getCustomerContext, isProPlan } from '../lib/plans';
 import { bestCartDiscount, applyDiscountToSubtotal, fetchVendorDiscounts } from '../lib/vendorDiscounts';
-import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 import CheckoutDeliveryPicker from './CheckoutDeliveryPicker';
 
+/**
+ * Floating mini-cart. Always routes to full /cart checkout so cash / PayPal / Stripe work.
+ * Does NOT place free orders without payment.
+ */
 export default function CartCheckoutPanel({
   user,
   placing,
-  onPlaceOrder,
+  onPlaceOrder: _onPlaceOrder,
   cartFilter,
   title = 'Your Cart',
   accentClass = 'bg-emerald-600',
   showDeliverySelect = false,
 }) {
   const { cart, removeFromCart, formatCartLineName } = useCart();
-  const { requireVerification } = useProviderInteractionGate(user);
   const lines = cartFilter ? cart.filter(cartFilter) : cart;
 
   if (lines.length === 0) return null;
@@ -33,14 +35,12 @@ export default function CartCheckoutPanel({
   const [vendorTax, setVendorTax] = useState(null);
   const [vendorDiscounts, setVendorDiscounts] = useState([]);
   const [modPanel, setModPanel] = useState({ modification_request: '', modification_acknowledged: false });
-
   const [proMemberPct, setProMemberPct] = useState(0);
 
   useEffect(() => {
     if (!vendorId) return;
     fetchVendorTaxSettings(vendorId).then(setVendorTax).catch(() => setVendorTax(null));
     fetchVendorDiscounts(vendorId).then(setVendorDiscounts).catch(() => setVendorDiscounts([]));
-    // Shop-wide Pro Member discount from vendor settings
     import('../lib/supabaseClient').then(({ supabase }) => {
       supabase
         .from('vendors')
@@ -57,7 +57,6 @@ export default function CartCheckoutPanel({
     subtotal,
     cartLines: lines,
   });
-  // Apply configured Pro Member % if better / in addition to catalog discounts
   let discounted = applyDiscountToSubtotal(subtotal, discountResult);
   if (isProPlan(customerPlan) && proMemberPct > 0) {
     const proAmt = Math.round(subtotal * (proMemberPct / 100) * 100) / 100;
@@ -71,6 +70,18 @@ export default function CartCheckoutPanel({
   }
   const totals = calculateCheckoutTotals(discounted.subtotal, vendorTax || {});
   const panelTotal = totals.total;
+
+  // Persist mod request into session so CartPage can pick it up if needed
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(
+        'ha_cart_mod_panel',
+        JSON.stringify(modPanel),
+      );
+    } catch {
+      /* ignore */
+    }
+  }, [modPanel]);
 
   return (
     <div className="fixed bottom-6 right-6 bg-white border shadow-2xl rounded-3xl p-5 w-80 z-50 max-h-[85vh] overflow-y-auto">
@@ -125,29 +136,28 @@ export default function CartCheckoutPanel({
           </div>
         )}
         <div className="flex justify-between font-semibold pt-1">
-          <span>Total</span>
+          <span>Est. total</span>
           <span>${panelTotal.toFixed(2)}</span>
         </div>
       </div>
 
+      <p className="mt-2 text-[11px] text-gray-500">
+        Cash, PayPal, or card checkout — not free. Payment is chosen on the next step.
+      </p>
+
       {user ? (
-        <button
-          type="button"
-          onClick={async () => {
-            if (!(await requireVerification())) return;
-            onPlaceOrder?.(modPanel);
-          }}
-          disabled={placing}
-          className={`mt-4 w-full py-2.5 text-white rounded-2xl font-medium disabled:opacity-70 ${accentClass}`}
+        <Link
+          to="/cart"
+          className={`mt-3 block w-full py-2.5 text-white rounded-2xl font-medium text-center ${accentClass}`}
         >
-          {placing ? 'Placing Order...' : 'Place Order'}
-        </button>
+          Checkout securely →
+        </Link>
       ) : (
         <Link
           to="/login"
-          className="mt-4 block w-full py-2.5 bg-[#4a1942] text-white rounded-2xl font-medium text-center"
+          className="mt-3 block w-full py-2.5 bg-[#4a1942] text-white rounded-2xl font-medium text-center"
         >
-          Log in to order
+          Log in to checkout
         </Link>
       )}
     </div>

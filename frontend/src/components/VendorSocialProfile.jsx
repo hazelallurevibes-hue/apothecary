@@ -168,10 +168,20 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
 
   useEffect(() => {
     if (searchParams.get('booked') === '1') {
-      setBookingToast('Session booked — check your email for details.');
+      setBookingToast(
+        'Payment received — your session is confirming (usually a few seconds). Check Messages or email for meeting details.',
+      );
       setActiveTab('live');
       const next = new URLSearchParams(searchParams);
       next.delete('booked');
+      next.delete('session_id');
+      setSearchParams(next, { replace: true });
+    }
+    if (searchParams.get('checkout') === 'cancel') {
+      setBookingToast('Session checkout cancelled — you were not charged. Pick another slot when ready.');
+      setActiveTab('live');
+      const next = new URLSearchParams(searchParams);
+      next.delete('checkout');
       setSearchParams(next, { replace: true });
     }
     if (searchParams.get('review') === '1') {

@@ -68,6 +68,7 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
         </h3>
         <p className="text-sm text-gray-600 mt-1">
           Private mentorship, office hours, and group circles — pick a time that works for you.
+          Paid slots open secure Stripe Checkout; free slots book instantly.
         </p>
       </div>
 

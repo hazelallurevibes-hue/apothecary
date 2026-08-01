@@ -169,6 +169,8 @@ async function handleCourseEnrollmentCheckout(
   session: Stripe.Checkout.Session,
   meta: Record<string, string>,
 ) {
+  if (session.payment_status && session.payment_status !== "paid") return;
+
   const courseId = Number(meta.course_id);
   const email = (meta.user_email || session.customer_email || "").toLowerCase();
   if (!courseId || !email) return;
@@ -178,26 +180,39 @@ async function handleCourseEnrollmentCheckout(
     ? session.payment_intent
     : session.payment_intent?.id;
 
+  // Only count enrollment once (pending → paid)
+  const { data: prior } = await supabase
+    .from("vendor_course_enrollments")
+    .select("id, payment_status")
+    .eq("course_id", courseId)
+    .ilike("user_email", email)
+    .maybeSingle();
+
+  const alreadyPaid = prior?.payment_status === "paid";
+
   await supabase
     .from("vendor_course_enrollments")
     .update({
       payment_status: "paid",
       amount_paid: amountPaid,
       stripe_payment_intent_id: paymentIntent || null,
+      stripe_checkout_session_id: session.id,
       pro_member_at_purchase: meta.pro_member === "true",
     })
     .eq("course_id", courseId)
     .ilike("user_email", email);
 
-  const { data: course } = await supabase
-    .from("vendor_courses")
-    .select("enrollment_count")
-    .eq("id", courseId)
-    .maybeSingle();
+  if (!alreadyPaid) {
+    const { data: course } = await supabase
+      .from("vendor_courses")
+      .select("enrollment_count")
+      .eq("id", courseId)
+      .maybeSingle();
 
-  await supabase.from("vendor_courses").update({
-    enrollment_count: (Number(course?.enrollment_count) || 0) + 1,
-  }).eq("id", courseId);
+    await supabase.from("vendor_courses").update({
+      enrollment_count: (Number(course?.enrollment_count) || 0) + 1,
+    }).eq("id", courseId);
+  }
 }
 
 async function handleSessionBookingCheckout(

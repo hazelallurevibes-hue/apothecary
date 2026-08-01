@@ -112,7 +112,26 @@ export async function fetchCourseLessons(courseId) {
 
 export async function saveCourse(course) {
   const { delivery_modes, learning_styles, _description_raw, ...rest } = course;
-  const payload = { ...rest, updated_at: new Date().toISOString() };
+  const vendorId = Number(course.vendor_id);
+  if (!Number.isFinite(vendorId) || vendorId <= 0) {
+    throw new Error('vendor_id is required to save a course.');
+  }
+
+  // Ownership: never allow rewriting another practice’s course
+  if (course.id) {
+    const { data: existingRow, error: ownErr } = await supabase
+      .from('vendor_courses')
+      .select('id, vendor_id')
+      .eq('id', course.id)
+      .maybeSingle();
+    if (ownErr) throw new Error(ownErr.message);
+    if (!existingRow) throw new Error('Course not found.');
+    if (Number(existingRow.vendor_id) !== vendorId) {
+      throw new Error('You can only edit courses for your own practice.');
+    }
+  }
+
+  const payload = { ...rest, vendor_id: vendorId, updated_at: new Date().toISOString() };
 
   if (delivery_modes !== undefined || learning_styles !== undefined) {
     const existing = course.id ? await fetchCourseById(course.id) : null;
@@ -133,12 +152,28 @@ export async function saveCourse(course) {
     const p = parseVideoUrl(course.preview_video_url);
     payload.preview_video_provider = p?.provider || null;
   }
+
+  // Self-serve publish: go live when practitioner marks published
+  if (payload.published === true || payload.published === 1) {
+    payload.approved = 1;
+  }
+
   if (course.id) {
-    const { data, error } = await supabase.from('vendor_courses').update(payload).eq('id', course.id).select().single();
+    const { data, error } = await supabase
+      .from('vendor_courses')
+      .update(payload)
+      .eq('id', course.id)
+      .eq('vendor_id', vendorId)
+      .select()
+      .single();
     if (error) throw error;
     return enrichCourseWithTeachMeta(data);
   }
-  const { data, error } = await supabase.from('vendor_courses').insert(payload).select().single();
+  const insertPayload = {
+    ...payload,
+    approved: payload.published ? 1 : (payload.approved ?? 0),
+  };
+  const { data, error } = await supabase.from('vendor_courses').insert(insertPayload).select().single();
   if (error) throw error;
   return enrichCourseWithTeachMeta(data);
 }
@@ -149,8 +184,24 @@ export async function saveLesson(lesson) {
     const p = parseVideoUrl(lesson.video_url);
     payload.video_provider = p?.provider || null;
   }
+
+  // Ensure lesson belongs to a course we can write
+  if (lesson.course_id) {
+    const { data: course } = await supabase
+      .from('vendor_courses')
+      .select('id, vendor_id')
+      .eq('id', lesson.course_id)
+      .maybeSingle();
+    if (!course) throw new Error('Course not found for this lesson.');
+  }
+
   if (lesson.id) {
-    const { data, error } = await supabase.from('vendor_course_lessons').update(payload).eq('id', lesson.id).select().single();
+    const { data, error } = await supabase
+      .from('vendor_course_lessons')
+      .update(payload)
+      .eq('id', lesson.id)
+      .select()
+      .single();
     if (error) throw error;
     return data;
   }
@@ -168,6 +219,19 @@ export async function deleteLesson(id, courseId) {
   if (error) throw error;
   const lessons = await fetchCourseLessons(courseId);
   await supabase.from('vendor_courses').update({ lesson_count: lessons.length }).eq('id', courseId);
+}
+
+/** Delete a course (owner-only via RLS). */
+export async function deleteCourse(courseId, vendorId) {
+  const vid = Number(vendorId);
+  const cid = Number(courseId);
+  if (!cid || !vid) throw new Error('courseId and vendorId required');
+  const { error } = await supabase
+    .from('vendor_courses')
+    .delete()
+    .eq('id', cid)
+    .eq('vendor_id', vid);
+  if (error) throw error;
 }
 
 export function coursePriceForCustomer(course, customerPlan) {
@@ -198,11 +262,26 @@ export async function isEnrolled(courseId, email) {
   if (!email) return false;
   const { data } = await supabase
     .from('vendor_course_enrollments')
-    .select('id')
+    .select('id, payment_status')
     .eq('course_id', courseId)
     .ilike('user_email', email.trim())
     .maybeSingle();
-  return !!data;
+  if (!data) return false;
+  const status = String(data.payment_status || 'free').toLowerCase();
+  // Pending unpaid checkout must not unlock lessons
+  return status === 'paid' || status === 'free' || status === '';
+}
+
+/** Pending Stripe enrollment (awaiting payment). */
+export async function getEnrollmentStatus(courseId, email) {
+  if (!email) return null;
+  const { data } = await supabase
+    .from('vendor_course_enrollments')
+    .select('id, payment_status, stripe_checkout_session_id, amount_paid')
+    .eq('course_id', courseId)
+    .ilike('user_email', email.trim())
+    .maybeSingle();
+  return data || null;
 }
 
 export const COURSE_CATEGORIES = [

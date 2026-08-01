@@ -59,12 +59,15 @@ export async function createSessionSlot(slot) {
   return data;
 }
 
-export async function cancelSessionSlot(slotId) {
-  const { error } = await supabase
+export async function cancelSessionSlot(slotId, vendorId = null) {
+  let q = supabase
     .from('practitioner_session_slots')
     .update({ status: 'cancelled', updated_at: new Date().toISOString() })
     .eq('id', slotId);
-
+  if (vendorId != null) {
+    q = q.eq('vendor_id', Number(vendorId));
+  }
+  const { error } = await q;
   if (error) throw new Error(error.message);
 }
 

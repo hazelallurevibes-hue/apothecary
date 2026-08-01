@@ -9,6 +9,7 @@ import LearningStyleChips from '../components/LearningStyleChips';
 import { EMPTY_THUMBNAIL, resolveListingPhotoUrl } from '../lib/vendorListings';
 import {
   COURSE_CATEGORIES,
+  deleteCourse,
   deleteLesson,
   fetchCourseLessons,
   fetchVendorCourses,
@@ -354,6 +355,27 @@ export default function VendorTeaching({ user }) {
             >
               + New course
             </button>
+            {selectedCourseId && (
+              <button
+                type="button"
+                className="w-full p-2 text-xs text-red-700 underline"
+                onClick={async () => {
+                  if (!window.confirm('Delete this course and its lessons? This cannot be undone.')) return;
+                  try {
+                    await deleteCourse(selectedCourseId, vendorId);
+                    setCourses(await fetchVendorCourses(vendorId));
+                    newCourse();
+                  } catch (e) {
+                    alert(e.message || 'Could not delete course');
+                  }
+                }}
+              >
+                Delete selected course
+              </button>
+            )}
+            <p className="text-[11px] text-gray-500 px-1">
+              Only your practice can edit these courses. Paid enrollments require Stripe Connect in Payments.
+            </p>
           </div>
 
           <div className="lg:col-span-2 space-y-6">

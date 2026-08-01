@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.9.0';
+export const APP_VERSION = '1.9.1';
 
 export const UPDATE_SPLASH = {
-  title: 'Real card checkout + full order lifecycle',
+  title: 'Teaching + practitioner checkout secured',
   message:
-    'Card orders open Stripe Checkout and mark paid automatically. Cash is COD; PayPal opens pay links with confirm on My Orders. Makers see payment status on Incoming orders.',
+    'Courses and 1:1 sessions use Stripe Connect (with platform fee). Only the owning practitioner can edit courses/slots. Mini-cart routes to full checkout — no free place-order shortcut.',
   highlights: [
-    'Card → Stripe Checkout (Connect) → webhook marks paid',
-    'My Orders: retry card, open PayPal, or mark paid',
-    'Vendor inbox shows paid vs awaiting payment',
+    'Teaching Sanctum: Stripe enroll + owner-only course edits',
+    'Session booking: Connect payout + cancel/return toasts',
+    'Marketplace fee: Stripe estimate + Hazel admin %',
   ],
 };
 

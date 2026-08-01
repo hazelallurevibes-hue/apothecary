@@ -14,6 +14,7 @@ import {
   coursePriceForCustomer,
   fetchCourseById,
   fetchCourseLessons,
+  getEnrollmentStatus,
   isEnrolled,
 } from '../lib/teachingPlatform';
 import { checkoutCourseEnrollment } from '../lib/courseBillingApi';
@@ -31,6 +32,7 @@ export default function CourseDetailPage({ user }) {
   const [course, setCourse] = useState(null);
   const [lessons, setLessons] = useState([]);
   const [enrolled, setEnrolled] = useState(false);
+  const [pendingPay, setPendingPay] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
   const [matchScore, setMatchScore] = useState(0);
   const [toast, setToast] = useState('');
@@ -43,11 +45,27 @@ export default function CourseDetailPage({ user }) {
   const price = course ? coursePriceForCustomer(course, customerCtx?.plan) : 0;
   const isPro = isCustomerProUser(user) || isProPlan(getEffectiveCustomerPlan(user));
 
+  const refreshEnrollment = async () => {
+    if (!user?.email) {
+      setEnrolled(false);
+      setPendingPay(false);
+      return;
+    }
+    const ok = await isEnrolled(id, user.email);
+    setEnrolled(ok);
+    if (!ok) {
+      const st = await getEnrollmentStatus(id, user.email);
+      setPendingPay(String(st?.payment_status || '') === 'pending');
+    } else {
+      setPendingPay(false);
+    }
+  };
+
   useEffect(() => {
     fetchCourseById(id).then(setCourse);
     fetchCourseLessons(id).then(setLessons);
     if (user?.email) {
-      isEnrolled(id, user.email).then(setEnrolled);
+      refreshEnrollment();
       checkPrerequisites(Number(id), user.email).then((r) => setPrereqMet(r.met)).catch(() => setPrereqMet(true));
       fetchLessonProgress(user.email, Number(id)).then(setCompletedLessons).catch(() => setCompletedLessons(new Set()));
       fetchUserLearningProfile(user.email).then((profile) => {
@@ -58,22 +76,35 @@ export default function CourseDetailPage({ user }) {
         });
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, user?.email]);
 
   useEffect(() => {
     if (searchParams.get('enrolled') === '1') {
-      setEnrolled(true);
-      setToast('Payment confirmed — welcome to the Sanctum!');
+      setToast('Payment received — unlocking lessons (may take a few seconds)…');
+      // Webhook may lag slightly
+      const timers = [500, 2000, 4000].map((ms) =>
+        window.setTimeout(() => {
+          refreshEnrollment().then(() => {
+            isEnrolled(id, user?.email).then((ok) => {
+              if (ok) setToast('Payment confirmed — welcome to the Sanctum!');
+            });
+          });
+        }, ms),
+      );
       const next = new URLSearchParams(searchParams);
       next.delete('enrolled');
+      next.delete('session_id');
       setSearchParams(next, { replace: true });
+      return () => timers.forEach(clearTimeout);
     }
     if (searchParams.get('checkout') === 'cancel') {
-      setToast('Checkout cancelled — your cart is clear.');
+      setToast('Checkout cancelled. You are not charged and not enrolled until payment completes.');
       const next = new URLSearchParams(searchParams);
       next.delete('checkout');
       setSearchParams(next, { replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams, setSearchParams]);
 
   useEffect(() => {
@@ -182,15 +213,37 @@ export default function CourseDetailPage({ user }) {
             {enrolled ? (
               <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-2xl text-sm font-medium">Enrolled ✓</span>
             ) : (
-              <button
-                type="button"
-                onClick={handleEnroll}
-                disabled={enrolling || !prereqMet}
-                className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50 min-h-[44px]"
-                title={!prereqMet ? 'Complete prerequisite courses first' : undefined}
-              >
-                {enrolling ? 'Redirecting…' : !prereqMet ? 'Prerequisites required' : price > 0 ? `Enroll — $${price.toFixed(2)}` : 'Enroll free'}
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={handleEnroll}
+                  disabled={enrolling || !prereqMet}
+                  className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50 min-h-[44px]"
+                  title={!prereqMet ? 'Complete prerequisite courses first' : undefined}
+                >
+                  {enrolling
+                    ? 'Opening Stripe…'
+                    : !prereqMet
+                      ? 'Prerequisites required'
+                      : pendingPay
+                        ? price > 0
+                          ? `Complete payment — $${price.toFixed(2)}`
+                          : 'Complete enrollment'
+                        : price > 0
+                          ? `Enroll — $${price.toFixed(2)}`
+                          : 'Enroll free'}
+                </button>
+                {pendingPay && (
+                  <p className="text-xs text-amber-800">
+                    Checkout started but not finished — tap again to resume Stripe payment. Lessons unlock after payment.
+                  </p>
+                )}
+                {price > 0 && (
+                  <p className="text-[11px] text-gray-500">
+                    Secure Stripe Checkout · funds go to the practitioner&apos;s connected account
+                  </p>
+                )}
+              </div>
             )}
           </div>
 
