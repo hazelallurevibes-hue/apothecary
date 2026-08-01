@@ -25,6 +25,13 @@ import CohortRoomPanel from '../components/CohortRoomPanel';
 import { checkPrerequisites } from '../lib/sanctumAdvancedApi';
 import { useSeoContext } from '../components/SeoContext';
 import { VERTICAL } from '../lib/vertical';
+import TeachingPolicyAck from '../components/TeachingPolicyAck';
+import {
+  cancelCourseEnrollment,
+  getCancelCount,
+  evaluateCancelEligibility,
+} from '../lib/teachingCancellation';
+import { supabase } from '../lib/supabaseClient';
 
 export default function CourseDetailPage({ user }) {
   const { id } = useParams();
@@ -34,6 +41,10 @@ export default function CourseDetailPage({ user }) {
   const [enrolled, setEnrolled] = useState(false);
   const [pendingPay, setPendingPay] = useState(false);
   const [enrolling, setEnrolling] = useState(false);
+  const [policyAck, setPolicyAck] = useState(false);
+  const [enrollmentRow, setEnrollmentRow] = useState(null);
+  const [cancelInfo, setCancelInfo] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
   const [matchScore, setMatchScore] = useState(0);
   const [toast, setToast] = useState('');
   const [completedLessons, setCompletedLessons] = useState(new Set());
@@ -49,6 +60,8 @@ export default function CourseDetailPage({ user }) {
     if (!user?.email) {
       setEnrolled(false);
       setPendingPay(false);
+      setEnrollmentRow(null);
+      setCancelInfo(null);
       return;
     }
     const ok = await isEnrolled(id, user.email);
@@ -56,8 +69,24 @@ export default function CourseDetailPage({ user }) {
     if (!ok) {
       const st = await getEnrollmentStatus(id, user.email);
       setPendingPay(String(st?.payment_status || '') === 'pending');
+      setEnrollmentRow(null);
     } else {
       setPendingPay(false);
+      const { data } = await supabase
+        .from('vendor_course_enrollments')
+        .select('*')
+        .eq('course_id', Number(id))
+        .ilike('user_email', user.email.trim())
+        .maybeSingle();
+      setEnrollmentRow(data);
+      const count = await getCancelCount(user.email);
+      setCancelInfo(
+        evaluateCancelEligibility({
+          priorCancelCount: count,
+          enrolledAt: data?.created_at,
+          amountCents: Math.round((Number(data?.amount_paid) || 0) * 100),
+        }),
+      );
     }
   };
 
@@ -125,6 +154,10 @@ export default function CourseDetailPage({ user }) {
       alert('Sign in as a seeker to enroll.');
       return;
     }
+    if (!policyAck) {
+      alert('Please acknowledge the Teaching Sanctum cancellation & safety policy before enrolling.');
+      return;
+    }
     const prereqs = await checkPrerequisites(Number(id), user.email);
     if (!prereqs.met) {
       alert('Complete prerequisite courses before enrolling in this course.');
@@ -138,11 +171,33 @@ export default function CourseDetailPage({ user }) {
       if (result?.free || result?.enrolled) {
         setEnrolled(true);
         setToast('Enrolled! Your lessons are now available below.');
+        await refreshEnrollment();
       }
     } catch (e) {
       alert(e.message || 'Enrollment failed.');
     }
     setEnrolling(false);
+  };
+
+  const handleCancelEnrollment = async () => {
+    if (!enrollmentRow || !user?.email) return;
+    if (!window.confirm(cancelInfo?.message || 'Cancel this enrollment?')) return;
+    setCancelling(true);
+    try {
+      const result = await cancelCourseEnrollment({
+        enrollment: enrollmentRow,
+        email: user.email,
+        reason: 'seeker_request',
+        courseVendorId: course?.vendor_id,
+      });
+      setToast(result.message || 'Enrollment cancelled.');
+      setEnrolled(false);
+      setEnrollmentRow(null);
+      await refreshEnrollment();
+    } catch (e) {
+      alert(e.message || 'Could not cancel');
+    }
+    setCancelling(false);
   };
 
   if (!course) return <div className="p-8 text-gray-500">Loading course…</div>;
@@ -211,15 +266,31 @@ export default function CourseDetailPage({ user }) {
               )}
             </div>
             {enrolled ? (
-              <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-2xl text-sm font-medium">Enrolled ✓</span>
+              <div className="flex flex-col gap-2 items-start">
+                <span className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-2xl text-sm font-medium">
+                  Enrolled ✓
+                </span>
+                {cancelInfo && (
+                  <p className="text-[11px] text-gray-600 max-w-sm">{cancelInfo.message}</p>
+                )}
+                <button
+                  type="button"
+                  disabled={cancelling}
+                  onClick={handleCancelEnrollment}
+                  className="text-xs underline text-red-700 disabled:opacity-50"
+                >
+                  {cancelling ? 'Cancelling…' : 'Cancel enrollment (policy applies)'}
+                </button>
+              </div>
             ) : (
-              <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 w-full max-w-md">
+                <TeachingPolicyAck checked={policyAck} onChange={setPolicyAck} />
                 <button
                   type="button"
                   onClick={handleEnroll}
-                  disabled={enrolling || !prereqMet}
+                  disabled={enrolling || !prereqMet || !policyAck}
                   className="px-6 py-3 bg-[#4a1942] text-white rounded-2xl font-semibold disabled:opacity-50 min-h-[44px]"
-                  title={!prereqMet ? 'Complete prerequisite courses first' : undefined}
+                  title={!prereqMet ? 'Complete prerequisite courses first' : !policyAck ? 'Accept policy first' : undefined}
                 >
                   {enrolling
                     ? 'Opening Stripe…'

@@ -1,0 +1,19 @@
+{
+  "name": "@taxvato/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Tax Vato — worldwide multi-party tax engine for marketplaces (buyer, seller, platform). Integrates with Hazel Allure and other products.",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./engine": "./src/engine/quote.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/demo-quote.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

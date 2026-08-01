@@ -1,6 +1,6 @@
 /**
- * Edge-portable tax quote (mirrors tax-saas package core).
- * Keep in sync with tax-saas/src/engine/quote.js for major rate changes.
+ * Edge-portable tax quote (mirrors Tax Vato / tax-vato package core).
+ * Keep in sync with tax-vato/src/engine/quote.js for major rate changes.
  */
 
 const US_STATE: Record<string, { rate: number; name: string; mpf: boolean }> = {
@@ -216,7 +216,7 @@ export function quoteTax(input: Record<string, unknown> = {}) {
     ok: true,
     tenantId: input.tenantId || null,
     currency,
-    provider: "tax-saas-edge",
+    provider: "tax-vato-edge",
     disclaimer: "Estimates only — confirm filings with a tax professional.",
     shipTo: { country, region, county: county || null, postalCode: shipTo.postalCode || null },
     remitter: { remitter, platformCollects, sellerCollects, reason },

@@ -70,6 +70,17 @@ export default function CustomerUseAgreement() {
             You acknowledge that spiritual and energetic practices are subjective, cannot be scientifically verified by {VERTICAL.legalEntity}, and do not constitute licensed mental health treatment.
           </p>
           <p>
+            <strong>Teaching Sanctum.</strong> Live sessions require at least 48 hours&apos; notice for refund-eligible cancellation. You receive two free cancellations; thereafter a non-refundable 10% hold fee applies. Course and session policies are in the{' '}
+            <Link to="/agreements#teaching" className="underline text-[#4a1942]">
+              Teaching Sanctum Terms
+            </Link>
+            . Marketplace card holds, COD free path, Tax Vato estimates, and shipping rules are in{' '}
+            <Link to="/agreements#marketplace-payments" className="underline text-[#4a1942]">
+              Marketplace payments
+            </Link>
+            .
+          </p>
+          <p>
             You assume responsibility for how you interpret and apply insights, rituals, or teachings received through the platform. You will not hold {VERTICAL.legalEntity} responsible for emotional distress, financial decisions, or life choices made based on session content.
           </p>
         </section>

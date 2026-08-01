@@ -139,11 +139,11 @@ export default function VendorTaxCenter({ user }) {
       </p>
 
       <div className="bg-[#faf7f9] border border-[#4a1942]/15 rounded-3xl p-6 sm:p-8 mb-8 space-y-4">
-        <h2 className="font-semibold text-lg text-[#4a1942]">Tax SaaS · nexus &amp; marketplace facilitator</h2>
+        <h2 className="font-semibold text-lg text-[#4a1942]">Tax Vato · nexus &amp; marketplace facilitator</h2>
         <p className="text-sm text-gray-600">
-          Worldwide engine used at cart checkout. In most US states Hazel Allure (platform) collects sales tax as
-          marketplace facilitator; you still track income tax / self-employment. Register nexus where you have economic
-          presence.
+          <strong>Tax Vato</strong> is our separate worldwide tax product, used at cart checkout. In most US states
+          Hazel Allure (platform) collects sales tax as marketplace facilitator; you still track income tax /
+          self-employment. Register nexus where you have economic presence.
         </p>
         <label className="block text-sm">
           Nexus regions (comma-separated state codes: NM, TX, CA…)
@@ -171,7 +171,7 @@ export default function VendorTaxCenter({ user }) {
                   nexus_regions: nexusRegions.split(/[\s,]+/).map((s) => s.trim().toUpperCase()).filter(Boolean),
                   collect_independently: collectIndep,
                 });
-                setMessage('Nexus profile saved for Tax SaaS.');
+                setMessage('Nexus profile saved for Tax Vato.');
               } catch (e) {
                 setMessage(e.message);
               }

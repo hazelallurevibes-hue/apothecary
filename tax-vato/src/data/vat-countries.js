@@ -1,0 +1,66 @@
+/**
+ * Standard VAT/GST rates (standard rate). Reduced rates are product-dependent.
+ * Digital services often use destination VAT (EU OSS).
+ */
+export const VAT_GST_COUNTRIES = {
+  // Europe (standard VAT)
+  AT: { rate: 0.20, name: 'Austria', system: 'VAT', digitalOss: true },
+  BE: { rate: 0.21, name: 'Belgium', system: 'VAT', digitalOss: true },
+  BG: { rate: 0.20, name: 'Bulgaria', system: 'VAT', digitalOss: true },
+  HR: { rate: 0.25, name: 'Croatia', system: 'VAT', digitalOss: true },
+  CY: { rate: 0.19, name: 'Cyprus', system: 'VAT', digitalOss: true },
+  CZ: { rate: 0.21, name: 'Czechia', system: 'VAT', digitalOss: true },
+  DK: { rate: 0.25, name: 'Denmark', system: 'VAT', digitalOss: true },
+  EE: { rate: 0.22, name: 'Estonia', system: 'VAT', digitalOss: true },
+  FI: { rate: 0.255, name: 'Finland', system: 'VAT', digitalOss: true },
+  FR: { rate: 0.20, name: 'France', system: 'VAT', digitalOss: true },
+  DE: { rate: 0.19, name: 'Germany', system: 'VAT', digitalOss: true },
+  GR: { rate: 0.24, name: 'Greece', system: 'VAT', digitalOss: true },
+  HU: { rate: 0.27, name: 'Hungary', system: 'VAT', digitalOss: true },
+  IE: { rate: 0.23, name: 'Ireland', system: 'VAT', digitalOss: true },
+  IT: { rate: 0.22, name: 'Italy', system: 'VAT', digitalOss: true },
+  LV: { rate: 0.21, name: 'Latvia', system: 'VAT', digitalOss: true },
+  LT: { rate: 0.21, name: 'Lithuania', system: 'VAT', digitalOss: true },
+  LU: { rate: 0.17, name: 'Luxembourg', system: 'VAT', digitalOss: true },
+  MT: { rate: 0.18, name: 'Malta', system: 'VAT', digitalOss: true },
+  NL: { rate: 0.21, name: 'Netherlands', system: 'VAT', digitalOss: true },
+  PL: { rate: 0.23, name: 'Poland', system: 'VAT', digitalOss: true },
+  PT: { rate: 0.23, name: 'Portugal', system: 'VAT', digitalOss: true },
+  RO: { rate: 0.19, name: 'Romania', system: 'VAT', digitalOss: true },
+  SK: { rate: 0.23, name: 'Slovakia', system: 'VAT', digitalOss: true },
+  SI: { rate: 0.22, name: 'Slovenia', system: 'VAT', digitalOss: true },
+  ES: { rate: 0.21, name: 'Spain', system: 'VAT', digitalOss: true },
+  SE: { rate: 0.25, name: 'Sweden', system: 'VAT', digitalOss: true },
+  GB: { rate: 0.20, name: 'United Kingdom', system: 'VAT', digitalOss: true },
+  NO: { rate: 0.25, name: 'Norway', system: 'VAT', digitalOss: false },
+  CH: { rate: 0.081, name: 'Switzerland', system: 'VAT', digitalOss: false },
+  // Americas / Asia-Pacific GST-like
+  CA: { rate: 0.05, name: 'Canada GST (federal base; +PST/HST by province)', system: 'GST', digitalOss: false },
+  AU: { rate: 0.10, name: 'Australia GST', system: 'GST', digitalOss: true },
+  NZ: { rate: 0.15, name: 'New Zealand GST', system: 'GST', digitalOss: true },
+  IN: { rate: 0.18, name: 'India GST (illustrative standard)', system: 'GST', digitalOss: false },
+  SG: { rate: 0.09, name: 'Singapore GST', system: 'GST', digitalOss: true },
+  JP: { rate: 0.10, name: 'Japan consumption tax', system: 'CT', digitalOss: true },
+  KR: { rate: 0.10, name: 'South Korea VAT', system: 'VAT', digitalOss: true },
+  MX: { rate: 0.16, name: 'Mexico IVA', system: 'VAT', digitalOss: true },
+  BR: { rate: 0.17, name: 'Brazil ICMS/ISS (illustrative complex)', system: 'COMPLEX', digitalOss: false },
+  AE: { rate: 0.05, name: 'UAE VAT', system: 'VAT', digitalOss: true },
+  ZA: { rate: 0.15, name: 'South Africa VAT', system: 'VAT', digitalOss: true },
+};
+
+/** Canadian provincial sales tax / HST add-ons (on top of 5% GST where applicable). */
+export const CA_PROVINCE_TAX = {
+  AB: { name: 'Alberta', gst: 0.05, pst: 0, hst: 0 },
+  BC: { name: 'British Columbia', gst: 0.05, pst: 0.07, hst: 0 },
+  MB: { name: 'Manitoba', gst: 0.05, pst: 0.07, hst: 0 },
+  NB: { name: 'New Brunswick', gst: 0, pst: 0, hst: 0.15 },
+  NL: { name: 'Newfoundland and Labrador', gst: 0, pst: 0, hst: 0.15 },
+  NS: { name: 'Nova Scotia', gst: 0, pst: 0, hst: 0.15 },
+  NT: { name: 'Northwest Territories', gst: 0.05, pst: 0, hst: 0 },
+  NU: { name: 'Nunavut', gst: 0.05, pst: 0, hst: 0 },
+  ON: { name: 'Ontario', gst: 0, pst: 0, hst: 0.13 },
+  PE: { name: 'Prince Edward Island', gst: 0, pst: 0, hst: 0.15 },
+  QC: { name: 'Quebec', gst: 0.05, pst: 0.09975, hst: 0 }, // QST
+  SK: { name: 'Saskatchewan', gst: 0.05, pst: 0.06, hst: 0 },
+  YT: { name: 'Yukon', gst: 0.05, pst: 0, hst: 0 },
+};

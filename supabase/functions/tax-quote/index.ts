@@ -7,7 +7,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 /**
- * Worldwide multi-party tax quote (Tax SaaS).
+ * Tax Vato — worldwide multi-party tax quote.
  * Body: { shipTo, lines, seller?, platform?, tenantId?, persist? }
  */
 Deno.serve(async (req: Request) => {

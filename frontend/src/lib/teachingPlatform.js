@@ -262,14 +262,15 @@ export async function isEnrolled(courseId, email) {
   if (!email) return false;
   const { data } = await supabase
     .from('vendor_course_enrollments')
-    .select('id, payment_status')
+    .select('id, payment_status, status, cancelled_at')
     .eq('course_id', courseId)
     .ilike('user_email', email.trim())
     .maybeSingle();
   if (!data) return false;
-  const status = String(data.payment_status || 'free').toLowerCase();
+  if (data.cancelled_at || String(data.status || '').toLowerCase() === 'cancelled') return false;
+  const pay = String(data.payment_status || 'free').toLowerCase();
   // Pending unpaid checkout must not unlock lessons
-  return status === 'paid' || status === 'free' || status === '';
+  return pay === 'paid' || pay === 'free' || pay === '';
 }
 
 /** Pending Stripe enrollment (awaiting payment). */

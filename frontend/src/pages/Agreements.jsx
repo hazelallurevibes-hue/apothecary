@@ -30,6 +30,9 @@ export default function Agreements() {
         <a href="#magic-sanctum" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Magic Sanctum</a>
         <a href="#email" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Email Campaigns</a>
         <a href="#stripe-connect" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Stripe Connect</a>
+        <a href="#marketplace-payments" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Marketplace payments</a>
+        <a href="#tax-vato" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Tax Vato</a>
+        <a href="#shipping" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Shipping</a>
         <a href="#ip" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">IP Ownership</a>
         <a href="#non-circumvention" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Non-Circumvention</a>
         <a href="#liability" className="px-3 py-1.5 border rounded-full hover:bg-gray-50">Liability</a>
@@ -111,10 +114,22 @@ export default function Agreements() {
           <p><strong>4.2 Content standards.</strong> Course titles, descriptions, and embedded videos must accurately represent curriculum, prerequisites, and skill level. You may not promise guaranteed spiritual, financial, health, or professional outcomes from enrollment or completion.</p>
           <p><strong>4.3 Wellness disclaimer.</strong> Course content involving herbs, homeopathy, energy practices, or ritual work is for educational and personal exploration purposes. It is not medical advice. You must include appropriate disclaimers in course materials where practices carry inherent risk.</p>
           <p><strong>4.4 Access &amp; fulfillment.</strong> You agree to honor stated access periods, respond to enrolled seekers in good faith, and maintain course availability for the duration promised at enrollment unless you provide equivalent substitute content or a disclosed refund policy.</p>
-          <p><strong>4.5 Pricing &amp; refunds.</strong> You set course pricing. Refund policies, if any, are between you and the seeker unless Hazel Allure implements platform-default rules at checkout. Chargebacks are handled per Stripe policies.</p>
-          <p><strong>4.6 Intellectual property.</strong> You retain ownership of original course content you create. You grant Hazel Allure a license to host, stream, and display course materials to enrolled users. Do not include infringing third-party content without authorization.</p>
-          <p><strong>4.7 Removal.</strong> Hazel Allure may remove courses that violate policy, contain impermissible health claims, or receive credible safety complaints, without liability to you or enrolled seekers.</p>
-          <p><strong>4.8 College-style tools.</strong> Syllabi, study groups, office hours, waitlists, honor roll, transcripts, assignments, course evaluations, cohort rooms, and downloadable certificates are convenience features — not accredited academic programs, degrees, licensure, or employment guarantees. Practitioners issue honors and certificates in their independent capacity. Seekers must verify any credential with the issuing practitioner.</p>
+          <p><strong>4.5 Pricing &amp; refunds (platform defaults).</strong> Unless a practitioner posts a stricter written policy, the following <strong>Teaching Sanctum cancellation policy</strong> applies to courses and live sessions booked through Hazel Allure:</p>
+          <ul className="list-disc pl-6 space-y-2">
+            <li><strong>48-hour rule (live sessions):</strong> Seekers may cancel a paid live session for a refund-eligible cancel only if cancellation is submitted at least forty-eight (48) hours before the scheduled start time.</li>
+            <li><strong>Inside 48 hours / no-show:</strong> Cancellations inside 48 hours, or no-shows, are generally <strong>not refund-eligible</strong>. Practitioners may keep the session fee for calendar protection.</li>
+            <li><strong>Free cancel limit:</strong> Each seeker receives <strong>two (2)</strong> free policy-compliant cancellations (courses and/or sessions combined, platform-wide tally).</li>
+            <li><strong>Hold fee after 2 cancels:</strong> After two recorded cancellations, further cancellations (even with 48+ hours notice) trigger a <strong>non-refundable hold fee of ten percent (10%)</strong> of the class/session price. The hold fee compensates practitioners and the platform for repeated scheduling disruption. Remaining amounts, if any, may be refunded only when the 48-hour rule is otherwise met.</li>
+            <li><strong>Courses (async):</strong> Free cancel within 48 hours of enrollment if free cancels remain and the seeker has not abused download/access. After the free-cancel limit, the 10% hold fee applies. Access after substantial content consumption may forfeit refund eligibility even inside 48 hours.</li>
+            <li><strong>Chargebacks:</strong> Filing a chargeback after attending a session or accessing course content may result in account suspension, ban, and collection of amounts due including hold fees.</li>
+            <li><strong>Practitioner rights:</strong> Practitioners may cancel for emergency or safety reasons and should reschedule or refund in good faith. Repeated practitioner no-shows may result in platform action.</li>
+            <li><strong>Wellness / safety:</strong> Courses and sessions are educational/entertainment/complementary wellness only — not medical care. Seekers assume inherent risk of participation.</li>
+          </ul>
+          <p><strong>4.6 Acknowledgment.</strong> Enrolling or booking requires checkbox acknowledgment of this policy. Acceptance is logged with the transaction where feasible.</p>
+          <p><strong>4.7 Intellectual property.</strong> You retain ownership of original course content you create. You grant Hazel Allure a license to host, stream, and display course materials to enrolled users. Do not include infringing third-party content without authorization. Seekers may not redistribute course materials.</p>
+          <p><strong>4.8 Removal.</strong> Hazel Allure may remove courses that violate policy, contain impermissible health claims, or receive credible safety complaints, without liability to you or enrolled seekers.</p>
+          <p><strong>4.9 College-style tools.</strong> Syllabi, study groups, office hours, waitlists, honor roll, transcripts, assignments, course evaluations, cohort rooms, and downloadable certificates are convenience features — not accredited academic programs, degrees, licensure, or employment guarantees. Practitioners issue honors and certificates in their independent capacity. Seekers must verify any credential with the issuing practitioner.</p>
+          <p><strong>4.10 Conduct.</strong> Harassment of teachers or students, recording without consent, sharing meeting links publicly, or circumventing paywalls is prohibited and may result in ban without refund.</p>
         </div>
       </section>
 
@@ -204,15 +219,49 @@ export default function Agreements() {
       {/* 6 */}
       <section id="stripe-connect" className="mb-12">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">6. Stripe Connect (payment processing)</h2>
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5 mb-4 text-sm text-blue-950">
-          <strong>Placeholder terms.</strong> Stripe Connect onboarding and payout terms are subject to Stripe&apos;s Connected Account Agreement. Final Connect-specific provisions will be published when marketplace payouts are fully enabled.
-        </div>
         <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
           <p><strong>6.1 Third-party processor.</strong> Payments for Pro subscriptions and certain marketplace transactions are processed by Stripe, Inc. Hazel Allure does not store full payment card numbers. Your use of Stripe is subject to Stripe&apos;s terms and privacy policy.</p>
-          <p><strong>6.2 Connect onboarding.</strong> Practitioners who enable marketplace payouts must complete Stripe Connect onboarding, provide accurate business information, and maintain an active Connected Account in good standing. Hazel Allure may withhold payout features until onboarding is complete.</p>
-          <p><strong>6.3 Payouts &amp; fees.</strong> Practitioner payouts, platform fee deductions, and Stripe processing fees will be disclosed at Connect activation. Hazel Allure is not responsible for Stripe account holds, reserves, or deactivations imposed by Stripe for risk or compliance reasons.</p>
-          <p><strong>6.4 Chargebacks &amp; disputes.</strong> Practitioners bear primary responsibility for chargebacks and payment disputes arising from their sales. Hazel Allure may offset platform fees or suspend accounts for excessive chargeback rates.</p>
-          <p><strong>6.5 Alternative payment methods.</strong> Practitioners may configure additional payment methods (PayPal, external links) at their own risk. Hazel Allure is not a party to off-platform payment arrangements.</p>
+          <p><strong>6.2 Connect onboarding.</strong> Practitioners who enable marketplace card payouts must complete Stripe Connect onboarding, provide accurate business information, and maintain an active Connected Account in good standing. Hazel Allure may withhold payout features until onboarding is complete.</p>
+          <p><strong>6.3 Payouts &amp; fees.</strong> Card marketplace fees include estimated card-processing recovery plus a platform admin fee (configurable; typically disclosed at checkout). Hazel Allure is not responsible for Stripe account holds, reserves, or deactivations imposed by Stripe.</p>
+          <p><strong>6.4 Chargebacks &amp; disputes.</strong> Practitioners bear primary responsibility for chargebacks arising from their sales. Hazel Allure may offset amounts, reverse transfers, or suspend accounts for excessive chargebacks or fraud.</p>
+          <p><strong>6.5 Alternative payment methods.</strong> PayPal and off-platform methods are at the practitioner&apos;s risk. Hazel Allure is not a party to those arrangements.</p>
+        </div>
+      </section>
+
+      <section id="marketplace-payments" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">6a. Marketplace payments, COD &amp; fund holds</h2>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 mb-4 text-sm text-emerald-950">
+          By placing an order or enabling payouts you acknowledge these rules. Checkout requires a binding checkbox acknowledgment.
+        </div>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>6a.1 Cash / COD.</strong> Cash on delivery or pickup is a <strong>free path for practitioners</strong> (no Stripe Connect platform fee on that order). The seeker pays the maker directly. Hazel Allure does not hold COD funds and is not responsible for unpaid COD orders.</p>
+          <p><strong>6a.2 Card — physical goods.</strong> For physical goods paid by card, Hazel Allure may charge the seeker on the platform account and <strong>hold vendor payout</strong> until the practitioner marks the order shipped (or buys a platform shipping label). After ship, the practitioner (or system) may release a Connect transfer for the vendor net amount. Hold protects seekers and the platform against non-shipment; it is not a bank deposit or interest-bearing escrow.</p>
+          <p><strong>6a.3 Card — digital (Teaching).</strong> Course enrollments and paid session bookings generally use destination charges so the practitioner&apos;s Connect account is paid upon successful payment, subject to Stripe and platform fees.</p>
+          <p><strong>6a.4 Platform fees.</strong> Card fees may include Stripe processing recovery and a Hazel Allure admin percentage. Fees are not charged on pure COD orders under the free-path policy.</p>
+          <p><strong>6a.5 No guarantee.</strong> Hazel Allure does not guarantee delivery, quality, or that a practitioner will ship. Seekers and practitioners must resolve fulfillment disputes in good faith; the platform may assist operationally but is not a court or insurer.</p>
+          <p><strong>6a.6 Fraud &amp; abuse.</strong> Fraudulent orders, false &quot;I paid&quot; claims, serial non-shipment, or chargeback abuse may result in immediate suspension and reporting.</p>
+        </div>
+      </section>
+
+      <section id="tax-vato" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">6b. Tax Vato (tax estimates)</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>6b.1 Separate product.</strong> <strong>Tax Vato</strong> is a multi-tenant tax estimation product used by Hazel Allure and other properties. It provides automated quotes for sales tax, VAT, GST, and marketplace-facilitator remitter logic.</p>
+          <p><strong>6b.2 Not tax advice.</strong> Tax Vato outputs are estimates for operational display and planning. They are <strong>not</strong> legal, accounting, or filing advice. Rates and rules change; seed and third-party data may lag.</p>
+          <p><strong>6b.3 Parties.</strong> Quotes may allocate responsibilities among (i) the buyer (tax on the invoice), (ii) the seller (nexus / independent collection when configured), and (iii) the platform (marketplace facilitator remittance where applicable).</p>
+          <p><strong>6b.4 Seller duty.</strong> Practitioners remain responsible for tax registrations, nexus monitoring, and remittance where the law requires them to collect independently or to report income.</p>
+          <p><strong>6b.5 Platform duty.</strong> Where Hazel Allure acts as a marketplace facilitator, it may collect and remit sales tax as required. Facilitator status does not make Hazel Allure the seller of goods or the practitioner&apos;s employer.</p>
+          <p><strong>6b.6 No liability for penalties.</strong> To the maximum extent permitted by law, Hazel Allure and Tax Vato disclaim liability for tax penalties, interest, or under/over-collection arising from estimates, configuration errors, or user failure to register.</p>
+        </div>
+      </section>
+
+      <section id="shipping" className="mb-12">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">6c. Shipping &amp; labels</h2>
+        <div className="space-y-4 text-gray-700 text-sm leading-relaxed">
+          <p><strong>6c.1 Options.</strong> Practitioners may offer pickup, self-arranged shipping, or purchase of a platform-estimated shipping label (carrier rates + platform markup).</p>
+          <p><strong>6c.2 Label estimates.</strong> Built-in label quotes may be estimates until a live carrier API (e.g. EasyPost/Shippo) is connected. Practitioners must verify rates before promising delivery times.</p>
+          <p><strong>6c.3 Risk of loss.</strong> Risk of loss for shipped goods is between seeker and practitioner (and carrier), not Hazel Allure, except as required by mandatory law.</p>
+          <p><strong>6c.4 Restricted goods.</strong> Practitioners must not ship items illegal to transport in the origin or destination jurisdiction.</p>
         </div>
       </section>
 
@@ -300,12 +349,12 @@ export default function Agreements() {
       <div className="bg-gray-900 text-white rounded-3xl p-6 text-sm">
         <p className="font-semibold mb-2">Binding acknowledgment</p>
         <p>
-          By creating an account, signing up as a practitioner, completing the launch checklist, posting a listing, enrolling in a course, placing an order, configuring tax settings, sending an email campaign, connecting Stripe, or clicking acceptance at publish time, you confirm you have read and agree to these Terms, the Privacy Policy, the Practitioner Operating Agreement, the Teaching Sanctum Terms, the Email Campaign Rules, the Stripe Connect terms (as applicable), the <Link to="/policies-procedures" className="underline text-blue-300">Policies &amp; Procedures</Link>, and the <Link to="/faq" className="underline text-blue-300">FAQ</Link>.
+          By creating an account, signing up as a practitioner, completing the launch checklist, posting a listing, enrolling in a course, booking a session, placing an order, configuring tax settings, using Tax Vato estimates, buying a shipping label, sending an email campaign, connecting Stripe, or clicking acceptance at publish or checkout time, you confirm you have read and agree to these Terms — including Teaching Sanctum cancellation (48-hour rule, two free cancels, 10% non-refundable hold fee thereafter), Marketplace payments &amp; COD, Tax Vato, Shipping, Stripe Connect, the Privacy Policy, the Practitioner Operating Agreement, the <Link to="/policies-procedures" className="underline text-blue-300">Policies &amp; Procedures</Link>, and the <Link to="/faq" className="underline text-blue-300">FAQ</Link>.
           You accept that Hazel Allure is a technology platform only and that you bear sole responsibility for legal compliance, taxes, licensing, and liability arising from your use of the service.
         </p>
       </div>
 
-      <p className="mt-8 text-xs text-gray-500">Last updated: June 2026 · {VERTICAL.legalEntity} · {VERTICAL.appUrl}</p>
+      <p className="mt-8 text-xs text-gray-500">Last updated: July 2026 · {VERTICAL.legalEntity} · {VERTICAL.appUrl} · Tax Vato integrated</p>
     </div>
   );
 }

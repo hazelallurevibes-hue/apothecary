@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { bookSessionSlot, fetchOpenSlots, formatSlotTime } from '../lib/sessionBookingApi';
 import { SESSION_TYPES } from '../lib/teachingStudio';
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
+import TeachingPolicyAck from './TeachingPolicyAck';
+import { FREE_CANCEL_LIMIT, HOLD_FEE_PERCENT, getCancelCount, holdFeeApplies } from '../lib/teachingCancellation';
 
 export default function SessionBookingPanel({ vendorId, vendorName, user }) {
   const { requireVerification } = useProviderInteractionGate(user);
@@ -11,6 +13,8 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
   const [error, setError] = useState('');
   const [notes, setNotes] = useState('');
   const [success, setSuccess] = useState('');
+  const [policyAck, setPolicyAck] = useState(false);
+  const [cancelCount, setCancelCount] = useState(0);
 
   useEffect(() => {
     if (!vendorId) return;
@@ -21,9 +25,21 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
       .finally(() => setLoading(false));
   }, [vendorId]);
 
+  useEffect(() => {
+    if (!user?.email) {
+      setCancelCount(0);
+      return;
+    }
+    getCancelCount(user.email).then(setCancelCount).catch(() => setCancelCount(0));
+  }, [user?.email]);
+
   const handleBook = async (slot) => {
     if (!user?.email) {
       setError('Sign in to book a session.');
+      return;
+    }
+    if (!policyAck) {
+      setError('Acknowledge the Teaching Sanctum cancellation policy before booking.');
       return;
     }
     if (!(await requireVerification())) return;
@@ -72,6 +88,15 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
         </p>
       </div>
 
+      <TeachingPolicyAck checked={policyAck} onChange={setPolicyAck} />
+
+      {holdFeeApplies(cancelCount) && (
+        <p className="text-xs text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+          You have {cancelCount} prior cancellations (limit {FREE_CANCEL_LIMIT} free). A non-refundable{' '}
+          {HOLD_FEE_PERCENT}% hold fee may apply on further cancels.
+        </p>
+      )}
+
       <label className="block text-sm">
         <span className="text-gray-600">Optional note for your practitioner</span>
         <textarea
@@ -110,7 +135,7 @@ export default function SessionBookingPanel({ vendorId, vendorName, user }) {
               </div>
               <button
                 type="button"
-                disabled={bookingId === slot.id}
+                disabled={bookingId === slot.id || !policyAck}
                 onClick={() => handleBook(slot)}
                 className="px-5 py-2.5 min-h-[44px] bg-[#4a1942] text-white rounded-xl text-sm font-medium disabled:opacity-60 focus-visible:ring-2 focus-visible:ring-[#c9a227]"
               >

@@ -23,7 +23,8 @@ export default defineConfig(({ mode }) => {
   envPrefix: ['VITE_', 'AUTH0_'],
   resolve: {
     alias: {
-      '@tax-saas': path.resolve(__dirname, '../tax-saas/src'),
+      '@tax-vato': path.resolve(__dirname, '../tax-vato/src'),
+      '@tax-saas': path.resolve(__dirname, '../tax-vato/src'), // legacy alias
     },
   },
   define: {

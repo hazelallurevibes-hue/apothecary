@@ -200,8 +200,17 @@ const legalSafetySections = [
       },
       {
         title: 'Does Hazel Allure handle payments or delivery?',
-        body: 'Pro subscriptions are billed by Hazel Allure via Stripe. Customer-to-practitioner order payments may flow through Stripe Connect or other practitioner-configured methods. Hazel Allure is not responsible for marketplace payment disputes, chargebacks, or delivery failures. See Stripe Connect placeholder terms in Legal Agreements.',
-        link: '/agreements#stripe-connect',
+        body: 'Pro subscriptions are billed by Hazel Allure via Stripe. Card marketplace orders may hold physical-goods payouts until the maker ships, then release to Stripe Connect. Cash/COD is free for makers (no Connect fee). PayPal is maker-configured. See Marketplace payments in Legal Agreements.',
+      },
+      {
+        title: 'What is Tax Vato?',
+        body: 'Tax Vato is our separate multi-tenant tax estimation product (sales tax, VAT/GST, marketplace facilitator logic). Estimates appear at checkout. They are not tax advice; makers remain responsible for registrations and filings where required.',
+        link: '/agreements#tax-vato',
+      },
+      {
+        title: 'Can I cancel a Teaching Sanctum class or session?',
+        body: 'Live sessions: cancel at least 48 hours before start for a refund-eligible cancel. You get two free cancellations platform-wide; after that, a non-refundable 10% hold fee applies. Inside 48 hours or no-shows are generally not refundable. Course enrollments: free cancel within 48 hours of purchase if free cancels remain. Full policy in Legal Agreements → Teaching Sanctum.',
+        link: '/agreements#teaching',
       },
       {
         title: 'How do international orders and shipping work?',

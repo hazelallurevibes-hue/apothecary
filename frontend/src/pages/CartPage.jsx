@@ -11,6 +11,7 @@ import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
 import { buildPaypalPayLink, describeVendorPaymentMethods } from '../lib/vendorPayments';
 import { startOrderCardCheckout } from '../lib/orderCheckoutApi';
+import MarketplacePolicyAck from '../components/MarketplacePolicyAck';
 
 /**
  * Seeker cart & checkout.
@@ -28,6 +29,7 @@ export default function CartPage({ user }) {
   const [deliveryMethod, setDeliveryMethod] = useState('shipping');
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [shippingEstimate, setShippingEstimate] = useState(0);
+  const [marketAck, setMarketAck] = useState(false);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [vendorPay, setVendorPay] = useState(null);
@@ -77,6 +79,10 @@ export default function CartPage({ user }) {
     }
     if (paymentMethod === 'card' && !selectedMeta?.available) {
       setErr('This maker has not linked Stripe for cards. Choose Cash or PayPal if available.');
+      return;
+    }
+    if (!marketAck) {
+      setErr('Please acknowledge the marketplace payment, Tax Vato, and shipping policies before placing your order.');
       return;
     }
 
@@ -226,7 +232,7 @@ export default function CartPage({ user }) {
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#4a1942] heading-font">Your cart</h1>
         <p className="text-sm text-gray-600 mt-1">
           <strong>Cash/COD</strong> = free for makers (no Connect fee). <strong>Card</strong> = Stripe; physical
-          goods held until shipped. <strong>PayPal</strong> = pay maker then confirm. Tax via Tax SaaS (destination).
+          goods held until shipped. <strong>PayPal</strong> = pay maker then confirm. Tax via <strong>Tax Vato</strong>.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <Link to="/orders" className="px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
@@ -461,6 +467,7 @@ export default function CartPage({ user }) {
                   to place your order.
                 </div>
               )}
+              <MarketplacePolicyAck checked={marketAck} onChange={setMarketAck} className="mb-4" />
               <div className="bg-gray-50 p-4 rounded-2xl mb-4 text-sm space-y-1">
                 <div>
                   <strong>Fulfillment:</strong>{' '}
@@ -491,7 +498,7 @@ export default function CartPage({ user }) {
                   <button
                     type="button"
                     onClick={handlePlaceOrder}
-                    disabled={placing}
+                    disabled={placing || !marketAck}
                     className="flex-1 py-3 bg-emerald-600 text-white rounded-3xl font-semibold disabled:opacity-60"
                   >
                     {placing
