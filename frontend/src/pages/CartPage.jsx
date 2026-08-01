@@ -24,9 +24,10 @@ export default function CartPage({ user }) {
   const { requireVerification } = useProviderInteractionGate(user);
   const [placing, setPlacing] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(1);
-  const [address, setAddress] = useState({ street: '', city: '', zip: '' });
+  const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '', country: 'US' });
   const [deliveryMethod, setDeliveryMethod] = useState('shipping');
   const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [shippingEstimate, setShippingEstimate] = useState(0);
   const [msg, setMsg] = useState('');
   const [err, setErr] = useState('');
   const [vendorPay, setVendorPay] = useState(null);
@@ -88,6 +89,9 @@ export default function CartPage({ user }) {
       const paymentStatus = isCash ? 'cod' : 'unpaid';
       const orderStatus = isCash ? 'placed' : 'awaiting_payment';
 
+      // Shipping estimate: simple flat when shipping selected (vendor can buy platform label later)
+      const shipAmt = deliveryMethod === 'shipping' ? (shippingEstimate || 8.99) : 0;
+
       const orderData = await buildTaxedOrderPayload(
         {
           user_id: user.id,
@@ -102,20 +106,32 @@ export default function CartPage({ user }) {
           })),
           subtotal: total,
           total,
-          address: [address.street, address.city, address.zip].filter(Boolean).join(', '),
+          shipping_amount: shipAmt,
+          fulfillment_class: 'physical',
+          address: [address.street, address.city, address.state, address.zip, address.country]
+            .filter(Boolean)
+            .join(', '),
           delivery_method: deliveryMethod,
           payment_method: paymentMethod,
           payment_status: paymentStatus,
           status: orderStatus,
-          payment_note:
-            paymentMethod === 'paypal' && vendorPay?.paypal_account_id
+          payout_status: isCash ? 'cod' : paymentMethod === 'card' ? 'held' : 'not_applicable',
+          payment_note: isCash
+            ? 'Cash on delivery / pickup — free for vendor (no Connect fee). Platform does not hold funds.'
+            : paymentMethod === 'paypal' && vendorPay?.paypal_account_id
               ? `PayPal to ${vendorPay.paypal_account_id} — unpaid until completed on PayPal`
               : paymentMethod === 'card' && vendorPay?.stripe_account_id
-                ? `Card via Stripe Connect ${vendorPay.stripe_account_id} — unpaid until Checkout completes`
-                : 'Cash on delivery / pickup',
-          tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner' : '',
+                ? 'Card via Stripe — physical order: funds held until shipped, then transferred to maker'
+                : 'Awaiting payment',
+          tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner or platform label' : '',
         },
         vendorId,
+        {
+          country: address.country || 'US',
+          region: address.state,
+          postalCode: address.zip,
+          city: address.city,
+        },
       );
 
       const placed = await placeOrderApi(orderData, user);
@@ -187,7 +203,7 @@ export default function CartPage({ user }) {
 
       clearCart();
       setCheckoutStep(1);
-      setAddress({ street: '', city: '', zip: '' });
+      setAddress({ street: '', city: '', state: '', zip: '', country: 'US' });
       setMsg(baseMsg);
 
       window.setTimeout(() => {
@@ -209,8 +225,8 @@ export default function CartPage({ user }) {
         <p className="text-[10px] uppercase tracking-[0.2em] text-[#c9a227] font-bold">Seeker checkout</p>
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#4a1942] heading-font">Your cart</h1>
         <p className="text-sm text-gray-600 mt-1">
-          Cash = pay on delivery. Card = Stripe Checkout (auto-marks paid). PayPal = pay maker, then confirm on My
-          Orders.
+          <strong>Cash/COD</strong> = free for makers (no Connect fee). <strong>Card</strong> = Stripe; physical
+          goods held until shipped. <strong>PayPal</strong> = pay maker then confirm. Tax via Tax SaaS (destination).
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <Link to="/orders" className="px-3 py-1.5 rounded-full border bg-white text-[#4a1942] font-medium">
@@ -338,12 +354,39 @@ export default function CartPage({ user }) {
                     className="border p-3 rounded-2xl"
                   />
                   <input
-                    placeholder="ZIP"
+                    placeholder="State / region"
+                    value={address.state}
+                    onChange={(e) => setAddress({ ...address, state: e.target.value.toUpperCase() })}
+                    className="border p-3 rounded-2xl"
+                    maxLength={3}
+                  />
+                  <input
+                    placeholder="ZIP / postal"
                     value={address.zip}
                     onChange={(e) => setAddress({ ...address, zip: e.target.value })}
                     className="border p-3 rounded-2xl"
                   />
+                  <input
+                    placeholder="Country (US, DE, CA…)"
+                    value={address.country}
+                    onChange={(e) => setAddress({ ...address, country: e.target.value.toUpperCase() })}
+                    className="border p-3 rounded-2xl"
+                    maxLength={2}
+                  />
                 </div>
+                {deliveryMethod === 'shipping' && (
+                  <label className="block text-sm mt-3">
+                    Shipping estimate (buyer pays; maker can buy a platform label later)
+                    <input
+                      type="number"
+                      min={0}
+                      step={0.01}
+                      value={shippingEstimate || 8.99}
+                      onChange={(e) => setShippingEstimate(Number(e.target.value) || 0)}
+                      className="w-full border p-3 rounded-2xl mt-1"
+                    />
+                  </label>
+                )}
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">
@@ -387,11 +430,11 @@ export default function CartPage({ user }) {
                 ))}
               </div>
               <div className="mt-3 rounded-xl bg-amber-50 border border-amber-100 px-3 py-2 text-[11px] text-amber-950">
-                <strong>Cash</strong> = order is live; you pay the maker on pickup/delivery.
+                <strong>Cash</strong> = free for the maker (COD) — no Stripe fee.
                 <br />
-                <strong>Card</strong> = order saved, then Stripe Checkout; webhook marks paid automatically.
+                <strong>Card</strong> = Stripe; paid instantly to platform; maker paid after ship (physical).
                 <br />
-                <strong>PayPal</strong> = order saved unpaid; finish on PayPal, then confirm on My Orders.
+                <strong>PayPal</strong> = finish on PayPal, then confirm on My Orders.
               </div>
               <div className="flex gap-3 mt-4">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">

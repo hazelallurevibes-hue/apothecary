@@ -175,6 +175,11 @@ export async function placeOrder(orderData, user = null) {
   const status =
     orderData.status ||
     (paymentStatus === 'paid' || paymentStatus === 'cod' ? 'placed' : 'awaiting_payment');
+  // COD / cash: free platform path for vendors (no Connect fee hold)
+  const payoutStatus =
+    orderData.payout_status ||
+    (method === 'cash' || method === 'cod' ? 'cod' : method === 'card' ? 'held' : 'not_applicable');
+  const fulfillmentClass = orderData.fulfillment_class || 'physical';
 
   // Try backend first
   const backendResult = await tryBackend('/orders', {
@@ -221,6 +226,11 @@ export async function placeOrder(orderData, user = null) {
     payment_note: orderData.payment_note || null,
     tracking_note: orderData.tracking_note || null,
     payment_status: paymentStatus,
+    payout_status: payoutStatus,
+    fulfillment_class: fulfillmentClass,
+    shipping_amount: orderData.shipping_amount ?? 0,
+    tax_remitter: orderData.tax_remitter || null,
+    tax_quote_json: orderData.tax_quote_json || null,
   };
 
   // Drop nulls that might not exist as columns

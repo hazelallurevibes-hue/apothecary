@@ -262,6 +262,10 @@ async function handleMarketplaceOrderCheckout(
     ? session.payment_intent
     : session.payment_intent?.id;
 
+  const hold = meta.hold === "1" || meta.fulfillment_class === "physical";
+  const vendorPayoutCents = meta.vendor_payout_cents ? Number(meta.vendor_payout_cents) : null;
+  const taxHeldCents = meta.tax_held_cents ? Number(meta.tax_held_cents) : null;
+
   const patch: Record<string, unknown> = {
     payment_status: "paid",
     status: "placed",
@@ -269,8 +273,18 @@ async function handleMarketplaceOrderCheckout(
     stripe_checkout_session_id: session.id,
     stripe_payment_intent_id: paymentIntent || null,
     paid_at: new Date().toISOString(),
-    payment_note: `Paid via Stripe Checkout ${session.id}`,
+    payment_note: hold
+      ? `Paid via Stripe ${session.id} · vendor payout HELD until shipped`
+      : `Paid via Stripe Checkout ${session.id} · immediate Connect split`,
+    payout_status: hold ? "held" : "released",
+    fulfillment_class: hold ? "physical" : (meta.fulfillment_class || "digital"),
   };
+  if (vendorPayoutCents != null && Number.isFinite(vendorPayoutCents)) {
+    patch.vendor_payout_cents = vendorPayoutCents;
+  }
+  if (taxHeldCents != null && Number.isFinite(taxHeldCents)) {
+    patch.tax_held_cents = taxHeldCents;
+  }
 
   let { error } = await supabase.from("orders").update(patch).eq("id", orderId);
   if (error && /column|schema cache|does not exist/i.test(error.message || "")) {

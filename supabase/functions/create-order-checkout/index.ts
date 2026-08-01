@@ -140,12 +140,27 @@ Deno.serve(async (req: Request) => {
     }
 
     const amountCents = Math.round(amount * 100);
-    // Fee basis = product subtotal (not tax) when available
+    // Fee basis = product subtotal (not tax / shipping) when available
     const feeBasisDollars = Number(order.subtotal ?? amount) || amount;
     const feeBasisCents = Math.round(feeBasisDollars * 100);
+    const taxHeldCents = Math.round((Number(order.sales_tax) || 0) * 100);
+    const shippingCents = Math.round((Number(order.shipping_amount) || 0) * 100);
     const settings = await loadStripeSettings(supabase);
     const fees = computeApplicationFeeCents(feeBasisCents, settings);
     const applicationFee = fees.applicationFeeCents;
+
+    // Physical marketplace goods: hold funds on platform until ship (separate charge + later Transfer).
+    // Digital fulfillment_class: destination charge (immediate split) — rare for cart.
+    const delivery = String(order.delivery_method || "shipping").toLowerCase();
+    const fulfillmentClass = String(order.fulfillment_class || "physical").toLowerCase() === "digital"
+      ? "digital"
+      : "physical";
+    const holdPhysical =
+      fulfillmentClass === "physical" ||
+      delivery === "shipping" ||
+      delivery === "pickup";
+    // vendor net = subtotal − platform application fee (admin + stripe estimate)
+    const vendorPayoutCents = Math.max(0, feeBasisCents - applicationFee);
 
     let items: Array<{ name?: string; qty?: number; price?: number }> = [];
     try {
@@ -190,6 +205,25 @@ Deno.serve(async (req: Request) => {
     );
     const useSingleLine = Math.abs(lineSum - amountCents) > 2;
 
+    const paymentIntentData: Record<string, unknown> = {
+      metadata: {
+        checkout_type: "marketplace_order",
+        order_id: String(orderId),
+        vendor_id: String(vendorId),
+        hold: holdPhysical ? "1" : "0",
+        vendor_payout_cents: String(vendorPayoutCents),
+      },
+      transfer_group: `order_${orderId}`,
+    };
+
+    if (holdPhysical) {
+      // Separate charges & transfers: full amount on platform; Transfer after ship
+      // (no transfer_data / application_fee on PI)
+    } else {
+      if (applicationFee > 0) paymentIntentData.application_fee_amount = applicationFee;
+      paymentIntentData.transfer_data = { destination: vendor.stripe_account_id };
+    }
+
     const sessionParams: Record<string, unknown> = {
       mode: "payment",
       line_items: useSingleLine
@@ -218,23 +252,13 @@ Deno.serve(async (req: Request) => {
         user_id: userId != null ? String(userId) : "",
         user_email: buyerEmail,
         platform: "hazelallure",
+        hold: holdPhysical ? "1" : "0",
+        fulfillment_class: fulfillmentClass,
+        vendor_payout_cents: String(vendorPayoutCents),
+        tax_held_cents: String(taxHeldCents),
       },
-      payment_intent_data: {
-        application_fee_amount: applicationFee > 0 ? applicationFee : undefined,
-        transfer_data: {
-          destination: vendor.stripe_account_id,
-        },
-        metadata: {
-          checkout_type: "marketplace_order",
-          order_id: String(orderId),
-          vendor_id: String(vendorId),
-        },
-      },
+      payment_intent_data: paymentIntentData,
     };
-
-    // Stripe rejects undefined nested fields — clean application_fee if 0
-    const pi = sessionParams.payment_intent_data as Record<string, unknown>;
-    if (!pi.application_fee_amount) delete pi.application_fee_amount;
 
     const session = await stripe.checkout.sessions.create(
       sessionParams as Parameters<typeof stripe.checkout.sessions.create>[0],
@@ -246,9 +270,16 @@ Deno.serve(async (req: Request) => {
       payment_status: "unpaid",
       status: "awaiting_payment",
       platform_fee: fees.adminFeeCents / 100,
-      payment_note:
-        `Stripe Checkout ${session.id} → ${vendor.stripe_account_id} · app fee $${(applicationFee / 100).toFixed(2)} (admin $${(fees.adminFeeCents / 100).toFixed(2)} + stripe est $${(fees.stripeEstimateCents / 100).toFixed(2)})`,
+      platform_fee_cents: applicationFee,
+      vendor_payout_cents: vendorPayoutCents,
+      tax_held_cents: taxHeldCents,
+      fulfillment_class: fulfillmentClass,
+      payout_status: holdPhysical ? "held" : "released",
+      payment_note: holdPhysical
+        ? `Stripe Checkout ${session.id} · PHYSICAL HOLD until shipped · vendor net ~$${(vendorPayoutCents / 100).toFixed(2)} · fee $${(applicationFee / 100).toFixed(2)}`
+        : `Stripe Checkout ${session.id} → ${vendor.stripe_account_id} · immediate · fee $${(applicationFee / 100).toFixed(2)}`,
     };
+    void shippingCents;
 
     let { error: upErr } = await supabase.from("orders").update(patch).eq("id", orderId);
     if (upErr && /column|schema cache|does not exist/i.test(upErr.message || "")) {

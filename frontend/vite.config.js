@@ -1,5 +1,9 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
@@ -17,6 +21,11 @@ export default defineConfig(({ mode }) => {
   return {
   plugins: [react()],
   envPrefix: ['VITE_', 'AUTH0_'],
+  resolve: {
+    alias: {
+      '@tax-saas': path.resolve(__dirname, '../tax-saas/src'),
+    },
+  },
   define: {
     'import.meta.env.VITE_VERTICAL_ID': JSON.stringify(verticalId),
     'import.meta.env.VITE_APP_URL': JSON.stringify(appUrl),

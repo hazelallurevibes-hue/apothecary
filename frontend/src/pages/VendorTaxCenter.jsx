@@ -18,6 +18,7 @@ import {
   DEFAULT_PLATFORM_FEE_RATE,
 } from '../lib/vendorTax';
 import { downloadCsv } from '../lib/attestationsApi';
+import { loadVendorNexus, saveVendorNexus, quoteCheckoutTax } from '../lib/taxSaasClient';
 
 const CURRENT_YEAR = new Date().getFullYear();
 const CURRENT_QUARTER = Math.floor(new Date().getMonth() / 3) + 1;
@@ -42,16 +43,20 @@ export default function VendorTaxCenter({ user }) {
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [nexusRegions, setNexusRegions] = useState('');
+  const [collectIndep, setCollectIndep] = useState(false);
+  const [demoQuote, setDemoQuote] = useState(null);
 
   useEffect(() => {
     if (!vendorId) return;
     (async () => {
       setLoading(true);
       try {
-        const [tax, orderRows, snaps] = await Promise.all([
+        const [tax, orderRows, snaps, nexus] = await Promise.all([
           fetchVendorTaxSettings(vendorId),
           fetchVendorOrdersForTax(vendorId),
           fetchTaxSnapshots(vendorId),
+          loadVendorNexus(vendorId).catch(() => null),
         ]);
         if (tax) {
           setSettings({
@@ -64,6 +69,10 @@ export default function VendorTaxCenter({ user }) {
             tax_filing_name: tax.tax_filing_name || tax.name || '',
           });
           setVendorName(tax.name || tax.tax_filing_name || '');
+        }
+        if (nexus) {
+          setNexusRegions((nexus.nexus_regions || []).join(', '));
+          setCollectIndep(!!nexus.collect_independently);
         }
         setOrders(orderRows);
         setSnapshots(snaps);
@@ -129,12 +138,91 @@ export default function VendorTaxCenter({ user }) {
         <strong>Not tax advice.</strong> Figures are estimates only. Hazel Allure does not file sales tax, income tax, or 1099-NEC forms on your behalf. Consult a licensed CPA or tax professional.
       </p>
 
+      <div className="bg-[#faf7f9] border border-[#4a1942]/15 rounded-3xl p-6 sm:p-8 mb-8 space-y-4">
+        <h2 className="font-semibold text-lg text-[#4a1942]">Tax SaaS · nexus &amp; marketplace facilitator</h2>
+        <p className="text-sm text-gray-600">
+          Worldwide engine used at cart checkout. In most US states Hazel Allure (platform) collects sales tax as
+          marketplace facilitator; you still track income tax / self-employment. Register nexus where you have economic
+          presence.
+        </p>
+        <label className="block text-sm">
+          Nexus regions (comma-separated state codes: NM, TX, CA…)
+          <input
+            className="mt-1 w-full border p-3 rounded-2xl"
+            value={nexusRegions}
+            onChange={(e) => setNexusRegions(e.target.value)}
+            placeholder="NM, TX"
+          />
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input type="checkbox" checked={collectIndep} onChange={(e) => setCollectIndep(e.target.checked)} />
+          I collect sales tax myself (not marketplace facilitator) — rare
+        </label>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={saving || !vendorId}
+            className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium disabled:opacity-50"
+            onClick={async () => {
+              setSaving(true);
+              try {
+                await saveVendorNexus(vendorId, {
+                  home_region: settings.tax_state || nexusRegions.split(',')[0]?.trim(),
+                  nexus_regions: nexusRegions.split(/[\s,]+/).map((s) => s.trim().toUpperCase()).filter(Boolean),
+                  collect_independently: collectIndep,
+                });
+                setMessage('Nexus profile saved for Tax SaaS.');
+              } catch (e) {
+                setMessage(e.message);
+              }
+              setSaving(false);
+            }}
+          >
+            Save nexus profile
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 border rounded-2xl text-sm"
+            onClick={() => {
+              const q = quoteCheckoutTax({
+                subtotal: 100,
+                country: 'US',
+                region: settings.tax_state || 'NM',
+                county: settings.tax_county,
+                productCategory: 'physical_goods',
+                sellerHomeRegion: settings.tax_state || 'NM',
+                sellerNexusRegions: nexusRegions.split(/[\s,]+/).map((s) => s.trim().toUpperCase()).filter(Boolean),
+                marketplaceFacilitator: !collectIndep,
+              });
+              setDemoQuote(q);
+            }}
+          >
+            Preview $100 tax quote
+          </button>
+        </div>
+        {demoQuote && (
+          <pre className="text-[11px] bg-white border rounded-2xl p-3 overflow-auto max-h-48">
+            {JSON.stringify(
+              {
+                taxTotal: demoQuote.taxTotal,
+                total: demoQuote.total,
+                remitter: demoQuote.remitter,
+                jurisdictions: demoQuote.jurisdictions,
+                parties: demoQuote.parties,
+              },
+              null,
+              2,
+            )}
+          </pre>
+        )}
+      </div>
+
       {loading ? (
         <p className="text-sm text-gray-500">Loading…</p>
       ) : (
         <>
           <div className="bg-white border rounded-3xl p-6 sm:p-8 mb-8 space-y-4">
-            <h2 className="font-semibold text-lg">Sales tax collection</h2>
+            <h2 className="font-semibold text-lg">Sales tax collection (legacy rate override)</h2>
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"

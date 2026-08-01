@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.9.1';
+export const APP_VERSION = '1.10.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Teaching + practitioner checkout secured',
+  title: 'Hybrid payouts, shipping labels & Tax SaaS',
   message:
-    'Courses and 1:1 sessions use Stripe Connect (with platform fee). Only the owning practitioner can edit courses/slots. Mini-cart routes to full checkout — no free place-order shortcut.',
+    'Physical card orders hold funds until ship; digital pays out immediately; COD stays free for makers. Platform shipping labels with markup. New worldwide Tax SaaS for buyer/seller/platform.',
   highlights: [
-    'Teaching Sanctum: Stripe enroll + owner-only course edits',
-    'Session booking: Connect payout + cancel/return toasts',
-    'Marketplace fee: Stripe estimate + Hazel admin %',
+    'Physical: Stripe hold → ship → release Connect transfer',
+    'COD free path (no platform fee claim)',
+    'Tax SaaS: US state/local, VAT/GST, MPF remitter',
   ],
 };
 
