@@ -1,0 +1,13 @@
+{
+  "version": "2026.07.31",
+  "usStatesAsOf": "2026-08-01",
+  "vatAsOf": "2026-08-01",
+  "fxAsOf": "2026-07-31",
+  "updateCommand": "npm run rates:update",
+  "sources": [
+    "Built-in state/VAT seed tables (manual review)",
+    "Frankfurter.app (ECB-derived FX, free)",
+    "Optional: override JSON via TAXVATO_RATES_DIR"
+  ],
+  "disclaimer": "Operational estimates. Confirm with a tax professional and official sources before filing."
+}

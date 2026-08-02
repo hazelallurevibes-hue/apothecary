@@ -1,0 +1,91 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tax Vato API",
+    "version": "1.1.0",
+    "description": "Worldwide multi-party tax estimates, FX conversion, nexus, and AI tool endpoints. Estimates only — not tax advice."
+  },
+  "servers": [{ "url": "http://localhost:8787" }],
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "summary": "Health",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/v1/quote": {
+      "post": {
+        "summary": "Tax quote (with optional multi-currency)",
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/QuoteRequest" }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Quote" } }
+      }
+    },
+    "/v1/fx/convert": {
+      "post": {
+        "summary": "Currency convert",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Converted amount" } }
+      }
+    },
+    "/v1/fx/currencies": {
+      "get": {
+        "summary": "List currencies",
+        "responses": { "200": { "description": "Currency list" } }
+      }
+    },
+    "/v1/ai/tools": {
+      "get": {
+        "summary": "LLM tool schemas (OpenAI + Anthropic + raw)",
+        "responses": { "200": { "description": "Tool definitions" } }
+      }
+    },
+    "/v1/ai/execute": {
+      "post": {
+        "summary": "Execute an AI tool by name",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Tool result" } }
+      }
+    },
+    "/v1/nexus/evaluate": {
+      "post": {
+        "summary": "Nexus evaluation",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "200": { "description": "Nexus alerts" } }
+      }
+    },
+    "/v1/transactions": {
+      "post": {
+        "summary": "Commit transaction audit record",
+        "security": [{ "bearerAuth": [] }],
+        "responses": { "201": { "description": "Created" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": { "type": "http", "scheme": "bearer" }
+    },
+    "schemas": {
+      "QuoteRequest": {
+        "type": "object",
+        "properties": {
+          "currency": { "type": "string" },
+          "lineCurrency": { "type": "string" },
+          "convertResultTo": { "type": "string" },
+          "shipTo": { "type": "object" },
+          "lines": { "type": "array" },
+          "seller": { "type": "object" },
+          "platform": { "type": "object" }
+        }
+      }
+    }
+  }
+}

@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.11.0';
+export const APP_VERSION = '1.11.1';
 
 export const UPDATE_SPLASH = {
-  title: 'Tax Vato 1.0 + Sanctum campus + more remedies',
+  title: 'Tax Vato AI API + FX + 520 remedies',
   message:
-    'Tax Vato is a full standalone tax product (API, embed, Shopify/Woo adapters). Teaching Sanctum adds learning paths, campus board, and course discussion. Remedy library expanded.',
+    'Tax Vato now exposes AI tool schemas for any LLM, multi-currency FX with live ECB updates, filing/DST competitive hints, and 520 educational remedies.',
   highlights: [
-    'Tax Vato: HTTP API, client SDK, embed widget, multi-site adapters',
-    'Sanctum: paths, announcements, circle discussion, ceremonial rank',
-    'Apothecary remedies: herbal monographs + condition education batch',
+    'Tax Vato: /v1/ai/tools + /v1/ai/execute for agent integration',
+    'FX convert + rates:fx update pipeline',
+    'Remedy library: 520 educational topics',
   ],
 };
 

@@ -14,7 +14,22 @@ export { wooCartToQuote, quoteToWooTaxLines } from './adapters/woocommerce.js';
 export { restCartToQuote, FRAMEWORK_HINTS } from './adapters/rest.js';
 export { taxVatoToStripeTaxParams, stripeTaxToTaxVatoQuote } from './adapters/stripe-tax.js';
 
-export const TAX_VATO_VERSION = '1.0.0';
+export { quoteTaxFull, convertMoney } from './engine/quoteEnhanced.js';
+export { convertCurrency, listCurrencies, loadFxTable } from './engine/currency.js';
+export {
+  competitiveTaxBundle,
+  filingHintFor,
+  digitalServicesHints,
+  withholdingHints,
+} from './engine/filing.js';
+export {
+  TAX_VATO_AI_TOOLS,
+  toOpenAITools,
+  toAnthropicTools,
+  executeTaxVatoTool,
+} from './ai/tools.js';
+
+export const TAX_VATO_VERSION = '1.1.0';
 /** @deprecated use TAX_VATO_VERSION */
 export const TAX_SAAS_VERSION = TAX_VATO_VERSION;
 export const TENANT_HAZEL = 'hazelallure';

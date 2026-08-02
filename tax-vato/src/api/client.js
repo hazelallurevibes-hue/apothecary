@@ -92,6 +92,47 @@ export class TaxVatoClient {
     if (!this.baseUrl) return { ok: true, mode: 'local', product: 'Tax Vato' };
     return this._request('/v1/health');
   }
+
+  async convertCurrency({ amount, from, to }) {
+    if (!this.baseUrl) {
+      const { convertCurrency } = await import('../engine/currency.js');
+      return { ok: true, ...convertCurrency(amount, from, to) };
+    }
+    return this._request('/v1/fx/convert', {
+      method: 'POST',
+      body: { amount, from, to },
+    });
+  }
+
+  async listCurrencies() {
+    if (!this.baseUrl) {
+      const { listCurrencies, loadFxTable } = await import('../engine/currency.js');
+      const fx = loadFxTable();
+      return { ok: true, currencies: listCurrencies(), asOf: fx.asOf, source: fx.source };
+    }
+    return this._request('/v1/fx/currencies');
+  }
+
+  /** Discover tools for LLM agents */
+  async aiTools() {
+    if (!this.baseUrl) {
+      const { TAX_VATO_AI_TOOLS, toOpenAITools, toAnthropicTools } = await import('../ai/tools.js');
+      return { ok: true, tools: TAX_VATO_AI_TOOLS, openai: toOpenAITools(), anthropic: toAnthropicTools() };
+    }
+    return this._request('/v1/ai/tools');
+  }
+
+  /** Run a named AI tool */
+  async aiExecute(name, args = {}) {
+    if (!this.baseUrl) {
+      const { executeTaxVatoTool } = await import('../ai/tools.js');
+      return executeTaxVatoTool(name, args);
+    }
+    return this._request('/v1/ai/execute', {
+      method: 'POST',
+      body: { name, arguments: args },
+    });
+  }
 }
 
 export default TaxVatoClient;

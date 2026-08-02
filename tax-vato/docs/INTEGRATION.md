@@ -70,6 +70,55 @@ Pass `tenantId` per product (`hazelallure`, `magic`, `acme-shop`). Store API key
 - Prefer server-side quotes for production checkout.
 - Set `TAXVATO_CORS` and disable `TAXVATO_OPEN` in production.
 
+## 8. AI / LLM agents
+
+Any AI that can call HTTP tools:
+
+```http
+GET /v1/ai/tools
+→ { tools, openai, anthropic }
+
+POST /v1/ai/execute
+Authorization: Bearer tv_…
+{ "name": "taxvato_quote", "arguments": { "shipTo": { "country": "US", "region": "TX" }, "lines": [{ "amount": 100 }] } }
+```
+
+Tool names:
+
+| Tool | Purpose |
+|------|---------|
+| `taxvato_quote` | Multi-party tax quote (+ FX, competitive hints) |
+| `taxvato_convert_currency` | FX convert |
+| `taxvato_nexus_evaluate` | Economic nexus alerts |
+| `taxvato_filing_hints` | Filing / DST / withholding sketches |
+| `taxvato_list_currencies` | FX catalog |
+| `taxvato_health` | Version + rates as-of |
+
+OpenAPI: `GET /v1/openapi.json`
+
+## 9. Currency & rate updates
+
+```bash
+npm run rates:fx     # Frankfurter/ECB → src/data/fx-rates.json
+npm run rates:update # alias
+```
+
+Quotes accept:
+
+- `currency` — tax total currency  
+- `lineCurrency` / `presentmentCurrency` — convert line amounts first  
+- `convertResultTo` — also return totals in another ISO code  
+
+## 10. Competitive depth
+
+Each full quote can include `competitive`:
+
+- **filing** cadence hints (US DOR / VAT OSS sketches)  
+- **digitalServices** cross-border flags  
+- **withholding** / 1099-K style info reporting notes  
+
+Not a full withholding engine — guidance for operators and AIs.
+
 ## Disclaimer
 
 Tax Vato provides **estimates**. You are responsible for registrations, filings, and legal compliance.
