@@ -1,12 +1,16 @@
 /**
  * Hazel Allure client for Tax Vato (@tax-vato package + edge tax-quote).
  */
-import { quoteTax as localQuote, evaluateNexus, US_STATE_SALES_TAX, PRODUCT_NAME } from '@tax-vato/index.js';
+// Browser-safe imports only (no Node crypto / server modules)
+import { quoteTax as localQuote } from '@tax-vato/engine/quote.js';
+import { evaluateNexus } from '@tax-vato/engine/nexus.js';
+import { US_STATE_SALES_TAX } from '@tax-vato/data/us-state-rates.js';
 import { supabase } from './supabaseClient';
 
 const FN_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
 
-export { evaluateNexus, US_STATE_SALES_TAX, PRODUCT_NAME as TAX_VATO_NAME };
+export const TAX_VATO_NAME = 'Tax Vato';
+export { evaluateNexus, US_STATE_SALES_TAX };
 
 /**
  * Quote tax for checkout. Prefers local engine (fast); optionally hits edge for audit persist.

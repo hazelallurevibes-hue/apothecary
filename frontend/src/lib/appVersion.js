@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.10.1';
+export const APP_VERSION = '1.11.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Tax Vato + Teaching cancel policy',
+  title: 'Tax Vato 1.0 + Sanctum campus + more remedies',
   message:
-    'Tax engine is now branded Tax Vato. Teaching Sanctum: 48h cancel, 2 free cancels, then 10% non-refundable hold fee. Checkout and enroll require policy acknowledgments.',
+    'Tax Vato is a full standalone tax product (API, embed, Shopify/Woo adapters). Teaching Sanctum adds learning paths, campus board, and course discussion. Remedy library expanded.',
   highlights: [
-    'Tax Vato — separate worldwide tax product',
-    'Teaching: 48h cancel + 10% hold after 2 cancels',
-    'Legal: marketplace, shipping, COD, Tax Vato sections',
+    'Tax Vato: HTTP API, client SDK, embed widget, multi-site adapters',
+    'Sanctum: paths, announcements, circle discussion, ceremonial rank',
+    'Apothecary remedies: herbal monographs + condition education batch',
   ],
 };
 

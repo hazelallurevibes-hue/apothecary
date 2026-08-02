@@ -19,9 +19,16 @@ import { fetchPublishedCourses } from '../lib/teachingPlatform';
 import ProToolLock from '../components/ProToolLock';
 import { isCustomerPro } from '../lib/plans';
 import { isCustomerProUser } from '../lib/proStatus';
+import {
+  ceremonialProgress,
+  fetchAnnouncements,
+  fetchLearningTracks,
+} from '../lib/sanctumCollegeExtras';
 
 const TABS = [
   { id: 'open', label: 'Open', hint: 'Enrolling now' },
+  { id: 'paths', label: 'Paths', hint: 'Learning tracks' },
+  { id: 'board', label: 'Board', hint: 'Campus news' },
   { id: 'upcoming', label: 'Upcoming', hint: 'Starting soon' },
   { id: 'closed', label: 'Closed', hint: 'Past sessions' },
   { id: 'mine', label: 'My classes', hint: 'Enrolled' },
@@ -47,6 +54,8 @@ export default function SanctumStudentHub({ user }) {
   const [bundles, setBundles] = useState([]);
   const [courses, setCourses] = useState([]);
   const [loadingCourses, setLoadingCourses] = useState(true);
+  const [tracks, setTracks] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const isPro = isCustomerProUser(user) || isCustomerPro(user);
 
   useEffect(() => {
@@ -58,6 +67,11 @@ export default function SanctumStudentHub({ user }) {
     fetchThankYouNotesForStudent(user.email).then(setThanks).catch(() => {});
     fetchBundles().then(setBundles).catch(() => []);
   }, [user?.email]);
+
+  useEffect(() => {
+    fetchLearningTracks().then(setTracks).catch(() => setTracks([]));
+    fetchAnnouncements({ limit: 12 }).then(setAnnouncements).catch(() => setAnnouncements([]));
+  }, []);
 
   useEffect(() => {
     setLoadingCourses(true);
@@ -158,6 +172,26 @@ export default function SanctumStudentHub({ user }) {
           <p className="text-xs text-gray-500">
             Digital seeker ID · {isPro ? 'Pro Member tools unlocked' : 'Free tools + Pro upgrades'}
           </p>
+          {transcript && (
+            <p className="text-[11px] text-[#4a1942] mt-1 font-medium">
+              {
+                ceremonialProgress({
+                  enrollments: transcript.courses?.length || 0,
+                  honors: honors.length,
+                  lessonsComplete: transcript.lessonsComplete || 0,
+                }).rank
+              }
+              {' · '}
+              {
+                ceremonialProgress({
+                  enrollments: transcript.courses?.length || 0,
+                  honors: honors.length,
+                  lessonsComplete: transcript.lessonsComplete || 0,
+                }).points
+              }{' '}
+              sanctum points (ceremonial)
+            </p>
+          )}
         </div>
         <Link to="/courses" className="ml-auto text-xs font-semibold underline text-[#4a1942] shrink-0">
           Full catalog →
@@ -165,6 +199,56 @@ export default function SanctumStudentHub({ user }) {
       </div>
 
       {/* Hub cards */}
+      {tab === 'paths' && (
+        <section className="space-y-4">
+          <h2 className="font-semibold text-[#4a1942]">Learning paths</h2>
+          <p className="text-sm text-gray-600">
+            Ceremonial certificate tracks — college-shaped, sanctum-spirited. Not accredited degrees.
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            {tracks.map((t) => (
+              <div key={t.slug || t.id} className="rounded-2xl border bg-white p-5 border-[#c9a227]/25">
+                <div className="text-2xl mb-2">{t.icon || '🌿'}</div>
+                <p className="font-semibold text-[#4a1942]">{t.title}</p>
+                <p className="text-sm text-gray-600 mt-1">{t.description}</p>
+                <Link to="/courses" className="inline-block mt-3 text-xs font-semibold underline text-[#4a1942]">
+                  Browse courses on this path →
+                </Link>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {tab === 'board' && (
+        <section className="space-y-3">
+          <h2 className="font-semibold text-[#4a1942]">Campus board</h2>
+          <p className="text-xs text-gray-500">Announcements from practitioners and the sanctum.</p>
+          {announcements.length === 0 && (
+            <p className="text-sm text-gray-500 rounded-2xl border border-dashed p-6 text-center">
+              No announcements yet — check back after your first class enrollment.
+            </p>
+          )}
+          {announcements.map((a) => (
+            <article
+              key={a.id}
+              className={`rounded-2xl border bg-white p-4 ${a.pinned ? 'border-[#c9a227]/50' : ''}`}
+            >
+              <div className="flex justify-between gap-2">
+                <h3 className="font-semibold text-[#4a1942]">{a.title}</h3>
+                {a.pinned && (
+                  <span className="text-[10px] uppercase font-bold text-[#c9a227]">Pinned</span>
+                )}
+              </div>
+              <p className="text-sm text-gray-700 mt-2 whitespace-pre-wrap">{a.body}</p>
+              <p className="text-[10px] text-gray-400 mt-2">
+                {a.created_at ? new Date(a.created_at).toLocaleString() : ''}
+              </p>
+            </article>
+          ))}
+        </section>
+      )}
+
       {tab === 'open' && (
         <section className="space-y-4">
           <h2 className="font-semibold text-[#4a1942]">Open classes</h2>

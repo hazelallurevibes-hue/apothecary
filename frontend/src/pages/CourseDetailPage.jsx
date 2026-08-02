@@ -21,6 +21,7 @@ import { checkoutCourseEnrollment } from '../lib/courseBillingApi';
 import { fetchUserLearningProfile, scoreCourseForLearner } from '../lib/learningPathApi';
 import { LEARNING_STYLES, formatDeliverySummary } from '../lib/teachingStudio';
 import CourseCollegeHub from '../components/CourseCollegeHub';
+import CourseCampusPanel from '../components/CourseCampusPanel';
 import CohortRoomPanel from '../components/CohortRoomPanel';
 import { checkPrerequisites } from '../lib/sanctumAdvancedApi';
 import { useSeoContext } from '../components/SeoContext';
@@ -384,6 +385,8 @@ export default function CourseDetailPage({ user }) {
               )}
             </div>
           </div>
+
+          <CourseCampusPanel courseId={Number(id)} user={user} enrolled={enrolled} />
 
           <CourseCollegeHub
             user={user}

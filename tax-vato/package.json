@@ -1,19 +1,40 @@
 {
   "name": "@taxvato/core",
-  "version": "0.1.0",
-  "private": true,
+  "version": "1.0.0",
+  "private": false,
   "type": "module",
-  "description": "Tax Vato — worldwide multi-party tax engine for marketplaces (buyer, seller, platform). Integrates with Hazel Allure and other products.",
+  "description": "Tax Vato — worldwide multi-party tax engine + HTTP API + embed widget for any website or marketplace.",
   "main": "src/index.js",
   "exports": {
     ".": "./src/index.js",
-    "./engine": "./src/engine/quote.js"
+    "./client": "./src/api/client.js",
+    "./engine/quote": "./src/engine/quote.js",
+    "./engine/nexus": "./src/engine/nexus.js",
+    "./data/us-state-rates": "./src/data/us-state-rates.js",
+    "./adapters/shopify": "./src/adapters/shopify.js",
+    "./adapters/woocommerce": "./src/adapters/woocommerce.js",
+    "./adapters/stripe": "./src/adapters/stripe-tax.js",
+    "./embed": "./public/embed.js"
+  },
+  "bin": {
+    "taxvato": "./server/cli.js"
   },
   "scripts": {
     "test": "node --test test/*.test.js",
-    "demo": "node scripts/demo-quote.mjs"
+    "demo": "node scripts/demo-quote.mjs",
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js"
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "keywords": [
+    "tax",
+    "sales-tax",
+    "vat",
+    "gst",
+    "marketplace",
+    "tax-vato",
+    "nexus"
+  ]
 }

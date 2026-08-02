@@ -398,7 +398,103 @@ function buildEntry(row) {
   };
 }
 
-// Deduplicate by slug and pad if under 200
+// Additional apothecary / herbal monographs (educational framing only)
+const BATCH_HERBAL = [
+  ['ashwagandha-adaptogen', 'Ashwagandha (adaptogen education)', 'sleep-mood', ['ashwagandha root traditional use', 'evening wind-down ritual', 'stress journaling', 'sleep hygiene'], ['discuss with clinician if on thyroid or sedative meds', 'lab work when indicated'], ['pregnancy without clinician guidance', 'severe depression']],
+  ['holy-basil-tulsi', 'Holy basil (tulsi) tea rituals', 'sleep-mood', ['tulsi tea', 'breath practice', 'midday pause', 'gentle walk'], ['primary care for persistent anxiety'], ['panic with chest pain']],
+  ['rhodiola-fatigue', 'Rhodiola traditional vitality framing', 'sleep-mood', ['rhodiola (studied adaptogen)', 'morning light', 'protein breakfast', 'pace work blocks'], ['evaluate anemia/thyroid', 'sleep study if snoring'], ['fainting', 'chest pain on exertion']],
+  ['lemon-balm-calm', 'Lemon balm calm cup', 'sleep-mood', ['lemon balm tea', 'screen dimming', 'soft music', 'warm bath'], ['CBT-I for insomnia', 'medication review'], ['suicidal thoughts']],
+  ['passionflower-rest', 'Passionflower evening blend education', 'sleep-mood', ['passionflower tea', 'consistent bedtime', 'cool dark room'], ['sleep evaluation'], ['confusion', 'falls']],
+  ['valerian-root-note', 'Valerian traditional sleep note', 'sleep-mood', ['valerian tea or extract (research mixed)', 'no late caffeine', 'stretching'], ['sleep clinic if chronic'], ['next-day grogginess with machinery']],
+  ['chamomile-comfort', 'Chamomile comfort tea', 'digestive', ['chamomile tea', 'slow meals', 'hand warmth on belly'], ['GI evaluation if pain persists'], ['allergy to ragweed family severe']],
+  ['peppermint-ibs-edu', 'Peppermint for IBS-pattern education', 'digestive', ['enteric peppermint (studied)', 'fennel tea', 'meal spacing'], ['dietitian', 'rule out red flags'], ['bloody stool', 'unintentional weight loss']],
+  ['ginger-travel', 'Ginger for travel queasiness', 'digestive', ['ginger chews or tea', 'fresh air', 'horizon gaze'], ['motion meds when needed'], ['vomiting blood']],
+  ['turmeric-golden-milk', 'Turmeric golden milk folklore', 'musculoskeletal', ['golden milk with black pepper (traditional)', 'gentle mobility', 'anti-inflammatory diet pattern'], ['rheumatology if joint swelling'], ['jaundice', 'black stools']],
+  ['boswellia-joints', 'Boswellia traditional joint comfort', 'musculoskeletal', ['boswellia (frankincense resin traditional)', 'heat pack', 'range-of-motion'], ['imaging if injury', 'DMARDs only by specialist'], ['hot swollen joint']],
+  ['devil-claw-note', 'Devil\'s claw traditional back comfort', 'musculoskeletal', ['devil\'s claw (traditional)', 'core gentle activation', 'walking'], ['PT referral', 'spine red flags evaluation'], ['saddle anesthesia', 'leg weakness']],
+  ['arnica-topical', 'Arnica topical bruise folklore', 'musculoskeletal', ['arnica gel external only', 'elevate', 'cold then warm'], ['rule out fracture', 'imaging'], ['open wounds — do not apply arnica internally']],
+  ['calendula-skin', 'Calendula skin soothe', 'skin', ['calendula salve', 'oat bath', 'fragrance-free wash'], ['topicals by derm', 'infection care'], ['spreading redness fever']],
+  ['lavender-aromatherapy', 'Lavender aromatherapy evening', 'sleep-mood', ['lavender essential oil diluted or diffuser', 'dim lights', 'no screens'], ['sleep evaluation'], ['essential oil ingestion toxicity']],
+  ['eucalyptus-steam', 'Eucalyptus steam (adult)', 'respiratory', ['steam with eucalyptus (caution kids)', 'hydration', 'saline'], ['evaluate asthma/COPD'], ['children — clinician only for oils']],
+  ['thyme-cough-tea', 'Thyme traditional cough tea', 'respiratory', ['thyme tea', 'honey (age-appropriate)', 'humid air'], ['strep/flu testing when indicated'], ['breathing distress']],
+  ['mullein-lung-folklore', 'Mullein leaf traditional lung folklore', 'respiratory', ['mullein tea traditional', 'rest', 'steam'], ['chest imaging if red flags'], ['coughing blood']],
+  ['nettle-allergy-season', 'Nettle for allergy season folklore', 'respiratory', ['nettle tea', 'saline rinse', 'pollen timing'], ['antihistamines', 'allergy testing'], ['anaphylaxis']],
+  ['elderberry-season', 'Elderberry seasonal folklore', 'immune', ['elderberry syrup traditional', 'sleep', 'broths'], ['flu testing', 'antivirals when indicated'], ['cytokine concerns — discuss if autoimmune']],
+  ['echinacea-short', 'Echinacea short-course folklore', 'immune', ['echinacea (short traditional use)', 'hand hygiene', 'rest'], ['clinical care if fever persists'], ['autoimmune flares — clinician first']],
+  ['oregano-oil-caution', 'Oregano oil caution education', 'immune', ['food-level oregano in meals', 'hydration'], ['never undiluted essential oils internally without clinician'], ['chemical burns from neat oils']],
+  ['propolis-throat', 'Propolis throat folklore', 'respiratory', ['propolis lozenges if not allergic', 'honey', 'gargle'], ['strep test'], ['bee product anaphyl']],
+  ['manuka-honey-wound', 'Manuka honey wound folklore', 'skin', ['medical-grade honey only if directed', 'clean technique'], ['wound clinic', 'tetanus status'], ['deep puncture', 'diabetic foot']],
+  ['aloe-burn-soothe', 'Aloe for minor burn soothe', 'skin', ['pure aloe gel', 'cool water first', 'loose cover'], ['ER for large/chemical/electrical burns'], ['blistering large area']],
+  ['witch-hazel-skin', 'Witch hazel toner folklore', 'skin', ['witch hazel pad', 'gentle cleanse', 'moisturize after'], ['derm for persistent dermatitis'], ['eye contact injury']],
+  ['tea-tree-dilute', 'Tea tree diluted spot care', 'skin', ['highly diluted tea tree', 'patch test', 'never swallow'], ['antifungals when indicated'], ['pet toxicity if licked']],
+  ['rosehip-oil-scar', 'Rosehip oil scar folklore', 'skin', ['rosehip seed oil massage', 'sun protection', 'patience'], ['derm procedures when desired'], ['infected wound']],
+  ['comfrey-external-only', 'Comfrey external-only caution', 'musculoskeletal', ['comfrey ointment external short-term traditional', 'never internal PA herbs'], ['imaging fractures'], ['open wounds — avoid']],
+  ['cramp-bark-menstrual', 'Cramp bark menstrual folklore', 'womens', ['cramp bark tea traditional', 'heat pad', 'rest'], ['gyn evaluation for severe pain'], ['soaking pads hourly', 'pregnancy bleeding']],
+  ['red-raspberry-leaf', 'Red raspberry leaf tradition', 'womens', ['red raspberry leaf tea late pregnancy only if midwife/OB ok', 'iron-rich foods'], ['OB care'], ['self-managing pregnancy complications']],
+  ['vitex-cycle', 'Vitex (chasteberry) cycle folklore', 'womens', ['vitex traditional', 'cycle tracking', 'sleep'], ['endocrine evaluation', 'contraception counseling'], ['pregnancy without clinician']],
+  ['saw-palmetto-edu', 'Saw palmetto prostate folklore', 'mens', ['saw palmetto traditional', 'evening bathroom schedule', 'limit late fluids'], ['urology for retention', 'PSA when indicated'], ['cannot urinate', 'blood in urine']],
+  ['stinging-nettle-root', 'Nettle root urinary folklore', 'urinary', ['nettle root traditional', 'hydration', 'timed voiding'], ['urology', 'infection testing'], ['fever with back pain']],
+  ['d-mannose-edu', 'D-mannose UTI-pattern education', 'urinary', ['D-mannose studied adjunct', 'water', 'do not delay antibiotics if needed'], ['urine culture', 'antibiotics when indicated'], ['flank pain fever — ER']],
+  ['cranberry-uti-edu', 'Cranberry UTI prevention education', 'urinary', ['cranberry products research mixed', 'hygiene', 'hydration'], ['culture-guided therapy'], ['pregnancy UTI']],
+  ['hawthorn-heart-edu', 'Hawthorn traditional heart folklore', 'circulatory', ['hawthorn tea traditional', 'walking', 'sodium awareness'], ['cardiology', 'never replace heart meds'], ['chest pain', 'syncope']],
+  ['garlic-cardio-food', 'Garlic culinary cardio folklore', 'circulatory', ['culinary garlic', 'Mediterranean pattern meals', 'movement'], ['lipid panels', 'med review'], ['bleeding risk before surgery']],
+  ['cacao-mood-ritual', 'Cacao mood ritual (food)', 'sleep-mood', ['ceremonial-style cacao (food dose)', 'gratitude journal', 'friend time'], ['mental health care'], ['suicidality']],
+  ['reishi-mushroom-edu', 'Reishi mushroom traditional calm', 'immune', ['reishi decoction traditional', 'evening wind-down'], ['med interaction check'], ['autoimmune — clinician first']],
+  ['lions-mane-edu', "Lion's mane cognitive folklore", 'neuro', ["lion's mane mushroom traditional", 'sleep', 'learning practice'], ['neuro eval for cognitive change'], ['sudden confusion']],
+  ['cordyceps-energy-edu', 'Cordyceps traditional vitality', 'metabolic', ['cordyceps traditional', 'zone-2 walks', 'protein meals'], ['fatigue workup'], ['chest pain']],
+  ['maca-libido-folklore', 'Maca root folklore', 'mens', ['maca powder food use', 'sleep', 'stress care'], ['hormone labs when indicated'], ['hormone-sensitive conditions — clinician']],
+  ['shatavari-edu', 'Shatavari traditional women\'s tonic', 'womens', ['shatavari traditional', 'warm foods', 'rest'], ['gyn care'], ['allergy to asparagus family']],
+  ['tribulus-edu', 'Tribulus folklore caution', 'mens', ['focus on sleep/strength training first', 'evidence limited'], ['endocrine consult'], ['liver symptoms']],
+  ['yarrow-wound-folklore', 'Yarrow external folklore', 'skin', ['yarrow compress traditional external', 'clean water first'], ['wound care clinic'], ['arterial bleeding']],
+  ['plantain-leaf-skin', 'Plantain leaf skin folklore', 'skin', ['plantain leaf poultice traditional', 'clean first'], ['tetanus status', 'infection care'], ['deep wounds']],
+  ['chickweed-itch', 'Chickweed itch folklore', 'skin', ['chickweed salve traditional', 'cool compress'], ['derm'], ['spreading infection']],
+  ['jewelweed-poison-ivy', 'Jewelweed poison-ivy folklore', 'skin', ['jewelweed wash traditional after exposure', 'wash oils off', 'oatmeal'], ['steroids when severe', 'oral meds'], ['eye involvement', 'breathing issues']],
+  ['burdock-skin-tea', 'Burdock root skin folklore', 'skin', ['burdock tea traditional', 'gentle cleanse'], ['derm'], ['pregnancy herbal caution']],
+  ['sassafras-caution', 'Sassafras safety caution', 'general', ['avoid safrole-rich sassafras internal use', 'choose safer tea alternatives'], ['follow modern safety guidance'], ['any product with safrole']],
+  ['kava-caution', 'Kava calm caution education', 'sleep-mood', ['if used, short-term traditional contexts only', 'liver-aware'], ['avoid with liver disease/alcohol', 'clinician first'], ['jaundice']],
+  ['kratom-caution', 'Kratom risk education', 'general', ['not recommended; dependence risk', 'seek safer supports'], ['addiction medicine resources'], ['respiratory depression risk']],
+  ['essential-oil-safety', 'Essential oil safety basics', 'general', ['dilute properly', 'never undiluted on skin/kids/pets', 'ventilate'], ['poison control if ingested'], ['pet distress', 'child exposure']],
+  ['pregnancy-herb-caution', 'Pregnancy herbal caution map', 'womens', ['food herbs usually ok culinary', 'avoid strong medicinal herbs without OB/midwife'], ['prenatal care'], ['bleeding', 'severe pain']],
+  ['pediatric-herb-caution', 'Children herbal caution map', 'general', ['no honey under 1 year', 'dose by clinician', 'prefer non-herb comfort first'], ['pediatric care'], ['lethargy', 'dehydration']],
+  ['drug-herb-interaction', 'Herb–drug interaction awareness', 'general', ['bring herb list to pharmacist', 'one change at a time'], ['medication reconciliation'], ['bleeding on anticoagulants']],
+];
+
+const BATCH_CONDITIONS = [
+  ['altitude-sickness-prep', 'Altitude adjustment education', 'general', ['hydrate', 'slow ascent', 'ginger', 'rest first day'], ['descent if severe', 'meds when prescribed'], ['confusion', 'cannot walk straight']],
+  ['hangover-recovery-edu', 'Hangover recovery education', 'digestive', ['oral rehydration', 'eggs/toast', 'electrolytes', 'sleep', 'no more alcohol'], ['ER for withdrawal seizures'], ['chest pain', 'vomiting blood']],
+  ['jet-lag-reset', 'Jet lag reset habits', 'sleep-mood', ['morning light at destination', 'melatonin timing education', 'hydrate plane'], ['sleep medicine short-term if prescribed'], ['severe disorientation']],
+  ['screen-eye-strain', 'Screen eye strain comfort', 'eye-ear', ['20-20-20 rule', 'blink breaks', 'humidity', 'chamomile compress cool'], ['optometry', 'blue-light clinical advice mixed'], ['sudden vision loss']],
+  ['tmj-jaw-tension', 'TMJ jaw tension comfort', 'musculoskeletal', ['soft foods temporarily', 'warm compress', 'jaw relaxation drills'], ['dental/TMJ specialist'], ['locked jaw', 'infection']],
+  ['text-neck-posture', 'Text-neck posture reset', 'musculoskeletal', ['phone at eye level', 'chin tucks', 'thoracic openers'], ['PT', 'imaging if neurologic'], ['arm weakness numbness']],
+  ['plantar-fascia-am', 'Plantar fascia morning steps', 'musculoskeletal', ['calf stretch', 'roll foot', 'supportive shoes', 'arnica external optional'], ['PT', 'orthotics'], ['inability to bear weight']],
+  ['shin-splint-pattern', 'Shin splint pattern education', 'musculoskeletal', ['load management', 'soft surface', 'calf strength'], ['sports med'], ['stress fracture suspicion']],
+  ['restless-legs-edu', 'Restless legs evening education', 'sleep-mood', ['iron-rich foods if deficient', 'stretch', 'warm bath', 'limit late caffeine'], ['check ferritin', 'sleep meds when indicated'], ['severe sleep loss']],
+  ['night-sweats-edu', 'Night sweats education', 'metabolic', ['cool room', 'wicking layers', 'limit alcohol'], ['evaluate infection/hormone/med causes'], ['fever with weight loss']],
+  ['hot-flash-nonhormonal', 'Hot flash nonhormonal supports', 'womens', ['paced breathing', 'layer clothing', 'trigger log', 'sage tea folklore'], ['menopause care options'], ['bleeding after menopause']],
+  ['low-libido-stress', 'Low libido stress framing', 'mens', ['sleep', 'couple communication', 'reduce performance pressure'], ['endocrine/urology when indicated'], ['painful symptoms']],
+  ['fertility-preconception-edu', 'Preconception wellness education', 'womens', ['folate foods', 'stop smoking/alcohol plan', 'sleep'], ['prenatal visit', 'genetic counseling when indicated'], ['self-treating infertility without care']],
+  ['postpartum-mood-edu', 'Postpartum mood education', 'womens', ['sleep shifts with support', 'sunlight', 'ask for help'], ['urgent mental health if harm thoughts', 'OB follow-up'], ['thoughts of harming baby/self — emergency']],
+  ['breastfeeding-supply-edu', 'Breastfeeding supply education', 'womens', ['frequent feed/pump', 'hydration', 'lactation consultant first before herbs'], ['IBCLC', 'pediatric weight checks'], ['infant not voiding/stooling']],
+  ['andropause-edu', 'Andropause-pattern education', 'mens', ['strength training', 'sleep apnea screen', 'alcohol cut'], ['testosterone labs only with clinician'], ['chest pain']],
+  ['gout-flare-edu', 'Gout flare education', 'musculoskeletal', ['ice', 'elevate', 'hydrate', 'cherry folklore adjunct'], ['anti-inflammatories when appropriate', 'urate-lowering therapy'], ['infection of joint']],
+  ['osteoarthritis-hand', 'Hand osteoarthritis comfort', 'musculoskeletal', ['paraffin or warm soak', 'joint-friendly tools', 'turmeric food'], ['OT', 'injections when indicated'], ['hot red joint']],
+  ['fibromyalgia-pacing', 'Fibromyalgia pacing education', 'musculoskeletal', ['activity pacing', 'gentle water movement', 'sleep routine'], ['rheum/pain clinic', 'mental health support'], ['new neurologic deficits']],
+  ['long-covid-fatigue-edu', 'Post-viral fatigue education', 'metabolic', ['pacing not push', 'salt/fluids if approved', 'restorative yoga'], ['post-COVID clinic', 'rule out other causes'], ['chest pain desaturation']],
+  ['candida-overgrowth-myth', 'Candida overgrowth myth vs care', 'digestive', ['balanced diet', 'avoid extreme cleanses', 'probiotic foods if tolerated'], ['test when thrush/infection real', 'antifungals when indicated'], ['self-treating invasive disease']],
+  ['sibo-pattern-edu', 'SIBO-pattern education', 'digestive', ['dietitian guidance', 'avoid random antimicrobials'], ['breath testing', 'GI specialist'], ['obstruction signs']],
+  ['histamine-intolerance-edu', 'Histamine intolerance education', 'immune', ['fresh food timing', 'trigger log', 'DAO discussion with clinician'], ['allergy/immunology'], ['anaphylaxis']],
+  ['mold-home-irritation', 'Indoor mold irritation education', 'respiratory', ['fix water sources', 'ventilate', 'HEPA'], ['professional remediation', 'medical eval'], ['severe asthma']],
+  ['wildfire-smoke-day', 'Wildfire smoke day plan', 'respiratory', ['N95 if outside', 'close windows', 'saline rinse', 'indoor plants optional'], ['leave area if asthma severe'], ['blue lips']],
+  ['heat-exhaustion-edu', 'Heat exhaustion education', 'general', ['shade', 'cool water', 'electrolytes', 'rest'], ['ER if confusion'], ['hot dry skin with collapse']],
+  ['cold-exposure-safety', 'Cold exposure safety', 'general', ['gradual', 'never alone ice water', 'rewarm gently'], ['ER frostbite'], ['confusion hypothermia']],
+  ['sauna-safety', 'Sauna safety basics', 'circulatory', ['hydrate', 'limit time', 'exit if dizzy'], ['avoid if unstable heart disease without OK'], ['chest pain']],
+  ['intermittent-fasting-edu', 'Intermittent fasting education', 'metabolic', ['protein-forward meals', 'sleep', 'not for everyone'], ['avoid if ED history/pregnancy/diabetes without clinician'], ['fainting']],
+  ['elimination-diet-safe', 'Elimination diet safety', 'digestive', ['short trials', 'reintroduce systematically', 'dietitian'], ['avoid long severe restriction'], ['malnutrition signs']],
+];
+
+RAW.push(...BATCH_HERBAL, ...BATCH_CONDITIONS);
+
+// Deduplicate by slug and pad if under target
 const seen = new Set();
 const entries = [];
 for (const row of RAW) {
@@ -407,7 +503,7 @@ for (const row of RAW) {
   entries.push(buildEntry(row));
 }
 
-// Ensure 200+ with systematic general wellness variants if short
+// Ensure 500+ with systematic general wellness variants
 const extras = [
   'spring-allergy-prep', 'fall-immune-habits', 'winter-skin-barrier', 'summer-heat-hydration',
   'office-ergonomics-pain', 'new-parent-sleep-debt', 'student-stress-exam', 'athlete-recovery-basics',
@@ -419,10 +515,18 @@ const extras = [
   'compassion-fatigue', 'empath-overwhelm-boundaries', 'people-pleasing-stress', 'perfectionism-tension',
   'imposter-syndrome-stress', 'public-speaking-nerves', 'interview-anxiety', 'test-anxiety',
   'writer-block-tension', 'creative-burnout', 'digital-detox-weekend', 'weekend-warrior-injury-prevention',
+  'moon-cycle-tracking-edu', 'sabbath-rest-nervous-system', 'forest-bathing-basics', 'earthing-folklore',
+  'sound-bath-integration', 'crystal-placebo-education', 'smoke-cleansing-air-quality', 'salt-lamp-myths',
+  'castor-oil-pack-edu', 'oil-pulling-oral-edu', 'tongue-scraping-oral', 'neti-pot-safety',
+  'dry-brushing-skin', 'contrast-shower-edu', 'box-breathing-basics', 'physiological-sigh-edu',
+  'progressive-muscle-relax', 'body-scan-sleep', 'gratitude-practice-mood', 'nature-microdose-walk',
+  'social-media-fast-mood', 'hobby-flow-state', 'pet-therapy-mood', 'laughter-yoga-light',
+  'kitchen-herb-garden-start', 'sun-tea-safety', 'fermentation-gut-edu', 'bone-broth-folklore',
+  'collagen-food-sources', 'electrolyte-homemade-edu', 'oral-rehydration-recipe-edu', 'honey-lemon-ritual',
 ];
 
 for (const slug of extras) {
-  if (entries.length >= 220) break;
+  if (entries.length >= 520) break;
   if (seen.has(slug)) continue;
   seen.add(slug);
   const name = slug.split('-').map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');

@@ -1,36 +1,43 @@
 # Tax Vato
 
-**Tax Vato** is a separate multi-tenant tax product for marketplaces and SaaS platforms.
+**Tax Vato** is a standalone, multi-tenant tax product for **any website or marketplace**.
 
-- **Buyer** — sales tax / VAT / GST on the invoice  
-- **Seller** — nexus, collection duty when not marketplace-facilitated  
-- **Platform** — marketplace facilitator remittance + SaaS fee tax hints  
+| Party | What we model |
+|-------|----------------|
+| **Buyer** | Tax on the invoice (destination rules) |
+| **Seller** | Nexus alerts, independent collection flags |
+| **Platform** | Marketplace facilitator remittance logic |
 
-## Brand
-
-| Field | Value |
-|-------|--------|
-| Product name | **Tax Vato** |
-| Package | `@taxvato/core` |
-| Tenants | `hazelallure`, `magic`, future apps |
-
-## Use from Hazel Allure
-
-```js
-import { quoteTax } from '@tax-vato';
-// or via frontend alias @tax-vato
-```
-
-Edge function: `tax-quote` (same engine).
-
-## Demo
+## Quick start
 
 ```bash
 cd tax-vato
-node --test test/quote.test.js
+npm test
 node scripts/demo-quote.mjs
+
+# Standalone API
+TAXVATO_API_KEYS=tv_test_demo_key_local_dev_only npm start
+# → http://localhost:8787/v1/health
 ```
+
+## Integrate anywhere
+
+| Mode | Use |
+|------|-----|
+| **npm engine** | `import { quoteTax } from '@taxvato/core'` |
+| **HTTP API** | `server/index.js` — `/v1/quote`, `/v1/transactions`, nexus, adapters |
+| **JS client** | `TaxVatoClient` from `@taxvato/core/client` |
+| **Embed** | `public/embed.js` widget |
+| **Shopify** | `adapters/shopify` |
+| **WooCommerce** | `adapters/woocommerce` |
+| **Stripe Tax bridge** | `adapters/stripe-tax` (optional provider) |
+
+Full guide: **[docs/INTEGRATION.md](./docs/INTEGRATION.md)**
+
+## Hazel Allure
+
+Frontend alias `@tax-vato` + edge function `tax-quote`. Same engine, shared tenants (`hazelallure`, `magic`, …).
 
 ## Disclaimer
 
-Rates are operational seed data. Confirm registrations and filings with a tax professional. Tax Vato is not a CPA, registered agent, or filing service unless separately contracted.
+Estimates only — not tax advice or a filing service.

@@ -46,6 +46,27 @@ export const VAT_GST_COUNTRIES = {
   BR: { rate: 0.17, name: 'Brazil ICMS/ISS (illustrative complex)', system: 'COMPLEX', digitalOss: false },
   AE: { rate: 0.05, name: 'UAE VAT', system: 'VAT', digitalOss: true },
   ZA: { rate: 0.15, name: 'South Africa VAT', system: 'VAT', digitalOss: true },
+  // Expanded coverage
+  IS: { rate: 0.24, name: 'Iceland VAT', system: 'VAT', digitalOss: false },
+  LI: { rate: 0.081, name: 'Liechtenstein VAT', system: 'VAT', digitalOss: false },
+  TR: { rate: 0.20, name: 'Turkey VAT', system: 'VAT', digitalOss: true },
+  IL: { rate: 0.17, name: 'Israel VAT', system: 'VAT', digitalOss: true },
+  SA: { rate: 0.15, name: 'Saudi Arabia VAT', system: 'VAT', digitalOss: true },
+  EG: { rate: 0.14, name: 'Egypt VAT', system: 'VAT', digitalOss: false },
+  NG: { rate: 0.075, name: 'Nigeria VAT', system: 'VAT', digitalOss: false },
+  KE: { rate: 0.16, name: 'Kenya VAT', system: 'VAT', digitalOss: false },
+  CL: { rate: 0.19, name: 'Chile IVA', system: 'VAT', digitalOss: true },
+  CO: { rate: 0.19, name: 'Colombia IVA', system: 'VAT', digitalOss: true },
+  AR: { rate: 0.21, name: 'Argentina IVA (illustrative)', system: 'VAT', digitalOss: false },
+  PE: { rate: 0.18, name: 'Peru IGV', system: 'VAT', digitalOss: true },
+  PH: { rate: 0.12, name: 'Philippines VAT', system: 'VAT', digitalOss: true },
+  TH: { rate: 0.07, name: 'Thailand VAT', system: 'VAT', digitalOss: true },
+  MY: { rate: 0.08, name: 'Malaysia SST (illustrative)', system: 'SST', digitalOss: true },
+  ID: { rate: 0.11, name: 'Indonesia VAT', system: 'VAT', digitalOss: true },
+  VN: { rate: 0.10, name: 'Vietnam VAT', system: 'VAT', digitalOss: true },
+  TW: { rate: 0.05, name: 'Taiwan VAT', system: 'VAT', digitalOss: true },
+  HK: { rate: 0, name: 'Hong Kong (no GST)', system: 'NONE', digitalOss: false },
+  MO: { rate: 0, name: 'Macau (no GST)', system: 'NONE', digitalOss: false },
 };
 
 /** Canadian provincial sales tax / HST add-ons (on top of 5% GST where applicable). */
