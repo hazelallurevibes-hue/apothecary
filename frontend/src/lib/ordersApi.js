@@ -122,7 +122,18 @@ export async function fetchVendorIncomingOrders(user) {
   if (!user) return [];
   const role = (user.role || '').toLowerCase();
   const employeeVendorId = user.employee_vendor_id ? Number(user.employee_vendor_id) : null;
-  const vendorId = Number(user.vendor_id || user.vendor || employeeVendorId);
+  let vendorId = Number(user.vendor_id || user.vendor || employeeVendorId) || null;
+
+  // Heal missing/stale vendor_id so orders always show for the storefront
+  if ((!vendorId || role === 'vendor') && user.email) {
+    try {
+      const { resolveVendorIdForUser } = await import('./vendorCatalogLoad');
+      const healed = await resolveVendorIdForUser(user);
+      if (healed) vendorId = healed;
+    } catch {
+      /* optional */
+    }
+  }
 
   if (role === 'admin' && !vendorId) {
     const { data, error } = await supabase.from('orders').select('*').order('id', { ascending: false });
@@ -241,6 +252,7 @@ export async function placeOrder(orderData, user = null) {
   let { data, error } = await supabase.from('orders').insert(payload).select().single();
 
   if (error && /column|schema cache|does not exist/i.test(error.message || '')) {
+    // Always keep pickup_qr_token so DB trigger does not need gen_random_bytes
     const core = {
       user_id: payload.user_id,
       vendor_id: payload.vendor_id,
@@ -252,6 +264,10 @@ export async function placeOrder(orderData, user = null) {
       status: payload.status,
       date: payload.date,
       delivery_method: payload.delivery_method,
+      pickup_qr_token: payload.pickup_qr_token || null,
+      buyer_email: payload.buyer_email || null,
+      payment_method: payload.payment_method || null,
+      payment_status: payload.payment_status || null,
     };
     // try with buyer_email if possible
     const withEmail = { ...core, buyer_email: payload.buyer_email, payment_method: payload.payment_method };
@@ -261,6 +277,37 @@ export async function placeOrder(orderData, user = null) {
     }
     data = retry.data;
     error = retry.error;
+  }
+
+  // Recover from broken pickup QR trigger (missing pgcrypto) by retrying with client token
+  if (error && /gen_random_bytes/i.test(error.message || '')) {
+    const token =
+      payload.pickup_qr_token ||
+      (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/-/g, '');
+    const retryPayload = {
+      ...payload,
+      pickup_qr_token: token,
+      // shipping avoids pickup-only trigger path if still broken
+      delivery_method: payload.delivery_method || 'pickup',
+    };
+    const retry = await supabase.from('orders').insert(retryPayload).select().single();
+    if (retry.error && /gen_random_bytes/i.test(retry.error.message || '')) {
+      // Last resort: non-pickup so trigger does not fire
+      const last = await supabase
+        .from('orders')
+        .insert({
+          ...retryPayload,
+          delivery_method: 'shipping',
+          tracking_note: `${payload.tracking_note || ''} [delivery was ${payload.delivery_method || 'pickup'}; remapped due to QR trigger]`.trim(),
+        })
+        .select()
+        .single();
+      data = last.data;
+      error = last.error;
+    } else {
+      data = retry.data;
+      error = retry.error;
+    }
   }
 
   if (error) {

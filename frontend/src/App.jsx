@@ -154,14 +154,29 @@ function AppCore({ auth0 = null }) {
 
     const initSession = async () => {
       if (auth0Enabled && auth0?.isLoading) return;
+      // Paint cached user immediately so vendor dashboard has email for first load
       const cached = await restoreSession();
+      if (active && cached) commitUserProfile(cached);
+
       let profile = cached;
       if (profile?.email) {
-        const synced = await syncUserProStatus(profile);
-        if (proStatusChanged(profile, synced)) {
-          profile = synced;
-          localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+        try {
+          // Full re-enrich (vendor_id heal, plans) — fixes "empty until refresh"
+          const { resolveProfile } = await import('./lib/auth');
+          const enriched = await resolveProfile(profile.email, profile.authId || profile.id);
+          if (enriched) profile = enriched;
+        } catch {
+          /* keep cached */
         }
+        try {
+          const synced = await syncUserProStatus(profile);
+          if (proStatusChanged(profile, synced) || true) {
+            profile = synced;
+          }
+        } catch {
+          /* optional */
+        }
+        localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
       }
       if (active) {
         if (profile) commitUserProfile(profile);

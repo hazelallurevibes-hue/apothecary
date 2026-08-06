@@ -105,80 +105,13 @@ export default function Marketplace({ user }) {
 
   const menuCartFilter = (i) => i.type !== 'produce';
 
-  const placeOrder = async (modPanel = {}) => {
-    const menuLines = cart.filter(menuCartFilter);
-    if (menuLines.length === 0) return;
+  /** Full checkout (buyer_email + payment) lives on /cart — never insert free orders here */
+  const placeOrder = async () => {
     if (!user) {
       alert('Please log in to place an order.');
       return;
     }
-
-    setPlacing(true);
-    let modFields;
-    try {
-      modFields = modificationPayloadFromCart(modPanel, menuLines);
-    } catch (e) {
-      alert(e.message);
-      setPlacing(false);
-      return;
-    }
-
-    const deliverySelect = document.getElementById('delivery-select');
-    const chosenDelivery = deliverySelect ? deliverySelect.value : 'pickup';
-
-    const orderTotal = menuLines.reduce(
-      (sum, i) => sum + (i.linePrice ?? i.price) * (i.qty || 1),
-      0,
-    );
-
-    const orderData = await buildTaxedOrderPayload({
-      user_id: user.id,
-      vendor_id: menuLines[0].vendor_id,
-      items: JSON.stringify(
-        menuLines.map((i) => ({
-          name: i.name,
-          qty: i.qty || 1,
-          price: i.linePrice ?? i.price,
-          options: i.selectedOptions || null,
-          optionsSummary: i.optionsSummary || null,
-          isUpsell: !!i.isUpsell,
-        })),
-      ),
-      subtotal: orderTotal,
-      total: orderTotal,
-      status: 'placed',
-      date: new Date().toISOString().split('T')[0],
-      delivery_method: chosenDelivery,
-      pickup_qr_token:
-        chosenDelivery === 'pickup'
-          ? (crypto.randomUUID?.() || `${Date.now()}`).replace(/-/g, '')
-          : null,
-    }, menuLines[0].vendor_id);
-
-    try {
-      const { error } = await supabase.from('orders').insert({ ...orderData, ...modFields });
-      if (error) throw error;
-
-      let msg = `Order placed successfully! Total: $${orderData.total.toFixed(2)}`;
-      if (chosenDelivery === 'pickup') msg += ' — Ready for local pickup!';
-      else if (chosenDelivery === 'shipping') msg += ' — Your practitioner will arrange shipping.';
-      else msg += ' — Fulfillment confirmed.';
-      offerSpellReceiptDownload({
-        successMessage: formatOrderSuccessMessage(msg),
-        total: orderData.total,
-        items: menuLines,
-        deliveryMethod: chosenDelivery,
-        userName: user?.name,
-        userEmail: user?.email,
-        familiarId: user?.chosen_familiar || null,
-        source: 'Hazel Allure Marketplace',
-      });
-      clearCart();
-    } catch (e) {
-      console.error('Order error:', e);
-      alert('Failed to place order. Make sure Supabase tables are set up and RLS allows inserts.');
-    }
-    setPlacing(false);
+    window.location.href = '/cart';
   };
 
   return (

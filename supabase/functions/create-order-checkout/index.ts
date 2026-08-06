@@ -98,10 +98,23 @@ Deno.serve(async (req: Request) => {
       .eq("id", vendorId)
       .maybeSingle();
 
-    if (!vendor?.stripe_account_id || !/^acct_/.test(String(vendor.stripe_account_id))) {
+    const deliveryEarly = String(order.delivery_method || "shipping").toLowerCase();
+    const fulfillmentEarly =
+      String(order.fulfillment_class || "physical").toLowerCase() === "digital" ? "digital" : "physical";
+    // Physical goods: charge platform now, transfer after ship — Connect not required at checkout.
+    // Digital: destination charge needs a connected Express account immediately.
+    const holdPhysicalEarly =
+      fulfillmentEarly === "physical" ||
+      deliveryEarly === "shipping" ||
+      deliveryEarly === "pickup";
+    const hasConnect =
+      !!vendor?.stripe_account_id && /^acct_/.test(String(vendor.stripe_account_id));
+
+    if (!holdPhysicalEarly && !hasConnect) {
       return jsonResponse({
         ok: false,
-        error: "This maker has not finished Stripe Connect. Choose PayPal or cash, or ask them to connect Stripe.",
+        error:
+          "This maker has not finished Stripe Connect for digital delivery. Choose PayPal or cash, or ask them to connect Stripe.",
       }, 400);
     }
 
@@ -218,10 +231,20 @@ Deno.serve(async (req: Request) => {
 
     if (holdPhysical) {
       // Separate charges & transfers: full amount on platform; Transfer after ship
-      // (no transfer_data / application_fee on PI)
+      // (no transfer_data / application_fee on PI). Works even before vendor finishes Connect.
+      paymentIntentData.metadata = {
+        ...(paymentIntentData.metadata as Record<string, string>),
+        connect_pending: hasConnect ? "0" : "1",
+      };
     } else {
+      if (!hasConnect) {
+        return jsonResponse({
+          ok: false,
+          error: "Maker Stripe Connect required for immediate digital payout.",
+        }, 400);
+      }
       if (applicationFee > 0) paymentIntentData.application_fee_amount = applicationFee;
-      paymentIntentData.transfer_data = { destination: vendor.stripe_account_id };
+      paymentIntentData.transfer_data = { destination: vendor!.stripe_account_id };
     }
 
     const sessionParams: Record<string, unknown> = {
@@ -276,8 +299,8 @@ Deno.serve(async (req: Request) => {
       fulfillment_class: fulfillmentClass,
       payout_status: holdPhysical ? "held" : "released",
       payment_note: holdPhysical
-        ? `Stripe Checkout ${session.id} · PHYSICAL HOLD until shipped · vendor net ~$${(vendorPayoutCents / 100).toFixed(2)} · fee $${(applicationFee / 100).toFixed(2)}`
-        : `Stripe Checkout ${session.id} → ${vendor.stripe_account_id} · immediate · fee $${(applicationFee / 100).toFixed(2)}`,
+        ? `Stripe Checkout ${session.id} · PHYSICAL HOLD until shipped · vendor net ~$${(vendorPayoutCents / 100).toFixed(2)} · fee $${(applicationFee / 100).toFixed(2)}${hasConnect ? "" : " · maker Connect pending (transfer when connected)"}`
+        : `Stripe Checkout ${session.id} → ${vendor!.stripe_account_id} · immediate · fee $${(applicationFee / 100).toFixed(2)}`,
     };
     void shippingCents;
 

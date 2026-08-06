@@ -163,69 +163,9 @@ export default function ApothecaryMarket({ user }) {
       .slice(0, 8);
   }, [search, activeItems]);
 
-  const placeApothecaryOrder = async (modPanel = {}) => {
-    const cartLines = cart.filter(apothecaryCartFilter);
-    if (cartLines.length === 0 || !user) return;
-    if (!(await requireVerification())) return;
-    setPlacing(true);
-    let modFields;
-    try {
-      modFields = modificationPayloadFromCart(modPanel, cartLines);
-    } catch (e) {
-      alert(e.message);
-      setPlacing(false);
-      return;
-    }
-    const orderTotal = cartLines.reduce(
-      (sum, i) => sum + (i.linePrice ?? i.price) * (i.qty || 1),
-      0,
-    );
-    const orderData = await buildTaxedOrderPayload(
-      {
-        user_id: user.id,
-        vendor_id: cartLines[0].vendor_id,
-        items: JSON.stringify(
-          cartLines.map((i) => ({
-            name: i.name,
-            qty: i.qty || 1,
-            price: i.linePrice ?? i.price,
-            unit: i.unit || 'each',
-            options: i.selectedOptions || null,
-            optionsSummary: i.optionsSummary || null,
-            isUpsell: !!i.isUpsell,
-          })),
-        ),
-        subtotal: orderTotal,
-        total: orderTotal,
-        status: 'placed',
-        date: new Date().toISOString().split('T')[0],
-        delivery_method: deliveryMethod,
-      },
-      cartLines[0].vendor_id,
-    );
-    try {
-      const { error } = await supabase.from('orders').insert({ ...orderData, ...modFields });
-      if (error) throw error;
-      let msg = `Order placed! Total: $${orderData.total.toFixed(2)}`;
-      if (deliveryMethod === 'pickup') msg += ' — pickup details via messages.';
-      else if (deliveryMethod === 'shipping') msg += ' — shipping arranged with the maker.';
-      else msg += ' — digital delivery via messages.';
-      offerSpellReceiptDownload({
-        successMessage: formatOrderSuccessMessage(msg),
-        total: orderData.total,
-        items: cartLines,
-        deliveryMethod,
-        userName: user?.name,
-        userEmail: user?.email,
-        familiarId: user?.chosen_familiar || null,
-        source: 'Hazel Allure Apothecary',
-      });
-      clearCart();
-    } catch (e) {
-      console.error(e);
-      alert('Failed to place order.');
-    }
-    setPlacing(false);
+  /** Never place free/unpaid orders here — full checkout lives on /cart */
+  const placeApothecaryOrder = async () => {
+    window.location.href = '/cart';
   };
 
   const categoryOptions = allApothecaryCategories();

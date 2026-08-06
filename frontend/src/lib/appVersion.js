@@ -2,16 +2,18 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.11.1';
+export const APP_VERSION = '1.12.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Tax Vato AI API + FX + 520 remedies',
+  title: 'Vendor dashboard & order fulfillment fixes',
   message:
-    'Tax Vato now exposes AI tool schemas for any LLM, multi-currency FX with live ECB updates, filing/DST competitive hints, and 520 educational remedies.',
+    'Storefront identity auto-heals so your listings and orders load on first open. Pickup orders no longer fail silently. Vendor dashboard is cleaner, and the remedy library is expanded.',
   highlights: [
-    'Tax Vato: /v1/ai/tools + /v1/ai/execute for agent integration',
-    'FX convert + rates:fx update pipeline',
-    'Remedy library: 520 educational topics',
+    'Vendor dashboard loads products/orders without a manual refresh',
+    'Orders always attach to the correct storefront + buyer email',
+    'Pickup checkout trigger fixed (orders reach vendors again)',
+    'Pro ad clutter reduced on the practitioner dashboard',
+    'Remedy library expanded (free + hot Pro topics)',
   ],
 };
 

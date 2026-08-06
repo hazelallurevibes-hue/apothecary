@@ -48,14 +48,7 @@ import {
   saveListingTemplate,
   deleteListingTemplate,
 } from '../lib/listingTemplates';
-import UpgradeBanner from '../components/UpgradeBanner';
-import ProVendorActiveStrip from '../components/ProVendorActiveStrip';
-import AdReinvestmentPanel from '../components/AdReinvestmentPanel';
-import AdvertisingAccountBadge from '../components/AdvertisingAccountBadge';
 import ThankYouComposer from '../components/ThankYouComposer';
-import ShelfScoreCard from '../components/ShelfScoreCard';
-import VendorPosInventory from '../components/VendorPosInventory';
-import VendorDashboardStudio from '../components/VendorDashboardStudio';
 import VendorProSaasHub from '../components/VendorProSaasHub';
 import VendorPaymentsPanel from '../components/VendorPaymentsPanel';
 
@@ -83,8 +76,7 @@ import {
 } from '../lib/vendorListings';
 import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
 import { VERTICAL } from '../lib/vertical';
-import VendorPromotePanel from '../components/VendorPromotePanel';
-import VendorProDiscountRevshare from '../components/VendorProDiscountRevshare';
+
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const EMPTY_MENU_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'general', safety_practices_certified: false, temp_photo_url: '' };
@@ -164,10 +156,19 @@ export default function VendorDashboard({ user }) {
     setLoadingData(true);
     setLoadError('');
     try {
+      // Always re-resolve by email so stale users.vendor_id (empty duplicate shop)
+      // cannot hide listings/orders that live on the real storefront.
       let vid = resolvedVendorId || (seedVendorId ? Number(seedVendorId) : null);
-      if (!vid && userEmail) {
-        vid = await resolveVendorIdForUser({ email: userEmail, vendor_id: seedVendorId });
-        if (vid) setResolvedVendorId(vid);
+      if (userEmail) {
+        const healed = await resolveVendorIdForUser({
+          email: userEmail,
+          vendor_id: vid || seedVendorId,
+          role: user?.role,
+        });
+        if (healed) {
+          vid = healed;
+          if (healed !== resolvedVendorId) setResolvedVendorId(healed);
+        }
       }
       if (!vid) {
         setMyMenu([]);
@@ -208,11 +209,21 @@ export default function VendorDashboard({ user }) {
     } finally {
       setLoadingData(false);
     }
-  }, [resolvedVendorId, seedVendorId, userEmail]);
+  }, [resolvedVendorId, seedVendorId, userEmail, user?.role]);
 
   useEffect(() => {
     refreshVendorData();
   }, [refreshVendorData]);
+
+  // When session enrich heals vendor_id after first paint, force reload listings/orders
+  useEffect(() => {
+    const incoming = user?.vendor_id || user?.vendor;
+    if (!incoming) return;
+    const n = Number(incoming);
+    if (n && n !== Number(resolvedVendorId)) {
+      setResolvedVendorId(n);
+    }
+  }, [user?.vendor_id, user?.vendor, resolvedVendorId]);
 
   useEffect(() => {
     if (!myVendorId) return;
@@ -1082,10 +1093,10 @@ export default function VendorDashboard({ user }) {
             <Link to={`/vendor/${myVendorId}`} className="px-4 py-2 border rounded-2xl text-sm font-medium text-center">Public Storefront</Link>
           )}
           <Link
-            to="/vendor-pro-tools"
-            className="px-4 py-2 border border-[#c9a227]/50 bg-[#faf7f0] rounded-2xl text-sm font-semibold text-center text-[#4a1942]"
+            to="/vendor-orders"
+            className="px-4 py-2 bg-emerald-700 text-white rounded-2xl text-sm font-semibold text-center"
           >
-            Pro SaaS tools
+            Fulfill orders
           </Link>
           <Link
             to="/vendor-maker-studio"
@@ -1094,6 +1105,16 @@ export default function VendorDashboard({ user }) {
             Maker Studio
           </Link>
         </div>
+        {myVendorId && (
+          <p className="text-xs text-gray-500 mt-2">
+            Storefront id #{myVendorId}
+            {storefrontVendor?.name ? ` · ${storefrontVendor.name}` : ''}
+            {' · '}
+            <button type="button" className="underline text-[#4a1942]" onClick={() => refreshVendorData()}>
+              Reload my products
+            </button>
+          </p>
+        )}
       </div>
 
       <EmailVerificationBanner
@@ -1112,39 +1133,25 @@ export default function VendorDashboard({ user }) {
         onStepsChange={setLaunchSteps}
       />
 
-      {isProPractitioner && <ProVendorActiveStrip compact />}
-
-      <VendorDashboardStudio
-        vendorId={myVendorId}
-        isPro={isProPractitioner}
-        vendor={storefrontVendor}
-        listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
-        produceCount={myProduce?.length || 0}
-        menuCount={myMenu?.length || 0}
-        childrenById={{
-          shelf: storefrontVendor ? (
-            <ShelfScoreCard
-              vendor={storefrontVendor}
-              listingCount={(myProduce?.length || 0) + (myMenu?.length || 0)}
-              className="mb-6"
-            />
-          ) : null,
-          pos: myVendorId ? (
-            <VendorPosInventory vendorId={myVendorId} plan={vendorPlan} className="mb-6" />
-          ) : null,
-        }}
-      />
+      {/* Keep Pro marketing off the main sell surface — one quiet link if free */}
+      {!isProPractitioner && (
+        <p className="mb-4 text-xs text-gray-500">
+          Need unlimited listings or Teaching Sanctum?{' '}
+          <Link to="/pro-upgrade?type=vendor&from=dashboard-quiet" className="underline text-[#4a1942]">
+            View Pro options
+          </Link>
+        </p>
+      )}
 
       {isProPractitioner && (
-        <div className="mb-8 rounded-3xl border border-[#c9a227]/30 bg-white p-4 sm:p-6">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <h2 className="text-lg font-bold text-[#4a1942] heading-font">Pro SaaS toolkit</h2>
-            <Link to="/vendor-pro-tools" className="text-xs font-semibold underline text-[#4a1942]">
-              Open full page →
-            </Link>
+        <details className="mb-6 rounded-2xl border border-[#c9a227]/30 bg-white p-4">
+          <summary className="cursor-pointer text-sm font-semibold text-[#4a1942]">
+            Pro tools (optional)
+          </summary>
+          <div className="mt-3">
+            <VendorProSaasHub user={user} embedded />
           </div>
-          <VendorProSaasHub user={user} embedded />
-        </div>
+        </details>
       )}
 
       {!isLaunchFullyDone(launchSteps, { listingCount: myMenu.length + myProduce.length }) &&
@@ -1292,6 +1299,49 @@ export default function VendorDashboard({ user }) {
         )}
       </div>
 
+      {/* Orders high on the page so fulfillment is obvious without scrolling */}
+      {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
+        <div id="incoming-orders-top" className="mb-8 scroll-mt-24 rounded-3xl border-2 border-emerald-200 bg-emerald-50/40 p-4 sm:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+            <div>
+              <h2 className="font-bold text-lg text-emerald-900">Orders to fulfill</h2>
+              <p className="text-xs text-gray-600">
+                {(analytics?.recentOrders?.length ?? 0) > 0
+                  ? `${analytics.recentOrders.length} recent · storefront #${myVendorId}`
+                  : `Storefront #${myVendorId} · orders from Cart checkout appear here`}
+              </p>
+            </div>
+            <Link
+              to="/vendor-orders"
+              className="px-4 py-2 bg-emerald-700 text-white rounded-2xl text-sm font-semibold"
+            >
+              Open fulfillment →
+            </Link>
+          </div>
+          {(analytics?.recentOrders?.length ?? 0) > 0 ? (
+            <ul className="space-y-2 text-sm">
+              {analytics.recentOrders.slice(0, 5).map((o) => (
+                <li
+                  key={o.id}
+                  className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-white border border-emerald-100 px-3 py-2"
+                >
+                  <span className="font-medium">#{o.id}</span>
+                  <span className="text-xs text-gray-500 break-all">{o.buyer_email || 'buyer'}</span>
+                  <span>${(Number(o.total) || 0).toFixed(2)}</span>
+                  <span className="text-xs capitalize text-emerald-800">
+                    {o.payment_status || o.status || 'placed'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-600">
+              No orders yet. When a seeker checks out via Cart, the order shows here with buyer email and payment status.
+            </p>
+          )}
+        </div>
+      )}
+
       {vendorCan(user, 'ratings') && <VendorNotificationsPanel vendorId={myVendorId} />}
       {vendorCan(user, 'ratings') && <RatingAlertsPanel vendorId={myVendorId} />}
       <div className="mb-6 flex flex-wrap gap-3">
@@ -1305,12 +1355,6 @@ export default function VendorDashboard({ user }) {
         </Link>
       </div>
       <VendorDiscountsPanel user={user} vendorId={myVendorId} />
-      <VendorProDiscountRevshare vendorId={myVendorId} />
-      <div className="mb-6 flex items-center gap-2">
-        <AdvertisingAccountBadge plan={vendorPlan} type="vendor" />
-        <span className="text-xs text-gray-500">Account visibility tier</span>
-      </div>
-      <AdReinvestmentPanel user={user} analytics={analytics} vendorPlan={vendorPlan} />
       <div className="mb-8">
         <VendorCustomerInsights user={user} vendorId={myVendorId} />
       </div>
@@ -1828,8 +1872,6 @@ export default function VendorDashboard({ user }) {
         )}
       </div>
 
-      <VendorPromotePanel vendorId={myVendorId} userEmail={user?.email} />
-
       {/* Vendor-to-Vendor B2B Purchasing + Badge on YOUR page - fully featured */}
       <div className="mb-8 bg-white border rounded-3xl p-8">
         <h3 className="font-bold text-2xl mb-1">Buy from Other Vendors (B2B)</h3>
@@ -1868,29 +1910,14 @@ export default function VendorDashboard({ user }) {
 
       <VendorPaymentsPanel vendorId={myVendorId} user={user} />
 
-      {/* Single Pro CTA at bottom — not three marketing cards at top */}
-      {!isProPractitioner && (
-        <div className="mb-8">
-          <UpgradeBanner plan={vendorPlan} user={user} />
-          <p className="text-[11px] text-gray-500 -mt-2 mb-2 px-1">
-            One upgrade path: unlimited listings, POS Subscribe &amp; Save, campaigns, Teaching Sanctum.
-            {' '}
-            <Link to="/pro-upgrade?type=vendor&from=dashboard-bottom" className="underline text-[#4a1942] font-medium">
-              Compare Free vs Pro
-            </Link>
-            {' · '}
-            <Link to="/vendor-growth" className="underline text-[#4a1942] font-medium">
-              Growth Hub
-            </Link>
-          </p>
-        </div>
-      )}
-
       {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
-      <div className="mb-8 bg-white border rounded-3xl p-8">
+      <div className="mb-8 bg-white border-2 border-emerald-200 rounded-3xl p-8">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="font-bold text-xl">Incoming Orders</h3>
-          <Link to="/vendor-orders" className="text-sm text-[#4a1942] font-medium">Full order management →</Link>
+          <div>
+            <h3 className="font-bold text-xl text-emerald-900">Incoming orders</h3>
+            <p className="text-xs text-gray-500">Orders placed for your storefront (#{myVendorId})</p>
+          </div>
+          <Link to="/vendor-orders" className="text-sm text-[#4a1942] font-medium">Fulfill &amp; ship →</Link>
         </div>
         {(analytics?.recentOrders?.length ?? 0) > 0 ? (
           <div className="overflow-x-auto">
@@ -1898,7 +1925,9 @@ export default function VendorDashboard({ user }) {
               <thead>
                 <tr className="text-left text-gray-500 border-b">
                   <th className="py-2 pr-4">Order</th>
+                  <th className="py-2 pr-4">Buyer</th>
                   <th className="py-2 pr-4">Total</th>
+                  <th className="py-2 pr-4">Payment</th>
                   <th className="py-2 pr-4">Status</th>
                   <th className="py-2">Date</th>
                 </tr>
@@ -1907,7 +1936,9 @@ export default function VendorDashboard({ user }) {
                 {analytics.recentOrders.map((o) => (
                   <tr key={o.id} className="border-b last:border-0">
                     <td className="py-2 pr-4 font-medium">#{o.id}</td>
+                    <td className="py-2 pr-4 text-xs break-all">{o.buyer_email || '—'}</td>
                     <td className="py-2 pr-4">${(Number(o.total) || 0).toFixed(2)}</td>
+                    <td className="py-2 pr-4 capitalize text-xs">{o.payment_status || o.payment_method || '—'}</td>
                     <td className="py-2 pr-4 capitalize">{o.status || 'placed'}</td>
                     <td className="py-2">{o.date || '—'}</td>
                   </tr>
@@ -1916,7 +1947,10 @@ export default function VendorDashboard({ user }) {
             </table>
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No orders yet. Share your storefront — orders placed by customers will appear here in real time.</p>
+          <p className="text-sm text-gray-500">
+            No orders yet for storefront #{myVendorId}. Buyers must checkout via Cart (not free insert).
+            Tap Reload my products above if you expected an order.
+          </p>
         )}
       </div>
       )}
@@ -1989,10 +2023,9 @@ export default function VendorDashboard({ user }) {
         </div>
       </div>
 
-      {/* Social Sharing Info */}
-      <div className="bg-blue-50 border border-blue-200 rounded-3xl p-6 text-sm">
-        <strong>Pro tip for vendors:</strong> After adding a listing, use the Share button to instantly reach Facebook Marketplace, X, WhatsApp, and more. 
-        We pre-fill the details + link back to your Hazel Allure storefront so customers order here while you promote everywhere.
+      <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 text-sm text-slate-700">
+        <strong>Share tip:</strong> After adding a listing, use Share to reach Facebook, X, WhatsApp, and more.
+        Links always return shoppers to your Hazel Allure storefront so orders land in Incoming orders above.
       </div>
 
       <MyTopReviews reviews={analytics?.reviews || []} myVendorId={myVendorId} />

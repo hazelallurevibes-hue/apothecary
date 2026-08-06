@@ -69,24 +69,40 @@ async function enrichProfile(profile) {
   }
 
   let vendorId = profile.vendor_id || profile.vendor;
-  // Heal missing users.vendor_id by matching vendors.email (common Auth0 / legacy gap)
-  if ((profile.role === 'vendor' || profile.role === 'admin') && !vendorId && profile.email) {
-    const { data: byEmail } = await supabase
-      .from('vendors')
-      .select('id, plan')
-      .ilike('email', profile.email.trim())
-      .order('id', { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (byEmail?.id) {
-      vendorId = byEmail.id;
-      profile.vendor_id = byEmail.id;
-      profile.vendor = byEmail.id;
-      if (byEmail.plan) profile.vendor_plan = byEmail.plan;
-      await supabase
-        .from('users')
-        .update({ vendor_id: byEmail.id, role: profile.role === 'admin' ? 'admin' : 'vendor' })
-        .ilike('email', profile.email.trim());
+  // Always re-resolve for vendors — prevents duplicate storefront split (listings on id A, user on id B)
+  if ((profile.role === 'vendor' || profile.role === 'admin') && profile.email) {
+    try {
+      const { resolveVendorIdForUser } = await import('./vendorCatalogLoad');
+      const healed = await resolveVendorIdForUser({
+        email: profile.email,
+        vendor_id: vendorId,
+        role: profile.role,
+      });
+      if (healed) {
+        vendorId = healed;
+        profile.vendor_id = healed;
+        profile.vendor = healed;
+      }
+    } catch {
+      if (!vendorId) {
+        const { data: byEmail } = await supabase
+          .from('vendors')
+          .select('id, plan')
+          .ilike('email', profile.email.trim())
+          .order('id', { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (byEmail?.id) {
+          vendorId = byEmail.id;
+          profile.vendor_id = byEmail.id;
+          profile.vendor = byEmail.id;
+          if (byEmail.plan) profile.vendor_plan = byEmail.plan;
+          await supabase
+            .from('users')
+            .update({ vendor_id: byEmail.id, role: profile.role === 'admin' ? 'admin' : 'vendor' })
+            .ilike('email', profile.email.trim());
+        }
+      }
     }
   }
   if ((profile.role === 'vendor' || profile.role === 'admin') && vendorId) {
