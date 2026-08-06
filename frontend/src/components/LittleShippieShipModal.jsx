@@ -122,6 +122,10 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
             ? `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(tracking)}`
             : ''),
       );
+      onShipped?.({
+        ...purchased,
+        message: `Shipped. Tracking ${tracking || '—'}. Label print window opened.`,
+      });
       onClose?.();
     } catch (e) {
       setError(e.message || 'Purchase failed');
