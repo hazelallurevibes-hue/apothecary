@@ -1,0 +1,70 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Little Shippie API",
+    "version": "1.1.0",
+    "description": "Multi-tenant rate shop, labels, and tracking for marketplaces. USPS + FedEx adapters with estimate fallback."
+  },
+  "servers": [{ "url": "http://localhost:8788" }],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "Tenant API key ls_live_…"
+      }
+    }
+  },
+  "security": [{ "BearerAuth": [] }],
+  "paths": {
+    "/v1/health": {
+      "get": {
+        "security": [],
+        "summary": "Health + carrier capability flags",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/v1/tenants": {
+      "post": {
+        "security": [],
+        "summary": "Create multi-tenant shop (optional admin bearer)",
+        "responses": { "201": { "description": "Created with apiKey" } }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "summary": "Current tenant profile",
+        "responses": { "200": { "description": "Tenant" } }
+      }
+    },
+    "/v1/rates": {
+      "post": {
+        "summary": "Rate shop (USPS + FedEx + estimates)",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "weight_oz": { "type": "number" },
+                  "length_in": { "type": "number" },
+                  "width_in": { "type": "number" },
+                  "height_in": { "type": "number" },
+                  "from": { "type": "object" },
+                  "to": { "type": "object" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Rates" } }
+      }
+    },
+    "/v1/labels": {
+      "post": {
+        "summary": "Purchase label + return HTML print sheet + tracking",
+        "responses": { "200": { "description": "Label" } }
+      }
+    }
+  }
+}

@@ -36,34 +36,47 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
 
   const toAddr = useMemo(() => parseAddressLine(order?.address || ''), [order?.address]);
 
-  const runQuote = () => {
+  const [providerNotes, setProviderNotes] = useState([]);
+  const [trackingUrl, setTrackingUrl] = useState('');
+
+  const runQuote = async () => {
     setError('');
     setShopError('');
-    const result = quoteAllServices({
-      orderId: order.id,
-      vendorId,
-      weightOz: Number(weightOz),
-      lengthIn: Number(lengthIn),
-      widthIn: Number(widthIn),
-      heightIn: Number(heightIn),
-      from: {
-        country: vendor?.country || 'US',
-        postal: vendor?.zip || '',
-        region: vendor?.state || '',
-      },
-      to: toAddr,
-    });
-    if (!result.ok) {
-      setShopError(result.error || 'Cannot ship to this destination');
-      setRates([]);
-      setSelectedId('');
+    setProviderNotes([]);
+    try {
+      const result = await quoteAllServices({
+        orderId: order.id,
+        vendorId,
+        weightOz: Number(weightOz),
+        lengthIn: Number(lengthIn),
+        widthIn: Number(widthIn),
+        heightIn: Number(heightIn),
+        from: {
+          name: vendor?.name,
+          street: vendor?.address,
+          city: vendor?.city,
+          country: vendor?.country || 'US',
+          postal: vendor?.zip || '',
+          region: vendor?.state || '',
+        },
+        to: toAddr,
+        vendor,
+      });
+      if (!result.ok) {
+        setShopError(result.error || 'Cannot ship to this destination');
+        setRates([]);
+        setSelectedId('');
+        setPolicyNotes(result.policyNotes || []);
+        return;
+      }
+      setRates(result.rates || []);
+      setParcel(result.parcel);
       setPolicyNotes(result.policyNotes || []);
-      return;
+      setProviderNotes(result.notes || (result.note ? [result.note] : []));
+      setSelectedId(result.recommended?.id || result.rates?.[0]?.id || '');
+    } catch (e) {
+      setShopError(e.message || 'Rate shop failed');
     }
-    setRates(result.rates || []);
-    setParcel(result.parcel);
-    setPolicyNotes(result.policyNotes || []);
-    setSelectedId(result.recommended?.id || result.rates?.[0]?.id || '');
   };
 
   useEffect(() => {
@@ -100,7 +113,15 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
         rate: { ...selected, parcel },
         trackingNumber: tracking,
       });
-      onShipped?.(purchased);
+      if (purchased.label_url) {
+        window.open(purchased.label_url, '_blank', 'noopener,noreferrer');
+      }
+      setTrackingUrl(
+        purchased.tracking_url ||
+          (tracking
+            ? `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(tracking)}`
+            : ''),
+      );
       onClose?.();
     } catch (e) {
       setError(e.message || 'Purchase failed');
@@ -192,8 +213,16 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
               ))}
             </ul>
           )}
+          {providerNotes?.length > 0 && (
+            <ul className="text-[11px] text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 list-disc pl-5 space-y-0.5">
+              {providerNotes.map((n) => (
+                <li key={n}>{n}</li>
+              ))}
+            </ul>
+          )}
 
           <div className="space-y-2">
+            <p className="text-xs font-semibold text-gray-700">Rate shop — USPS &amp; FedEx</p>
             {rates.map((r) => (
               <label
                 key={r.id}
@@ -210,7 +239,11 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
                   />
                   <span>
                     <span className="font-medium">{r.label}</span>
-                    <span className="block text-[11px] text-gray-500">ETA {r.etaDays} business days</span>
+                    <span className="block text-[11px] text-gray-500">
+                      ETA {r.etaDays}
+                      {r.provider ? ` · ${r.provider}` : ''}
+                      {r.carrier ? ` · ${String(r.carrier).toUpperCase()}` : ''}
+                    </span>
                   </span>
                 </span>
                 <span className="text-sm font-bold text-[#4a1942]">
@@ -219,6 +252,11 @@ export default function LittleShippieShipModal({ order, vendorId, user, open, on
               </label>
             ))}
           </div>
+          {trackingUrl && (
+            <a href={trackingUrl} target="_blank" rel="noreferrer" className="text-xs text-sky-800 underline">
+              Open tracking portal
+            </a>
+          )}
 
           {error && <p className="text-sm text-red-700">{error}</p>}
 

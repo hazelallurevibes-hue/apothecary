@@ -3,7 +3,7 @@
  * Mirrors eBay/ShipStation: rate shop → pick service → buy → print.
  */
 import { supabase } from './supabaseClient';
-// Engine bundled into frontend via relative import (no package install required)
+// Browser-safe engine only (no Node fs / tenant store)
 import {
   shopRates,
   buildLabelHtml,
@@ -13,6 +13,8 @@ import {
   evaluateShipPolicy,
   DEFAULT_POLICY,
   SERVICES,
+  trackingPortalUrl,
+  buildTrackingRecord,
 } from '@little-shippie/index.js';
 
 const FN_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
@@ -37,11 +39,14 @@ export {
   evaluateShipPolicy,
   DEFAULT_POLICY,
   SERVICES,
+  trackingPortalUrl,
+  buildTrackingRecord,
 };
 
+/**
+ * Client rate shop (USPS + FedEx estimate table). Live carrier OAuth runs on server/edge.
+ */
 export async function quoteAllServices({
-  orderId,
-  vendorId,
   weightOz,
   lengthIn,
   widthIn,
@@ -49,15 +54,30 @@ export async function quoteAllServices({
   from,
   to,
 }) {
-  // Client-side shop for instant UI; edge records quote when purchasing
-  return shopRates({
+  const result = shopRates({
     weightOz,
     lengthIn,
     widthIn,
     heightIn,
     from,
     to,
+    markupFixedCents: 150,
+    markupPercent: 10,
   });
+  if (!result.ok) return result;
+  // Prefer USPS + FedEx services for marketplace UI
+  const rates = (result.rates || []).filter((r) =>
+    ['usps', 'fedex'].includes(String(r.carrier).toLowerCase()),
+  );
+  return {
+    ...result,
+    rates,
+    recommended: rates[0] || result.recommended,
+    notes: [
+      'Live USPS/FedEx postage activates when platform sets carrier API secrets (see Little Shippie docs).',
+    ],
+    provider: 'estimate',
+  };
 }
 
 export async function purchaseLabelViaEdge({

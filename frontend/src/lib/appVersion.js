@@ -2,18 +2,18 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.13.0';
+export const APP_VERSION = '1.14.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Instant dashboard + Little Shippie + PayPal',
+  title: 'Little Shippie SaaS deepened',
   message:
-    'Vendor data seeds from cache so listings appear without refresh. Duplicate test orders cleaned. PayPal is one connect button with return. Shipping uses Little Shippie rate shop, package dims, and printable labels.',
+    'Multi-tenant shipping product with USPS + FedEx adapters, rate shop, dims, zones, printable labels, and tracking fields. Connect carrier APIs when ready for live postage.',
   highlights: [
-    'Dashboard first paint uses cached storefront id (no empty until refresh)',
-    'Smoke orders removed — only real buyer orders remain',
-    'PayPal: single Connect flow that returns to your dashboard',
-    'Little Shippie: measure package → USPS/UPS/FedEx quotes → print label',
-    'Shipping zone policies (domestic, military, international rules)',
+    'Little Shippie multi-tenant API (ls_live_ keys)',
+    'USPS + FedEx adapter paths with estimate fallback',
+    'Vendor: measure → rate shop → buy → print shipper+buyer label',
+    'Tracking portal links + shipping policies',
+    'International integration roadmap documented',
   ],
 };
 
