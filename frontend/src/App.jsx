@@ -88,6 +88,7 @@ function PageLoader() {
 
 import { WHIMSY_LOADING, pickWhimsy } from './lib/whimsyMessages';
 import { getPostLoginPath, restoreSession, signOut, resolveProfile, ensureOAuthUserProfile } from './lib/auth';
+import { writeCachedVendorId } from './lib/vendorSessionCache';
 import { proStatusChanged, proStatusFingerprint, syncUserProStatus } from './lib/proStatus';
 import { mergeAuth0AllergenMetadata } from './lib/auth0MetadataSync';
 import { setMonitoringUser } from './lib/monitoring';
@@ -136,6 +137,9 @@ function AppCore({ auth0 = null }) {
       setMonitoringUser(null);
       localStorage.removeItem(STORAGE_KEYS.user);
       return;
+    }
+    if (next.email && (next.vendor_id || next.vendor)) {
+      writeCachedVendorId(next.email, next.vendor_id || next.vendor);
     }
     setUser((prev) => {
       if (userProfileFingerprint(prev) === userProfileFingerprint(next)) return prev;

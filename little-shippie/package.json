@@ -1,0 +1,19 @@
+{
+  "name": "little-shippie",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Little Shippie — multi-carrier rate shop, labels, zones, and print for marketplace makers",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./rates": "./src/engine/rates.js",
+    "./zones": "./src/engine/zones.js",
+    "./label": "./src/engine/labelHtml.js",
+    "./parcel": "./src/engine/parcel.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/demo-quote.mjs"
+  }
+}

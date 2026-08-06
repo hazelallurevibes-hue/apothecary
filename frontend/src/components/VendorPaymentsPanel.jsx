@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { createStripeConnectLink, saveVendorPayoutFields } from '../lib/vendorPayoutsApi';
 import { isValidPaypalEmail, isValidStripeAccountId } from '../lib/vendorPayments';
+import { getAppUrl } from '../lib/appUrl';
 
 /**
- * Vendor payout linking with explicit confirm for PayPal.
- * Stripe uses real Connect onboarding when edge function is configured.
+ * One-button payout linking.
+ * Stripe: real Connect onboarding with return to this page.
+ * PayPal: single connect action (email/me handle) + return deep-link when vendor comes back from PayPal.
  */
 export default function VendorPaymentsPanel({ vendorId, user }) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [stripeId, setStripeId] = useState('');
   const [paypalId, setPaypalId] = useState('');
-  const [paypalConfirm, setPaypalConfirm] = useState(false);
   const [connectStatus, setConnectStatus] = useState('none');
-  const [paypalStatus, setPaypalStatus] = useState('none'); // none | connected
+  const [paypalStatus, setPaypalStatus] = useState('none');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState('');
   const [message, setMessage] = useState('');
@@ -50,12 +53,7 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
       setStripeId(data.stripe_account_id || '');
       setPaypalId(data.paypal_account_id || '');
       setConnectStatus(data.stripe_connect_status || (data.stripe_account_id ? 'linked' : 'none'));
-      setPaypalStatus(
-        data.paypal_account_id && (data.paypal_connected_at || data.paypal_account_id)
-          ? 'connected'
-          : 'none',
-      );
-      setPaypalConfirm(!!data.paypal_account_id);
+      setPaypalStatus(data.paypal_account_id ? 'connected' : 'none');
     }
     setLoading(false);
   };
@@ -65,38 +63,34 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId]);
 
-  const saveStripe = async () => {
-    if (!vendorId) return;
-    const id = stripeId.trim();
-    if (!isValidStripeAccountId(id)) {
-      setError('Stripe account ids look like acct_1AbCdEf… — or use Connect with Stripe.');
-      return;
+  // Return from PayPal / Stripe: land here and finish confirm
+  useEffect(() => {
+    const paypalReturn = searchParams.get('paypal_return');
+    const stripeReturn = searchParams.get('stripe_return') || searchParams.get('connect');
+    if (paypalReturn === '1' || paypalReturn === 'true') {
+      setMessage(
+        'Welcome back from PayPal. Enter the same business email or paypal.me handle you use for receiving money, then tap Connect PayPal.',
+      );
+      const next = new URLSearchParams(searchParams);
+      next.delete('paypal_return');
+      setSearchParams(next, { replace: true });
     }
-    setSaving('stripe');
-    setError('');
-    setMessage('');
-    try {
-      await saveVendorPayoutFields(vendorId, {
-        stripe_account_id: id,
-        stripe_connect_status: 'linked',
-      });
-      setConnectStatus('linked');
-      setMessage('Stripe account saved on your storefront.');
-    } catch (e) {
-      setError(e.message || 'Could not save Stripe account');
+    if (stripeReturn) {
+      setMessage('Welcome back from Stripe. Refreshing Connect status…');
+      load().then(() => setMessage('Stripe Connect status updated.'));
+      const next = new URLSearchParams(searchParams);
+      next.delete('stripe_return');
+      next.delete('connect');
+      setSearchParams(next, { replace: true });
     }
-    setSaving('');
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const connectAndConfirmPaypal = async () => {
+  const connectPaypal = async () => {
     if (!vendorId) return;
     const id = paypalId.trim();
     if (!isValidPaypalEmail(id)) {
-      setError('Enter a real PayPal business email (you@business.com) or paypal.me handle.');
-      return;
-    }
-    if (!paypalConfirm) {
-      setError('Check the confirmation box — you must confirm this is your PayPal account.');
+      setError('Enter your PayPal business email (you@business.com) or paypal.me handle.');
       return;
     }
     setSaving('paypal');
@@ -109,10 +103,9 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
       });
       setPaypalStatus('connected');
       setMessage(
-        `PayPal connected as ${id}. Seekers can choose PayPal at checkout and will be sent to pay you there.`,
+        `PayPal connected as ${id}. Buyers will pay you there, then confirm on My Orders.`,
       );
     } catch (e) {
-      // retry without timestamp column
       try {
         await saveVendorPayoutFields(vendorId, { paypal_account_id: id });
         setPaypalStatus('connected');
@@ -135,7 +128,6 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
         paypal_connected_at: null,
       });
       setPaypalId('');
-      setPaypalConfirm(false);
       setPaypalStatus('none');
       setMessage('PayPal disconnected.');
     } catch (e) {
@@ -164,27 +156,58 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
         vendorId,
         email: user.email,
         name: user.name,
+        returnUrl: `${getAppUrl()}/vendor-dashboard?stripe_return=1#payments`,
+        refreshUrl: `${getAppUrl()}/vendor-dashboard?stripe_return=1#payments`,
       });
       if (account_id) setStripeId(account_id);
       if (url) {
-        setMessage('Redirecting to Stripe to finish onboarding and confirm your account…');
+        setMessage('Redirecting to Stripe… you will return here when finished.');
         window.location.href = url;
         return;
       }
-      setError('Stripe did not return an onboarding link. Check platform Stripe keys + create-stripe-connect.');
+      setError('Stripe did not return an onboarding link.');
     } catch (e) {
       setError(e.message || 'Stripe Connect failed');
     }
     setSaving('');
   };
 
-  const openPaypalLogin = () => {
-    // Opens PayPal so vendor can confirm their business identity, then return and paste email
-    window.open('https://www.paypal.com/businessmanage/account/aboutBusiness', '_blank', 'noopener,noreferrer');
+  /**
+   * Single PayPal path: if no email yet, open PayPal with return URL hint, then user finishes here.
+   * If email entered, save immediately (no second “confirm” button).
+   */
+  const startPaypalConnect = async () => {
+    const id = paypalId.trim();
+    if (isValidPaypalEmail(id)) {
+      await connectPaypal();
+      return;
+    }
+    // Send vendor to PayPal, then back to us (return_url is app-side — PayPal business pages don't always honor it,
+    // so we also store a session flag and show return banner).
+    try {
+      sessionStorage.setItem('ha_paypal_connect_pending', '1');
+      sessionStorage.setItem('ha_paypal_return', `${getAppUrl()}/vendor-dashboard?paypal_return=1#payments`);
+    } catch {
+      /* ignore */
+    }
     setMessage(
-      'PayPal opened in a new tab. Sign in to your business account, then return here, enter that email, check the box, and tap Connect & confirm PayPal.',
+      'Opening PayPal. After you sign in, use Back to Hazel Allure (or the return link), then enter your receiving email or paypal.me and tap Connect PayPal once.',
     );
+    const returnTo = encodeURIComponent(`${getAppUrl()}/vendor-dashboard?paypal_return=1#payments`);
+    // Identity login with app return where supported; falls back to business home
+    window.location.href = `https://www.paypal.com/signin?returnUri=${returnTo}`;
   };
+
+  useEffect(() => {
+    try {
+      if (sessionStorage.getItem('ha_paypal_connect_pending') === '1') {
+        sessionStorage.removeItem('ha_paypal_connect_pending');
+        setMessage('Back from PayPal — enter your receiving email or paypal.me handle, then Connect PayPal.');
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   if (!vendorId) {
     return (
@@ -195,138 +218,98 @@ export default function VendorPaymentsPanel({ vendorId, user }) {
   }
 
   return (
-    <div className="mb-8 bg-white border border-blue-200 rounded-3xl p-6 sm:p-8">
+    <div id="payments" className="mb-8 scroll-mt-24 bg-white border border-blue-200 rounded-3xl p-6 sm:p-8">
       <h3 className="font-bold text-xl sm:text-2xl mb-2 text-blue-900">Payment &amp; payout accounts</h3>
       <p className="text-sm text-gray-600 mb-4">
-        Connect Stripe (full sign-in with Stripe) or confirm your PayPal business email so seekers can pay you at
-        checkout.
+        One action per method. Stripe opens and returns here. PayPal: enter receiving email (or open PayPal then come
+        back) and connect once.
       </p>
 
-      {loading && <p className="text-sm text-gray-500 mb-3">Loading saved payout settings…</p>}
+      {loading && <p className="text-sm text-gray-500">Loading payout settings…</p>}
       {error && (
-        <p className="text-sm text-red-700 bg-red-50 border border-red-100 rounded-xl px-3 py-2 mb-3">{error}</p>
+        <p className="mb-3 text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2">{error}</p>
       )}
       {message && (
-        <p className="text-sm text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mb-3">
+        <p className="mb-3 text-sm text-emerald-900 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">
           {message}
         </p>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Stripe */}
-        <div className="rounded-2xl border p-4 bg-slate-50/50">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <label className="text-sm font-medium text-gray-800">Stripe Connect</label>
+      <div className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-2xl border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-semibold text-[#4a1942]">Card payouts (Stripe)</h4>
             <span
-              className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
+              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
                 connectStatus === 'linked' || stripeId
                   ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-gray-100 text-gray-500'
+                  : 'bg-gray-100 text-gray-600'
               }`}
             >
               {connectStatus === 'linked' || stripeId ? 'Connected' : 'Not connected'}
             </span>
           </div>
-          <input
-            value={stripeId}
-            onChange={(e) => setStripeId(e.target.value)}
-            placeholder="acct_… (or use Connect button)"
-            className="w-full border p-3 rounded-2xl mt-1 bg-white"
-            autoComplete="off"
-          />
-          <div className="mt-2 flex flex-wrap gap-2">
-            <button
-              type="button"
-              disabled={!!saving}
-              onClick={connectStripe}
-              className="px-4 py-2 bg-[#635bff] text-white rounded-2xl text-sm font-medium disabled:opacity-50"
-            >
-              {saving === 'connect' ? 'Opening Stripe…' : 'Connect with Stripe (sign in)'}
-            </button>
-            <button
-              type="button"
-              disabled={!!saving}
-              onClick={saveStripe}
-              className="px-4 py-2 border border-[#635bff] text-[#635bff] rounded-2xl text-sm font-medium disabled:opacity-50"
-            >
-              {saving === 'stripe' ? 'Saving…' : 'Save Stripe id'}
-            </button>
-          </div>
-          <p className="text-[11px] text-gray-500 mt-2">
-            <strong>Connect with Stripe</strong> opens Stripe&apos;s site so you sign in / create an Express account and
-            confirm details. That is the real connection flow.
+          <p className="text-xs text-gray-500 mb-3">
+            Physical orders: funds held until you ship, then transfer. You will be redirected back to this page.
           </p>
+          {stripeId && <p className="text-xs font-mono text-gray-600 mb-2 break-all">{stripeId}</p>}
+          <button
+            type="button"
+            disabled={!!saving}
+            onClick={connectStripe}
+            className="w-full px-4 py-2.5 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold disabled:opacity-50"
+          >
+            {saving === 'connect' ? 'Opening Stripe…' : stripeId ? 'Update Stripe Connect' : 'Connect Stripe'}
+          </button>
         </div>
 
-        {/* PayPal */}
-        <div className="rounded-2xl border p-4 bg-slate-50/50">
-          <div className="flex items-center justify-between gap-2 mb-2">
-            <label className="text-sm font-medium text-gray-800">PayPal</label>
+        <div className="rounded-2xl border p-4">
+          <div className="flex items-center justify-between mb-2">
+            <h4 className="font-semibold text-[#4a1942]">PayPal</h4>
             <span
-              className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${
-                paypalStatus === 'connected'
-                  ? 'bg-emerald-100 text-emerald-800'
-                  : 'bg-gray-100 text-gray-500'
+              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
+                paypalStatus === 'connected' ? 'bg-emerald-100 text-emerald-800' : 'bg-gray-100 text-gray-600'
               }`}
             >
               {paypalStatus === 'connected' ? 'Connected' : 'Not connected'}
             </span>
           </div>
+          <p className="text-xs text-gray-500 mb-3">
+            Receiving email or paypal.me handle only. Buyers pay you on PayPal, then confirm on My Orders.
+          </p>
+          <label className="block text-xs font-medium text-gray-600 mb-1">PayPal email or paypal.me</label>
           <input
+            type="text"
             value={paypalId}
-            onChange={(e) => {
-              setPaypalId(e.target.value);
-              setPaypalStatus('none');
-            }}
-            placeholder="business@example.com or paypal.me/YourShop"
-            className="w-full border p-3 rounded-2xl mt-1 bg-white"
+            onChange={(e) => setPaypalId(e.target.value)}
+            placeholder="you@business.com or YourName"
+            className="w-full border rounded-xl px-3 py-2 text-sm mb-3"
             autoComplete="email"
           />
-          <label className="mt-3 flex items-start gap-2 text-xs text-gray-700 cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-0.5"
-              checked={paypalConfirm}
-              onChange={(e) => setPaypalConfirm(e.target.checked)}
-            />
-            <span>
-              I confirm this is <strong>my</strong> PayPal business account and I authorize seekers to pay this address
-              for Hazel Allure orders.
-            </span>
-          </label>
-          <div className="mt-2 flex flex-wrap gap-2">
+          <button
+            type="button"
+            disabled={!!saving}
+            onClick={startPaypalConnect}
+            className="w-full px-4 py-2.5 bg-[#0070ba] text-white rounded-2xl text-sm font-semibold disabled:opacity-50"
+          >
+            {saving === 'paypal'
+              ? 'Saving…'
+              : paypalStatus === 'connected'
+                ? 'Update PayPal'
+                : isValidPaypalEmail(paypalId.trim())
+                  ? 'Connect PayPal'
+                  : 'Sign in to PayPal & connect'}
+          </button>
+          {paypalStatus === 'connected' && (
             <button
               type="button"
               disabled={!!saving}
-              onClick={openPaypalLogin}
-              className="px-4 py-2 border border-[#00457C] text-[#00457C] rounded-2xl text-sm font-medium disabled:opacity-50"
+              onClick={disconnectPaypal}
+              className="w-full mt-2 px-4 py-2 border rounded-2xl text-sm text-gray-600"
             >
-              Open PayPal (sign in)
+              Disconnect PayPal
             </button>
-            <button
-              type="button"
-              disabled={!!saving || !paypalConfirm}
-              onClick={connectAndConfirmPaypal}
-              className="px-4 py-2 bg-[#00457C] text-white rounded-2xl text-sm font-medium disabled:opacity-50"
-            >
-              {saving === 'paypal' ? 'Connecting…' : 'Connect & confirm PayPal'}
-            </button>
-            {paypalStatus === 'connected' && (
-              <button
-                type="button"
-                disabled={!!saving}
-                onClick={disconnectPaypal}
-                className="px-3 py-2 text-xs text-red-700 underline"
-              >
-                Disconnect
-              </button>
-            )}
-          </div>
-          <p className="text-[11px] text-gray-500 mt-2">
-            <strong>How it works:</strong> 1) Open PayPal and sign in to your business account. 2) Paste that email or
-            paypal.me handle here. 3) Check the box. 4) Tap <em>Connect &amp; confirm</em>. Without step 3–4 it is{' '}
-            <em>not</em> connected.
-          </p>
+          )}
         </div>
       </div>
     </div>

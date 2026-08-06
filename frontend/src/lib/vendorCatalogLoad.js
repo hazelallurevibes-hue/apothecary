@@ -3,6 +3,7 @@
  * Prefer the storefront with the most real activity when email matches multiple vendor rows.
  */
 import { supabase } from './supabaseClient';
+import { writeCachedVendorId } from './vendorSessionCache';
 
 const withTimeout = (promise, ms, label = 'request') =>
   Promise.race([
@@ -99,6 +100,7 @@ export async function resolveVendorIdForUser(user) {
         .update({ vendor_id: best, role: 'vendor' })
         .ilike('email', email);
     }
+    writeCachedVendorId(email, best);
     return best;
   } catch (e) {
     console.warn('[resolveVendorIdForUser]', e.message);

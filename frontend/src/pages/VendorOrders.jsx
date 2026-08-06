@@ -4,13 +4,13 @@ import { fetchVendorIncomingOrders } from '../lib/ordersApi';
 import { getVendorContext, vendorCan } from '../lib/plans';
 import { VendorPickupScanner } from '../components/PickupQRPanel';
 import OrderModificationCard from '../components/OrderModificationCard';
+import LittleShippieShipModal from '../components/LittleShippieShipModal';
 import {
   markOrderShipped,
-  purchaseShippingLabel,
-  quoteShippingLabel,
   releaseVendorPayout,
-  SHIPPING_SERVICES,
 } from '../lib/shippingApi';
+import { printOrderLabel } from '../lib/littleShippieClient';
+import { supabase } from '../lib/supabaseClient';
 
 /**
  * Practitioner fulfillment inbox — ship, labels, release held payouts.
@@ -20,6 +20,8 @@ export default function VendorOrders({ user }) {
   const [loading, setLoading] = useState(true);
   const [busyId, setBusyId] = useState(null);
   const [msg, setMsg] = useState('');
+  const [shipOrder, setShipOrder] = useState(null);
+  const [vendorRow, setVendorRow] = useState(null);
   const vendorCtx = getVendorContext(user);
   const vendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor;
 
@@ -36,6 +38,16 @@ export default function VendorOrders({ user }) {
     reload();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.email, user?.vendor_id, user?.vendor]);
+
+  useEffect(() => {
+    if (!vendorId) return;
+    supabase
+      .from('vendors')
+      .select('id, name, city, state, email, address, zip, country')
+      .eq('id', Number(vendorId))
+      .maybeSingle()
+      .then(({ data }) => setVendorRow(data));
+  }, [vendorId]);
 
   const getStatusColor = (status, paymentStatus, payoutStatus) => {
     if (payoutStatus === 'held' || payoutStatus === 'release_ready') return 'bg-violet-100 text-violet-900';
@@ -65,38 +77,21 @@ export default function VendorOrders({ user }) {
     setBusyId(null);
   };
 
-  const onBuyLabel = async (order) => {
-    setBusyId(order.id);
-    setMsg('');
-    try {
-      const svc = SHIPPING_SERVICES[1]; // USPS Priority default
-      const q = await quoteShippingLabel({
-        orderId: order.id,
-        vendorId: order.vendor_id || vendorId,
-        carrier: svc.carrier,
-        service: svc.service,
-        weightOz: 16,
-      });
-      const total = (q.quote?.total_charged_cents || 0) / 100;
-      if (!window.confirm(
-        `Buy ${svc.label} estimate for $${total.toFixed(2)} (rate + platform markup)?\nOrder will be marked shipped.`,
-      )) {
-        setBusyId(null);
-        return;
-      }
-      const purchased = await purchaseShippingLabel({
-        orderId: order.id,
-        vendorId: order.vendor_id || vendorId,
-        carrier: svc.carrier,
-        service: svc.service,
-        weightOz: 16,
-      });
-      setMsg(purchased.message || `Label purchased. Tracking: ${purchased.label?.tracking_number}`);
-      reload();
-    } catch (e) {
-      alert(e.message);
-    }
-    setBusyId(null);
+  const onBuyLabel = (order) => {
+    setShipOrder(order);
+  };
+
+  const onReprint = (order) => {
+    printOrderLabel({
+      order,
+      vendor: vendorRow,
+      rate: {
+        carrier: order.shipping_carrier || 'usps',
+        service: order.shipping_service || 'priority',
+        label: `${(order.shipping_carrier || 'USPS').toUpperCase()} ${order.shipping_service || ''}`.trim(),
+      },
+      trackingNumber: order.tracking_number,
+    });
   };
 
   const onRelease = async (order) => {
@@ -140,8 +135,9 @@ export default function VendorOrders({ user }) {
           Incoming orders
         </h1>
         <p className="text-sm text-gray-600 mt-1">
-          Card physical orders: funds held until you ship, then release payout. COD is free (no Connect fee). Buy
-          platform shipping labels with a small markup.
+          Card physical orders: funds held until you ship, then release payout. COD is free. Ship with{' '}
+          <strong>Little Shippie</strong> — enter package size, pick USPS/UPS/FedEx, print label with your address +
+          buyer filled in.
         </p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <button
@@ -245,11 +241,20 @@ export default function VendorOrders({ user }) {
                         type="button"
                         disabled={busyId === order.id}
                         onClick={() => onBuyLabel(order)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-[#4a1942] text-[#4a1942] font-medium disabled:opacity-50"
+                        className="text-xs px-3 py-1.5 rounded-full border border-sky-700 text-sky-900 font-medium disabled:opacity-50"
                       >
-                        Buy shipping label
+                        Ship with Little Shippie
                       </button>
                     </>
+                  )}
+                  {order.tracking_number && (
+                    <button
+                      type="button"
+                      onClick={() => onReprint(order)}
+                      className="text-xs px-3 py-1.5 rounded-full border text-gray-700 font-medium"
+                    >
+                      Print label again
+                    </button>
                   )}
                   {(order.payout_status === 'release_ready' ||
                     (order.payout_status === 'held' && order.shipped_at)) && (
@@ -277,6 +282,18 @@ export default function VendorOrders({ user }) {
           );
         })}
       </div>
+
+      <LittleShippieShipModal
+        open={!!shipOrder}
+        order={shipOrder || {}}
+        vendorId={vendorId}
+        user={user}
+        onClose={() => setShipOrder(null)}
+        onShipped={(res) => {
+          setMsg(res.message || `Label ready. Tracking: ${res.label?.tracking_number || ''}`);
+          reload();
+        }}
+      />
     </div>
   );
 }

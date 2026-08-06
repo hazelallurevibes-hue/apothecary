@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
     alias: {
       '@tax-vato': path.resolve(__dirname, '../tax-vato/src'),
       '@tax-saas': path.resolve(__dirname, '../tax-vato/src'), // legacy alias
+      '@little-shippie': path.resolve(__dirname, '../little-shippie/src'),
     },
   },
   define: {

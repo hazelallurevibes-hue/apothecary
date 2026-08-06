@@ -65,7 +65,7 @@ export async function fetchVendorPaymentMethods(vendorId) {
   return data;
 }
 
-export async function createStripeConnectLink({ vendorId, email, name }) {
+export async function createStripeConnectLink({ vendorId, email, name, returnUrl, refreshUrl }) {
   if (!import.meta.env.VITE_SUPABASE_URL) {
     throw new Error('VITE_SUPABASE_URL not configured');
   }
@@ -76,6 +76,8 @@ export async function createStripeConnectLink({ vendorId, email, name }) {
       vendor_id: vendorId,
       email: email?.trim().toLowerCase(),
       name: name || undefined,
+      return_url: returnUrl || undefined,
+      refresh_url: refreshUrl || undefined,
     }),
   });
   const json = await res.json().catch(() => ({}));

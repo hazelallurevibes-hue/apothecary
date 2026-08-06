@@ -7,6 +7,7 @@ import {
   loadVendorOrderStats,
   resolveVendorIdForUser,
 } from '../lib/vendorCatalogLoad';
+import { readCachedVendorId, writeCachedVendorId } from '../lib/vendorSessionCache';
 import RatingAlertsPanel from '../components/RatingAlertsPanel';
 import VendorCustomerInsights from '../components/VendorCustomerInsights';
 import VendorNotificationsPanel from '../components/VendorNotificationsPanel';
@@ -150,26 +151,45 @@ export default function VendorDashboard({ user }) {
   };
 
   const userEmail = user?.email || '';
-  const seedVendorId = vendorCtx?.vendorId || user?.vendor_id || user?.vendor || null;
+  const seedVendorId =
+    vendorCtx?.vendorId ||
+    user?.vendor_id ||
+    user?.vendor ||
+    readCachedVendorId(userEmail) ||
+    null;
+  const loadGenRef = useRef(0);
+  const bootstrappedEmailRef = useRef('');
 
   const refreshVendorData = useCallback(async () => {
+    // Wait for session email — empty first paint with no user caused "refresh to load"
+    if (!userEmail) {
+      setLoadingData(true);
+      return;
+    }
+
+    const gen = ++loadGenRef.current;
     setLoadingData(true);
     setLoadError('');
     try {
-      // Always re-resolve by email so stale users.vendor_id (empty duplicate shop)
-      // cannot hide listings/orders that live on the real storefront.
-      let vid = resolvedVendorId || (seedVendorId ? Number(seedVendorId) : null);
-      if (userEmail) {
-        const healed = await resolveVendorIdForUser({
-          email: userEmail,
-          vendor_id: vid || seedVendorId,
-          role: user?.role,
-        });
-        if (healed) {
-          vid = healed;
-          if (healed !== resolvedVendorId) setResolvedVendorId(healed);
-        }
+      // Instant seed from cache / session so listings request can start immediately
+      let vid =
+        resolvedVendorId ||
+        (seedVendorId ? Number(seedVendorId) : null) ||
+        readCachedVendorId(userEmail);
+
+      // Always re-resolve by email (heals duplicate empty storefronts)
+      const healed = await resolveVendorIdForUser({
+        email: userEmail,
+        vendor_id: vid || seedVendorId,
+        role: user?.role,
+      });
+      if (gen !== loadGenRef.current) return; // stale
+      if (healed) {
+        vid = healed;
+        writeCachedVendorId(userEmail, healed);
+        if (healed !== resolvedVendorId) setResolvedVendorId(healed);
       }
+
       if (!vid) {
         setMyMenu([]);
         setMyProduce([]);
@@ -177,21 +197,20 @@ export default function VendorDashboard({ user }) {
         setLoadError(
           'No storefront linked to this login. Open Vendor Sign-up once, or contact support with your email.',
         );
-        setLoadingData(false);
         return;
       }
 
       const catalog = await loadVendorListings(vid);
+      if (gen !== loadGenRef.current) return; // stale — do not wipe newer results
       setMyMenu(catalog.menu || []);
       setMyProduce(catalog.produce || []);
       if (catalog.errors?.length) {
         setLoadError(catalog.errors.join(' · '));
       }
 
-      // Orders/analytics non-blocking — never keep listings stuck on "Loading…"
       loadVendorOrderStats(vid)
         .then((stats) => {
-          if (!stats) return;
+          if (gen !== loadGenRef.current || !stats) return;
           setAnalytics((prev) => ({
             ...(prev || {}),
             ...stats,
@@ -202,18 +221,29 @@ export default function VendorDashboard({ user }) {
         })
         .catch(() => {});
     } catch (e) {
+      if (gen !== loadGenRef.current) return;
       console.warn('Vendor dashboard load failed:', e.message);
       setLoadError(e.message || 'Could not load listings');
-      setMyMenu([]);
-      setMyProduce([]);
+      // Keep previous listings if any — never flash empty on transient errors
+      setMyMenu((prev) => prev);
+      setMyProduce((prev) => prev);
     } finally {
-      setLoadingData(false);
+      if (gen === loadGenRef.current) setLoadingData(false);
     }
   }, [resolvedVendorId, seedVendorId, userEmail, user?.role]);
 
+  // Bootstrap once per email; also when healed vendor id changes
   useEffect(() => {
+    if (!userEmail) return;
+    const emailKey = userEmail.toLowerCase();
+    if (bootstrappedEmailRef.current !== emailKey) {
+      bootstrappedEmailRef.current = emailKey;
+      // Prefer cached storefront id immediately for this login
+      const cached = readCachedVendorId(userEmail);
+      if (cached && !resolvedVendorId) setResolvedVendorId(cached);
+    }
     refreshVendorData();
-  }, [refreshVendorData]);
+  }, [userEmail, refreshVendorData]);
 
   // When session enrich heals vendor_id after first paint, force reload listings/orders
   useEffect(() => {
@@ -221,9 +251,10 @@ export default function VendorDashboard({ user }) {
     if (!incoming) return;
     const n = Number(incoming);
     if (n && n !== Number(resolvedVendorId)) {
+      writeCachedVendorId(userEmail, n);
       setResolvedVendorId(n);
     }
-  }, [user?.vendor_id, user?.vendor, resolvedVendorId]);
+  }, [user?.vendor_id, user?.vendor, resolvedVendorId, userEmail]);
 
   useEffect(() => {
     if (!myVendorId) return;
