@@ -1,0 +1,21 @@
+{
+  "name": "@mailquill/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "MailQuill — AI email reply SaaS: thread-aware drafts via Ollama or OpenAI-compatible APIs",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./engine": "./src/engine/reply.js",
+    "./client": "./src/api/client.js"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "test": "node --test test/*.test.js",
+    "demo": "node scripts/demo-reply.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

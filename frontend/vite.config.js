@@ -23,9 +23,9 @@ export default defineConfig(({ mode }) => {
   envPrefix: ['VITE_', 'AUTH0_'],
   resolve: {
     alias: {
-      '@tax-vato': path.resolve(__dirname, '../tax-vato/src'),
-      '@tax-saas': path.resolve(__dirname, '../tax-vato/src'), // legacy alias
-      '@little-shippie': path.resolve(__dirname, '../little-shippie/src'),
+      '@tax-vato': path.resolve(__dirname, '../saas/tax-vato/src'),
+      '@tax-saas': path.resolve(__dirname, '../saas/tax-vato/src'), // legacy alias
+      '@little-shippie': path.resolve(__dirname, '../saas/little-shippie/src'),
     },
   },
   define: {

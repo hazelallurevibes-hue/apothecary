@@ -1,6 +1,6 @@
 /**
  * Edge-portable tax quote (mirrors Tax Vato / tax-vato package core).
- * Keep in sync with tax-vato/src/engine/quote.js for major rate changes.
+ * Keep in sync with saas/tax-vato/src/engine/quote.js for major rate changes.
  */
 
 const US_STATE: Record<string, { rate: number; name: string; mpf: boolean }> = {
