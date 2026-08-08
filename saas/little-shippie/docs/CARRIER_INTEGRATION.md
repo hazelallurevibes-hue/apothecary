@@ -113,13 +113,34 @@ FEDEX_ENV=sandbox
 
 ---
 
+## UPS (live postage) — you signed up
+
+Full checklist: **[CONNECT_USPS_UPS.md](./CONNECT_USPS_UPS.md)**
+
+Short version:
+
+1. [developer.ups.com](https://developer.ups.com/) → create app → Client ID + Secret  
+2. Link **shipper account number** to that app  
+3. Enable Rating + Shipping + Tracking  
+4. Env:
+
+```env
+UPS_CLIENT_ID=...
+UPS_CLIENT_SECRET=...
+UPS_ACCOUNT_NUMBER=...
+UPS_ENV=sandbox
+```
+
+---
+
 ## Provider adapter matrix (Little Shippie)
 
 | Provider | Domestic US | International | You need |
 |----------|-------------|---------------|----------|
 | `estimate` | Yes (table) | Policy only | Nothing |
-| `usps` | Live when enrolled | Limited via USPS intl products later | Client ID/secret + ship enrollment |
-| `fedex` | Live after cert | FedEx International later | API key/secret/account + cert |
+| `usps` | Live when enrolled | Limited later | Client ID/secret + Ship enrollment |
+| `ups` | Live when linked | Later | Client ID/secret + account number |
+| `fedex` | Live after cert | Later | API key/secret/account + cert |
 | `easypost` / `shippo` (optional later) | Yes | Yes (easiest path) | Single API key |
 
 ---

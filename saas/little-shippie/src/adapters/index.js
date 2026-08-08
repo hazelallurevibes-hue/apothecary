@@ -1,23 +1,19 @@
 import { estimateShop, estimatePurchase } from './estimate.js';
 import { uspsShop, uspsPurchase, uspsConfigured } from './usps.js';
 import { fedexShop, fedexPurchase, fedexConfigured } from './fedex.js';
+import { upsShop, upsPurchase, upsConfigured } from './ups.js';
 
 /**
- * Multi-carrier rate shop: merge USPS + FedEx (+ estimate fill).
+ * Multi-carrier rate shop: merge USPS + UPS + FedEx (+ estimate fill).
  */
 export async function shopAll(input, tenant) {
-  const carriers = (tenant?.carriers || ['usps', 'fedex']).map((c) => c.toLowerCase());
+  const carriers = (tenant?.carriers || ['usps', 'ups', 'fedex']).map((c) => c.toLowerCase());
   const jobs = [];
 
-  if (carriers.includes('usps')) {
-    jobs.push(uspsShop(input, tenant));
-  }
-  if (carriers.includes('fedex')) {
-    jobs.push(fedexShop(input, tenant));
-  }
-  if (!jobs.length) {
-    jobs.push(estimateShop(input, tenant));
-  }
+  if (carriers.includes('usps')) jobs.push(uspsShop(input, tenant));
+  if (carriers.includes('ups')) jobs.push(upsShop(input, tenant));
+  if (carriers.includes('fedex')) jobs.push(fedexShop(input, tenant));
+  if (!jobs.length) jobs.push(estimateShop(input, tenant));
 
   const results = await Promise.all(jobs);
   const rates = [];
@@ -35,7 +31,6 @@ export async function shopAll(input, tenant) {
     if (r.rates?.length) rates.push(...r.rates);
   }
 
-  // Dedupe by carrier+service keep cheapest
   const map = new Map();
   for (const rate of rates) {
     const key = `${rate.carrier}:${rate.service}`;
@@ -58,6 +53,7 @@ export async function shopAll(input, tenant) {
     provider: 'multi',
     capabilities: {
       usps: uspsConfigured(tenant),
+      ups: upsConfigured(tenant),
       fedex: fedexConfigured(tenant),
     },
   };
@@ -66,8 +62,9 @@ export async function shopAll(input, tenant) {
 export async function purchaseLabel(input, tenant, rate) {
   const carrier = String(rate?.carrier || input.carrier || 'usps').toLowerCase();
   if (carrier === 'fedex') return fedexPurchase(input, tenant, rate);
+  if (carrier === 'ups') return upsPurchase(input, tenant, rate);
   if (carrier === 'usps') return uspsPurchase(input, tenant, rate);
   return estimatePurchase(input, tenant, rate);
 }
 
-export { uspsConfigured, fedexConfigured };
+export { uspsConfigured, fedexConfigured, upsConfigured };

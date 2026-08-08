@@ -5,7 +5,7 @@ Multi-tenant shipping SaaS for marketplaces (Hazel Allure and other shops).
 **Product surface (like EasyPost/ShipStation for *your* sellers):**
 
 - Rate shop UI (dims + weight)
-- USPS + FedEx adapters (live when credentials set; estimate fallback always)
+- USPS + UPS + FedEx adapters (live when credentials set; estimate fallback always)
 - Zones & shipping policies (domestic, military, international gate)
 - Buy label → print with **vendor + buyer** populated
 - Tracking fields + carrier portal links
@@ -32,18 +32,24 @@ curl -s -X POST http://localhost:8788/v1/rates \
   -d "{\"weight_oz\":16,\"length_in\":8,\"width_in\":6,\"height_in\":4,\"to\":{\"postal\":\"10001\",\"region\":\"NY\",\"country\":\"US\"}}"
 ```
 
-## What you must do for live USPS / FedEx
+## Connect USPS + UPS (you’re signed up)
 
-See **[docs/CARRIER_INTEGRATION.md](./docs/CARRIER_INTEGRATION.md)** — full checklist.
+**Full walkthrough:** [docs/CONNECT_USPS_UPS.md](./docs/CONNECT_USPS_UPS.md)
 
-### Short version
+| Carrier | You do | Env |
+|---------|--------|-----|
+| **USPS** | [developers.usps.com](https://developers.usps.com/) app + **Ship enrollment** | `USPS_CLIENT_ID`, `USPS_CLIENT_SECRET`, `USPS_ENV` |
+| **UPS** | [developer.ups.com](https://developer.ups.com/) app + link shipper # | `UPS_CLIENT_ID`, `UPS_CLIENT_SECRET`, `UPS_ACCOUNT_NUMBER`, `UPS_ENV` |
+| **FedEx** (optional) | [developer.fedex.com](https://developer.fedex.com/) + label cert | `FEDEX_API_KEY`, `FEDEX_SECRET_KEY`, `FEDEX_ACCOUNT_NUMBER` |
 
-| Carrier | You do |
-|---------|--------|
-| **USPS** | Register at [developers.usps.com](https://developers.usps.com/), OAuth app, **Ship enrollment**, set `USPS_CLIENT_ID` + `USPS_CLIENT_SECRET` |
-| **FedEx** | [developer.fedex.com](https://developer.fedex.com/) project, Ship + Rate APIs, sandbox tests, **label certification**, set `FEDEX_API_KEY` + `FEDEX_SECRET_KEY` + `FEDEX_ACCOUNT_NUMBER` |
+Copy `.env.example` → `.env.local`, fill secrets, `npm start`, then:
 
-Without those secrets, Shippie still works in **estimate + printable packing label** mode.
+```bash
+curl -s http://localhost:8788/v1/health
+# want: "usps": true, "ups": true
+```
+
+Without secrets, Shippie still works in **estimate + printable packing label** mode.
 
 ## International
 

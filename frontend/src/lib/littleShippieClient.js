@@ -67,14 +67,14 @@ export async function quoteAllServices({
   if (!result.ok) return result;
   // Prefer USPS + FedEx services for marketplace UI
   const rates = (result.rates || []).filter((r) =>
-    ['usps', 'fedex'].includes(String(r.carrier).toLowerCase()),
+    ['usps', 'ups', 'fedex'].includes(String(r.carrier).toLowerCase()),
   );
   return {
     ...result,
     rates,
     recommended: rates[0] || result.recommended,
     notes: [
-      'Live USPS/FedEx postage activates when platform sets carrier API secrets (see Little Shippie docs).',
+      'Live USPS/UPS postage activates when platform sets carrier API secrets (see saas/little-shippie/docs/CONNECT_USPS_UPS.md).',
     ],
     provider: 'estimate',
   };

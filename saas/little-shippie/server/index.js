@@ -11,7 +11,7 @@
 import http from 'http';
 import { createTenant, getTenantByApiKey, listTenants } from '../src/tenants.js';
 import { quoteShipment, buyAndLabel } from '../src/service.js';
-import { uspsConfigured, fedexConfigured } from '../src/adapters/index.js';
+import { uspsConfigured, fedexConfigured, upsConfigured } from '../src/adapters/index.js';
 
 const PORT = Number(process.env.PORT || process.env.LITTLE_SHIPPIE_PORT || 8788);
 const ADMIN_KEY = process.env.LITTLE_SHIPPIE_ADMIN_KEY || '';
@@ -63,8 +63,9 @@ const server = http.createServer(async (req, res) => {
         ok: true,
         service: 'little-shippie',
         usps: uspsConfigured(null),
+        ups: upsConfigured(null),
         fedex: fedexConfigured(null),
-        version: '1.1.0',
+        version: '1.2.0',
       });
     }
 
