@@ -1,6 +1,6 @@
 {
   "name": "@taxvato/core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": false,
   "type": "module",
   "description": "Tax Vato — worldwide multi-party tax engine + HTTP API + embed widget for any website or marketplace.",
@@ -25,7 +25,8 @@
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "rates:fx": "node scripts/update-fx-rates.mjs",
-    "rates:update": "node scripts/update-fx-rates.mjs"
+    "rates:update": "node scripts/update-fx-rates.mjs",
+    "rates:validate": "node scripts/validate-rates.mjs"
   },
   "engines": {
     "node": ">=18"

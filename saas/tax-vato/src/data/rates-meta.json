@@ -1,13 +1,22 @@
 {
-  "version": "2026.07.31",
-  "usStatesAsOf": "2026-08-01",
+  "version": "2026.08.06",
+  "usStatesAsOf": "2026-01-01",
+  "canadaAsOf": "2025-04-01",
+  "mexicoAsOf": "2026-02-24",
   "vatAsOf": "2026-08-01",
   "fxAsOf": "2026-07-31",
-  "updateCommand": "npm run rates:update",
-  "sources": [
-    "Built-in state/VAT seed tables (manual review)",
-    "Frankfurter.app (ECB-derived FX, free)",
-    "Optional: override JSON via TAXVATO_RATES_DIR"
-  ],
+  "updateCommand": "npm run rates:validate && npm run rates:fx",
+  "primarySources": {
+    "US": "https://taxfoundation.org/data/all/state/sales-tax-rates/",
+    "CA": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+    "MX": "https://taxsummaries.pwc.com/mexico/corporate/other-taxes",
+    "registry": "src/data/sources.json"
+  },
+  "coverage": {
+    "US_states": 51,
+    "CA_provinces": 13,
+    "MX_rates": 2,
+    "VAT_countries": 50
+  },
   "disclaimer": "Operational estimates. Confirm with a tax professional and official sources before filing."
 }

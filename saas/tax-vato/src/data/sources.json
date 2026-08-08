@@ -1,0 +1,122 @@
+{
+  "schemaVersion": 1,
+  "product": "Tax Vato",
+  "purpose": "Authoritative backlinks for rate tables. Re-check these URLs on each rates:refresh cycle.",
+  "lastReviewed": "2026-08-06",
+  "accuracyModel": {
+    "tier1_state_vat_base": "Embedded rates with sourceId + asOf; used for quoteTax()",
+    "tier2_avg_local_us": "Population-weighted avg local from Tax Foundation — estimate when county unknown",
+    "tier3_zip_district": "Future: SST / state DOR downloads or commercial feed",
+    "disclaimer": "Operational estimates for marketplace checkout. Confirm with a tax professional and official filings. Not legal advice."
+  },
+  "sources": [
+    {
+      "id": "tax_foundation_us_2026",
+      "name": "Tax Foundation — State & Local Sales Tax Rates, 2026",
+      "url": "https://taxfoundation.org/data/all/state/sales-tax-rates/",
+      "asOf": "2026-01-01",
+      "covers": ["US_STATE", "US_AVG_LOCAL"],
+      "download": "https://taxfoundation.org/wp-content/uploads/2026/01/2026-Sales-Tax-Data.xlsx",
+      "refreshCadence": "semi-annual (Jan + Jul)",
+      "notes": "State rate + pop-weighted average local. Mandatory statewide local add-ons already in CA/UT/VA state rates."
+    },
+    {
+      "id": "sst_governing_board",
+      "name": "Streamlined Sales Tax Governing Board",
+      "url": "https://www.streamlinedsalestax.org/",
+      "asOf": "2026-08-01",
+      "covers": ["US_SST_MEMBERSHIP", "US_UNIFORMITY"],
+      "refreshCadence": "as needed",
+      "notes": "Member states, rate simplification; not a full free ZIP rate API."
+    },
+    {
+      "id": "sst_state_tables",
+      "name": "SST State Tables / DOR links",
+      "url": "https://www.streamlinedsalestax.org/state-tables",
+      "asOf": "2026-08-01",
+      "covers": ["US_STATE_DOR_BACKLINKS"],
+      "refreshCadence": "quarterly"
+    },
+    {
+      "id": "cra_gst_hst_rates",
+      "name": "Canada Revenue Agency — GST/HST which rate",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html",
+      "asOf": "2026-04-08",
+      "covers": ["CA_GST", "CA_HST", "CA_PST"],
+      "refreshCadence": "on CRA page update",
+      "notes": "Nova Scotia HST 14% effective 2025-04-01. Place-of-supply rules determine province."
+    },
+    {
+      "id": "cra_place_of_supply",
+      "name": "CRA — GST/HST place of supply",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-place-supply.html",
+      "asOf": "2026-04-01",
+      "covers": ["CA_PLACE_OF_SUPPLY"],
+      "refreshCadence": "annual"
+    },
+    {
+      "id": "cra_calculator",
+      "name": "CRA GST/HST calculator",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate/calculator.html",
+      "asOf": "2025-04-01",
+      "covers": ["CA_RATES_TABLE"],
+      "refreshCadence": "on CRA update"
+    },
+    {
+      "id": "mx_iva_pwc",
+      "name": "PwC Worldwide Tax Summaries — Mexico VAT",
+      "url": "https://taxsummaries.pwc.com/mexico/corporate/other-taxes",
+      "asOf": "2026-02-24",
+      "covers": ["MX_IVA_STANDARD"],
+      "refreshCadence": "annual",
+      "notes": "Standard IVA 16% federal."
+    },
+    {
+      "id": "mx_border_stimulus",
+      "name": "Mexico northern/southern border VAT stimulus (8%)",
+      "url": "https://www.taxathand.com/article/16050/Mexico/2021/Tax-incentives-granted-in-northern-and-southern-border-regions",
+      "asOf": "2021-01-28",
+      "covers": ["MX_IVA_BORDER"],
+      "refreshCadence": "verify decree status yearly",
+      "notes": "50% credit on 16% → effective 8% for qualifying border establishments — not automatic for all remote sales."
+    },
+    {
+      "id": "sat_mexico",
+      "name": "SAT Mexico (Servicio de Administración Tributaria)",
+      "url": "https://www.sat.gob.mx/",
+      "asOf": "2026-08-01",
+      "covers": ["MX_AUTHORITY"],
+      "refreshCadence": "ongoing"
+    },
+    {
+      "id": "frankfurter_fx",
+      "name": "Frankfurter / ECB FX",
+      "url": "https://www.frankfurter.app/",
+      "asOf": "live",
+      "covers": ["FX"],
+      "refreshCadence": "daily via npm run rates:fx"
+    }
+  ],
+  "expansionRoadmap": [
+    {
+      "phase": 1,
+      "status": "active",
+      "scope": "US state + avg local estimate, Canada GST/HST/PST, Mexico IVA"
+    },
+    {
+      "phase": 2,
+      "status": "planned",
+      "scope": "EU OSS standard VAT (existing seed), UK, AU, NZ refine"
+    },
+    {
+      "phase": 3,
+      "status": "planned",
+      "scope": "US ZIP/district rates via SST certified provider or state rate files"
+    },
+    {
+      "phase": 4,
+      "status": "planned",
+      "scope": "LatAm / Asia / Africa national VAT with product category reduced rates"
+    }
+  ]
+}

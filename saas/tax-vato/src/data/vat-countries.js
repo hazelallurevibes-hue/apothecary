@@ -42,7 +42,15 @@ export const VAT_GST_COUNTRIES = {
   SG: { rate: 0.09, name: 'Singapore GST', system: 'GST', digitalOss: true },
   JP: { rate: 0.10, name: 'Japan consumption tax', system: 'CT', digitalOss: true },
   KR: { rate: 0.10, name: 'South Korea VAT', system: 'VAT', digitalOss: true },
-  MX: { rate: 0.16, name: 'Mexico IVA', system: 'VAT', digitalOss: true },
+  MX: {
+    rate: 0.16,
+    name: 'Mexico IVA',
+    system: 'VAT',
+    digitalOss: true,
+    borderRate: 0.08,
+    sourceId: 'mx_iva_pwc',
+    note: 'Standard 16%; border stimulus may be 8% for qualifying local establishments only',
+  },
   BR: { rate: 0.17, name: 'Brazil ICMS/ISS (illustrative complex)', system: 'COMPLEX', digitalOss: false },
   AE: { rate: 0.05, name: 'UAE VAT', system: 'VAT', digitalOss: true },
   ZA: { rate: 0.15, name: 'South Africa VAT', system: 'VAT', digitalOss: true },
@@ -69,19 +77,42 @@ export const VAT_GST_COUNTRIES = {
   MO: { rate: 0, name: 'Macau (no GST)', system: 'NONE', digitalOss: false },
 };
 
-/** Canadian provincial sales tax / HST add-ons (on top of 5% GST where applicable). */
+/**
+ * Canadian GST/HST/PST by province — CRA place-of-supply rates.
+ * https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/gst-hst-businesses/charge-collect-which-rate.html
+ * Nova Scotia HST 14% effective 2025-04-01.
+ */
 export const CA_PROVINCE_TAX = {
-  AB: { name: 'Alberta', gst: 0.05, pst: 0, hst: 0 },
-  BC: { name: 'British Columbia', gst: 0.05, pst: 0.07, hst: 0 },
-  MB: { name: 'Manitoba', gst: 0.05, pst: 0.07, hst: 0 },
-  NB: { name: 'New Brunswick', gst: 0, pst: 0, hst: 0.15 },
-  NL: { name: 'Newfoundland and Labrador', gst: 0, pst: 0, hst: 0.15 },
-  NS: { name: 'Nova Scotia', gst: 0, pst: 0, hst: 0.15 },
-  NT: { name: 'Northwest Territories', gst: 0.05, pst: 0, hst: 0 },
-  NU: { name: 'Nunavut', gst: 0.05, pst: 0, hst: 0 },
-  ON: { name: 'Ontario', gst: 0, pst: 0, hst: 0.13 },
-  PE: { name: 'Prince Edward Island', gst: 0, pst: 0, hst: 0.15 },
-  QC: { name: 'Quebec', gst: 0.05, pst: 0.09975, hst: 0 }, // QST
-  SK: { name: 'Saskatchewan', gst: 0.05, pst: 0.06, hst: 0 },
-  YT: { name: 'Yukon', gst: 0.05, pst: 0, hst: 0 },
+  AB: { name: 'Alberta', gst: 0.05, pst: 0, hst: 0, total: 0.05, system: 'GST', sourceId: 'cra_gst_hst_rates' },
+  BC: { name: 'British Columbia', gst: 0.05, pst: 0.07, hst: 0, total: 0.12, system: 'GST+PST', sourceId: 'cra_gst_hst_rates' },
+  MB: { name: 'Manitoba', gst: 0.05, pst: 0.07, hst: 0, total: 0.12, system: 'GST+PST', sourceId: 'cra_gst_hst_rates' },
+  NB: { name: 'New Brunswick', gst: 0, pst: 0, hst: 0.15, total: 0.15, system: 'HST', sourceId: 'cra_gst_hst_rates' },
+  NL: { name: 'Newfoundland and Labrador', gst: 0, pst: 0, hst: 0.15, total: 0.15, system: 'HST', sourceId: 'cra_gst_hst_rates' },
+  NS: {
+    name: 'Nova Scotia',
+    gst: 0,
+    pst: 0,
+    hst: 0.14,
+    total: 0.14,
+    system: 'HST',
+    sourceId: 'cra_gst_hst_rates',
+    note: 'HST reduced to 14% effective 2025-04-01',
+  },
+  NT: { name: 'Northwest Territories', gst: 0.05, pst: 0, hst: 0, total: 0.05, system: 'GST', sourceId: 'cra_gst_hst_rates' },
+  NU: { name: 'Nunavut', gst: 0.05, pst: 0, hst: 0, total: 0.05, system: 'GST', sourceId: 'cra_gst_hst_rates' },
+  ON: { name: 'Ontario', gst: 0, pst: 0, hst: 0.13, total: 0.13, system: 'HST', sourceId: 'cra_gst_hst_rates' },
+  PE: { name: 'Prince Edward Island', gst: 0, pst: 0, hst: 0.15, total: 0.15, system: 'HST', sourceId: 'cra_gst_hst_rates' },
+  QC: { name: 'Quebec', gst: 0.05, pst: 0.09975, hst: 0, total: 0.14975, system: 'GST+QST', sourceId: 'cra_gst_hst_rates' },
+  SK: { name: 'Saskatchewan', gst: 0.05, pst: 0.06, hst: 0, total: 0.11, system: 'GST+PST', sourceId: 'cra_gst_hst_rates' },
+  YT: { name: 'Yukon', gst: 0.05, pst: 0, hst: 0, total: 0.05, system: 'GST', sourceId: 'cra_gst_hst_rates' },
+};
+
+/** Mexico IVA — federal standard; optional border flag. */
+export const MX_IVA = {
+  standard: 0.16,
+  border: 0.08,
+  name: 'Mexico IVA',
+  sourceId: 'mx_iva_pwc',
+  borderNote:
+    '8% applies only under border region stimulus for qualifying local operations — default remote sales use 16%.',
 };

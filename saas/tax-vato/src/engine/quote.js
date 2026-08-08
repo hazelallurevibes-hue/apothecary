@@ -1,5 +1,5 @@
-import { US_STATE_SALES_TAX, US_LOCAL_SAMPLES, localKey } from '../data/us-state-rates.js';
-import { VAT_GST_COUNTRIES, CA_PROVINCE_TAX } from '../data/vat-countries.js';
+import { US_STATE_SALES_TAX, US_LOCAL_SAMPLES, localKey, resolveUsRates } from '../data/us-state-rates.js';
+import { VAT_GST_COUNTRIES, CA_PROVINCE_TAX, MX_IVA } from '../data/vat-countries.js';
 import { resolveCategory } from '../data/product-categories.js';
 import { resolveRemitter } from './facilitator.js';
 import { sellerHasNexusIn } from './nexus.js';
@@ -92,6 +92,8 @@ export function quoteTax(input = {}) {
       county,
       productCategory: line.productCategory || 'physical_goods',
       isDigital: cat.digital,
+      estimateLocal: input.estimateLocal !== false,
+      mxBorder: !!input.mxBorder || !!shipTo.mxBorder || !!shipTo.borderRegion,
     });
 
     const combinedRate = components.reduce((s, c) => s + c.rate, 0);
@@ -175,7 +177,7 @@ export function quoteTax(input = {}) {
     currency,
     provider: 'tax-vato',
     disclaimer:
-      'Estimates for operations planning. Confirm with a tax professional and registered filings. Rates are seed data.',
+      'Tax Vato operational estimates. Sources: Tax Foundation (US), CRA (Canada), SAT/PwC summaries (Mexico). Confirm with a tax professional before filing. Local US ZIP-level rates may differ from avg-local estimates.',
     shipTo: { country, region, county: county || null, city: shipTo.city || null, postalCode: shipTo.postalCode || null },
     remitter,
     parties,
@@ -189,36 +191,45 @@ export function quoteTax(input = {}) {
     lines: lineResults,
     meta: {
       quotedAt: new Date().toISOString(),
-      version: '0.1.0',
+      version: '1.2.0',
+      rateTableAsOf: '2026-01-01',
+      sources: ['tax_foundation_us_2026', 'cra_gst_hst_rates', 'mx_iva_pwc'],
     },
   };
 }
 
-function buildRateComponents({ country, region, county, productCategory, isDigital }) {
+function buildRateComponents({
+  country,
+  region,
+  county,
+  productCategory,
+  isDigital,
+  estimateLocal = true,
+  mxBorder = false,
+}) {
   const components = [];
 
   if (country === 'US') {
-    const st = US_STATE_SALES_TAX[region];
+    const resolved = resolveUsRates(region, { county, estimateLocal });
+    const st = resolved.state;
     if (st && st.rate > 0) {
       components.push({
         code: `US-${region}`,
         name: st.name,
         type: 'state',
         rate: st.rate,
+        sourceId: st.sourceId || 'tax_foundation_us_2026',
       });
     }
-    const lk = localKey('US', region, county);
-    if (lk && US_LOCAL_SAMPLES[lk]) {
-      const loc = US_LOCAL_SAMPLES[lk];
+    if (resolved.local && resolved.local.rate > 0) {
       components.push({
-        code: lk,
-        name: loc.name,
+        code: resolved.mode === 'state_plus_sample_local' ? localKey('US', region, county) : `US-${region}-AVG-LOCAL`,
+        name: resolved.local.name,
         type: 'local',
-        rate: loc.rate,
+        rate: resolved.local.rate,
+        estimated: !!resolved.local.estimated,
+        sourceId: 'tax_foundation_us_2026',
       });
-    } else if (st?.localHint && !county) {
-      // Soft average local pad when county unknown — optional conservative 1%
-      // Disabled by default to avoid overcharging; enable via env later
     }
     return components;
   }
@@ -226,41 +237,58 @@ function buildRateComponents({ country, region, county, productCategory, isDigit
   if (country === 'CA') {
     const prov = CA_PROVINCE_TAX[region] || CA_PROVINCE_TAX.ON;
     if (prov.hst > 0) {
-      components.push({ code: `CA-${region}-HST`, name: `${prov.name} HST`, type: 'hst', rate: prov.hst });
+      components.push({
+        code: `CA-${region}-HST`,
+        name: `${prov.name} HST`,
+        type: 'hst',
+        rate: prov.hst,
+        sourceId: prov.sourceId || 'cra_gst_hst_rates',
+      });
     } else {
       if (prov.gst > 0) {
-        components.push({ code: 'CA-GST', name: 'Canada GST', type: 'federal', rate: prov.gst });
+        components.push({
+          code: 'CA-GST',
+          name: 'Canada GST',
+          type: 'federal',
+          rate: prov.gst,
+          sourceId: 'cra_gst_hst_rates',
+        });
       }
       if (prov.pst > 0) {
         components.push({
           code: `CA-${region}-PST`,
-          name: `${prov.name} PST/QST`,
+          name: `${prov.name} ${prov.system === 'GST+QST' ? 'QST' : 'PST'}`,
           type: 'provincial',
           rate: prov.pst,
+          sourceId: prov.sourceId || 'cra_gst_hst_rates',
         });
       }
     }
     return components;
   }
 
+  if (country === 'MX') {
+    const rate = mxBorder ? MX_IVA.border : MX_IVA.standard;
+    components.push({
+      code: mxBorder ? 'MX-IVA-BORDER' : 'MX-IVA',
+      name: mxBorder ? 'Mexico IVA (border stimulus 8%)' : 'Mexico IVA 16%',
+      type: 'vat',
+      rate,
+      sourceId: mxBorder ? 'mx_border_stimulus' : 'mx_iva_pwc',
+      note: mxBorder ? MX_IVA.borderNote : undefined,
+    });
+    return components;
+  }
+
   const vat = VAT_GST_COUNTRIES[country];
   if (vat && vat.rate > 0) {
-    // Digital often destination-based
-    if (isDigital || productCategory === 'course_enrollment' || productCategory === 'platform_subscription') {
-      components.push({
-        code: `${country}-VAT`,
-        name: `${vat.name} ${vat.system}`,
-        type: vat.system.toLowerCase(),
-        rate: vat.rate,
-      });
-    } else {
-      components.push({
-        code: `${country}-VAT`,
-        name: `${vat.name} ${vat.system}`,
-        type: vat.system.toLowerCase(),
-        rate: vat.rate,
-      });
-    }
+    components.push({
+      code: `${country}-VAT`,
+      name: `${vat.name} ${vat.system}`,
+      type: String(vat.system || 'vat').toLowerCase(),
+      rate: vat.rate,
+      sourceId: vat.sourceId || null,
+    });
   }
 
   return components;
