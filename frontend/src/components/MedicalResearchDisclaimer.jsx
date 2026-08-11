@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { REMEDY_DISCLAIMER_LONG, REMEDY_DISCLAIMER_SHORT } from '../lib/remedies/remedyLibrary';
+import { REMEDY_DISCLAIMER_LONG, REMEDY_DISCLAIMER_SHORT } from '../lib/remedies/disclaimers';
 
 /** Strong, reusable medical research disclaimer for remedies hub. */
 export default function MedicalResearchDisclaimer({ variant = 'banner', className = '' }) {

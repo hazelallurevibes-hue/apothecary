@@ -166,7 +166,7 @@ function AppCore({ auth0 = null }) {
       if (profile?.email) {
         try {
           // Full re-enrich (vendor_id heal, plans) — fixes "empty until refresh"
-          const { resolveProfile } = await import('./lib/auth');
+          // Use static import (already at top of App.jsx) — avoids dual import warning
           const enriched = await resolveProfile(profile.email, profile.authId || profile.id);
           if (enriched) profile = enriched;
         } catch {
