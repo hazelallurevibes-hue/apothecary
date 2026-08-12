@@ -11,6 +11,7 @@ import {
 } from '../lib/shippingApi';
 import { printOrderLabel } from '../lib/littleShippieClient';
 import { supabase } from '../lib/supabaseClient';
+import { isShippingEnabled, shippingPausedNotice } from '../lib/shippingPolicy';
 
 /**
  * Practitioner fulfillment inbox — ship, labels, release held payouts.
@@ -135,10 +136,15 @@ export default function VendorOrders({ user }) {
           Incoming orders
         </h1>
         <p className="text-sm text-gray-600 mt-1">
-          Card physical orders: funds held until you ship, then release payout. COD is free. Ship with{' '}
-          <strong>Little Shippie</strong> — enter package size, pick USPS/UPS/FedEx, print label with your address +
-          buyer filled in.
+          {isShippingEnabled()
+            ? 'Card physical orders: funds held until you ship, then release payout. COD is free. Ship with Little Shippie — package size, carrier, print label.'
+            : 'Marketplace is pickup-only for now. Mark ready for pickup / fulfilled, then release held card payouts. COD is free.'}
         </p>
+        {!isShippingEnabled() && (
+          <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mt-2">
+            {shippingPausedNotice()}
+          </p>
+        )}
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
           <button
             type="button"
@@ -235,19 +241,23 @@ export default function VendorOrders({ user }) {
                         onClick={() => onMarkShipped(order)}
                         className="text-xs px-3 py-1.5 rounded-full bg-[#4a1942] text-white font-medium disabled:opacity-50"
                       >
-                        Mark shipped
+                        {isShippingEnabled() || order.delivery_method === 'shipping'
+                          ? 'Mark shipped'
+                          : 'Mark ready / fulfilled'}
                       </button>
-                      <button
-                        type="button"
-                        disabled={busyId === order.id}
-                        onClick={() => onBuyLabel(order)}
-                        className="text-xs px-3 py-1.5 rounded-full border border-sky-700 text-sky-900 font-medium disabled:opacity-50"
-                      >
-                        Ship with Little Shippie
-                      </button>
+                      {isShippingEnabled() && (
+                        <button
+                          type="button"
+                          disabled={busyId === order.id}
+                          onClick={() => onBuyLabel(order)}
+                          className="text-xs px-3 py-1.5 rounded-full border border-sky-700 text-sky-900 font-medium disabled:opacity-50"
+                        >
+                          Ship with Little Shippie
+                        </button>
+                      )}
                     </>
                   )}
-                  {order.tracking_number && (
+                  {isShippingEnabled() && order.tracking_number && (
                     <button
                       type="button"
                       onClick={() => onReprint(order)}

@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { resolveDeliveryMethod } from './shippingPolicy';
 
 const API = import.meta.env.VITE_API_URL || '/api';
 const LAST_ORDERS_KEY = 'ha_buyer_orders_cache_v1';
@@ -209,8 +210,9 @@ export async function placeOrder(orderData, user = null) {
     return backendResult;
   }
 
+  const deliveryMethod = resolveDeliveryMethod(orderData.delivery_method);
   const pickupToken =
-    orderData.delivery_method === 'pickup'
+    deliveryMethod === 'pickup'
       ? (crypto.randomUUID?.() || `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/-/g, '')
       : null;
 
@@ -224,7 +226,7 @@ export async function placeOrder(orderData, user = null) {
     total: orderData.total,
     status,
     date: new Date().toISOString().slice(0, 10),
-    delivery_method: orderData.delivery_method || 'pickup',
+    delivery_method: deliveryMethod,
     pickup_qr_token: pickupToken,
     modification_request: orderData.modification_request ?? null,
     modification_status: orderData.modification_status || 'none',

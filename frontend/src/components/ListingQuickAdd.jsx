@@ -42,7 +42,7 @@ export default function ListingQuickAdd({
   const [quantity, setQuantity] = useState('10');
   const [category, setCategory] = useState('');
   const [thumbnail, setThumbnail] = useState({ ...EMPTY_THUMBNAIL });
-  const [fulfillmentMode, setFulfillmentMode] = useState('pickup_and_shipping');
+  const [fulfillmentMode, setFulfillmentMode] = useState('pickup_only');
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [allergens, setAllergens] = useState([]);
   const [options, setOptions] = useState([]);
@@ -66,7 +66,7 @@ export default function ListingQuickAdd({
     setQuantity('10');
     setCategory('');
     setThumbnail({ ...EMPTY_THUMBNAIL });
-    setFulfillmentMode('pickup_and_shipping');
+    setFulfillmentMode('pickup_only');
     setAdvancedOpen(false);
     setAllergens([]);
     setOptions([]);
@@ -170,7 +170,7 @@ export default function ListingQuickAdd({
           'Pick service or apothecary good.',
           'Add name, price, and category.',
           'Add a photo or skip — you can add one later.',
-          'Choose pickup, shipping, or external store checkout.',
+          'Choose how customers receive this item (pickup only while shipping is paused).',
         ]}
       >
         Large buttons and step-by-step guidance — use Advanced options only when you need allergens, add-ons, or video.
@@ -366,7 +366,7 @@ export default function ListingQuickAdd({
       {step === 4 && (
         <div className="space-y-4 max-w-3xl">
           <p className="text-sm text-gray-700 font-medium">How will customers receive this {isService ? 'service or goods' : 'item'}?</p>
-          <p className="text-xs text-gray-500">Choose pickup, shipping, or both — seekers see this on your listing and at checkout.</p>
+          <p className="text-xs text-gray-500">How seekers receive this item — marketplace is local pickup only for now.</p>
           <FulfillmentQuickPicker
             value={fulfillmentMode}
             onChange={(mode) => { setFulfillmentMode(mode); setError(''); }}

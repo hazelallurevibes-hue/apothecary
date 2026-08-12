@@ -12,6 +12,12 @@ import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
 import { buildPaypalPayLink, describeVendorPaymentMethods } from '../lib/vendorPayments';
 import { startOrderCardCheckout } from '../lib/orderCheckoutApi';
 import MarketplacePolicyAck from '../components/MarketplacePolicyAck';
+import {
+  DEFAULT_DELIVERY_METHOD,
+  isShippingEnabled,
+  resolveDeliveryMethod,
+  shippingPausedNotice,
+} from '../lib/shippingPolicy';
 
 /**
  * Seeker cart & checkout.
@@ -26,7 +32,7 @@ export default function CartPage({ user }) {
   const [placing, setPlacing] = useState(false);
   const [checkoutStep, setCheckoutStep] = useState(1);
   const [address, setAddress] = useState({ street: '', city: '', state: '', zip: '', country: 'US' });
-  const [deliveryMethod, setDeliveryMethod] = useState('shipping');
+  const [deliveryMethod, setDeliveryMethod] = useState(DEFAULT_DELIVERY_METHOD);
   const [paymentMethod, setPaymentMethod] = useState('cash');
   const [shippingEstimate, setShippingEstimate] = useState(0);
   const [marketAck, setMarketAck] = useState(false);
@@ -82,7 +88,7 @@ export default function CartPage({ user }) {
       return;
     }
     if (!marketAck) {
-      setErr('Please acknowledge the marketplace payment, Tax Vato, and shipping policies before placing your order.');
+      setErr('Please acknowledge the marketplace payment, Tax Vato, and pickup policies before placing your order.');
       return;
     }
 
@@ -94,9 +100,11 @@ export default function CartPage({ user }) {
       const isCash = paymentMethod === 'cash' || paymentMethod === 'cod';
       const paymentStatus = isCash ? 'cod' : 'unpaid';
       const orderStatus = isCash ? 'placed' : 'awaiting_payment';
+      const resolvedDelivery = resolveDeliveryMethod(deliveryMethod);
 
-      // Shipping estimate: simple flat when shipping selected (vendor can buy platform label later)
-      const shipAmt = deliveryMethod === 'shipping' ? (shippingEstimate || 8.99) : 0;
+      // Shipping estimate only when platform shipping is enabled
+      const shipAmt =
+        isShippingEnabled() && resolvedDelivery === 'shipping' ? (shippingEstimate || 8.99) : 0;
 
       const orderData = await buildTaxedOrderPayload(
         {
@@ -117,19 +125,22 @@ export default function CartPage({ user }) {
           address: [address.street, address.city, address.state, address.zip, address.country]
             .filter(Boolean)
             .join(', '),
-          delivery_method: deliveryMethod,
+          delivery_method: resolvedDelivery,
           payment_method: paymentMethod,
           payment_status: paymentStatus,
           status: orderStatus,
           payout_status: isCash ? 'cod' : paymentMethod === 'card' ? 'held' : 'not_applicable',
           payment_note: isCash
-            ? 'Cash on delivery / pickup — free for vendor (no Connect fee). Platform does not hold funds.'
+            ? 'Cash on pickup — free for vendor (no Connect fee). Platform does not hold funds.'
             : paymentMethod === 'paypal' && vendorPay?.paypal_account_id
               ? `PayPal to ${vendorPay.paypal_account_id} — unpaid until completed on PayPal`
               : paymentMethod === 'card' && vendorPay?.stripe_account_id
-                ? 'Card via Stripe — physical order: funds held until shipped, then transferred to maker'
+                ? 'Card via Stripe — physical order: funds held until fulfilled, then transferred to maker'
                 : 'Awaiting payment',
-          tracking_note: deliveryMethod === 'shipping' ? 'Shipping arranged by practitioner or platform label' : '',
+          tracking_note:
+            resolvedDelivery === 'shipping'
+              ? 'Shipping arranged by practitioner or platform label'
+              : 'Local pickup',
         },
         vendorId,
         {
@@ -195,7 +206,7 @@ export default function CartPage({ user }) {
           ? ' Complete payment in the PayPal tab, then on My Orders tap “I paid”.'
           : '';
 
-      const baseMsg = `Order #${placed?.id || '—'} saved. Total: $${Number(orderData.total).toFixed(2)}${formatDeliverySuccessNote(deliveryMethod)}.${payHint}`;
+      const baseMsg = `Order #${placed?.id || '—'} saved. Total: $${Number(orderData.total).toFixed(2)}${formatDeliverySuccessNote(resolveDeliveryMethod(deliveryMethod))}.${payHint}`;
       offerSpellReceiptDownload({
         successMessage: formatOrderSuccessMessage(baseMsg),
         total: orderData.total,
@@ -345,7 +356,9 @@ export default function CartPage({ user }) {
                 selectId="cart-delivery"
               />
               <div>
-                <label className="text-sm">Delivery / contact address</label>
+                <label className="text-sm">
+                  {isShippingEnabled() ? 'Delivery / contact address' : 'Pickup contact (phone or address for the maker)'}
+                </label>
                 <input
                   placeholder="Street"
                   value={address.street}
@@ -380,7 +393,7 @@ export default function CartPage({ user }) {
                     maxLength={2}
                   />
                 </div>
-                {deliveryMethod === 'shipping' && (
+                {isShippingEnabled() && deliveryMethod === 'shipping' && (
                   <label className="block text-sm mt-3">
                     Shipping estimate (buyer pays; maker can buy a platform label later)
                     <input
@@ -471,7 +484,7 @@ export default function CartPage({ user }) {
               <div className="bg-gray-50 p-4 rounded-2xl mb-4 text-sm space-y-1">
                 <div>
                   <strong>Fulfillment:</strong>{' '}
-                  {deliveryMethod === 'pickup' ? 'Local pickup' : 'Shipping / delivery'}
+                  {resolveDeliveryMethod(deliveryMethod) === 'pickup' ? 'Local pickup' : 'Shipping / delivery'}
                 </div>
                 <div>
                   <strong>Address:</strong>{' '}

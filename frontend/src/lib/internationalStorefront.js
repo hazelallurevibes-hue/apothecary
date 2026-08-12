@@ -1,3 +1,5 @@
+import { isShippingEnabled } from './shippingPolicy';
+
 export const EXTERNAL_STORE_PLATFORMS = [
   { id: 'amazon', label: 'Amazon', placeholder: 'https://www.amazon.com/stores/...' },
   { id: 'ebay', label: 'eBay', placeholder: 'https://www.ebay.com/usr/...' },
@@ -75,6 +77,10 @@ export const FULFILLMENT_MODES = [
 ];
 
 export function normalizeFulfillmentMode(mode) {
+  if (!isShippingEnabled()) {
+    if (mode === 'external_only') return 'external_only';
+    return 'pickup_only';
+  }
   if (!mode || mode === 'hazelallure' || mode === 'bpicius') return 'pickup_and_shipping';
   return mode;
 }
@@ -93,7 +99,10 @@ export function isFulfillmentConstraintError(error) {
 }
 
 export function fulfillmentModesForListing({ isPro = false } = {}) {
-  return isPro ? [...FULFILLMENT_MODES_CORE, ...FULFILLMENT_MODES_PRO] : [...FULFILLMENT_MODES_CORE];
+  const core = isShippingEnabled()
+    ? [...FULFILLMENT_MODES_CORE]
+    : FULFILLMENT_MODES_CORE.filter((m) => m.id === 'pickup_only');
+  return isPro ? [...core, ...FULFILLMENT_MODES_PRO] : core;
 }
 
 export function fulfillmentLabel(mode) {

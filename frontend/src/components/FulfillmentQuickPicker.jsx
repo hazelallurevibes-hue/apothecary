@@ -1,4 +1,5 @@
 import { FULFILLMENT_MODES, fulfillmentModesForListing } from '../lib/internationalStorefront';
+import { DEFAULT_FULFILLMENT_MODE, isShippingEnabled, shippingPausedNotice } from '../lib/shippingPolicy';
 
 /** Compact icons + short labels for practitioner quick-add flows */
 export const FULFILLMENT_QUICK_META = {
@@ -14,7 +15,7 @@ export const FULFILLMENT_QUICK_META = {
  * Props: value, onChange, disabled, allowModes (ids), compact, className
  */
 export default function FulfillmentQuickPicker({
-  value = 'pickup_and_shipping',
+  value = DEFAULT_FULFILLMENT_MODE,
   onChange,
   disabled = false,
   allowModes = null,
@@ -26,14 +27,20 @@ export default function FulfillmentQuickPicker({
   const modes = allowModes
     ? FULFILLMENT_MODES.filter((m) => allowModes.includes(m.id))
     : fulfillmentModesForListing({ isPro });
+  const effectiveValue = modes.some((m) => m.id === value) ? value : modes[0]?.id || DEFAULT_FULFILLMENT_MODE;
 
   return (
     <fieldset className={`border-0 p-0 m-0 min-w-0 ${className}`}>
       <legend className="sr-only">How customers receive this item</legend>
+      {!isShippingEnabled() && (
+        <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2 mb-2">
+          {shippingPausedNotice()}
+        </p>
+      )}
       <div className={`grid gap-3 ${compact ? 'grid-cols-1 sm:grid-cols-3' : 'grid-cols-1 sm:grid-cols-3'}`}>
         {modes.map((mode) => {
           const meta = FULFILLMENT_QUICK_META[mode.id] || { icon: '✨', shortLabel: mode.label, hint: mode.description };
-          const selected = value === mode.id;
+          const selected = effectiveValue === mode.id;
           const inputId = `${idPrefix}-${mode.id}`;
 
           return (

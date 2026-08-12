@@ -98,7 +98,16 @@ Deno.serve(async (req: Request) => {
       .eq("id", vendorId)
       .maybeSingle();
 
-    const deliveryEarly = String(order.delivery_method || "shipping").toLowerCase();
+    // Platform pause: force pickup when shipping is not enabled (default off).
+    const shippingEnabled = String(Deno.env.get("SHIPPING_ENABLED") || "false").toLowerCase() === "true";
+    let deliveryEarly = String(order.delivery_method || "pickup").toLowerCase();
+    if (!shippingEnabled && deliveryEarly === "shipping") {
+      deliveryEarly = "pickup";
+      await supabase.from("orders").update({
+        delivery_method: "pickup",
+        shipping_amount: 0,
+      }).eq("id", orderId);
+    }
     const fulfillmentEarly =
       String(order.fulfillment_class || "physical").toLowerCase() === "digital" ? "digital" : "physical";
     // Physical goods: charge platform now, transfer after ship — Connect not required at checkout.
@@ -164,7 +173,7 @@ Deno.serve(async (req: Request) => {
 
     // Physical marketplace goods: hold funds on platform until ship (separate charge + later Transfer).
     // Digital fulfillment_class: destination charge (immediate split) — rare for cart.
-    const delivery = String(order.delivery_method || "shipping").toLowerCase();
+    const delivery = deliveryEarly;
     const fulfillmentClass = String(order.fulfillment_class || "physical").toLowerCase() === "digital"
       ? "digital"
       : "physical";

@@ -36,13 +36,26 @@ function estimateRates(weightOz: number, lengthIn: number, widthIn: number, heig
 /**
  * Little Shippie edge: quote multi-service rates + purchase label.
  * With EASYPOST_API_KEY → live labels; otherwise estimate + printable tracking.
+ *
+ * Platform pause: shipping disabled while marketplace is pickup-only.
+ * Set SHIPPING_ENABLED=true on the function secrets to re-open labels.
  */
+const SHIPPING_ENABLED = String(Deno.env.get("SHIPPING_ENABLED") || "false").toLowerCase() === "true";
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders() });
   }
 
   try {
+    if (!SHIPPING_ENABLED) {
+      return jsonResponse({
+        ok: false,
+        error: "Shipping is paused — marketplace is local pickup only for now.",
+        shipping_enabled: false,
+      }, 503);
+    }
+
     const body = await req.json();
     const orderId = Number(body.order_id || body.orderId);
     const action = String(body.action || "quote").toLowerCase();

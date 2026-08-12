@@ -96,7 +96,7 @@ export default function VendorDashboard({ user }) {
   const [resolvedVendorId, setResolvedVendorId] = useState(null);
   const [produceTemplates, setProduceTemplates] = useState([]);
   const [menuTemplates, setMenuTemplates] = useState([]);
-  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
+  const [newItem, setNewItem] = useState({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_only' });
   const [serviceVideoUrl, setServiceVideoUrl] = useState('');
   const [serviceMediaType, setServiceMediaType] = useState('both');
   const [produceVideoUrl, setProduceVideoUrl] = useState('');
@@ -106,7 +106,7 @@ export default function VendorDashboard({ user }) {
   const [newItemPreorder, setNewItemPreorder] = useState({ ...EMPTY_PREORDER });
   const [newItemFoodLabel, setNewItemFoodLabel] = useState({});
   const [produceSection, setProduceSection] = useState('produce');
-  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
+  const [newProduce, setNewProduce] = useState({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_only' });
   const [newProduceAllergens, setNewProduceAllergens] = useState([]);
   const [newProduceSafety, setNewProduceSafety] = useState({ ...EMPTY_PRODUCE_SAFETY });
   const [medicinalLegalAck, setMedicinalLegalAck] = useState(false);
@@ -551,7 +551,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetMenuForm = () => {
-    setNewItem({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_and_shipping' });
+    setNewItem({ name: '', price: '', description: '', category: 'psychic', time_made: '60 min', fulfillment_mode: 'pickup_only' });
     setNewItemAllergens([]);
     setNewItemSafety({ ...EMPTY_MENU_SAFETY });
     setNewItemPreorder({ ...EMPTY_PREORDER });
@@ -613,7 +613,7 @@ export default function VendorDashboard({ user }) {
         ...(vendorCan(user, 'food_labels') ? buildFoodLabelPayload(newItemFoodLabel) : {}),
         item_options: normalizeOptionsForSave(newItemOptions),
         last_activity_at: new Date().toISOString(),
-        fulfillment_mode: newItem.fulfillment_mode || 'pickup_and_shipping',
+        fulfillment_mode: newItem.fulfillment_mode || 'pickup_only',
       };
 
       const menuRow = stripBpiciusListingFields(payload);
@@ -886,7 +886,7 @@ export default function VendorDashboard({ user }) {
         allergens: serializeAllergenIds(quick.allergens || []),
         item_options: normalizeOptionsForSave(quick.options || []),
         last_activity_at: new Date().toISOString(),
-        fulfillment_mode: quick.fulfillment_mode || 'pickup_and_shipping',
+        fulfillment_mode: quick.fulfillment_mode || 'pickup_only',
       };
 
       const menuRow = stripBpiciusListingFields(payload);
@@ -962,7 +962,7 @@ export default function VendorDashboard({ user }) {
   };
 
   const resetProduceForm = () => {
-    setNewProduce({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_and_shipping' });
+    setNewProduce({ name: '', price: '', unit: 'each', quantity_available: '10', description: '', farm_story: '', organic: 0, category: 'essential_oils', fulfillment_mode: 'pickup_only' });
     setNewProduceAllergens([]);
     setNewProduceSafety({ ...EMPTY_PRODUCE_SAFETY });
     setMedicinalLegalAck(false);
@@ -1534,7 +1534,7 @@ export default function VendorDashboard({ user }) {
             <div>
               <label className="text-sm font-medium block mb-2">How customers receive this service</label>
               <FulfillmentQuickPicker
-                value={newItem.fulfillment_mode || 'pickup_and_shipping'}
+                value={newItem.fulfillment_mode || 'pickup_only'}
                 onChange={(mode) => setNewItem({ ...newItem, fulfillment_mode: mode })}
                 disabled={adding}
                 isPro={isPaidVendor(vendorPlan)}
@@ -1746,7 +1746,7 @@ export default function VendorDashboard({ user }) {
             <div>
               <label className="text-sm font-medium block mb-2">How customers receive this product</label>
               <FulfillmentQuickPicker
-                value={newProduce.fulfillment_mode || 'pickup_and_shipping'}
+                value={newProduce.fulfillment_mode || 'pickup_only'}
                 onChange={(mode) => setNewProduce({ ...newProduce, fulfillment_mode: mode })}
                 disabled={addingProduce}
                 isPro={isPaidVendor(vendorPlan)}

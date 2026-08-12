@@ -27,6 +27,7 @@ import {
   showProPriceForUser,
 } from '../lib/productDisplay';
 import { isProPlan } from '../lib/plans';
+import { DEFAULT_DELIVERY_METHOD, isShippingEnabled } from '../lib/shippingPolicy';
 
 /**
  * Amazon-style apothecary catalog: search first, products front-and-center.
@@ -36,7 +37,7 @@ export default function ApothecaryMarket({ user }) {
   const [items, setItems] = useState([]);
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
-  const [deliveryMethod, setDeliveryMethod] = useState('shipping');
+  const [deliveryMethod, setDeliveryMethod] = useState(DEFAULT_DELIVERY_METHOD);
   const { cart, clearCart } = useCart();
   const apothecaryCartFilter = (i) => i.type === 'produce' || i.itemType === 'produce';
   const [placing, setPlacing] = useState(false);
@@ -269,7 +270,7 @@ export default function ApothecaryMarket({ user }) {
         </div>
         <div className="flex flex-wrap gap-2 mt-2 text-xs">
           {[
-            { value: 'shipping', label: 'Ship to me' },
+            ...(isShippingEnabled() ? [{ value: 'shipping', label: 'Ship to me' }] : []),
             { value: 'pickup', label: 'Pickup' },
             { value: 'digital', label: 'Digital' },
           ].map((opt) => (

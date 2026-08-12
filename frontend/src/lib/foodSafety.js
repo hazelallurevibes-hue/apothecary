@@ -70,7 +70,8 @@ export function stripBpiciusListingFields(payload) {
         : 'In stock';
   }
   if (next.fulfillment_mode === 'bpicius' || next.fulfillment_mode === 'hazelallure') {
-    next.fulfillment_mode = 'pickup_and_shipping';
+    // Platform shipping pause → default new/legacy listings to pickup only
+    next.fulfillment_mode = 'pickup_only';
   }
   return next;
 }
