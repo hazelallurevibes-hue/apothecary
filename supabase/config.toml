@@ -6,23 +6,46 @@ project_id = "jihinbkeqlkgywfsxizj"
 [auth]
 enabled = true
 site_url = "https://apothecary.hazelallure.com"
+# Keep in sync with live Auth redirects (do not shrink this list on config push)
 additional_redirect_urls = [
+  "http://localhost:5173/**",
+  "http://localhost:5173/login",
+  "http://localhost:5174/",
+  "http://localhost:5174/**",
+  "https://apothecary-*-hazel-allure.vercel.app",
+  "https://apothecary-*-hazel-allure.vercel.app/**",
+  "https://apothecary-*-hazelallurevibes-hue-hazel-allure.vercel.app",
+  "https://apothecary-*-hazelallurevibes-hue-hazel-allure.vercel.app/**",
   "https://apothecary.hazelallure.com/**",
   "https://apothecary.hazelallure.com/login",
   "https://apothecary.hazelallure.com/email-verify",
   "https://apothecary.hazelallure.com/vendor-email-verify",
-  "http://localhost:5173/**",
-  "http://localhost:5173/login",
-  "http://localhost:5173/email-verify",
-  "http://localhost:5173/vendor-email-verify",
+  "https://apothecary-hazel-allure.vercel.app/",
+  "https://apothecary-hazel-allure.vercel.app/**",
+  "https://apothecary-hazelallurevibes-hue-hazel-allure.vercel.app/",
+  "https://apothecary-hazelallurevibes-hue-hazel-allure.vercel.app/**",
   "https://apothecary-two.vercel.app/**",
+  "https://magic.hazelallure.com",
+  "https://magic.hazelallure.com/",
+  "https://magic.hazelallure.com/**",
+  "https://magic-sanctum-*-hazel-allure.vercel.app/**",
+  "https://magic-sanctum.vercel.app",
+  "https://magic-sanctum.vercel.app/",
+  "https://magic-sanctum.vercel.app/**",
 ]
+enable_manual_linking = true
+
+# TOTP MFA options (clears auth_insufficient_mfa_options advisor). Optional for end users.
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
 
 # Custom SMTP via Resend (signup / password-reset). Secret in backend/.env.resend.local
 [auth.email]
 enable_signup = true
 double_confirm_changes = true
-enable_confirmations = true
+# Match previous live: confirmations off (autoconfirm) so signup/login is not blocked
+enable_confirmations = false
 
 [auth.email.smtp]
 enabled = true
@@ -32,16 +55,21 @@ user = "resend"
 pass = "env(RESEND_API_KEY)"
 admin_email = "noreply@hazelallure.com"
 sender_name = "Hazel Allure"
-enable_signup = true
-enable_manual_linking = true
 
 # Push with: GOOGLE_CLIENT_ID + GOOGLE_CLIENT_SECRET in backend/.env.google.local
 #   node scripts/hazel-google-supabase-apply.mjs
-# Or: npx supabase config push --yes (auth only; skip storage prompt if vector 402)
+# Or: npx supabase config push --yes (auth only; storage.vector stays off on free tier)
 [auth.external.google]
 enabled = true
 client_id = "env(GOOGLE_CLIENT_ID)"
 secret = "env(GOOGLE_CLIENT_SECRET)"
+
+# Free tier: vector buckets return 402 if enabled
+[storage]
+enabled = true
+
+[storage.vector]
+enabled = false
 
 [functions.notify-low-rating]
 verify_jwt = false
