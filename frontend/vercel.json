@@ -13,7 +13,7 @@
     { "source": "/manifest.json", "destination": "/manifest.json" },
     { "source": "/googled5859dbcf06a1225.html", "destination": "/googled5859dbcf06a1225.html" },
     { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|assets/|brand/|tarot/|favicon|icon-|apple-touch|manifest\\.json|robots\\.txt|version\\.json|sitemap).*)", "destination": "/index.html" }
   ],
   "headers": [
     {
