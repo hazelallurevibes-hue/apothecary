@@ -32,8 +32,7 @@ import UpdateSplash from './UpdateSplash';
 import { APP_VERSION } from '../lib/appVersion';
 import BetaGrowthBanner from './BetaGrowthBanner';
 
-const LOGO_IMG =
-  'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:120,cg:true';
+const LOGO_IMG = '/icon-192.png?v=1.15.1';
 
 function NavLink({ to, children, onNavigate }) {
   return (
