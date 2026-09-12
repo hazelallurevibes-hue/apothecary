@@ -3,7 +3,6 @@ backend/node_modules
 frontend/node_modules
 magic
 magic/node_modules
-saas
 mobile-app
 backend
 *.db
