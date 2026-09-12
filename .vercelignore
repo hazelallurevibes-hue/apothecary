@@ -1,0 +1,15 @@
+node_modules
+backend/node_modules
+frontend/node_modules
+magic
+magic/node_modules
+saas
+mobile-app
+backend
+*.db
+.git
+docs
+scripts/.vercel-token.env
+scripts/*.json
+frontend/dist
+magic/dist
