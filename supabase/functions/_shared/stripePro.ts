@@ -21,19 +21,26 @@ export async function loadStripeSettings(supabase: SupabaseClient) {
 
 export type BillingInterval = "monthly" | "annual";
 
+export type VendorTier = "pro" | "enterprise";
+
 export function priceIdForPlan(
   settings: Record<string, string>,
   planType: PlanType,
   interval: BillingInterval = "monthly",
+  vendorTier: VendorTier = "pro",
 ): string {
   const keys =
     interval === "annual"
       ? {
-          vendor: "stripe_vendor_pro_annual_price_id",
+          vendor: vendorTier === "enterprise"
+            ? "stripe_vendor_enterprise_annual_price_id"
+            : "stripe_vendor_pro_annual_price_id",
           customer: "stripe_customer_pro_annual_price_id",
         }
       : {
-          vendor: "stripe_vendor_pro_price_id",
+          vendor: vendorTier === "enterprise"
+            ? "stripe_vendor_enterprise_price_id"
+            : "stripe_vendor_pro_price_id",
           customer: "stripe_customer_pro_price_id",
         };
   const key = planType === "vendor" ? keys.vendor : keys.customer;
@@ -144,10 +151,14 @@ export async function getOrCreateStripeCustomer(
 export async function grantProAccess(
   supabase: SupabaseClient,
   planType: PlanType,
-  opts: { userId?: number; vendorId?: number },
+  opts: { userId?: number; vendorId?: number; vendorTier?: VendorTier },
 ) {
   if (planType === "vendor" && opts.vendorId) {
-    await supabase.from("vendors").update({ plan: "paid" }).eq("id", opts.vendorId);
+    const enterprise = opts.vendorTier === "enterprise";
+    await supabase.from("vendors").update({
+      plan: enterprise ? "enterprise" : "paid",
+      platform_fee_rate: enterprise ? 0 : 4,
+    }).eq("id", opts.vendorId);
   }
   if (planType === "customer" && opts.userId) {
     await supabase.from("users").update({ customer_plan: "paid" }).eq("id", opts.userId);

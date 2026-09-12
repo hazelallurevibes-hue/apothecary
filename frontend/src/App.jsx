@@ -501,6 +501,8 @@ function AppCore({ auth0 = null }) {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/agreements" element={<Agreements />} />
+                <Route path="/privacy" element={<Agreements />} />
+                <Route path="/terms" element={<Agreements />} />
                 <Route path="/policies-procedures" element={<PoliciesProcedures />} />
                 <Route path="/customer-use-agreement" element={<CustomerUseAgreement />} />
 

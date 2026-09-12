@@ -1,5 +1,20 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /login
+Disallow: /account-settings
+Disallow: /orders
+Disallow: /dashboard
+Disallow: /vendor-dashboard
+
+User-agent: GPTBot
+Allow: /
+User-agent: OAI-SearchBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+User-agent: ClaudeBot
+Allow: /
 
 # Sitemap index lists this app (apothecary) + main blog site (hazelallure.com).
 # For Google Search Console on this property, you may also submit /sitemap.xml directly.

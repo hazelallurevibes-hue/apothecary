@@ -76,17 +76,48 @@ export const FREE_CUSTOMER_PERMISSIONS = ['buy', 'track_orders', 'delivery_conne
 export const PAID_CUSTOMER_PERMISSIONS = Object.keys(CUSTOMER_PERMISSIONS);
 
 export const FREE_VENDOR_EMPLOYEE_LIMIT = 1;
-export const PAID_VENDOR_EMPLOYEE_LIMIT = 50;
+export const PAID_VENDOR_EMPLOYEE_LIMIT = 10;
+export const ENTERPRISE_VENDOR_EMPLOYEE_LIMIT = 50;
 export const FREE_CUSTOMER_RATING_MIN_PURCHASES = 15;
 
-/** DB stores `paid`; UI brands it as Pro */
+/** Higher-ops tools live on Atelier (enterprise), not Pro. */
+export const ENTERPRISE_ONLY_PERMISSIONS = [
+  'maker_studio_pro',
+  'product_subscriptions',
+  'international_storefront',
+  'ad_credits',
+];
+
+/** DB stores `paid`; UI brands it as Pro. `enterprise` / `atelier` inherit Pro. */
+export function isEnterprisePlan(plan) {
+  const p = (plan || '').toLowerCase();
+  return p === 'enterprise' || p === 'atelier' || p === 'ent';
+}
+
 export function isProPlan(plan) {
   const p = (plan || 'free').toLowerCase();
-  return p === 'paid' || p === 'pro';
+  return p === 'paid' || p === 'pro' || isEnterprisePlan(p);
 }
 
 export function vendorPermissionsForPlan(plan) {
-  return isProPlan(plan) ? [...PAID_VENDOR_PERMISSIONS] : [...FREE_VENDOR_PERMISSIONS];
+  if (isEnterprisePlan(plan)) return [...PAID_VENDOR_PERMISSIONS];
+  if (isProPlan(plan)) {
+    return PAID_VENDOR_PERMISSIONS.filter((p) => !ENTERPRISE_ONLY_PERMISSIONS.includes(p));
+  }
+  return [...FREE_VENDOR_PERMISSIONS];
+}
+
+export function vendorEmployeeLimit(plan) {
+  if (isEnterprisePlan(plan)) return ENTERPRISE_VENDOR_EMPLOYEE_LIMIT;
+  if (isProPlan(plan)) return PAID_VENDOR_EMPLOYEE_LIMIT;
+  return FREE_VENDOR_EMPLOYEE_LIMIT;
+}
+
+/** Platform take-rate on connected card sales. */
+export function vendorPlatformFeePercent(plan) {
+  if (isEnterprisePlan(plan)) return 0;
+  if (isProPlan(plan)) return 4;
+  return Number(VERTICAL.revenue?.platformFeePercent) || 8;
 }
 
 export function customerPermissionsForPlan(plan) {
@@ -205,6 +236,9 @@ export function customerCan(user, permission) {
 
 export function planBadgeLabel(plan, type = 'vendor') {
   const cfg = VERTICAL.plans || {};
+  if (type === 'vendor' && isEnterprisePlan(plan)) {
+    return cfg.vendorEnterpriseLabel || 'Atelier';
+  }
   if (isProPlan(plan)) {
     return type === 'vendor' ? (cfg.vendorProLabel || 'Pro') : (cfg.customerProLabel || 'Pro');
   }
@@ -245,6 +279,8 @@ export function hasAnyHazelPro(user) {
 }
 
 export const PAID_VENDOR_UPGRADE_FEATURES = VERTICAL.plans?.paidVendorFeatures || [];
+
+export const ENTERPRISE_VENDOR_UPGRADE_FEATURES = VERTICAL.plans?.enterpriseVendorFeatures || [];
 
 export const PAID_CUSTOMER_UPGRADE_FEATURES = VERTICAL.plans?.paidCustomerFeatures || [];
 

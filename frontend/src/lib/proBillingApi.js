@@ -30,10 +30,11 @@ async function callEdge(name, body) {
   return json;
 }
 
-export async function createProCheckout({ planType, email, vendorId, billingInterval = 'monthly' }) {
+export async function createProCheckout({ planType, email, vendorId, billingInterval = 'monthly', vendorTier = 'pro' }) {
   return callEdge('create-pro-checkout', {
     plan_type: planType,
     billing_interval: billingInterval,
+    vendor_tier: vendorTier,
     email: email?.trim().toLowerCase(),
     vendor_id: vendorId || undefined,
   });
@@ -102,6 +103,8 @@ export async function getProPricing() {
     customerMonthly: settings.stripe_customer_pro_monthly_display || '9.99',
     vendorAnnual: settings.stripe_vendor_pro_annual_display || '299.99',
     customerAnnual: settings.stripe_customer_pro_annual_display || '99.99',
+    vendorEnterpriseMonthly: settings.stripe_vendor_enterprise_monthly_display || '99.00',
+    vendorEnterpriseAnnual: settings.stripe_vendor_enterprise_annual_display || '990.00',
     billingEnabled: settings.pro_billing_enabled !== 'false',
     stripeMode: settings.stripe_mode || 'test',
     liveModeEnabled: settings.stripe_live_mode_enabled === 'true',

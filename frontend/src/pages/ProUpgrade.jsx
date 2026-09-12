@@ -3,9 +3,12 @@ import { Link, useSearchParams } from 'react-router-dom';
 import {
   PAID_CUSTOMER_UPGRADE_FEATURES,
   PAID_VENDOR_UPGRADE_FEATURES,
+  ENTERPRISE_VENDOR_UPGRADE_FEATURES,
   getCustomerContext,
   getVendorContext,
+  getEffectiveVendorPlan,
   isCustomerPro,
+  isEnterprisePlan,
   isProPlan,
   isVendorPro,
   planBadgeLabel,
@@ -117,6 +120,7 @@ export default function ProUpgrade({ user }) {
       const { url } = await createProCheckout({
         planType: vendorOnly ? 'vendor' : 'customer',
         billingInterval,
+        vendorTier: 'pro',
         email: user.email,
         vendorId,
       });
@@ -170,7 +174,8 @@ export default function ProUpgrade({ user }) {
 
   const planLabel = vendorOnly ? 'Pro Practitioner' : 'Pro Member';
   const planFeatures = vendorOnly ? PAID_VENDOR_UPGRADE_FEATURES : PAID_CUSTOMER_UPGRADE_FEATURES;
-  const alreadyPro = vendorOnly ? isVendorProActive : isCustomerProActive;
+  const alreadyEnterprise = vendorOnly && isEnterprisePlan(getEffectiveVendorPlan(user));
+  const alreadyPro = vendorOnly ? alreadyEnterprise : isCustomerProActive;
 
   if (user && alreadyPro) {
     return (
@@ -308,15 +313,17 @@ export default function ProUpgrade({ user }) {
         ) : (
           <button
             type="button"
-            disabled={loading || pricing?.billingEnabled === false}
+            disabled={loading || pricing?.billingEnabled === false || (vendorOnly && isVendorProActive)}
             onClick={startCheckout}
             className="btn-primary w-full !py-3.5 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading
-              ? 'Redirecting to Stripe…'
-              : billingInterval === 'annual'
-                ? `Go ${planLabel} yearly — ${formatCurrency(annualPrice)}/yr`
-                : `Go ${planLabel} monthly — ${formatCurrency(monthlyPrice)}/mo`}
+            {isVendorProActive && vendorOnly
+              ? 'You already have Pro Practitioner'
+              : loading
+                ? 'Redirecting to Stripe…'
+                : billingInterval === 'annual'
+                  ? `Go ${planLabel} yearly — ${formatCurrency(annualPrice)}/yr`
+                  : `Go ${planLabel} monthly — ${formatCurrency(monthlyPrice)}/mo`}
           </button>
         )}
 
@@ -325,6 +332,62 @@ export default function ProUpgrade({ user }) {
           {pricing?.stripeMode === 'test' && !pricing?.liveModeEnabled && ' (Test mode)'}
         </p>
       </div>
+
+      {vendorOnly && (
+        <div className="mt-8 glass-card p-6 sm:p-8 border-2 border-[#c9a227]/40">
+          <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
+            <div>
+              <p className="text-[10px] uppercase tracking-widest text-[#c9a227] font-bold">House tier</p>
+              <h2 className="text-2xl font-semibold heading-font text-[#4a1942]">Atelier · $99/mo</h2>
+              <p className="text-sm text-gray-600 mt-1.5 max-w-sm leading-relaxed">
+                Wholesale, Subscribe &amp; Save, international storefronts, 0% Hazel fee, 50 team seats.
+              </p>
+            </div>
+          </div>
+          <ul className="space-y-2 mb-5">
+            {ENTERPRISE_VENDOR_UPGRADE_FEATURES.map((f) => (
+              <li key={f} className="text-sm text-gray-700 flex gap-2.5 items-start">
+                <span className="text-[#c9a227] font-bold shrink-0">✓</span>
+                <span>{f}</span>
+              </li>
+            ))}
+          </ul>
+          {user && isVendorProActive && (
+            <p className="text-sm text-[#6b7f6a] mb-3">You already have Pro Practitioner. Atelier adds the house tools below.</p>
+          )}
+          {user ? (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={async () => {
+                if (!user?.email) return;
+                setLoading(true);
+                setError('');
+                try {
+                  const vendorId = await resolveVendorIdForCheckout();
+                  const { url } = await createProCheckout({
+                    planType: 'vendor',
+                    billingInterval,
+                    vendorTier: 'enterprise',
+                    email: user.email,
+                    vendorId,
+                  });
+                  if (url) window.location.href = url;
+                  else setError('Atelier checkout could not start. Ask admin to add Stripe Atelier prices.');
+                } catch (e) {
+                  setError(e.message || 'Atelier checkout failed.');
+                }
+                setLoading(false);
+              }}
+              className="w-full py-3.5 rounded-2xl font-semibold bg-[#4a1942] text-white disabled:opacity-50"
+            >
+              {loading ? 'Redirecting to Stripe…' : `Open Atelier checkout — ${formatCurrency(pricing?.vendorEnterpriseMonthly || '99.00')}/mo`}
+            </button>
+          ) : (
+            <Link to="/login" className="btn-primary w-full !py-3.5">Sign in for Atelier</Link>
+          )}
+        </div>
+      )}
 
       {!vendorOnly && <ProSocialProof memberOnly />}
     </div>

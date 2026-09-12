@@ -1,7 +1,7 @@
 /** Hazel Allure LLC — isolated stack (NOT Bpicius) */
 
-const LOGO_IMG =
-  'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/Hazel%20Allure%201_Logo%2003-%20600%20x%20600%20px.png/:/cr=t:0%25,l:0%25,w:100%25,h:100%25/rs=w:600,cg:true';
+const LOGO_IMG = '/brand/hazel-allure-logo.png';
+const OG_IMG = '/brand/og-lockup.png';
 
 export const HAZELALLURE_VERTICAL = {
   id: 'hazelallure',
@@ -120,10 +120,12 @@ export const HAZELALLURE_VERTICAL = {
 
   plans: {
     vendorProLabel: 'Pro Practitioner',
+    vendorEnterpriseLabel: 'Atelier',
     vendorFreeLabel: 'Free Practitioner',
     customerProLabel: 'Pro Member',
     customerFreeLabel: 'Free Member',
     proVendorPrice: '$29.99/mo',
+    enterpriseVendorPrice: '$99/mo',
     proCustomerPrice: '$9.99/mo',
     freeVendorFeatures: [
       'Core product & service listings (limits apply)',
@@ -134,17 +136,23 @@ export const HAZELALLURE_VERTICAL = {
       'Orders, reviews, 1 team seat, organic discovery',
     ],
     paidVendorFeatures: [
-      'Unlimited product & service listings (no free-tier caps)',
-      'Maker Studio Pro: wholesale, custom blends, gift wrap, kits, monthly box',
-      'Consignment tracker, client vault, seasonal skins, custom storefront sections',
-      'Voice-to-listing drafts & supplier reorder alerts',
-      'Full harvest calendar, capacity pickup slots, print label cards',
-      'Product Subscribe & Save + POS inventory with subscribe flags',
-      'Tax pack, market-day mode, review QR, branded email footer, shift notes',
-      'Checkout blessings, email campaigns, Teaching Sanctum',
-      'Personalized dashboard studio, story video pin, member discounts',
-      'Team seats (up to 50), permits & credentials, growth analytics',
-      'Pro promoted placement · cancel anytime — products stay',
+      'Unlimited product & service listings',
+      'Teaching Sanctum courses and session booking',
+      'Email campaigns, checkout blessings, member discounts',
+      'Certificates, credentials, and student honors',
+      'Growth analytics and Pro promoted placement',
+      'Up to 10 team seats · 4% Hazel fee on connected card sales',
+      'Cancel anytime — products stay',
+    ],
+    enterpriseVendorFeatures: [
+      'Everything in Pro Practitioner',
+      'Maker Studio Pro: wholesale, custom blends, kits, gift wrap, monthly box',
+      'Consignment tracker, client vault, seasonal skins',
+      'Product Subscribe & Save and advanced POS inventory',
+      'International storefronts (Amazon, eBay, Shopify links)',
+      'Ad reinvestment dashboard and campaign ROI',
+      '0% Hazel platform fee on connected card sales',
+      'Up to 50 team seats, named onboarding, custom shop domain notes',
     ],
     paidCustomerFeatures: [
       'Member discounts from Pro practitioners at checkout',
@@ -162,13 +170,16 @@ export const HAZELALLURE_VERTICAL = {
     advertising: {
       freeAccountMeta: 'Free practitioner account — organic discovery only',
       proAccountMeta: 'Pro practitioner — promoted placement, campaigns & analytics',
+      enterpriseAccountMeta: 'Atelier house — wholesale tools, 0% fee, custom ops',
       freeBadge: 'Organic listing',
       proBadge: 'Pro promoted',
+      enterpriseBadge: 'Atelier',
     },
   },
 
   seo: {
     logo: LOGO_IMG,
+    ogImage: OG_IMG,
     defaultKeywords: [
       'Hazel Allure',
       'woman-owned apothecary',

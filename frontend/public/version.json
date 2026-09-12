@@ -1,11 +1,6 @@
 {
-  "version": "1.11.1",
-  "buildId": "2026-08-02T17:23:58.784Z",
-  "title": "One automatic update",
-  "message": "New versions apply once automatically — no repeated upgrade clicks.",
-  "highlights": [
-    "Auto-update when version.json is newer",
-    "Reload guard prevents update loops",
-    "Version v1.11.1"
-  ]
+  "version": "1.15.0",
+  "buildId": "atelier-seo-2026-09-08",
+  "title": "Atelier tier + apothecary SEO",
+  "message": "Pro Practitioner, Atelier ($99), and Pro Member. Bot prerender for legal pages. Local Hazel Allure logo in Open Graph."
 }

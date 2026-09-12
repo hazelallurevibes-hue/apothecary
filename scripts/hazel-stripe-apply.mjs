@@ -90,6 +90,11 @@ async function stripeGet(path) {
 
 function classifySlot(productName, interval) {
   const name = productName.toLowerCase();
+  if (name.includes('atelier') || name.includes('enterprise')) {
+    if (interval === 'month') return 'vendor_enterprise_monthly';
+    if (interval === 'year') return 'vendor_enterprise_annual';
+    return null;
+  }
   const isVendor = name.includes('practitioner') || name.includes('vendor');
   const isCustomer = name.includes('member') || name.includes('customer');
   if (!isVendor && !isCustomer) return null;
@@ -114,49 +119,45 @@ async function ensureProducts() {
     if (slot && !slots[slot]) slots[slot] = p.id;
   }
 
-  const missing = ['vendor_monthly', 'vendor_annual', 'customer_monthly', 'customer_annual'].filter((s) => !slots[s]);
+  const specs = [
+    { name: 'Hazel Allure Pro Practitioner', monthly: 2999, annual: 29999, plan: 'vendor', monthSlot: 'vendor_monthly', yearSlot: 'vendor_annual' },
+    { name: 'Hazel Allure Atelier', monthly: 9900, annual: 99000, plan: 'vendor_enterprise', monthSlot: 'vendor_enterprise_monthly', yearSlot: 'vendor_enterprise_annual' },
+    { name: 'Hazel Allure Pro Member', monthly: 999, annual: 9999, plan: 'customer', monthSlot: 'customer_monthly', yearSlot: 'customer_annual' },
+  ];
 
-  if (missing.length) {
-    console.log('Creating Hazel Allure products in Stripe…');
-    for (const spec of [
-      { name: 'Hazel Allure Pro Practitioner', monthly: 2999, annual: 29999, plan: 'vendor' },
-      { name: 'Hazel Allure Pro Member', monthly: 999, annual: 9999, plan: 'customer' },
-    ]) {
-      const product = await stripeForm('/products', {
-        name: spec.name,
-        'metadata[hazelallure_plan]': spec.plan,
-      });
-      const monthly = await stripeForm('/prices', {
-        product: product.id,
-        unit_amount: spec.monthly,
-        currency: 'usd',
-        'recurring[interval]': 'month',
-      });
-      const annual = await stripeForm('/prices', {
-        product: product.id,
-        unit_amount: spec.annual,
-        currency: 'usd',
-        'recurring[interval]': 'year',
-      });
-      if (spec.plan === 'vendor') {
-        slots.vendor_monthly = monthly.id;
-        slots.vendor_annual = annual.id;
-      } else {
-        slots.customer_monthly = monthly.id;
-        slots.customer_annual = annual.id;
-      }
-      console.log(`  ✓ ${spec.name}`);
-      console.log(`      monthly: ${monthly.id}`);
-      console.log(`      annual:  ${annual.id}`);
-    }
-  } else {
-    console.log('Found existing recurring prices in Stripe:');
-    for (const [slot, id] of Object.entries(slots)) console.log(`  ${slot}: ${id}`);
+  for (const spec of specs) {
+    if (slots[spec.monthSlot] && slots[spec.yearSlot]) continue;
+    console.log(`Creating ${spec.name}…`);
+    const product = await stripeForm('/products', {
+      name: spec.name,
+      'metadata[hazelallure_plan]': spec.plan,
+    });
+    const monthly = await stripeForm('/prices', {
+      product: product.id,
+      unit_amount: spec.monthly,
+      currency: 'usd',
+      'recurring[interval]': 'month',
+    });
+    const annual = await stripeForm('/prices', {
+      product: product.id,
+      unit_amount: spec.annual,
+      currency: 'usd',
+      'recurring[interval]': 'year',
+    });
+    slots[spec.monthSlot] = monthly.id;
+    slots[spec.yearSlot] = annual.id;
+    console.log(`  monthly: ${monthly.id}`);
+    console.log(`  annual:  ${annual.id}`);
   }
+
+  console.log('Stripe prices:');
+  for (const [slot, id] of Object.entries(slots)) console.log(`  ${slot}: ${id}`);
 
   return {
     stripe_vendor_pro_price_id: slots.vendor_monthly,
     stripe_vendor_pro_annual_price_id: slots.vendor_annual,
+    stripe_vendor_enterprise_price_id: slots.vendor_enterprise_monthly,
+    stripe_vendor_enterprise_annual_price_id: slots.vendor_enterprise_annual,
     stripe_customer_pro_price_id: slots.customer_monthly,
     stripe_customer_pro_annual_price_id: slots.customer_annual,
   };
@@ -166,8 +167,12 @@ function sqlForSettings(ids) {
   const rows = [
     ['stripe_vendor_pro_price_id', ids.stripe_vendor_pro_price_id],
     ['stripe_vendor_pro_annual_price_id', ids.stripe_vendor_pro_annual_price_id],
+    ['stripe_vendor_enterprise_price_id', ids.stripe_vendor_enterprise_price_id],
+    ['stripe_vendor_enterprise_annual_price_id', ids.stripe_vendor_enterprise_annual_price_id],
     ['stripe_customer_pro_price_id', ids.stripe_customer_pro_price_id],
     ['stripe_customer_pro_annual_price_id', ids.stripe_customer_pro_annual_price_id],
+    ['stripe_vendor_enterprise_monthly_display', '99.00'],
+    ['stripe_vendor_enterprise_annual_display', '990.00'],
     ['pro_billing_enabled', 'true'],
     ['stripe_mode', secret.startsWith('sk_live_') ? 'live' : 'test'],
   ];
@@ -183,6 +188,8 @@ async function fetchDisplayAmounts(ids) {
   for (const [slot, priceId] of Object.entries({
     vendor_monthly: ids.stripe_vendor_pro_price_id,
     vendor_annual: ids.stripe_vendor_pro_annual_price_id,
+    vendor_enterprise_monthly: ids.stripe_vendor_enterprise_price_id,
+    vendor_enterprise_annual: ids.stripe_vendor_enterprise_annual_price_id,
     customer_monthly: ids.stripe_customer_pro_price_id,
     customer_annual: ids.stripe_customer_pro_annual_price_id,
   })) {
@@ -192,6 +199,8 @@ async function fetchDisplayAmounts(ids) {
     if (amount == null) continue;
     if (slot === 'vendor_monthly') out.stripe_vendor_pro_monthly_display = centsToDisplay(amount);
     if (slot === 'vendor_annual') out.stripe_vendor_pro_annual_display = centsToDisplay(amount);
+    if (slot === 'vendor_enterprise_monthly') out.stripe_vendor_enterprise_monthly_display = centsToDisplay(amount);
+    if (slot === 'vendor_enterprise_annual') out.stripe_vendor_enterprise_annual_display = centsToDisplay(amount);
     if (slot === 'customer_monthly') out.stripe_customer_pro_monthly_display = centsToDisplay(amount);
     if (slot === 'customer_annual') out.stripe_customer_pro_annual_display = centsToDisplay(amount);
   }

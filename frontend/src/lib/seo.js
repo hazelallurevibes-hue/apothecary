@@ -2,13 +2,22 @@ import { VERTICAL, verticalFeature } from './vertical';
 import { getLiteratureArticle, literatureSeoForArticle } from './seoLiterature';
 import { SUPPORTED_LOCALES } from '../i18n';
 
-const LOGO_IMG = VERTICAL.seo?.logo || VERTICAL.appUrl;
+function absAsset(path) {
+  const base = String(import.meta.env.VITE_APP_URL || VERTICAL.appUrl || '').replace(/\/$/, '');
+  const p = path || '/brand/og-lockup.png';
+  if (/^https?:\/\//i.test(p)) return p;
+  return `${base}${p.startsWith('/') ? p : `/${p}`}`;
+}
+
+const LOGO_IMG = absAsset(VERTICAL.seo?.logo);
+const OG_IMG = absAsset(VERTICAL.seo?.ogImage || VERTICAL.seo?.logo);
 
 export const SEO_BRAND = {
   siteName: VERTICAL.name,
   tagline: VERTICAL.tagline,
   canonicalBase: import.meta.env.VITE_APP_URL || VERTICAL.appUrl,
-  defaultImage: LOGO_IMG,
+  defaultImage: OG_IMG,
+  defaultLogo: LOGO_IMG,
   defaultKeywords: VERTICAL.seo?.defaultKeywords || VERTICAL.name,
 };
 
@@ -56,6 +65,14 @@ const SHARED_ROUTE_SEO = {
   '/agreements': {
     title: `Legal Agreements | ${VERTICAL.name}`,
     description: `Terms of service, privacy summary, and platform legal policies for ${VERTICAL.name} users.`,
+  },
+  '/privacy': {
+    title: `Privacy Policy | ${VERTICAL.name}`,
+    description: `How ${VERTICAL.name} handles personal information. Deletion within 30 days of a verified request except where law requires retention.`,
+  },
+  '/terms': {
+    title: `Terms of Service | ${VERTICAL.name}`,
+    description: `Platform terms for the Hazel Allure apothecary. Wellness listings, not medical care. New Mexico law.`,
   },
   '/customer-use-agreement': {
     title: `${VERTICAL.labels.customer} Use Agreement | ${VERTICAL.name}`,

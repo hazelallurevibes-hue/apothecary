@@ -109,6 +109,7 @@ async function handleCheckoutCompleted(
   }
 
   const planType = (meta.plan_type || "customer") as PlanType;
+  const vendorTier = meta.vendor_tier === "enterprise" ? "enterprise" : "pro";
   const userId = meta.user_id ? Number(meta.user_id) : null;
   const vendorId = meta.vendor_id ? Number(meta.vendor_id) : null;
   const subId = typeof session.subscription === "string"
@@ -121,7 +122,11 @@ async function handleCheckoutCompleted(
   await syncSubscription(supabase, subscription, { userId, vendorId, planType });
 
   if (subscriptionIsActive(mapStripeStatus(subscription.status))) {
-    await grantProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
+    await grantProAccess(supabase, planType, {
+      userId: userId || undefined,
+      vendorId: vendorId || undefined,
+      vendorTier,
+    });
   }
 }
 
@@ -345,8 +350,13 @@ async function handleSubscriptionChange(
   await syncSubscription(supabase, subscription, { userId, vendorId, planType });
 
   const status = mapStripeStatus(subscription.status);
+  const vendorTier = meta.vendor_tier === "enterprise" ? "enterprise" : "pro";
   if (subscriptionIsActive(status)) {
-    await grantProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
+    await grantProAccess(supabase, planType, {
+      userId: userId || undefined,
+      vendorId: vendorId || undefined,
+      vendorTier,
+    });
   } else if (["canceled", "unpaid", "incomplete"].includes(status)) {
     await revokeProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
   }
@@ -397,7 +407,12 @@ async function handleInvoicePaid(
   });
 
   if (subscriptionIsActive(mapStripeStatus(subscription.status))) {
-    await grantProAccess(supabase, planType, { userId: userId || undefined, vendorId: vendorId || undefined });
+    const vendorTier = meta.vendor_tier === "enterprise" ? "enterprise" : "pro";
+    await grantProAccess(supabase, planType, {
+      userId: userId || undefined,
+      vendorId: vendorId || undefined,
+      vendorTier,
+    });
   }
 }
 

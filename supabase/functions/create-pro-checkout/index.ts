@@ -7,6 +7,7 @@ import {
   BillingInterval,
   loadStripeSettings,
   PlanType,
+  VendorTier,
   priceIdForPlan,
   resolveSiteUrl,
   stripeClient,
@@ -27,6 +28,10 @@ Deno.serve(async (req: Request) => {
     const billingInterval = ((body.billing_interval || body.billingInterval || "monthly") as string).toLowerCase() === "annual"
       ? "annual"
       : "monthly" as BillingInterval;
+    const vendorTier: VendorTier =
+      String(body.vendor_tier || body.vendorTier || "pro").toLowerCase() === "enterprise"
+        ? "enterprise"
+        : "pro";
     const email = String(body.email || "").trim().toLowerCase();
 
     if (!email || !["vendor", "customer"].includes(planType)) {
@@ -229,7 +234,7 @@ Deno.serve(async (req: Request) => {
     try {
       stripe = stripeClient();
       siteUrl = await resolveSiteUrl(supabase);
-      priceId = priceIdForPlan(settings, planType, billingInterval);
+      priceId = priceIdForPlan(settings, planType, billingInterval, vendorTier);
     } catch (cfgErr) {
       return jsonResponse({
         ok: false,
@@ -263,6 +268,7 @@ Deno.serve(async (req: Request) => {
         customer_update: { address: "auto", name: "auto" },
         metadata: {
           plan_type: planType,
+          vendor_tier: vendorTier,
           billing_interval: billingInterval,
           user_id: String(userRow.id),
           vendor_id: vendorId ? String(vendorId) : "",
@@ -271,6 +277,7 @@ Deno.serve(async (req: Request) => {
         subscription_data: {
           metadata: {
             plan_type: planType,
+            vendor_tier: vendorTier,
             billing_interval: billingInterval,
             user_id: String(userRow.id),
             vendor_id: vendorId ? String(vendorId) : "",

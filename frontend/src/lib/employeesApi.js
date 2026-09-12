@@ -1,7 +1,6 @@
 import { supabase } from './supabaseClient';
 import {
-  FREE_VENDOR_EMPLOYEE_LIMIT,
-  PAID_VENDOR_EMPLOYEE_LIMIT,
+  vendorEmployeeLimit,
   VENDOR_PERMISSIONS,
   vendorPermissionsForPlan,
 } from './plans';
@@ -52,9 +51,7 @@ export async function fetchEmployeeRecord(email) {
 }
 
 export function employeeLimitForPlan(plan) {
-  return (plan || 'free').toLowerCase() === 'paid'
-    ? PAID_VENDOR_EMPLOYEE_LIMIT
-    : FREE_VENDOR_EMPLOYEE_LIMIT;
+  return vendorEmployeeLimit(plan);
 }
 
 export async function addVendorEmployee({ vendorId, email, permissions, plan }) {

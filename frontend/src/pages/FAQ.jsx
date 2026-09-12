@@ -165,7 +165,7 @@ const legalSafetySections = [
       },
       {
         title: 'What is Hazel Allure Pro?',
-        body: 'Pro is our paid tier for practitioners and seekers. Pro Practitioner unlocks unlimited listings, Maker Studio Pro (wholesale, custom blends, gift wrap, kits, client vault, seasonal skins, voice-to-listing), POS Subscribe & Save, tax pack, market-day mode, review QR, campaigns, Teaching Sanctum, analytics, and more. Pro Member unlocks hot remedy monographs, discounts where enabled, favorites, loyalty, and course pricing. Billed monthly or annually via Stripe; cancel anytime in the billing portal.',
+        body: 'Pro Practitioner ($29.99/mo) unlocks unlimited listings, Teaching Sanctum, campaigns, and analytics, with a 4% Hazel fee on connected card sales. Atelier ($99/mo) is the house tier: Maker Studio Pro (wholesale, blends, kits, vault), Subscribe & Save, international storefronts, 0% Hazel fee, and 50 team seats. Pro Member ($9.99/mo) unlocks hot remedy monographs, discounts, favorites, loyalty, and course pricing. Billed via Stripe; cancel anytime in the billing portal.',
         link: '/pro-upgrade',
       },
       {
