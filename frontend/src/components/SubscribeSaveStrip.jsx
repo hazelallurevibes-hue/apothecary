@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
+import { isProPlan } from '../lib/plans';
 
 /**
  * Shopper LTV + vendor recurring revenue nudge.
  * Routes into Pro member for priority restock / early access messaging.
  */
 export default function SubscribeSaveStrip({ user, className = '' }) {
-  const isPro = (user?.customer_plan || '').toLowerCase() === 'paid';
+  const isPro = isProPlan(user?.customer_plan);
 
   return (
     <div

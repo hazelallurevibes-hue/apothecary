@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient';
-
 import { getAppUrl } from './appUrl';
+import { isProPlan } from './plans';
 
 const APP_URL = getAppUrl();
 
@@ -129,8 +129,8 @@ export async function fetchCampaignAnalytics(campaignId) {
 }
 
 export async function getVendorCampaignQuota(vendor, settings) {
-  const plan = (vendor?.plan || 'free').toLowerCase();
-  const limit = plan === 'paid'
+  const paid = isProPlan(vendor?.plan);
+  const limit = paid
     ? Number(settings?.paid_vendor_campaigns_per_month || 20)
     : Number(settings?.free_vendor_campaigns_per_month || 2);
   const monthKey = new Date().toISOString().slice(0, 7);

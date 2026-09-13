@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import { VERTICAL, verticalFeature } from '../lib/vertical';
-import { advertisingAccountMeta, planBadgeLabel } from '../lib/plans';
+import { advertisingAccountMeta, isProPlan, planBadgeLabel } from '../lib/plans';
 import AdvertisingAccountBadge from './AdvertisingAccountBadge';
 
 /** Admin overview of free vs Pro advertising account tiers */
 export default function AdminAdvertisingPanel({ vendors = [] }) {
   if (!verticalFeature('adReinvestment')) return null;
 
-  const proVendors = vendors.filter((v) => (v.plan || 'free').toLowerCase() === 'paid');
-  const freeVendors = vendors.filter((v) => (v.plan || 'free').toLowerCase() !== 'paid');
+  const proVendors = vendors.filter((v) => isProPlan(v.plan));
+  const freeVendors = vendors.filter((v) => !isProPlan(v.plan));
 
   return (
     <section className="bg-white border rounded-3xl p-6">

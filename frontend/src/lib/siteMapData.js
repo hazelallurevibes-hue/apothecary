@@ -21,7 +21,6 @@ export const SITEMAP_SECTIONS = [
     links: [
       { path: '/customer-signup', label: 'Seeker Sign Up', priority: '0.7', changefreq: 'monthly' },
       { path: '/vendor-signup', label: 'Practitioner Sign Up', priority: '0.7', changefreq: 'monthly' },
-      { path: '/login', label: 'Log In', priority: '0.6', changefreq: 'monthly' },
       { path: '/pro-upgrade', label: 'Pro Membership', priority: '0.6', changefreq: 'monthly' },
     ],
   },
@@ -38,6 +37,8 @@ export const SITEMAP_SECTIONS = [
     title: 'Legal & policies',
     links: [
       { path: '/agreements', label: 'Terms & Agreements', priority: '0.5', changefreq: 'monthly' },
+      { path: '/privacy', label: 'Privacy Policy', priority: '0.5', changefreq: 'monthly' },
+      { path: '/terms', label: 'Terms of Service', priority: '0.5', changefreq: 'monthly' },
       { path: '/policies-procedures', label: 'Policies & Procedures', priority: '0.5', changefreq: 'monthly' },
       { path: '/customer-use-agreement', label: 'Seeker Use Agreement', priority: '0.5', changefreq: 'monthly' },
     ],

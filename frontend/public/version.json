@@ -1,6 +1,11 @@
 {
-  "version": "1.15.1",
-  "buildId": "favicon-logo-tab-2026-09-08",
-  "title": "Logo on the tab",
-  "message": "Favicon, Apple icon, and header use the Hazel Allure flower mark. Open Graph card still shows the full lockup."
+  "version": "1.15.2",
+  "buildId": "2026-09-13T00:33:35.106Z",
+  "title": "Atelier is a real plan now",
+  "message": "Vendor analytics stay on your shop, Atelier unlocks house tools, and leftover food tags are gone from apothecary listings.",
+  "highlights": [
+    "Atelier treated as paid (0% fee, 50 seats, Maker Studio Pro)",
+    "Practitioners no longer land on the admin dashboard",
+    "Site Map, fonts, and social links cleaned up"
+  ]
 }

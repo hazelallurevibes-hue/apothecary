@@ -18,7 +18,7 @@ import { getMarketplaceCategoryLabel } from '../lib/marketplaceMenuCategories';
 import MedicinalPlantWarning from '../components/MedicinalPlantWarning';
 import VideoEmbed from '../components/VideoEmbed';
 import ProductSubscribeButton from '../components/ProductSubscribeButton';
-import { VERTICAL } from '../lib/vertical';
+import { VERTICAL, verticalFeature } from '../lib/vertical';
 import { useSeoContext } from '../components/SeoContext';
 import { isProPlan } from '../lib/plans';
 import { canUserManageListing } from '../lib/listingOwnership';
@@ -306,7 +306,7 @@ export default function ListingDetailPage({ user }) {
             <SafetyStatusBadge item={item} />
             {item.is_preorder && <PreorderBadge item={item} />}
             {itemType === 'produce' && <FreshnessBadge item={item} />}
-            {item.food_category && (
+            {verticalFeature('foodSafety') && item.food_category && (
               <span className="text-[10px] bg-gray-100 text-gray-700 px-2 py-0.5 rounded-full">{getFoodCategoryLabel(item.food_category)}</span>
             )}
             {item.category && itemType === 'produce' && (

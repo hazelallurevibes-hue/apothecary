@@ -112,6 +112,8 @@ export async function getProPricing() {
     customerPriceId: settings.stripe_customer_pro_price_id || '',
     vendorAnnualPriceId: settings.stripe_vendor_pro_annual_price_id || '',
     customerAnnualPriceId: settings.stripe_customer_pro_annual_price_id || '',
+    vendorEnterprisePriceId: settings.stripe_vendor_enterprise_price_id || '',
+    vendorEnterpriseAnnualPriceId: settings.stripe_vendor_enterprise_annual_price_id || '',
   };
 }
 

@@ -13,11 +13,6 @@ import { ACCOUNT_PROFILE_PATH } from '../lib/profileRoutes';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import SeekerJourneyMap from '../components/SeekerJourneyMap';
 
-let API = import.meta.env.VITE_API_URL || '/api';
-if (API && !API.endsWith('/api')) {
-  API = API.endsWith('/') ? API + 'api' : API + '/api';
-}
-
 export default function CustomerPortal({ user }) {
   const [recentOrders, setRecentOrders] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -37,15 +32,14 @@ export default function CustomerPortal({ user }) {
   useEffect(() => {
     if (!user?.email) return;
 
-    const userId = user.id || 3;
     let cancelled = false;
     setLoading(true);
 
     Promise.all([
       fetchOrdersForUser(user).catch(() => []),
-      fetch(`${API}/favorites/${userId}`).then((r) => r.json()).catch(() => []),
-      fetch(`${API}/issues`).then((r) => r.json()).catch(() => []),
-      fetch(`${API}/loyalty/${userId}`).then((r) => r.json()).catch(() => ({ points: 0 })),
+      Promise.resolve([]),
+      Promise.resolve([]),
+      Promise.resolve({ points: 0 }),
     ]).then(([orders, favs, iss, loy]) => {
       if (cancelled) return;
       setRecentOrders(orders.slice(0, 3));
@@ -65,7 +59,7 @@ export default function CustomerPortal({ user }) {
   const showLoyalty = isProMemberPrefEnabled('loyalty');
   const showFavorites = isProMemberPrefEnabled('favorites');
   const showSupport = isProMemberPrefEnabled('priority_support');
-  const showExpress = isProMemberPrefEnabled('express_checkout');
+  const showExpress = isPro && isProMemberPrefEnabled('express_checkout');
 
   return (
     <div>

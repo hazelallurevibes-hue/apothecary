@@ -4,6 +4,7 @@ import {
   parseSellRegions,
 } from '../lib/internationalStorefront';
 import { labelsForRestricted, parseRestrictedCategories } from '../lib/shippingRestrictions';
+import { isProPlan } from '../lib/plans';
 
 const REGION_ICONS = {
   US: '🇺🇸',
@@ -16,7 +17,7 @@ const REGION_ICONS = {
 };
 
 export default function VendorFulfillmentPanel({ vendor }) {
-  if (!vendor || (vendor.plan || 'free') !== 'paid') return null;
+  if (!vendor || !isProPlan(vendor.plan)) return null;
 
   const links = activeExternalLinks(vendor.external_store_urls);
   const regions = parseSellRegions(vendor.sell_regions);

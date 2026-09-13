@@ -90,8 +90,7 @@ export const HAZELALLURE_VERTICAL = {
 
   social: {
     instagram: 'https://www.instagram.com/hazelallure',
-    tiktok: 'https://www.tiktok.com/@hazel.alure',
-    youtube: 'https://www.youtube.com/hazelallure',
+    tiktok: 'https://www.tiktok.com/@hazelallure',
   },
 
   videoHosts: ['youtube', 'vimeo'],

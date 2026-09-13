@@ -103,8 +103,7 @@ function htmlPage({ title, description, url, noindex }) {
       slogan: 'Wellness with intention. Shop with spirit.',
       sameAs: [
         'https://www.instagram.com/hazelallure',
-        'https://www.tiktok.com/@hazel.alure',
-        'https://www.youtube.com/hazelallure',
+        'https://www.tiktok.com/@hazelallure',
       ],
     },
     {

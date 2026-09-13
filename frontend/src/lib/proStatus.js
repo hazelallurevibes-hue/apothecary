@@ -1,5 +1,5 @@
 import { supabase } from './supabaseClient';
-import { getEffectiveCustomerPlan, getEffectiveVendorPlan, isProPlan } from './plans';
+import { getEffectiveCustomerPlan, getEffectiveVendorPlan, isEnterprisePlan, isProPlan } from './plans';
 
 const ACTIVE_STATUSES = new Set(['active', 'trialing']);
 
@@ -20,7 +20,9 @@ export function applySubscriptionProFlags(profile, subscriptions) {
   }
 
   if (subscriptionGrantsPro(subscriptions, 'vendor')) {
-    next.vendor_plan = 'paid';
+    if (!isEnterprisePlan(next.vendor_plan)) {
+      next.vendor_plan = isProPlan(next.vendor_plan) ? next.vendor_plan : 'paid';
+    }
     next.vendor_pro_active = true;
   }
 

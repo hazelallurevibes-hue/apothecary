@@ -4,6 +4,7 @@
  * 2. admin_badges — awarded by Hazel Allure admin
  * 3. earned — computed from ratings, reviews, plan (display-only)
  */
+import { isProPlan } from './plans';
 
 export const BADGE_TIER = {
   IDENTITY: 'identity',
@@ -103,7 +104,7 @@ export function computeEarnedBadges(vendor) {
   if (!vendor) return [];
   const rating = Number(vendor.avg_rating) || 0;
   const reviews = Number(vendor.review_count) || 0;
-  const isPro = (vendor.plan || '').toLowerCase() === 'paid';
+  const isPro = isProPlan(vendor.plan);
   const earned = [];
 
   if (rating >= 5 && reviews >= 3) earned.push('earned_five_star');

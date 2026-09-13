@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { vendorCan } from '../lib/plans';
 
 export default function Dashboard({ user }) {
   const [vendors, setVendors] = useState([]);
@@ -70,7 +69,7 @@ export default function Dashboard({ user }) {
   const maxStatus = Math.max(...Object.values(statusCounts), 1);
 
   const role = (user?.role || '').toLowerCase();
-  if (role === 'vendor' && !vendorCan(user, 'analytics')) {
+  if (role !== 'admin') {
     return <Navigate to="/vendor-dashboard" replace />;
   }
 
@@ -83,7 +82,7 @@ export default function Dashboard({ user }) {
         <div className="bg-white border rounded-3xl p-6">
           <div className="text-sm text-gray-500">Active Vendors</div>
           <div className="text-5xl font-semibold mt-2">{activeVendors}</div>
-          <div className="text-emerald-600 text-sm mt-1">+{Math.max(1, Math.floor(activeVendors * 0.15))} this month</div>
+          <div className="text-gray-500 text-sm mt-1">Approved practitioners</div>
         </div>
         <div className="bg-white border rounded-3xl p-6">
           <div className="text-sm text-gray-500">Open Tasks</div>
@@ -126,8 +125,8 @@ export default function Dashboard({ user }) {
               <span className="font-semibold">{vendors.filter(v => v.status === 'pending').length}</span>
             </div>
             <div className="flex justify-between p-3 bg-gray-50 rounded-2xl">
-              <span>Total Menu Items</span>
-              <span className="font-semibold">—</span>
+              <span>Service listings</span>
+              <span className="font-semibold text-gray-400">See Content tab</span>
             </div>
             <div className="flex justify-between p-3 bg-gray-50 rounded-2xl">
               <span>Paid Invoices</span>
@@ -171,7 +170,7 @@ export default function Dashboard({ user }) {
           <div className="p-4 bg-gray-50 rounded-2xl">
             <div className="text-gray-500">Avg Order Value</div>
             <div className="text-2xl font-semibold mt-1">${(totalRevenue / Math.max(1, invoices.length)).toFixed(0)}</div>
-            <div className="text-emerald-600 text-xs">+12% vs last month</div>
+            <div className="text-gray-500 text-xs">From recorded invoices</div>
           </div>
           <div className="p-4 bg-gray-50 rounded-2xl">
             <div className="text-gray-500">Top Performing Vendor</div>
@@ -179,11 +178,9 @@ export default function Dashboard({ user }) {
             <div className="text-xs text-amber-600">Premium listing active</div>
           </div>
           <div className="p-4 bg-gray-50 rounded-2xl">
-            <div className="text-gray-500">Customer Retention</div>
-            <div className="text-2xl font-semibold mt-1">87%</div>
-            <div className="w-full bg-gray-200 h-2 rounded mt-2">
-              <div className="bg-[#4a1942] h-2 rounded" style={{ width: '87%' }}></div>
-            </div>
+            <div className="text-gray-500">Live orders (all time count)</div>
+            <div className="text-2xl font-semibold mt-1">{liveOrders}</div>
+            <div className="text-xs text-gray-500 mt-1">Real count from orders table</div>
           </div>
         </div>
       </div>

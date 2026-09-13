@@ -198,17 +198,20 @@ export default function Home({ user }) {
   useEffect(() => {
     let active = true;
     const fetchLive = async () => {
-      const [v, m, p, o] = await Promise.all([
+      const queries = [
         supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
         supabase.from('menu_items').select('*', { count: 'exact', head: true }).eq('approved', 1),
         supabase.from('produce_items').select('*', { count: 'exact', head: true }).eq('approved', 1),
-        supabase.from('orders').select('*', { count: 'exact', head: true }),
-      ]);
+      ];
+      if (role === 'admin') {
+        queries.push(supabase.from('orders').select('id', { count: 'exact', head: true }));
+      }
+      const [v, m, p, o] = await Promise.all(queries);
       if (!active) return;
       setLiveStats({
         vendors: v.count || 0,
         items: (m.count || 0) + (p.count || 0),
-        orders: o.count || 0,
+        orders: o?.count || 0,
       });
     };
     const idle = window.requestIdleCallback
@@ -219,7 +222,7 @@ export default function Home({ user }) {
       if (typeof idle === 'number') clearTimeout(idle);
       else window.cancelIdleCallback?.(idle);
     };
-  }, []);
+  }, [role]);
 
   if (role === 'admin') return <AdminHome user={user} liveStats={liveStats} />;
   if (role === 'vendor') return <VendorHome liveStats={liveStats} />;

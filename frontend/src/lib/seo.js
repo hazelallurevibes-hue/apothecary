@@ -192,7 +192,7 @@ export function organizationJsonLd() {
     description: VERTICAL.copy.platformDescription,
     email: VERTICAL.contactEmail,
     telephone: VERTICAL.contactPhone,
-    sameAs: [VERTICAL.social.instagram, VERTICAL.social.tiktok, VERTICAL.social.youtube, VERTICAL.siteUrl],
+    sameAs: [VERTICAL.social.instagram, VERTICAL.social.tiktok, VERTICAL.social.youtube, VERTICAL.siteUrl].filter(Boolean),
     slogan: VERTICAL.tagline,
     additionalProperty: [
       ...(VERTICAL.womanOwned

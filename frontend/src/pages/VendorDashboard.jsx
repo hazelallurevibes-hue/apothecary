@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { getVendorContext, isPaidVendor, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
+import { getVendorContext, isEnterprisePlan, isPaidVendor, isVendorPro, planBadgeLabel, vendorCan } from '../lib/plans';
 import {
   loadVendorListings,
   loadVendorOrderStats,
@@ -1115,7 +1115,7 @@ export default function VendorDashboard({ user }) {
         </div>
         <div className="flex flex-col w-full gap-2 sm:flex-row sm:flex-wrap sm:w-auto">
           {vendorCan(user, 'analytics') && (
-            <Link to="/dashboard" className="px-4 py-2 border rounded-2xl text-sm font-medium hover:bg-white text-center">Platform Analytics</Link>
+            <a href="#analytics" className="px-4 py-2 border rounded-2xl text-sm font-medium hover:bg-white text-center">Your analytics</a>
           )}
           {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
             <Link to="/vendor-orders" className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium text-center">Incoming orders</Link>
@@ -1183,6 +1183,23 @@ export default function VendorDashboard({ user }) {
             <VendorProSaasHub user={user} embedded />
           </div>
         </details>
+      )}
+
+      {isEnterprisePlan(vendorPlan) && (
+        <div className="mb-6 rounded-2xl border border-[#c9a227]/40 bg-gradient-to-r from-[#4a1942] to-[#2d1230] text-white p-4 sm:p-5">
+          <p className="text-[10px] uppercase tracking-[0.18em] text-[#c9a227] font-semibold">Atelier house</p>
+          <p className="text-sm mt-1 leading-relaxed">
+            0% platform fee · 50 team seats · Maker Studio Pro · Subscribe &amp; Save · international storefronts
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Link to="/vendor-maker-studio" className="px-3 py-1.5 rounded-full bg-white text-[#4a1942] text-xs font-semibold">
+              Maker Studio Pro
+            </Link>
+            <Link to="/pro-upgrade?type=vendor" className="px-3 py-1.5 rounded-full border border-white/30 text-white text-xs font-semibold">
+              Atelier details
+            </Link>
+          </div>
+        </div>
       )}
 
       {!isLaunchFullyDone(launchSteps, { listingCount: myMenu.length + myProduce.length }) &&

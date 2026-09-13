@@ -1,7 +1,7 @@
 import { supabase } from './supabaseClient';
 import { resolveDeliveryMethod } from './shippingPolicy';
 
-const API = import.meta.env.VITE_API_URL || '/api';
+const API = import.meta.env.VITE_API_URL || '';
 const LAST_ORDERS_KEY = 'ha_buyer_orders_cache_v1';
 
 function apiUrl(path) {
@@ -10,6 +10,7 @@ function apiUrl(path) {
 }
 
 async function tryBackend(path, options) {
+  if (!/^https?:\/\//i.test(API)) return null;
   try {
     const res = await fetch(apiUrl(path), options);
     if (!res.ok) return null;

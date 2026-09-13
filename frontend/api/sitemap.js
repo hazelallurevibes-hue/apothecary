@@ -11,7 +11,6 @@ const STATIC_ENTRIES = [
   { path: '/gathering', changefreq: 'daily', priority: '0.7' },
   { path: '/customer-signup', changefreq: 'monthly', priority: '0.7' },
   { path: '/vendor-signup', changefreq: 'monthly', priority: '0.7' },
-  { path: '/login', changefreq: 'monthly', priority: '0.6' },
   { path: '/pro-upgrade', changefreq: 'monthly', priority: '0.6' },
   { path: '/about', changefreq: 'monthly', priority: '0.6' },
   { path: '/contact', changefreq: 'monthly', priority: '0.6' },
@@ -20,6 +19,8 @@ const STATIC_ENTRIES = [
   { path: '/learn', changefreq: 'weekly', priority: '0.7' },
   { path: '/remedies', changefreq: 'weekly', priority: '0.9' },
   { path: '/agreements', changefreq: 'monthly', priority: '0.5' },
+  { path: '/privacy', changefreq: 'monthly', priority: '0.5' },
+  { path: '/terms', changefreq: 'monthly', priority: '0.5' },
   { path: '/policies-procedures', changefreq: 'monthly', priority: '0.5' },
   { path: '/customer-use-agreement', changefreq: 'monthly', priority: '0.5' },
 ];

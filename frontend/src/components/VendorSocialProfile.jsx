@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { VERTICAL } from '../lib/vertical';
+import { isProPlan } from '../lib/plans';
 import ListingFulfillmentActions from './ListingFulfillmentActions';
 import VendorFulfillmentPanel from './VendorFulfillmentPanel';
 import VendorReviewPanel from './VendorReviewPanel';
@@ -146,7 +147,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
   const [bookingToast, setBookingToast] = useState('');
   const tabRefs = useRef([]);
 
-  const isPaid = (vendor?.plan || 'free') === 'paid';
+  const isPaid = isProPlan(vendor?.plan);
   const accent = isPaid ? (vendor?.theme_color || VERTICAL.colors.primary) : VERTICAL.colors.primary;
   const banners = isPaid ? parseBanners(vendor?.banner_images) : [];
   const storyImages = banners.length ? banners : (vendor?.highlight_photo ? [vendor.highlight_photo] : []);

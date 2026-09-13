@@ -67,9 +67,15 @@ export default function Contact() {
       </div>
 
       <div className="mt-6 flex flex-wrap gap-4 text-sm">
-        <a href={VERTICAL.social.instagram} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">Instagram</a>
-        <a href={VERTICAL.social.tiktok} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">TikTok</a>
-        <a href={VERTICAL.social.youtube} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">YouTube</a>
+        {VERTICAL.social.instagram && (
+          <a href={VERTICAL.social.instagram} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">Instagram</a>
+        )}
+        {VERTICAL.social.tiktok && (
+          <a href={VERTICAL.social.tiktok} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">TikTok</a>
+        )}
+        {VERTICAL.social.youtube && (
+          <a href={VERTICAL.social.youtube} target="_blank" rel="noopener noreferrer" className="text-[#4a1942] font-medium hover:underline">YouTube</a>
+        )}
       </div>
 
       <p className="mt-6 text-sm text-gray-500">

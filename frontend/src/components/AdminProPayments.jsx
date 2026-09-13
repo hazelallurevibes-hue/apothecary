@@ -6,6 +6,7 @@ import {
   stripeDashboardUrl,
 } from '../lib/proBillingApi';
 import { updatePlatformSettings } from '../lib/platformSettingsApi';
+import { isProPlan } from '../lib/plans';
 
 const STATUS_COLORS = {
   active: 'bg-emerald-100 text-emerald-800',
@@ -51,8 +52,8 @@ export default function AdminProPayments({ users, vendors, onMessage }) {
 
   useEffect(() => { load(); }, []);
 
-  const proVendors = vendors.filter((v) => (v.plan || 'free') === 'paid').length;
-  const proCustomers = users.filter((u) => (u.customer_plan || 'free') === 'paid').length;
+  const proVendors = vendors.filter((v) => isProPlan(v.plan)).length;
+  const proCustomers = users.filter((u) => isProPlan(u.customer_plan)).length;
   const activeSubs = subs.filter((s) => ['active', 'trialing'].includes(s.status)).length;
 
   const grantManual = async (planType, id) => {
@@ -350,7 +351,7 @@ export default function AdminProPayments({ users, vendors, onMessage }) {
               {vendors.slice(0, 20).map((v) => (
                 <div key={v.id} className="flex justify-between items-center py-1 border-b">
                   <span>{v.name} <span className="text-xs text-gray-400">({v.plan || 'free'})</span></span>
-                  {(v.plan || 'free') === 'paid' ? (
+                  {isProPlan(v.plan) ? (
                     <button type="button" onClick={() => revokeManual('vendor', v.id)} className="text-xs text-red-600">Revoke</button>
                   ) : (
                     <button type="button" onClick={() => grantManual('vendor', v.id)} className="text-xs text-[#4a1942]">Grant Pro</button>
@@ -365,7 +366,7 @@ export default function AdminProPayments({ users, vendors, onMessage }) {
               {users.filter((u) => u.role === 'customer').slice(0, 20).map((u) => (
                 <div key={u.id} className="flex justify-between items-center py-1 border-b">
                   <span>{u.name || u.email} <span className="text-xs text-gray-400">({u.customer_plan || 'free'})</span></span>
-                  {(u.customer_plan || 'free') === 'paid' ? (
+                  {isProPlan(u.customer_plan) ? (
                     <button type="button" onClick={() => revokeManual('customer', u.id)} className="text-xs text-red-600">Revoke</button>
                   ) : (
                     <button type="button" onClick={() => grantManual('customer', u.id)} className="text-xs text-[#4a1942]">Grant Pro</button>

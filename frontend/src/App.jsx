@@ -428,7 +428,7 @@ function AppCore({ auth0 = null }) {
 
                 {/* Admin + Vendor Routes */}
                 <Route path="/dashboard" element={
-                  <ProtectedRoute allowedRoles={['admin', 'vendor']}><Dashboard user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['admin']}><Dashboard user={user} /></ProtectedRoute>
                 } />
                 <Route path="/vendor-dashboard" element={
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorDashboard user={user} /></ProtectedRoute>
