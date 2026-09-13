@@ -46,32 +46,6 @@ export function formatStars(rating) {
 export async function processReviewDeadlines() {
   const { error: rpcError } = await supabase.rpc('process_review_deadlines_rpc');
   if (!rpcError) return;
-
-  const now = new Date().toISOString();
-
-  const { data: pending } = await supabase
-    .from('reviews')
-    .select('*')
-    .eq('status', 'pending_resolution')
-    .lt('grace_deadline', now);
-
-  for (const review of pending || []) {
-    await supabase
-      .from('reviews')
-      .update({ status: 'published', is_public: true, locked: false })
-      .eq('id', review.id);
-    if (review.vendor_id) await refreshVendorRatingCache(review.vendor_id);
-  }
-
-  const { data: expired } = await supabase
-    .from('reviews')
-    .select('id')
-    .eq('locked', false)
-    .lt('editable_until', now);
-
-  for (const review of expired || []) {
-    await supabase.from('reviews').update({ locked: true }).eq('id', review.id);
-  }
 }
 
 /** Order-gated + plan-gated reviews (free customers need 15 purchases) */

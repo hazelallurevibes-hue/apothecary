@@ -1,8 +1,8 @@
 import { useRef, useState, Suspense } from 'react';
 import { lazyWithRetry } from '../lib/lazyWithRetry';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
-import { signIn, resetPassword, finalizeSignupSession, completeMfaLogin, MfaRequiredError } from '../lib/auth';
+import { signIn, resetPassword, finalizeSignupSession, completeMfaLogin, MfaRequiredError, getPostLoginPath } from '../lib/auth';
 import { registerAuthUser, validatePasswordPair, mapAuthError } from '../lib/signupFlow';
 import { runSecureAuthChecks } from '../lib/runSecureAuth';
 import { isCaptchaEnabled } from '../lib/authSecurity';
@@ -19,7 +19,7 @@ import Auth0ErrorBanner from '../components/Auth0ErrorBanner';
 import { useLocale } from '../i18n';
 import { VERTICAL } from '../lib/vertical';
 
-export default function Login({ onLogin, loading }) {
+export default function Login({ onLogin, loading, user }) {
   const { t } = useLocale();
   const formStartedAt = useRef(Date.now());
   const captcha = useAuthCaptcha();
@@ -37,8 +37,14 @@ export default function Login({ onLogin, loading }) {
   const [twoFactorToken, setTwoFactorToken] = useState('');
   const [twoFAMsg, setTwoFAMsg] = useState('');
   const [captchaReady, setCaptchaReady] = useState(false);
+  const [signingIn, setSigningIn] = useState(false);
+
+  if (user?.email) {
+    return <Navigate to={getPostLoginPath(user.role)} replace />;
+  }
 
   const doRealLogin = async (em, pwd, { captchaToken, skipCaptcha } = {}) => {
+    setSigningIn(true);
     try {
       const profile = await signIn(em, pwd, skipCaptcha ? {} : { captchaToken });
       onLogin(profile);
@@ -55,6 +61,8 @@ export default function Login({ onLogin, loading }) {
       setMessageOk(false);
       setMessage(mapAuthError(e) || e.message || 'Login failed. Check your email/password and try again.');
       captcha.resetCaptcha();
+    } finally {
+      setSigningIn(false);
     }
   };
 
@@ -294,10 +302,10 @@ export default function Login({ onLogin, loading }) {
                 {(!isSignUp || signupRole === 'customer') && (
                   <button
                     type="submit"
-                    disabled={loading || (isSignUp && (!agreedToTerms || (confirmPassword && password !== confirmPassword)))}
+                    disabled={loading || signingIn || (isSignUp && (!agreedToTerms || (confirmPassword && password !== confirmPassword)))}
                     className="w-full py-3.5 bg-[#4a1942] text-white rounded-3xl font-semibold disabled:opacity-70"
                   >
-                    {loading ? t('auth.processing') : (isSignUp ? t('auth.signUp') : t('auth.signInBtn'))}
+                    {loading || signingIn ? t('auth.processing') : (isSignUp ? t('auth.signUp') : t('auth.signInBtn'))}
                   </button>
                 )}
                 <button 

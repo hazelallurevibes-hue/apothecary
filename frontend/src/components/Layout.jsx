@@ -32,7 +32,7 @@ import UpdateSplash from './UpdateSplash';
 import { APP_VERSION } from '../lib/appVersion';
 import BetaGrowthBanner from './BetaGrowthBanner';
 
-const LOGO_IMG = '/icon-192.png?v=1.15.2';
+const LOGO_IMG = '/icon-192.png?v=1.15.3';
 
 function NavLink({ to, children, onNavigate }) {
   return (

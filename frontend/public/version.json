@@ -1,11 +1,11 @@
 {
-  "version": "1.15.2",
-  "buildId": "2026-09-13T00:33:35.106Z",
-  "title": "Atelier is a real plan now",
-  "message": "Vendor analytics stay on your shop, Atelier unlocks house tools, and leftover food tags are gone from apothecary listings.",
+  "version": "1.15.3",
+  "buildId": "2026-09-13T01:52:50.158Z",
+  "title": "Login and dashboard cleanup",
+  "message": "Valid sign-in no longer shows a fake error. Missing notification tables are in place, and the login page allows blob workers.",
   "highlights": [
-    "Atelier treated as paid (0% fee, 50 seats, Maker Studio Pro)",
-    "Practitioners no longer land on the admin dashboard",
-    "Site Map, fonts, and social links cleaned up"
+    "Correct login errors vs profile-load failures",
+    "Signed-in users leave /login automatically",
+    "Vendor analytics scrolls to your shop stats"
   ]
 }

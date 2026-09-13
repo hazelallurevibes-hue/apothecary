@@ -35,6 +35,14 @@ export function mapAuthError(error) {
   if (msg.includes('captcha') || code.includes('captcha')) {
     return 'Security verification failed. Complete the CAPTCHA and try again.';
   }
+  if (
+    msg.includes('invalid login') ||
+    msg.includes('invalid credentials') ||
+    code === 'invalid_credentials' ||
+    code === 'invalid_grant'
+  ) {
+    return 'Email or password is incorrect.';
+  }
   return error?.message || 'Sign up failed. Please try again.';
 }
 

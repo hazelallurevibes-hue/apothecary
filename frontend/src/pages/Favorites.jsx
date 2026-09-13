@@ -1,16 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
-const API = import.meta.env.VITE_API_URL || '/api';
-
-export default function Favorites({ user }) {
-  const [favorites, setFavorites] = useState([]);
-
-  useEffect(() => {
-    fetch(`${API}/favorites/${user?.id || 3}`)
-      .then(r => r.json())
-      .then(setFavorites)
-      .catch(() => setFavorites([]));
-  }, [user]);
+export default function Favorites() {
+  const [favorites] = useState([]);
 
   return (
     <div>

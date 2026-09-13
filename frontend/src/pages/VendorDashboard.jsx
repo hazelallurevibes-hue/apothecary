@@ -79,7 +79,6 @@ import FulfillmentQuickPicker from '../components/FulfillmentQuickPicker';
 import { VERTICAL } from '../lib/vertical';
 
 
-const API = import.meta.env.VITE_API_URL || '/api';
 const EMPTY_MENU_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'general', safety_practices_certified: false, temp_photo_url: '' };
 const EMPTY_PRODUCE_SAFETY = { finish_temp_f: '', safety_opt_out: false, food_category: 'raw_fresh', safety_practices_certified: false, temp_photo_url: '' };
 const EMPTY_FRESHNESS = { harvest_date: '', good_by_date: '', storage_method: 'refrigerator', storage_notes: '', shelf_life_preset: '', listing_section: 'produce' };
@@ -1115,7 +1114,16 @@ export default function VendorDashboard({ user }) {
         </div>
         <div className="flex flex-col w-full gap-2 sm:flex-row sm:flex-wrap sm:w-auto">
           {vendorCan(user, 'analytics') && (
-            <a href="#analytics" className="px-4 py-2 border rounded-2xl text-sm font-medium hover:bg-white text-center">Your analytics</a>
+            <a
+              href="#analytics"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('analytics')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="px-4 py-2 border rounded-2xl text-sm font-medium hover:bg-white text-center"
+            >
+              Your analytics
+            </a>
           )}
           {(vendorCan(user, 'orders') || vendorCan(user, 'sell')) && (
             <Link to="/vendor-orders" className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-medium text-center">Incoming orders</Link>
@@ -1426,7 +1434,8 @@ export default function VendorDashboard({ user }) {
         </div>
       </details>
 
-      <div id="analytics" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
+      <h2 id="analytics" className="text-lg font-semibold text-[#4a1942] mb-3 scroll-mt-24">Your analytics</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 mb-8">
         <Link to="#add-menu" className="bg-white border rounded-3xl p-4 sm:p-6 hover:border-[#4a1942] hover:shadow-sm transition block min-w-0">
           <div className="text-sm text-gray-500">Active Listings</div>
           <div className="text-3xl sm:text-4xl font-semibold mt-2">{myMenu.length + myProduce.length}</div>
@@ -1925,7 +1934,7 @@ export default function VendorDashboard({ user }) {
         <h3 className="font-bold text-2xl mb-1">Buy from Other Vendors (B2B)</h3>
         <p className="text-sm text-gray-600 mb-4">Source apothecary goods or ritual supplies from fellow practitioners. Choose to display the seller&apos;s name and badge on <span className="font-medium">your public storefront</span> for transparency and collaboration.</p>
         
-        <B2BPurchasePanel myVendorId={myVendorId} API={API} />
+        <B2BPurchasePanel myVendorId={myVendorId} />
       </div>
 
       <div className="mb-8 bg-white border rounded-3xl p-6 sm:p-8">
@@ -2117,7 +2126,7 @@ export default function VendorDashboard({ user }) {
 }
 
 /* Inline B2B helper component */
-function B2BPurchasePanel({ myVendorId, API }) {
+function B2BPurchasePanel({ myVendorId }) {
   const [others, setOthers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [qty, setQty] = useState(10);
@@ -2127,37 +2136,28 @@ function B2BPurchasePanel({ myVendorId, API }) {
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
-    fetch(`${API}/produce-items`).then(r => r.json()).then(all => {
-      const filtered = (all || []).filter(p => p.vendor_id !== myVendorId);
-      setOthers(filtered.slice(0, 6));
-      if (filtered[0]) {
-        setSelected(filtered[0]);
-        setPrice(filtered[0].price || 3.5);
-        setSellerName((filtered[0].name || 'Farm') + ' farm direct');
-      }
-    }).catch(() => setOthers([]));
-  }, [myVendorId, API]);
+    if (!myVendorId) return;
+    supabase
+      .from('produce_items')
+      .select('id, name, price, vendor_id, photo')
+      .eq('approved', 1)
+      .limit(20)
+      .then(({ data }) => {
+        const filtered = (data || []).filter((p) => p.vendor_id !== myVendorId);
+        setOthers(filtered.slice(0, 6));
+        if (filtered[0]) {
+          setSelected(filtered[0]);
+          setPrice(filtered[0].price || 3.5);
+          setSellerName((filtered[0].name || 'Maker') + ' — fellow practitioner');
+        }
+      })
+      .catch(() => setOthers([]));
+  }, [myVendorId]);
 
   const doPurchase = async () => {
     if (!selected || !myVendorId) return;
-    const body = {
-      buyer_vendor_id: myVendorId,
-      seller_vendor_id: selected.vendor_id,
-      item_id: selected.id,
-      item_type: 'produce',
-      quantity: parseInt(qty) || 1,
-      price_per_unit: parseFloat(price) || selected.price,
-      delivery_method: 'pickup',
-      show_seller_badge: showBadge ? 1 : 0,
-      seller_name_on_page: showBadge ? (sellerName || `Sourced from ${selected.name}`) : ''
-    };
-    try {
-      const res = await fetch(`${API}/vendor-purchases`, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
-      if (res.ok) {
-        setMsg(`✅ Purchase saved. ${showBadge ? 'The seller badge is now live on your public storefront page.' : ''}`);
-        setTimeout(() => setMsg(''), 3800);
-      }
-    } catch(e){ setMsg('B2B vendor-to-vendor purchase recorded (for testing).'); }
+    setMsg('B2B purchase recording is not live yet — listings still show in the shop.');
+    setTimeout(() => setMsg(''), 3800);
   };
 
   return (

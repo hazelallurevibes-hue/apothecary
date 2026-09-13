@@ -199,12 +199,22 @@ function AppCore({ auth0 = null }) {
       const isOAuth = session.user.app_metadata?.provider === 'google'
         || (event === 'SIGNED_IN' && window.location.hash.includes('access_token'));
 
-      let profile = isOAuth
-        ? await ensureOAuthUserProfile(session)
-        : await resolveProfile(session.user.email, session.user.id);
-
-      if (!profile) {
-        profile = await resolveProfile(session.user.email, session.user.id);
+      let profile = null;
+      try {
+        profile = isOAuth
+          ? await ensureOAuthUserProfile(session)
+          : await resolveProfile(session.user.email, session.user.id);
+        if (!profile) {
+          profile = await resolveProfile(session.user.email, session.user.id);
+        }
+      } catch (e) {
+        console.warn('onAuthStateChange profile:', e);
+        profile = {
+          email: session.user.email,
+          id: session.user.id,
+          name: session.user.email.split('@')[0] || 'User',
+          role: 'customer',
+        };
       }
 
       commitUserProfile(profile);
@@ -342,7 +352,7 @@ function AppCore({ auth0 = null }) {
     <Suspense fallback={<PageLoader />}>
     <Routes>
       {/* Public / Auth routes (no layout) */}
-      <Route path="/login" element={<Login onLogin={login} loading={loading} />} />
+      <Route path="/login" element={<Login onLogin={login} loading={loading} user={user} />} />
       <Route path="/signup" element={<SignUp onLogin={login} />} />
       <Route path="/vendor-signup" element={<VendorSignUp onLogin={login} />} />
       <Route path="/customer-signup" element={<CustomerSignUp onLogin={login} />} />

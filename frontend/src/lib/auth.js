@@ -284,23 +284,54 @@ export async function signIn(email, password, { captchaToken } = {}) {
   });
 
   if (authError) {
-    if (authMode === 'supabase') {
-      throw authError;
+    if (authMode !== 'supabase' && /^https?:\/\//i.test(API_BASE)) {
+      const backendProfile = await fetchBackendProfile(normalizedEmail);
+      if (backendProfile && backendProfile.role !== 'guest') {
+        return backendProfile;
+      }
     }
-    const backendProfile = await fetchBackendProfile(normalizedEmail);
-    if (backendProfile && backendProfile.role !== 'guest') {
-      return backendProfile;
-    }
-    const fallbackProfile = await fetchSupabaseProfile(normalizedEmail);
-    if (fallbackProfile) return fallbackProfile;
-    throw new Error(authError.message || 'Sign in failed. Check Supabase credentials or start the local backend for testing.');
+    throw authError;
   }
 
-  await assertMfaComplete(normalizedEmail);
-  return resolveProfile(normalizedEmail, authData.user?.id);
+  try {
+    await assertMfaComplete(normalizedEmail);
+  } catch (e) {
+    if (e instanceof MfaRequiredError) throw e;
+    console.warn('MFA check after sign-in:', e);
+  }
+
+  try {
+    return await resolveProfile(normalizedEmail, authData.user?.id);
+  } catch (e) {
+    console.warn('Profile enrich after sign-in:', e);
+    return normalizeProfile({
+      id: authData.user?.id,
+      name: normalizedEmail.split('@')[0] || 'User',
+      email: normalizedEmail,
+      role: 'customer',
+    });
+  }
 }
 
 export async function restoreSession() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (session?.user?.email) {
+    try {
+      const profile = await resolveProfile(session.user.email, session.user.id);
+      localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
+      return profile;
+    } catch (e) {
+      console.warn('restoreSession profile:', e);
+      return normalizeProfile({
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.email.split('@')[0] || 'User',
+        role: 'customer',
+      });
+    }
+  }
+
   const cached = localStorage.getItem(STORAGE_KEYS.user);
   if (cached) {
     try {
@@ -311,23 +342,7 @@ export async function restoreSession() {
     } catch {
       /* ignore bad cache */
     }
-  }
-
-  const { data: { session } } = await supabase.auth.getSession();
-
-  if (session?.user?.email) {
-    const profile = await resolveProfile(session.user.email, session.user.id);
-    localStorage.setItem(STORAGE_KEYS.user, JSON.stringify(profile));
-    return profile;
-  }
-
-  if (cached) {
-    try {
-      const parsed = JSON.parse(cached);
-      if (parsed?.email) return enrichProfile(normalizeProfile(parsed));
-    } catch {
-      /* ignore */
-    }
+    localStorage.removeItem(STORAGE_KEYS.user);
   }
 
   return null;

@@ -56,6 +56,15 @@ export default function PageSeo() {
     upsertMeta('name', 'twitter:image', image);
     upsertLink('canonical', canonical);
 
+    const privatePath =
+      pathname === '/login' ||
+      pathname === '/account-settings' ||
+      pathname === '/dashboard' ||
+      pathname === '/vendor-dashboard' ||
+      pathname === '/orders' ||
+      pathname.startsWith('/account-settings');
+    upsertMeta('name', 'robots', privatePath ? 'noindex, nofollow' : 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1');
+
     document.querySelectorAll('link[rel="alternate"][hreflang]').forEach((el) => el.remove());
     hreflangLinks(pathname).forEach(({ hreflang, href }) => {
       const link = document.createElement('link');
