@@ -38,7 +38,8 @@ export default function ProUpgrade({ user }) {
   const customerCtx = getCustomerContext(user);
   const vendorCtx = getVendorContext(user);
   const role = (user?.role || '').toLowerCase();
-  const vendorOnly = searchParams.get('type') === 'vendor'
+  const vendorOnly =
+    (searchParams.get('type') === 'vendor' || (role === 'vendor' && searchParams.get('type') !== 'customer'))
     && (role === 'vendor' || role === 'admin' || !!vendorCtx?.isOwner);
   const isCustomerProActive = isCustomerPro(user);
   const isVendorProActive = isVendorPro(user);

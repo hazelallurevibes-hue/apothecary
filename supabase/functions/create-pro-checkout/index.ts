@@ -214,7 +214,13 @@ Deno.serve(async (req: Request) => {
         }, 404);
       }
       const plan = String(vendor.plan || "free").toLowerCase();
-      if (plan === "paid" || plan === "pro") {
+      const wantEnterprise = vendorTier === "enterprise" || vendorTier === "atelier";
+      const isEnterprise = plan === "enterprise" || plan === "atelier";
+      if (wantEnterprise) {
+        if (isEnterprise) {
+          return jsonResponse({ ok: false, error: "already_pro", message: "You already have Atelier access" }, 409);
+        }
+      } else if (plan === "paid" || plan === "pro" || isEnterprise) {
         return jsonResponse({ ok: false, error: "already_pro", message: "You already have Pro Vendor access" }, 409);
       }
     } else {

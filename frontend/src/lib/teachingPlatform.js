@@ -173,6 +173,7 @@ export async function saveCourse(course) {
     ...payload,
     approved: payload.published ? 1 : (payload.approved ?? 0),
   };
+  delete insertPayload.id;
   const { data, error } = await supabase.from('vendor_courses').insert(insertPayload).select().single();
   if (error) throw error;
   return enrichCourseWithTeachMeta(data);

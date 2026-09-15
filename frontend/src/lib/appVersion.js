@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.15.3';
+export const APP_VERSION = '1.15.4';
 
 export const UPDATE_SPLASH = {
-  title: 'Login and dashboard cleanup',
+  title: 'Storefront storm and login speed',
   message:
-    'Valid sign-in no longer shows a fake error. Missing notification tables are in place, and the login page allows blob workers.',
+    'Public shop pages no longer hammer the database. Sign-in should complete in seconds, and missing review/rating columns are in place.',
   highlights: [
-    'Correct login errors vs profile-load failures',
-    'Signed-in users leave /login automatically',
-    'Vendor analytics scrolls to your shop stats',
+    'Storefront request loop stopped',
+    'Employee lookup no longer recurses in RLS',
+    'Forgot-password and reset-password actually work',
   ],
 };
 

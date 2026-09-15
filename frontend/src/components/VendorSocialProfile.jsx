@@ -146,6 +146,8 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
   const [openSlotCount, setOpenSlotCount] = useState(0);
   const [bookingToast, setBookingToast] = useState('');
   const tabRefs = useRef([]);
+  const seoRef = useRef(onSeoData);
+  seoRef.current = onSeoData;
 
   const isPaid = isProPlan(vendor?.plan);
   const accent = isPaid ? (vendor?.theme_color || VERTICAL.colors.primary) : VERTICAL.colors.primary;
@@ -215,7 +217,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
 
       const v = applySabbaticalExpiry(vendorRes.data || { id: vendorId, name: VERTICAL.copy.practitionerFallback, bio: '' });
       setVendor(v);
-      onSeoData?.({ vendor: v });
+      seoRef.current?.({ vendor: v });
       setServices(servicesRes.data || []);
       setApothecary(apothecaryRes.data || []);
       setCourses(courseRows || []);
@@ -234,7 +236,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
       setLoading(false);
     };
     load();
-  }, [vendorId, onSeoData]);
+  }, [vendorId]);
 
   useEffect(() => {
     if (banners.length <= 1) return undefined;

@@ -36,17 +36,22 @@ export async function fetchEmployeeRecord(email) {
 
   const { data, error } = await supabase
     .from('vendor_employees')
-    .select('*, vendors(plan)')
+    .select('vendor_id, permissions')
     .ilike('employee_email', normalized)
     .eq('active', true)
     .limit(1);
 
   if (error || !data?.length) return null;
   const row = data[0];
+  let vendorPlan = 'free';
+  if (row.vendor_id) {
+    const { data: v } = await supabase.from('vendors').select('plan').eq('id', row.vendor_id).maybeSingle();
+    vendorPlan = v?.plan || 'free';
+  }
   return {
     vendor_id: row.vendor_id,
     permissions: Array.isArray(row.permissions) ? row.permissions : [],
-    vendor_plan: row.vendors?.plan || 'free',
+    vendor_plan: vendorPlan,
   };
 }
 

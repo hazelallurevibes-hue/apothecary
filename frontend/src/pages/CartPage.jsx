@@ -133,7 +133,7 @@ export default function CartPage({ user }) {
           payment_note: isCash
             ? 'Cash on pickup — free for vendor (no Connect fee). Platform does not hold funds.'
             : paymentMethod === 'paypal' && vendorPay?.paypal_account_id
-              ? `PayPal to ${vendorPay.paypal_account_id} — unpaid until completed on PayPal`
+              ? 'PayPal to maker — unpaid until completed on PayPal'
               : paymentMethod === 'card' && vendorPay?.stripe_account_id
                 ? 'Card via Stripe — physical order: funds held until fulfilled, then transferred to maker'
                 : 'Awaiting payment',
@@ -500,8 +500,11 @@ export default function CartPage({ user }) {
                   )}
                 </div>
                 <div>
-                  <strong>Total:</strong> ${total.toFixed(2)}
+                  <strong>Subtotal:</strong> ${total.toFixed(2)}
                 </div>
+                <p className="text-xs text-gray-500 pt-1">
+                  Sales tax and any marketplace fee are added when you place the order. Cash on pickup stays free for the maker (no Stripe Connect fee).
+                </p>
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">

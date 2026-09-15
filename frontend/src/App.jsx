@@ -497,7 +497,11 @@ function AppCore({ auth0 = null }) {
                 <Route path="/vendor/:id" element={<VendorProductPage user={user} />} />
 
                 {/* Shared / Public-ish */}
-                <Route path="/account-settings" element={<AccountSettings user={user} onProfileUpdate={commitUserProfile} />} />
+                <Route path="/account-settings" element={
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
+                    <AccountSettings user={user} onProfileUpdate={commitUserProfile} />
+                  </ProtectedRoute>
+                } />
                 <Route path="/pro-upgrade" element={<ProUpgrade user={user} />} />
                 <Route path="/pro/success" element={<ProSuccess user={user} onProfileUpdate={commitUserProfile} />} />
                 <Route path="/pro/cancel" element={<ProCancel />} />

@@ -80,7 +80,7 @@ export function describeVendorPaymentMethods(vendor) {
       id: 'paypal',
       label: 'PayPal',
       available: true,
-      hint: `Pay ${vendor.paypal_account_id} on PayPal after placing — then tap “I paid” on My Orders.`,
+      hint: 'Pay this maker on PayPal after placing — then tap “I paid” on My Orders. The PayPal destination is shown on the order, not at checkout.',
       paypalId: vendor.paypal_account_id,
     });
   } else {

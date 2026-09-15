@@ -14,13 +14,7 @@ export default function Invoices({ user }) {
     fetch(url)
       .then(r => r.json())
       .then(setInvoices)
-      .catch(() => {
-        // Fallback placeholder data (for when no real invoices yet)
-        setInvoices([
-          { id: 1, vendor_id: 1, amount: 1240, status: "paid", date: "2025-01-28", due_date: "2025-02-12", file: "INV-884.pdf" },
-          { id: 2, vendor_id: 2, amount: 890, status: "pending", date: "2025-02-01", due_date: "2025-02-18", file: "INV-885.pdf" },
-        ]);
-      });
+      .catch(() => setInvoices([]));
   };
 
   useEffect(() => { loadInvoices(); }, [user]);

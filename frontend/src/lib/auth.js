@@ -4,6 +4,7 @@ import { fetchEmployeeRecord } from './employeesApi';
 import { getAppUrl } from './appUrl';
 import { VERTICAL } from './vertical';
 import { STORAGE_KEYS } from './storageKeys';
+import { HAZEL_AUTH_STORAGE_KEY } from './sharedAuthStorage';
 import { applySubscriptionProFlags, fetchActiveSubscriptionsForEmail } from './proStatus';
 import { applyAdminProFlags, resolveIsAdmin } from './resolveAdmin';
 
@@ -350,6 +351,12 @@ export async function restoreSession() {
 
 export async function signOut() {
   localStorage.removeItem(STORAGE_KEYS.user);
+  try {
+    localStorage.removeItem(HAZEL_AUTH_STORAGE_KEY);
+    localStorage.removeItem(`${HAZEL_AUTH_STORAGE_KEY}-code-verifier`);
+  } catch {
+    /* ignore */
+  }
   await supabase.auth.signOut();
 }
 
