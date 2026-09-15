@@ -57,8 +57,8 @@ export default function CustomerPortal({ user }) {
   const isPro = isCustomerProUser(user) || isProPlan(customerCtx?.plan);
   const showOrders = isProMemberPrefEnabled('track_orders');
   const showLoyalty = isProMemberPrefEnabled('loyalty');
-  const showFavorites = isProMemberPrefEnabled('favorites');
-  const showSupport = isProMemberPrefEnabled('priority_support');
+  const showFavorites = false;
+  const showSupport = false;
   const showExpress = isPro && isProMemberPrefEnabled('express_checkout');
 
   return (
@@ -70,7 +70,7 @@ export default function CustomerPortal({ user }) {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-2">
         <div>
           <h1 className="text-4xl font-bold tracking-tight text-[#4a1942]">Seeker Portal</h1>
-          <p className="mt-2 text-gray-600">Your personal hub for orders, favorites, sessions, and support.</p>
+          <p className="mt-2 text-gray-600">Your personal hub for orders, sessions, and account tools.</p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link
               to="/sanctum-student-hub"
@@ -132,7 +132,7 @@ export default function CustomerPortal({ user }) {
         </div>
 
         {cart.length === 0 ? (
-          <p className="text-gray-500 text-sm">No items yet. Add dishes from the Marketplace or any Vendor Profile (Premium Express available!). <Link to="/marketplace" className="text-[#4a1942]">Browse Marketplace →</Link></p>
+          <p className="text-gray-500 text-sm">No items yet. Add goods from the Apothecary or a practitioner shop. <Link to="/products" className="text-[#4a1942]">Browse apothecary →</Link></p>
         ) : (
           <>
             <div className="space-y-3 mb-4 max-h-48 overflow-auto">
@@ -206,7 +206,7 @@ export default function CustomerPortal({ user }) {
             <h3 className="font-semibold mb-2">Your Loyalty Points</h3>
             <div className="text-3xl font-bold text-amber-600">{loyaltyPoints} <span className="text-base">pts</span></div>
             <div className="text-xs text-amber-700">Earn 10 pts per $1 spent. 500 pts = $10 off next order!</div>
-            <div className="mt-4 text-xs">Next reward at 500 pts • You're 65% there.</div>
+            <div className="mt-4 text-xs">Next reward at 500 pts • {Math.min(100, Math.round((loyaltyPoints / 500) * 100))}% there.</div>
           </div>
         )}
 

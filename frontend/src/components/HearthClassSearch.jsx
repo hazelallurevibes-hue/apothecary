@@ -28,7 +28,7 @@ export default function HearthClassSearch({ user }) {
       .finally(() => setLoading(false));
   }, [debounced]);
 
-  useEffect(() => {
+  const requestNearby = () => {
     if (!navigator?.geolocation) {
       setGeoNote('Share a city below to sort nearby classes.');
       return;
@@ -41,7 +41,7 @@ export default function HearthClassSearch({ user }) {
       () => setGeoNote('Location blocked — type a city to filter nearby classes.'),
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 },
     );
-  }, []);
+  };
 
   // Optional profile city as soft hint
   useEffect(() => {
@@ -94,7 +94,7 @@ export default function HearthClassSearch({ user }) {
           <p className="text-[10px] uppercase tracking-[0.18em] text-[#c9a227] font-bold">Teaching Sanctum</p>
           <h2 className="text-xl font-bold text-[#4a1942] heading-font">Classes near you</h2>
           <p className="text-xs text-gray-500 mt-0.5">
-            Search open courses · {geoNote || 'Loading nearby…'}
+            Search open courses · {geoNote || 'Type a city, or share location when you want nearby results.'}
           </p>
         </div>
         <Link
@@ -122,6 +122,13 @@ export default function HearthClassSearch({ user }) {
             Catalog
           </Link>
         </div>
+        <button
+          type="button"
+          onClick={requestNearby}
+          className="px-3 py-2 rounded-xl border text-xs font-semibold text-[#4a1942] bg-white"
+        >
+          Use my location
+        </button>
         <input
           type="text"
           value={cityHint}

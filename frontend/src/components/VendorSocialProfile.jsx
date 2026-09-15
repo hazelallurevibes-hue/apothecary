@@ -56,7 +56,7 @@ function ListingCard({ item, vendor, itemType, accent, user }) {
     <article className="bg-white border border-[#c9a227]/15 rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
       <Link to={listingDetailPath(itemType, item.id)} className="block">
         <img
-          src={item.photo || 'https://picsum.photos/400/300'}
+          src={item.photo || '/brand/og-lockup.png'}
           className="h-40 w-full object-cover"
           alt={item.name || 'Listing photo'}
           loading="lazy"

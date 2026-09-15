@@ -1,4 +1,4 @@
-export const DEFAULT_LISTING_PHOTO = 'https://picsum.photos/seed/hazelallure-listing/640/480';
+export const DEFAULT_LISTING_PHOTO = '/brand/og-lockup.png';
 
 export function resolveListingPhoto(url) {
   const trimmed = (url || '').trim();

@@ -96,7 +96,7 @@ export default function ProduceFreshnessFields({ value, onChange, disabled, isPl
         <label className="text-xs text-gray-600">Storage notes for customers (optional)</label>
         <textarea
           className="w-full border p-2.5 rounded-xl mt-1 text-sm min-h-[60px]"
-          placeholder="e.g. Unwashed farm eggs — refrigerate within 2 hours of pickup. Can water-bath can upon request."
+          placeholder="e.g. Dried in shade; store in amber glass away from heat and light."
           value={v.storage_notes || ''}
           disabled={disabled}
           onChange={(e) => set({ storage_notes: e.target.value })}

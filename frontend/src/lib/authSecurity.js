@@ -20,12 +20,12 @@ export function assessAuthRequest({ honeypot = '', formStartedAt = 0 } = {}) {
   }
 
   const elapsed = formStartedAt ? Date.now() - formStartedAt : Number.POSITIVE_INFINITY;
-  if (elapsed < 1200) {
+  if (elapsed < 400) {
     return {
       allow: false,
       suspicious: true,
       reason: 'timing',
-      message: 'That was too fast — wait a moment, complete the security check, and try again.',
+      message: 'That was too fast — wait a moment and try again.',
     };
   }
 

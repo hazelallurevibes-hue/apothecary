@@ -40,6 +40,7 @@ export default function CartPage({ user }) {
   const [err, setErr] = useState('');
   const [vendorPay, setVendorPay] = useState(null);
   const [lastOrderId, setLastOrderId] = useState(null);
+  const [taxPreview, setTaxPreview] = useState(null);
 
   const itemCount = cart.reduce((s, i) => s + (i.qty || 1), 0);
   const vendorId = cart[0]?.vendor_id;
@@ -53,6 +54,37 @@ export default function CartPage({ user }) {
       .then(setVendorPay)
       .catch(() => setVendorPay(null));
   }, [vendorId]);
+
+  useEffect(() => {
+    if (checkoutStep !== 4 || !vendorId) {
+      setTaxPreview(null);
+      return undefined;
+    }
+    let cancelled = false;
+    const shipAmt =
+      isShippingEnabled() && resolveDeliveryMethod(deliveryMethod) === 'shipping'
+        ? (shippingEstimate || 8.99)
+        : 0;
+    buildTaxedOrderPayload(
+      { subtotal: total, total, shipping_amount: shipAmt },
+      vendorId,
+      {
+        country: address.country || 'US',
+        region: address.state,
+        postalCode: address.zip,
+        city: address.city,
+      },
+    )
+      .then((q) => {
+        if (!cancelled) setTaxPreview(q);
+      })
+      .catch(() => {
+        if (!cancelled) setTaxPreview(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [checkoutStep, vendorId, total, deliveryMethod, shippingEstimate, address]);
 
   const payMethods = useMemo(() => describeVendorPaymentMethods(vendorPay || {}), [vendorPay]);
   const availableMethods = payMethods.filter((m) => m.available);
@@ -500,11 +532,27 @@ export default function CartPage({ user }) {
                   )}
                 </div>
                 <div>
-                  <strong>Subtotal:</strong> ${total.toFixed(2)}
+                  <strong>Subtotal:</strong> ${Number(taxPreview?.subtotal ?? total).toFixed(2)}
                 </div>
-                <p className="text-xs text-gray-500 pt-1">
-                  Sales tax and any marketplace fee are added when you place the order. Cash on pickup stays free for the maker (no Stripe Connect fee).
-                </p>
+                {taxPreview && (
+                  <>
+                    <div>
+                      <strong>Tax:</strong> ${Number(taxPreview.sales_tax || 0).toFixed(2)}
+                    </div>
+                    {Number(taxPreview.platform_fee) > 0 && (
+                      <div>
+                        <strong>Marketplace fee:</strong> ${Number(taxPreview.platform_fee).toFixed(2)}
+                        <span className="text-xs text-gray-500"> (buyer-side; cash pickup stays free for the maker)</span>
+                      </div>
+                    )}
+                    <div>
+                      <strong>You pay:</strong> ${Number(taxPreview.total).toFixed(2)}
+                    </div>
+                  </>
+                )}
+                {!taxPreview && (
+                  <p className="text-xs text-gray-500 pt-1">Estimating tax…</p>
+                )}
               </div>
               <div className="flex gap-3">
                 <button type="button" onClick={prevStep} className="flex-1 py-3 border rounded-3xl">

@@ -47,10 +47,10 @@ export async function purchaseShippingLabel({ orderId, vendorId, carrier, servic
   return json;
 }
 
-export async function markOrderShipped(orderId, { trackingNumber, carrier } = {}) {
+export async function markOrderShipped(orderId, { trackingNumber, carrier, pickup = false } = {}) {
   const patch = {
     shipped_at: new Date().toISOString(),
-    status: 'shipped',
+    status: pickup ? 'fulfilled' : 'shipped',
     payout_status: 'release_ready',
   };
   if (trackingNumber) patch.tracking_number = trackingNumber;

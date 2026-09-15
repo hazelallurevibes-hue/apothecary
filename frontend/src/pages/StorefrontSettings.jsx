@@ -563,7 +563,7 @@ export default function StorefrontSettings({ user }) {
                     title="Click to upload highlight photo"
                   >
                     <img
-                      src={vendor?.highlight_photo || 'https://picsum.photos/200/120'}
+                      src={vendor?.highlight_photo || '/brand/og-lockup.png'}
                       alt=""
                       className="w-full h-24 rounded-2xl object-cover border"
                     />
@@ -647,7 +647,7 @@ export default function StorefrontSettings({ user }) {
       <div className="mt-8 bg-white border rounded-3xl p-8">
         <h2 className="font-semibold text-lg mb-1">Live session stream</h2>
         <p className="text-sm text-gray-500 mb-5">
-          Link your YouTube, Twitch, or Rumble channel. Customers see a live embed on your storefront while you cook.
+          Link your YouTube, Twitch, or Rumble channel. Seekers see a live embed on your storefront.
           Past broadcasts are archived as thumbnails only — source links stay private.
         </p>
 

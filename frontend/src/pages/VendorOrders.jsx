@@ -53,7 +53,7 @@ export default function VendorOrders({ user }) {
   const getStatusColor = (status, paymentStatus, payoutStatus) => {
     if (payoutStatus === 'held' || payoutStatus === 'release_ready') return 'bg-violet-100 text-violet-900';
     if (paymentStatus === 'unpaid' || status === 'awaiting_payment') return 'bg-amber-100 text-amber-900';
-    if (status === 'delivered' || status === 'fulfilled' || status === 'shipped') {
+    if (status === 'delivered' || status === 'fulfilled' || status === 'shipped' || status === 'ready_for_pickup') {
       return 'bg-emerald-100 text-emerald-700';
     }
     if (status === 'preparing') return 'bg-amber-100 text-amber-700';
@@ -64,16 +64,25 @@ export default function VendorOrders({ user }) {
   const onMarkShipped = async (order) => {
     setBusyId(order.id);
     setMsg('');
+    const pickup = !isShippingEnabled() && order.delivery_method !== 'shipping';
     try {
-      const tracking = window.prompt('Tracking number (optional)', order.tracking_number || '') || '';
+      let tracking = '';
+      if (!pickup) {
+        tracking = window.prompt('Tracking number (optional)', order.tracking_number || '') || '';
+      }
       const updated = await markOrderShipped(order.id, {
         trackingNumber: tracking || undefined,
         carrier: order.shipping_carrier || undefined,
+        pickup,
       });
       setOrders((prev) => prev.map((o) => (o.id === updated.id ? { ...o, ...updated } : o)));
-      setMsg(`Order #${order.id} marked shipped. Payout is ready to release if card was held.`);
+      setMsg(
+        pickup
+          ? `Order #${order.id} marked ready for pickup.`
+          : `Order #${order.id} marked shipped. Payout is ready to release if card was held.`,
+      );
     } catch (e) {
-      alert(e.message);
+      setMsg(e.message);
     }
     setBusyId(null);
   };

@@ -117,7 +117,7 @@ export default function Marketplace({ user }) {
   return (
     <div>
       <CauldronCancelToast />
-      <div className="flex justify-between items-end mb-6">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-between sm:items-end gap-3 mb-6">
         <div>
           <h1 className="text-4xl font-bold tracking-tight heading-font text-[#4a1942]">{VERTICAL.labels.marketplace}</h1>
           <p className="text-gray-600">Book psychics, practitioners, massage, yoga, curanderas &amp; more worldwide</p>
@@ -130,7 +130,7 @@ export default function Marketplace({ user }) {
           placeholder="Search services..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="border px-5 py-3 rounded-3xl w-72 text-sm"
+          className="border px-5 py-3 rounded-3xl w-full sm:w-72 text-sm"
         />
         <select
           value={categoryFilter}

@@ -32,7 +32,7 @@ import UpdateSplash from './UpdateSplash';
 import { APP_VERSION } from '../lib/appVersion';
 import BetaGrowthBanner from './BetaGrowthBanner';
 
-const LOGO_IMG = '/icon-192.png?v=1.15.4';
+const LOGO_IMG = '/icon-192.png?v=1.15.5';
 
 function NavLink({ to, children, onNavigate }) {
   return (
@@ -127,8 +127,6 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'The Hearth', to: '/gathering', perm: null },
       { label: 'My Cart', to: '/cart', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
-      { label: 'Favorites', to: '/favorites', perm: 'favorites' },
-      { label: 'Support & Help', to: '/support', perm: 'support' },
       { label: 'Account Settings', to: '/account-settings', perm: null },
     ];
     return items.filter((i) => !i.perm || customerCan(user, i.perm));
@@ -139,8 +137,7 @@ export default function Layout({ user, onLogout, children }) {
     { label: 'Wellness Services', to: '/services' },
     { label: 'Apothecary', to: '/products' },
     { label: 'FAQ', to: '/faq' },
-    { label: 'Edit Profile', to: ACCOUNT_PROFILE_PATH },
-    { label: 'Account Settings', to: '/account-settings' },
+    { label: 'Sign in', to: '/login' },
   ];
 
   const vendorSellMenu = useMemo(() => {
@@ -169,8 +166,6 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Incoming orders', to: '/vendor-orders', perm: 'orders' },
       { label: 'My shopping cart', to: '/cart', perm: null },
       { label: 'Tasks', to: '/tasks', perm: 'tasks' },
-      { label: 'Invoices', to: '/invoices', perm: 'invoices' },
-      { label: 'Documents', to: '/documents', perm: 'documents' },
     ];
     return items.filter((i) => !i.perm || vendorCan(user, i.perm));
   }, [user]);

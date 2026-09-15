@@ -1929,13 +1929,13 @@ export default function VendorDashboard({ user }) {
         )}
       </div>
 
-      {/* Vendor-to-Vendor B2B Purchasing + Badge on YOUR page - fully featured */}
+      {VERTICAL.id === 'bpicius' && (
       <div className="mb-8 bg-white border rounded-3xl p-8">
         <h3 className="font-bold text-2xl mb-1">Buy from Other Vendors (B2B)</h3>
-        <p className="text-sm text-gray-600 mb-4">Source apothecary goods or ritual supplies from fellow practitioners. Choose to display the seller&apos;s name and badge on <span className="font-medium">your public storefront</span> for transparency and collaboration.</p>
-        
+        <p className="text-sm text-gray-600 mb-4">Source goods from fellow makers. Choose to display the seller&apos;s name and badge on <span className="font-medium">your public storefront</span>.</p>
         <B2BPurchasePanel myVendorId={myVendorId} />
       </div>
+      )}
 
       <div className="mb-8 bg-white border rounded-3xl p-6 sm:p-8">
         <h3 className="font-bold text-xl sm:text-2xl mb-2">Your profile &amp; storefront</h3>
@@ -2179,7 +2179,7 @@ function B2BPurchasePanel({ myVendorId }) {
             <input type="number" step="0.1" value={price} onChange={e=>setPrice(e.target.value)} className="border p-2 rounded-xl" placeholder="Price/unit" />
             <label className="flex items-center gap-2 col-span-2 text-sm"><input type="checkbox" checked={showBadge} onChange={e=>setShowBadge(e.target.checked)} /> Display seller name &amp; badge on MY page</label>
           </div>
-          {showBadge && <input className="mt-3 w-full border p-2 rounded-xl" value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder="Badge text shown on your page e.g. Fresh from Green Acres" />}
+          {showBadge && <input className="mt-3 w-full border p-2 rounded-xl" value={sellerName} onChange={e=>setSellerName(e.target.value)} placeholder="Badge text shown on your page, e.g. Sourced from a fellow maker" />}
           <button onClick={doPurchase} className="mt-3 px-6 py-2 bg-emerald-800 text-white text-sm rounded-2xl w-full">Record B2B Purchase (Badge if checked)</button>
           {msg && <div className="text-emerald-600 mt-2 text-sm font-medium">{msg}</div>}
         </div>

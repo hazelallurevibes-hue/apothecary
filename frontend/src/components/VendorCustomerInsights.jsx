@@ -52,7 +52,7 @@ export default function VendorCustomerInsights({ user, vendorId }) {
       </p>
 
       <InsightBlock title="Popular wellness lifestyles" items={(insights.diets || []).map((d) => `${d.diet} (${d.count})`)} />
-      <InsightBlock title="Often avoided ingredients" items={(insights.top_disliked_foods || []).map((d) => `${d.item} (${d.count})`)} />
+      <InsightBlock title="Often avoided ingredients" items={(insights.top_disliked_foods || insights.top_disliked_ingredients || []).map((d) => `${d.item} (${d.count})`)} />
       <InsightBlock title="Botanicals seekers avoid" items={(insights.top_disliked_herbs || []).map((d) => `${d.herb} (${d.count})`)} />
       <InsightBlock title="Common allergens avoided" items={(insights.common_allergens || []).map((d) => `${d.allergen} (${d.count})`)} />
     </div>
