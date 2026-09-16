@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../components/CartContext';
 import { fetchOrdersForUser } from '../lib/ordersApi';
+import { fetchFavorites } from '../lib/favoritesApi';
 import { getCustomerContext, isProPlan, planBadgeLabel } from '../lib/plans';
 import { isCustomerProUser } from '../lib/proStatus';
 import ProBenefitsStrip from '../components/ProBenefitsStrip';
@@ -37,7 +38,7 @@ export default function CustomerPortal({ user }) {
 
     Promise.all([
       fetchOrdersForUser(user).catch(() => []),
-      Promise.resolve([]),
+      fetchFavorites(user).catch(() => []),
       Promise.resolve([]),
       Promise.resolve({ points: 0 }),
     ]).then(([orders, favs, iss, loy]) => {
@@ -57,7 +58,7 @@ export default function CustomerPortal({ user }) {
   const isPro = isCustomerProUser(user) || isProPlan(customerCtx?.plan);
   const showOrders = isProMemberPrefEnabled('track_orders');
   const showLoyalty = isProMemberPrefEnabled('loyalty');
-  const showFavorites = false;
+  const showFavorites = isProMemberPrefEnabled('favorites');
   const showSupport = false;
   const showExpress = isPro && isProMemberPrefEnabled('express_checkout');
 
@@ -216,13 +217,13 @@ export default function CustomerPortal({ user }) {
             {loading ? (
               <p className="text-sm text-gray-500">Loading...</p>
             ) : favorites.length === 0 ? (
-              <p className="text-sm text-gray-500">Heart vendors in the Marketplace to see them here. Premium members get alerts for new menu items.</p>
+              <p className="text-sm text-gray-500">Heart a practitioner or listing to see it here.</p>
             ) : (
               <div className="space-y-2 text-sm">
                 {favorites.map((v, i) => (
                   <div key={i} className="flex justify-between">
                     <span>{v.name || 'Vendor'}</span>
-                    <Link to={`/vendor/${v.vendor_id || v.id}`} className="text-[#4a1942] text-xs">View Profile</Link>
+                    <Link to={v.href || `/vendor/${v.vendor_id || v.id}`} className="text-[#4a1942] text-xs">View</Link>
                   </div>
                 ))}
               </div>

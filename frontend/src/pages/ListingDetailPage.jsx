@@ -28,6 +28,7 @@ import {
   proMemberPrice,
   formatStars,
 } from '../lib/productDisplay';
+import FavoriteButton from '../components/FavoriteButton';
 
 export default function ListingDetailPage({ user }) {
   const { type, id } = useParams();
@@ -243,6 +244,14 @@ export default function ListingDetailPage({ user }) {
                   {vendor.name} →
                 </Link>
               )}
+              <div className="mt-2">
+                <FavoriteButton
+                  user={user}
+                  itemType={itemType}
+                  itemId={item.id}
+                  vendorId={vendor?.id || item.vendor_id}
+                />
+              </div>
             </div>
             <div className="text-right">
               {(() => {

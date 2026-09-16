@@ -32,7 +32,7 @@ import UpdateSplash from './UpdateSplash';
 import { APP_VERSION } from '../lib/appVersion';
 import BetaGrowthBanner from './BetaGrowthBanner';
 
-const LOGO_IMG = '/icon-192.png?v=1.15.5';
+const LOGO_IMG = '/icon-192.png?v=1.15.6';
 
 function NavLink({ to, children, onNavigate }) {
   return (
@@ -127,6 +127,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'The Hearth', to: '/gathering', perm: null },
       { label: 'My Cart', to: '/cart', perm: null },
       { label: 'My Orders', to: '/orders', perm: 'track_orders' },
+      { label: 'Favorites', to: '/favorites', perm: null },
       { label: 'Account Settings', to: '/account-settings', perm: null },
     ];
     return items.filter((i) => !i.perm || customerCan(user, i.perm));
@@ -164,6 +165,7 @@ export default function Layout({ user, onLogout, children }) {
       { label: 'Tax & SaaS Fees', to: '/vendor-taxes', perm: 'sell' },
       { label: 'Performance & Analytics', to: '/vendor-dashboard#analytics', perm: 'analytics' },
       { label: 'Incoming orders', to: '/vendor-orders', perm: 'orders' },
+      { label: 'Invoices', to: '/invoices', perm: null },
       { label: 'My shopping cart', to: '/cart', perm: null },
       { label: 'Tasks', to: '/tasks', perm: 'tasks' },
     ];

@@ -1,11 +1,11 @@
 {
-  "version": "1.15.5",
-  "buildId": "2026-09-15T23:52:59.298Z",
-  "title": "Hazel-only cleanup",
-  "message": "User emails are no longer public. Dead ticket/document tools are hidden. Farm leftover copy is gone from the apothecary.",
+  "version": "1.15.6",
+  "buildId": "2026-09-16T00:50:56.549Z",
+  "title": "Favorites and invoices work",
+  "message": "Seekers can heart practitioners and listings. Practitioners see real sales invoices from orders.",
   "highlights": [
-    "Checkout confirm shows tax before you place the order",
-    "Pickup orders mark ready, not shipped",
-    "Support is email until tickets ship"
+    "Save hearts on shop and product pages",
+    "Invoices list actual shop orders",
+    "Free and Pro both get these tools"
   ]
 }

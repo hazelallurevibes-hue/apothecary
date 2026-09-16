@@ -45,6 +45,7 @@ export const FREE_VENDOR_PERMISSIONS = [
   'profile_editor',
   'ratings',
   'orders',
+  'invoices',
   'employees',
   'service_video',
   'inventory_pos',
@@ -72,7 +73,7 @@ export const CUSTOMER_PERMISSIONS = {
   showcase_achievements: { label: 'Achievement shelf', description: 'Choose achievements to display on profile (paid)' },
 };
 
-export const FREE_CUSTOMER_PERMISSIONS = ['buy', 'track_orders', 'delivery_connect', 'profile_editor'];
+export const FREE_CUSTOMER_PERMISSIONS = ['buy', 'track_orders', 'delivery_connect', 'profile_editor', 'favorites'];
 export const PAID_CUSTOMER_PERMISSIONS = Object.keys(CUSTOMER_PERMISSIONS);
 
 export const FREE_VENDOR_EMPLOYEE_LIMIT = 1;

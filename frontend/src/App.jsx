@@ -430,7 +430,7 @@ function AppCore({ auth0 = null }) {
                   </ProtectedRoute>
                 } />
                 <Route path="/favorites" element={
-                  <ProtectedRoute allowedRoles={['customer']} customerPermission="favorites"><Favorites user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['customer']}><Favorites user={user} /></ProtectedRoute>
                 } />
                 <Route path="/support" element={
                   <ProtectedRoute allowedRoles={['customer']} customerPermission="support"><Support user={user} /></ProtectedRoute>
@@ -444,7 +444,7 @@ function AppCore({ auth0 = null }) {
                   <ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorDashboard user={user} /></ProtectedRoute>
                 } />
                 <Route path="/invoices" element={
-                  <ProtectedRoute allowedRoles={['admin', 'vendor']} vendorPermission="invoices"><Invoices user={user} /></ProtectedRoute>
+                  <ProtectedRoute allowedRoles={['admin', 'vendor']}><Invoices user={user} /></ProtectedRoute>
                 } />
                 <Route path="/tasks" element={
                   <ProtectedRoute allowedRoles={['admin', 'vendor']} vendorPermission="tasks"><Tasks user={user} /></ProtectedRoute>

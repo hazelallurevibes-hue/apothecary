@@ -3,6 +3,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient';
 import { VERTICAL } from '../lib/vertical';
 import { isProPlan } from '../lib/plans';
+import FavoriteButton from './FavoriteButton';
 import ListingFulfillmentActions from './ListingFulfillmentActions';
 import VendorFulfillmentPanel from './VendorFulfillmentPanel';
 import VendorReviewPanel from './VendorReviewPanel';
@@ -75,6 +76,13 @@ function ListingCard({ item, vendor, itemType, accent, user }) {
           ${Number(item.price || 0).toFixed(2)}
           {item.time_made ? ` · ${item.time_made}` : ''}
         </p>
+        <FavoriteButton
+          user={user}
+          itemType={itemType === 'apothecary' || itemType === 'produce' ? 'produce' : 'menu'}
+          itemId={item.id}
+          vendorId={vendor?.id}
+          className="mt-2"
+        />
         <div className="flex flex-wrap gap-1 mt-2">
           <AllergenBadges allergens={item.allergens} compact />
           <SafetyStatusBadge item={item} />
@@ -367,6 +375,7 @@ export default function VendorSocialProfile({ vendorId, user, onSeoData }) {
                   Pro
                 </span>
               )}
+              <FavoriteButton user={user} itemType="vendor" vendorId={vendor.id} />
             </div>
             {specialty && (
               <p className="text-sm sm:text-base text-[#6b7f6a] mt-1 font-medium">{specialty}</p>

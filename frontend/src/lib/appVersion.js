@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.15.5';
+export const APP_VERSION = '1.15.6';
 
 export const UPDATE_SPLASH = {
-  title: 'Hazel-only cleanup',
+  title: 'Favorites and invoices work',
   message:
-    'User emails are no longer public. Dead ticket/document tools are hidden. Farm leftover copy is gone from the apothecary.',
+    'Seekers can heart practitioners and listings. Practitioners see real sales invoices from orders.',
   highlights: [
-    'Checkout confirm shows tax before you place the order',
-    'Pickup orders mark ready, not shipped',
-    'Support is email until tickets ship',
+    'Save hearts on shop and product pages',
+    'Invoices list actual shop orders',
+    'Free and Pro both get these tools',
   ],
 };
 
