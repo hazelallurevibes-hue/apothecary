@@ -50,13 +50,13 @@ export async function fetchVendorPaymentMethods(vendorId) {
   if (!vid) return null;
   const { data, error } = await supabase
     .from('vendors')
-    .select('id, name, stripe_account_id, paypal_account_id, stripe_connect_status, paypal_connected_at')
+    .select('id, name, stripe_account_id, paypal_account_id, stripe_connect_status, paypal_connected_at, external_store_urls, show_external_at_checkout')
     .eq('id', vid)
     .maybeSingle();
-  if (error && /paypal_connected_at|stripe_connect_status/i.test(error.message || '')) {
+  if (error && /paypal_connected_at|stripe_connect_status|external_store|show_external/i.test(error.message || '')) {
     const min = await supabase
       .from('vendors')
-      .select('id, name, stripe_account_id, paypal_account_id')
+      .select('id, name, stripe_account_id, paypal_account_id, external_store_urls')
       .eq('id', vid)
       .maybeSingle();
     return min.data || null;

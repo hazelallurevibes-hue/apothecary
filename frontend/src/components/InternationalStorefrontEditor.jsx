@@ -37,8 +37,8 @@ export default function InternationalStorefrontEditor({
   return (
     <div className="space-y-5 text-sm">
       <p className="text-gray-600">
-        <strong>Recommended for international:</strong> link your Amazon, eBay, WooCommerce, or Shopify store.
-        They handle shipping rules, customs, and payments in each country. Hazel Allure checkout stays best for local pickup and domestic orders.
+        Link Shopify, Etsy, Printify, Amazon, and other shops you already run. Seekers see them on your Hazel page.
+        Payment and shipping stay on those sites — we do not charge those orders.
       </p>
 
       <div className="grid sm:grid-cols-2 gap-3">
@@ -90,8 +90,29 @@ export default function InternationalStorefrontEditor({
         </div>
       </div>
 
+      <div className="space-y-2">
+        <label className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={vendor?.show_external_on_storefront !== false}
+            onChange={(e) => onChange({ show_external_on_storefront: e.target.checked })}
+          />
+          <span>Show these shops on my Hazel storefront (helps SEO with outbound links)</span>
+        </label>
+        <label className="flex items-start gap-2">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={!!vendor?.show_external_at_checkout}
+            onChange={(e) => onChange({ show_external_at_checkout: e.target.checked })}
+          />
+          <span>Also show them at Hazel checkout (seeker can leave to pay on your store)</span>
+        </label>
+      </div>
+
       <div>
-        <div className="font-medium mb-2">External storefront links (Pro)</div>
+        <div className="font-medium mb-2">Your other stores</div>
         <div className="space-y-2">
           {EXTERNAL_STORE_PLATFORMS.map((p) => (
             <div key={p.id}>

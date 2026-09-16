@@ -2,7 +2,9 @@ import {
   activeExternalLinks,
   recommendsExternalForInternational,
   parseSellRegions,
+  vendorShowsStoresOnProfile,
 } from '../lib/internationalStorefront';
+import VendorExternalStoreLinks from './VendorExternalStoreLinks';
 import { labelsForRestricted, parseRestrictedCategories } from '../lib/shippingRestrictions';
 import { isProPlan } from '../lib/plans';
 
@@ -65,29 +67,12 @@ export default function VendorFulfillmentPanel({ vendor }) {
         </p>
       )}
 
-      {vendor.ships_internationally && intlExternal && links.length > 0 && (
-        <div className="mb-4 p-4 rounded-2xl bg-white border border-blue-100">
-          <p className="text-sm text-gray-700 mb-3 flex items-start gap-2">
-            <span className="text-lg shrink-0" aria-hidden="true">🌍</span>
-            <span>
-              International buyers — order through verified external stores (shipping &amp; customs handled there):
-            </span>
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {links.map((l) => (
-              <a
-                key={l.id}
-                href={l.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 bg-white border-2 border-[#4a1942] text-[#4a1942] rounded-2xl text-sm font-medium hover:bg-[#4a1942] hover:text-white transition inline-flex items-center gap-2"
-              >
-                <span aria-hidden="true">↗️</span>
-                Shop on {l.label}
-              </a>
-            ))}
-          </div>
-        </div>
+      {vendorShowsStoresOnProfile(vendor) && (
+        <VendorExternalStoreLinks
+          vendor={vendor}
+          title={intlExternal ? 'Shop this maker’s other stores' : 'Shop this maker elsewhere'}
+          className="mb-4"
+        />
       )}
 
       {vendor.shipping_notes && (

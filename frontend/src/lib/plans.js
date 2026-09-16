@@ -85,7 +85,6 @@ export const FREE_CUSTOMER_RATING_MIN_PURCHASES = 15;
 export const ENTERPRISE_ONLY_PERMISSIONS = [
   'maker_studio_pro',
   'product_subscriptions',
-  'international_storefront',
   'ad_credits',
 ];
 

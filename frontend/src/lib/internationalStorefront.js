@@ -1,12 +1,16 @@
 import { isShippingEnabled } from './shippingPolicy';
 
 export const EXTERNAL_STORE_PLATFORMS = [
-  { id: 'amazon', label: 'Amazon', placeholder: 'https://www.amazon.com/stores/...' },
-  { id: 'ebay', label: 'eBay', placeholder: 'https://www.ebay.com/usr/...' },
-  { id: 'woocommerce', label: 'WooCommerce / WordPress shop', placeholder: 'https://yourshop.com' },
   { id: 'shopify', label: 'Shopify', placeholder: 'https://yourshop.myshopify.com' },
+  { id: 'woocommerce', label: 'WooCommerce', placeholder: 'https://yourshop.com' },
   { id: 'etsy', label: 'Etsy', placeholder: 'https://www.etsy.com/shop/...' },
-  { id: 'custom', label: 'Other store URL', placeholder: 'https://...' },
+  { id: 'amazon', label: 'Amazon', placeholder: 'https://www.amazon.com/stores/...' },
+  { id: 'walmart', label: 'Walmart', placeholder: 'https://www.walmart.com/...' },
+  { id: 'ebay', label: 'eBay', placeholder: 'https://www.ebay.com/usr/...' },
+  { id: 'printify', label: 'Printify', placeholder: 'https://your-store.printify.me' },
+  { id: 'printful', label: 'Printful', placeholder: 'https://www.printful.com/custom/...' },
+  { id: 'tiktok', label: 'TikTok Shop', placeholder: 'https://www.tiktok.com/@...' },
+  { id: 'custom', label: 'Other store', placeholder: 'https://...' },
 ];
 
 export const SELL_REGIONS = [
@@ -47,9 +51,29 @@ export function parseSellRegions(raw) {
 
 export function activeExternalLinks(urls) {
   const map = parseExternalStoreUrls(urls);
-  return EXTERNAL_STORE_PLATFORMS
+  const known = EXTERNAL_STORE_PLATFORMS
     .map((p) => ({ ...p, url: (map[p.id] || '').trim() }))
     .filter((p) => p.url.startsWith('http'));
+  const knownIds = new Set(EXTERNAL_STORE_PLATFORMS.map((p) => p.id));
+  const extra = Object.entries(map)
+    .filter(([id, url]) => !knownIds.has(id) && !id.startsWith('_') && String(url || '').startsWith('http'))
+    .map(([id, url]) => ({ id, label: id, url: String(url).trim() }));
+  return [...known, ...extra];
+}
+
+export function vendorShowsStoresOnProfile(vendor) {
+  if (!vendor) return false;
+  if (vendor.show_external_on_storefront === false) return false;
+  return activeExternalLinks(vendor.external_store_urls).length > 0;
+}
+
+export function vendorShowsStoresAtCheckout(vendor) {
+  if (!vendor?.show_external_at_checkout) return false;
+  return activeExternalLinks(vendor.external_store_urls).length > 0;
+}
+
+export function vendorStoreSameAs(vendor) {
+  return activeExternalLinks(vendor?.external_store_urls).map((l) => l.url);
 }
 
 export function recommendsExternalForInternational(vendor) {

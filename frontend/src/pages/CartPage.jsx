@@ -9,6 +9,8 @@ import CheckoutDeliveryPicker, { formatDeliverySuccessNote } from '../components
 import { useProviderInteractionGate } from '../hooks/useProviderInteractionGate';
 import EmailVerificationBanner from '../components/EmailVerificationBanner';
 import { fetchVendorPaymentMethods } from '../lib/vendorPayoutsApi';
+import VendorExternalStoreLinks from '../components/VendorExternalStoreLinks';
+import { vendorShowsStoresAtCheckout } from '../lib/internationalStorefront';
 import { buildPaypalPayLink, describeVendorPaymentMethods } from '../lib/vendorPayments';
 import { startOrderCardCheckout } from '../lib/orderCheckoutApi';
 import MarketplacePolicyAck from '../components/MarketplacePolicyAck';
@@ -456,6 +458,13 @@ export default function CartPage({ user }) {
 
           {checkoutStep === 3 && (
             <div>
+              {vendorShowsStoresAtCheckout(vendorPay) && (
+                <VendorExternalStoreLinks
+                  vendor={vendorPay}
+                  title="Pay on this maker’s store instead"
+                  className="mb-4"
+                />
+              )}
               <label className="text-sm font-medium">How will you pay?</label>
               <div className="mt-2 space-y-2 text-sm">
                 {payMethods.map((m) => (

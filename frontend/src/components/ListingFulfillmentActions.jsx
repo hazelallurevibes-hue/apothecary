@@ -34,8 +34,11 @@ export default function ListingFulfillmentActions({
     );
   }
 
-  if (mode === 'external_only') {
-    const links = activeExternalLinks(vendor?.external_store_urls);
+  if (mode === 'external_only' || item?.pod_provider) {
+    const productUrl = (item?.external_buy_url || '').trim();
+    const links = productUrl
+      ? [{ id: 'buy', label: item.pod_provider === 'printify' ? 'Printify' : 'their store', url: productUrl }]
+      : activeExternalLinks(vendor?.external_store_urls);
     if (!links.length) {
       return (
         <p className="text-sm text-gray-600 bg-gray-50 border rounded-2xl px-3 py-2 text-center">

@@ -12,6 +12,7 @@ import CheckoutUpsellsEditor from '../components/CheckoutUpsellsEditor';
 import { parseCheckoutUpsells, normalizeUpsellsForSave } from '../lib/itemOptions';
 import { STREAM_PLATFORMS, buildArchiveEntry, parseArchives } from '../lib/streamUtils';
 import InternationalStorefrontEditor from '../components/InternationalStorefrontEditor';
+import VendorPodConnect from '../components/VendorPodConnect';
 import VendorAddressFields from '../components/VendorAddressFields';
 import { parseRestrictedCategories } from '../lib/shippingRestrictions';
 import PractitionerBadgeEditor from '../components/PractitionerBadgeEditor';
@@ -175,6 +176,8 @@ export default function StorefrontSettings({ user }) {
         payload.ships_internationally = !!vendor.ships_internationally;
         payload.international_via_external = vendor.international_via_external !== false;
         payload.external_store_urls = vendor.external_store_urls || {};
+        payload.show_external_on_storefront = vendor.show_external_on_storefront !== false;
+        payload.show_external_at_checkout = !!vendor.show_external_at_checkout;
         payload.shipping_notes = vendor.shipping_notes || '';
         payload.restricted_ship_categories = restrictedShipCategories;
         payload.sell_regions = vendor.sell_regions || ['US'];
@@ -748,7 +751,7 @@ export default function StorefrontSettings({ user }) {
       </div>
 
       <div className="mt-8 bg-white border rounded-3xl p-8 space-y-6">
-        <h2 className="font-semibold text-lg">International &amp; shipping (Pro)</h2>
+        <h2 className="font-semibold text-lg">Other stores (Pro)</h2>
         {canInternational ? (
           <InternationalStorefrontEditor
             vendor={vendor}
@@ -758,11 +761,16 @@ export default function StorefrontSettings({ user }) {
           />
         ) : (
           <p className="text-sm text-gray-600">
-            Pro practitioners can link Amazon, eBay, WooCommerce, or Shopify for international orders, set regional sell rules, and list carrier-restricted items.
+            Pro practitioners can link Shopify, Etsy, Printify, Amazon, and other shops, and optionally sync a Printify catalog.
             {!isProPractitioner && (
               <Link to="/pro-upgrade?type=vendor" className="text-[#4a1942] font-medium ml-1 underline">Upgrade to Pro →</Link>
             )}
           </p>
+        )}
+        {canInternational && (
+          <div className="pt-4 border-t">
+            <VendorPodConnect vendorId={vendorId} disabled={saving} />
+          </div>
         )}
       </div>
 

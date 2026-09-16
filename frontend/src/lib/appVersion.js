@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.15.6';
+export const APP_VERSION = '1.15.7';
 
 export const UPDATE_SPLASH = {
-  title: 'Favorites and invoices work',
+  title: 'Other stores + Printify catalog',
   message:
-    'Seekers can heart practitioners and listings. Practitioners see real sales invoices from orders.',
+    'Pro shops can link Shopify, Printify, Etsy, Amazon, and more. Catalog can sync from Printify; seekers buy on the maker’s store, not our checkout.',
   highlights: [
-    'Save hearts on shop and product pages',
-    'Invoices list actual shop orders',
-    'Free and Pro both get these tools',
+    'Store links on the shop page and optional at checkout',
+    'Printify products appear on Hazel with Buy on their store',
+    'Outbound links in storefront SEO',
   ],
 };
 

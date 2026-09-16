@@ -1,4 +1,5 @@
 import { VERTICAL, verticalFeature } from './vertical';
+import { vendorStoreSameAs } from './internationalStorefront';
 import { getLiteratureArticle, literatureSeoForArticle } from './seoLiterature';
 import { SUPPORTED_LOCALES } from '../i18n';
 
@@ -291,6 +292,8 @@ export function localBusinessJsonLd(vendor) {
     url: absoluteUrl(`/vendor/${vendor.id}`),
     telephone: vendor.phone || undefined,
   };
+  const sameAs = vendorStoreSameAs(vendor);
+  if (sameAs.length) json.sameAs = sameAs;
   if (vendor.city || vendor.state) {
     json.address = {
       '@type': 'PostalAddress',
