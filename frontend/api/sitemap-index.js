@@ -9,10 +9,6 @@ export default function handler(req, res) {
     <loc>${BASE}/sitemap.xml</loc>
     <lastmod>${today}</lastmod>
   </sitemap>
-  <sitemap>
-    <loc>https://www.hazelallure.com/sitemap.xml</loc>
-    <lastmod>${today}</lastmod>
-  </sitemap>
 </sitemapindex>
 `;
 

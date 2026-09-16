@@ -9,7 +9,19 @@
     <meta name="author" content="Hazel Allure LLC" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow" />
-    <link rel="canonical" href="https://apothecary.hazelallure.com/" />
+    <link rel="canonical" href="https://apothecary.hazelallure.com/" id="ha-canonical" />
+    <script>
+      (function () {
+        var alias = { '/marketplace': '/services', '/privacy': '/agreements', '/terms': '/agreements' };
+        var p = (location.pathname || '/').replace(/\/+$/, '') || '/';
+        if (alias[p]) p = alias[p];
+        var href = 'https://apothecary.hazelallure.com' + (p === '/' ? '/' : p);
+        var el = document.getElementById('ha-canonical');
+        if (el) el.setAttribute('href', href);
+        var og = document.querySelector('meta[property="og:url"]');
+        if (og) og.setAttribute('content', href);
+      })();
+    </script>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#4a1942" />
     <meta name="msapplication-TileColor" content="#4a1942" />
@@ -28,19 +40,19 @@
     <meta property="og:type" content="website" />
     <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="Hazel Allure Apothecary" />
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=1.15.7" />
-    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=1.15.7" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=1.15.7" />
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=1.15.7" />
-    <link rel="image_src" href="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.7" />
-    <meta property="og:image" content="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.7" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=1.15.8" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png?v=1.15.8" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png?v=1.15.8" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=1.15.8" />
+    <link rel="image_src" href="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.8" />
+    <meta property="og:image" content="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.8" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta property="og:image:alt" content="Hazel Allure — woman-owned holistic wellness and natural apothecary" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Hazel Allure Apothecary — Woman-Owned Holistic Wellness" />
     <meta name="twitter:description" content="Book practitioners worldwide. Shop natural apothecary goods. Woman-owned spiritual wellness marketplace." />
-    <meta name="twitter:image" content="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.7" />
+    <meta name="twitter:image" content="https://apothecary.hazelallure.com/brand/og-lockup.png?v=1.15.8" />
     <meta name="twitter:image:alt" content="Hazel Allure logo" />
     <script type="application/ld+json">
       {

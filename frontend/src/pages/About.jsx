@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { VERTICAL, blogUrl } from '../lib/vertical';
 import WomanOwnedBadge from '../components/WomanOwnedBadge';
 
-const LOGO_IMG = '/icon-512.png?v=1.15.7';
+const LOGO_IMG = '/icon-512.png?v=1.15.8';
 const STORY_IMG =
   'https://img1.wsimg.com/isteam/ip/ae9b283c-5423-42bf-bf06-686de1ecc625/tea%20mix%201.png/:/cr=t:0.46%25,l:0%25,w:100%25,h:99.07%25/rs=w:600,h:300,cg=true';
 

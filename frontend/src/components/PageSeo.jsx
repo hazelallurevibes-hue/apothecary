@@ -36,7 +36,10 @@ export default function PageSeo() {
     const seo = resolveSeo(pathname);
     const title = ctx.title || seo.title || `${SEO_BRAND.siteName} — ${SEO_BRAND.tagline}`;
     const description = ctx.description || seo.description || SEO_BRAND.tagline;
-    const canonical = `${SEO_BRAND.canonicalBase}${pathname === '/' ? '' : pathname.split('?')[0]}`;
+    const rawPath = pathname === '/' ? '/' : pathname.split('?')[0].replace(/\/+$/, '') || '/';
+    const alias = { '/marketplace': '/services', '/privacy': '/agreements', '/terms': '/agreements' };
+    const canonPath = alias[rawPath] || rawPath;
+    const canonical = `${SEO_BRAND.canonicalBase}${canonPath === '/' ? '' : canonPath}`;
     const image = resolveOgImage(pathname, ctx);
     const ogType = ctx.ogType || (ctx.course || ctx.listing ? 'product' : 'website');
 

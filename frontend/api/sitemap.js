@@ -19,8 +19,6 @@ const STATIC_ENTRIES = [
   { path: '/learn', changefreq: 'weekly', priority: '0.7' },
   { path: '/remedies', changefreq: 'weekly', priority: '0.9' },
   { path: '/agreements', changefreq: 'monthly', priority: '0.5' },
-  { path: '/privacy', changefreq: 'monthly', priority: '0.5' },
-  { path: '/terms', changefreq: 'monthly', priority: '0.5' },
   { path: '/policies-procedures', changefreq: 'monthly', priority: '0.5' },
   { path: '/customer-use-agreement', changefreq: 'monthly', priority: '0.5' },
 ];

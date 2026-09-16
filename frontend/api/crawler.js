@@ -84,6 +84,29 @@ const PAGES = {
     title: 'Natural Remedies Research Library | Hazel Allure',
     description: 'Educational monographs. Research only — not medical advice.',
   },
+  '/gathering': {
+    title: 'The Hearth | Hazel Allure',
+    description: 'Seeker gathering for blessings, community, and practitioner conversation.',
+  },
+  '/sitemap': {
+    title: 'Site Map | Hazel Allure',
+    description: 'Public pages on the Hazel Allure apothecary.',
+  },
+  '/policies-procedures': {
+    title: 'Policies & Procedures | Hazel Allure',
+    description: 'How the marketplace is run — listing rules, safety, and seeker protections.',
+  },
+  '/customer-use-agreement': {
+    title: 'Seeker Use Agreement | Hazel Allure',
+    description: 'Terms for seekers using Hazel Allure to book and shop.',
+  },
+};
+
+/** Duplicate routes that must point at the indexable URL. */
+const CANON_ALIAS = {
+  '/marketplace': '/services',
+  '/privacy': '/agreements',
+  '/terms': '/agreements',
 };
 
 function htmlPage({ title, description, url, noindex }) {
@@ -164,15 +187,44 @@ function htmlPage({ title, description, url, noindex }) {
 
 export default async function handler(req, res) {
   const path = String(req.query?.path || '/').replace(/\/$/, '') || '/';
+  const canon = CANON_ALIAS[path] || path;
   res.setHeader('Content-Type', 'text/html; charset=utf-8');
-  const page = PAGES[path];
+  const page = PAGES[canon] || PAGES[path];
+  const url = canon === '/' ? SITE : `${SITE}${canon}`;
   if (page) {
-    return res.status(200).send(htmlPage({ ...page, url: path === '/' ? SITE : `${SITE}${path}` }));
+    return res.status(200).send(htmlPage({ ...page, url }));
   }
   if (path.startsWith('/learn/') || path.startsWith('/remedies/')) {
     const slug = path.split('/').pop();
     const title = `${slug.replace(/-/g, ' ')} | Hazel Allure`;
     return res.status(200).send(htmlPage({ title, description: PITCH, url: `${SITE}${path}` }));
+  }
+  if (path.startsWith('/vendor/')) {
+    return res.status(200).send(
+      htmlPage({
+        title: 'Practitioner shop | Hazel Allure',
+        description: 'Sessions and apothecary goods from an independent Hazel Allure practitioner.',
+        url: `${SITE}${path}`,
+      }),
+    );
+  }
+  if (path.startsWith('/listing/')) {
+    return res.status(200).send(
+      htmlPage({
+        title: 'Listing | Hazel Allure',
+        description: 'Apothecary goods and wellness offerings on Hazel Allure.',
+        url: `${SITE}${path}`,
+      }),
+    );
+  }
+  if (path.startsWith('/courses/')) {
+    return res.status(200).send(
+      htmlPage({
+        title: 'Course | Hazel Allure Teaching Sanctum',
+        description: 'Learn from Pro Practitioners on Hazel Allure.',
+        url: `${SITE}${path}`,
+      }),
+    );
   }
   return res.status(404).send(
     htmlPage({
