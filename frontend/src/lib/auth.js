@@ -31,7 +31,8 @@ function normalizeProfile(raw) {
     easy_mode_enabled: !!raw.easy_mode_enabled,
     food_prefs_completed_at: raw.food_prefs_completed_at || null,
     diet_type: raw.diet_type || 'none',
-    customer_region: raw.customer_region || 'US',
+    customer_region: raw.customer_region || raw.region || 'US',
+    region: raw.region || raw.customer_region || 'US',
   };
   if (resolveIsAdmin(base)) {
     return applyAdminProFlags(base);

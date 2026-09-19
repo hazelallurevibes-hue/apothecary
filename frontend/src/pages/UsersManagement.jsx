@@ -26,6 +26,7 @@ import AdminCommandCenter from '../components/AdminCommandCenter';
 import AdminAutomationPanel from '../components/AdminAutomationPanel';
 import AdminAdvertisingPanel from '../components/AdminAdvertisingPanel';
 import AdminMagicPanel from '../components/AdminMagicPanel';
+import AdminPrivacyQueue from '../components/AdminPrivacyQueue';
 import PractitionerBadges from '../components/PractitionerBadges';
 
 export default function AdminPortal({ user, onLogout }) {
@@ -838,6 +839,7 @@ export default function AdminPortal({ user, onLogout }) {
 
         {!loading && activeTab === 'compliance' && (
           <div className="space-y-6">
+            <AdminPrivacyQueue />
             <AdminCommunityModerationPanel adminEmail={user?.email} />
             <div className="bg-white border rounded-3xl p-6">
               <div className="flex justify-between items-center mb-4">

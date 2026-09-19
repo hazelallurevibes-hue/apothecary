@@ -97,10 +97,18 @@ export default function PoliciesProcedures() {
       <section id="cookies" className="mb-10">
         <h2 className="text-2xl font-semibold border-b pb-2 mb-4">5. Cookies, analytics &amp; tracking</h2>
         <div className="space-y-3 text-gray-700 text-sm leading-relaxed">
-          <p>We and our service providers use cookies, local storage, session tokens, and similar technologies to maintain login state, remember preferences (including language and locale), measure performance, and protect against automated abuse.</p>
-          <p>Bot-protection services (e.g., Cloudflare Turnstile) may process interaction signals during login and signup pursuant to their respective privacy policies.</p>
-          <p>We may use privacy-respecting analytics to understand aggregate usage patterns. We do not deploy third-party advertising cookies for cross-site behavioral targeting on {VERTICAL.name}.</p>
-          <p>You may control cookies through browser settings. Disabling essential cookies may impair login and checkout functionality.</p>
+          <p>Essential cookies and local storage keep you signed in, remember language, and protect against abuse (including Cloudflare Turnstile). These are required for the site to work.</p>
+          <p>If you allow analytics, we may use Google Analytics, Microsoft Bing, Vercel Analytics, and GoDaddy traffic reports to see which pages are used. We do not sell personal information for third-party advertising. EU/UK/Canada accounts must opt in before analytics cookies load. A Global Privacy Control or Do Not Track signal is treated as analytics off.</p>
+          <p>You can change this anytime via the cookie bar (Essential only / Accept analytics) or <a href="/do-not-sell" className="underline text-[#4a1942]">Do not sell</a>.</p>
+        </div>
+      </section>
+
+      <section id="international" className="mb-10">
+        <h2 className="text-2xl font-semibold border-b pb-2 mb-4">5A. International selling (not one blanket rule)</h2>
+        <div className="space-y-3 text-gray-700 text-sm leading-relaxed">
+          <p>{VERTICAL.legalEntity} is a United States company (New Mexico). Stamped articles of organization and a business checking account are still in process. We are <strong>not</strong> yet an EU VAT-registered marketplace and do not operate IOSS/OSS. EU/UK import VAT and duties may apply to cross-border goods; the seller is responsible for local tax and product law in the region they signed up under.</p>
+          <p>Account region (chosen at signup, editable in Account Settings) controls cookie consent style, listing-claim limits, and consumer-withdrawal notices. A US shop and an EU shop are not held to the same extra rules. Disease-treatment claims are forbidden on the platform in every region.</p>
+          <p>Until banking and formation documents are complete, we will not pretend to collect EU VAT on your behalf.</p>
         </div>
       </section>
 

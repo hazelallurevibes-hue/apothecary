@@ -51,6 +51,7 @@ import {
 } from '../lib/listingTemplates';
 import ThankYouComposer from '../components/ThankYouComposer';
 import VendorProSaasHub from '../components/VendorProSaasHub';
+import RegionRulesPanel from '../components/RegionRulesPanel';
 import VendorPaymentsPanel from '../components/VendorPaymentsPanel';
 
 import { buildFoodLabelPayload } from '../lib/foodLabels';
@@ -1181,6 +1182,10 @@ export default function VendorDashboard({ user }) {
           </Link>
         </p>
       )}
+
+      <div className="mb-6">
+        <RegionRulesPanel regionId={user?.region || user?.locale || 'US'} />
+      </div>
 
       {isProPractitioner && (
         <details className="mb-6 rounded-2xl border border-[#c9a227]/30 bg-white p-4">

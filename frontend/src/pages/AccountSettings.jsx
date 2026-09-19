@@ -15,6 +15,8 @@ import {
 } from '../lib/plans';
 import { fetchMySubscriptions, openBillingPortal } from '../lib/proBillingApi';
 import YourDataPanel from '../components/YourDataPanel';
+import RegionSelect from '../components/RegionSelect';
+import { normalizeRegion } from '../lib/accountRegions';
 import MyLikesDislikesQuestionnaire from '../components/MyLikesDislikesQuestionnaire';
 import { serializeAllergenIds } from '../lib/allergens';
 import { syncAllergenToAuth0, syncAllergenToLocalUser } from '../lib/auth0MetadataSync';
@@ -51,6 +53,7 @@ function familiarTierFromStreak(streak) {
 export default function AccountSettings({ user, onProfileUpdate }) {
   const { requestAdjust, modal: imageAdjustModal } = useImageAdjust();
   const [name, setName] = useState(user?.name || '');
+  const [region, setRegion] = useState(normalizeRegion(user?.region || user?.locale));
   const [avatar, setAvatar] = useState(user?.avatar || '');
 
   const [twoFA, setTwoFA] = useState({
@@ -239,6 +242,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
         name,
         avatar,
         allergen_avoid: serializeAllergenIds(foodPrefs.allergen_avoid),
+        region: normalizeRegion(region),
       }),
     );
 
@@ -561,6 +565,7 @@ export default function AccountSettings({ user, onProfileUpdate }) {
               className="mt-1 w-full border p-3 rounded-2xl"
             />
           </div>
+          <RegionSelect value={region} onChange={setRegion} disabled={saving} />
           <div>
             <label className="text-sm font-medium">Email</label>
             <input

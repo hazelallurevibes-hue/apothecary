@@ -1,11 +1,11 @@
 {
-  "version": "1.15.9",
-  "buildId": "2026-09-19T17:42:39.239Z",
-  "title": "Billing and your data",
-  "message": "Pro and Atelier shops have a Billing menu with Stripe invoice history, plus download-my-data and deletion requests.",
+  "version": "1.16.0",
+  "buildId": "2026-09-19T18:08:53.723Z",
+  "title": "Region rules and cookie choice",
+  "message": "Your signup country now drives cookie consent and listing limits. Analytics (Google, Bing, Vercel, GoDaddy) wait for your OK. EU VAT is not collected yet.",
   "highlights": [
-    "Billing history from Stripe receipts",
-    "Request deletion within 30 days (legal holds kept)",
-    "Essential cookie notice"
+    "EU/UK opt-in cookies; US choice + GPC",
+    "Admin queue for deletion requests",
+    "Accessibility and Do not sell pages"
   ]
 }

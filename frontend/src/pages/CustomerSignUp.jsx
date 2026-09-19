@@ -21,6 +21,8 @@ import {
 import { logSeekerOathAcceptance } from '../lib/seekerOathApi';
 import PasswordInput from '../components/PasswordInput';
 import SignupBenefitsPanel from '../components/SignupBenefitsPanel';
+import RegionSelect from '../components/RegionSelect';
+import { normalizeRegion } from '../lib/accountRegions';
 
 export default function CustomerSignUp({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -40,6 +42,7 @@ export default function CustomerSignUp({ onLogin }) {
   const [foodPrefs, setFoodPrefs] = useState({ ...EMPTY_FOOD_PREFS });
   const [prefsSaving, setPrefsSaving] = useState(false);
   const [googleMode, setGoogleMode] = useState(false);
+  const [region, setRegion] = useState('US');
   const captcha = useAuthCaptcha();
 
   useEffect(() => {
@@ -110,6 +113,7 @@ export default function CustomerSignUp({ onLogin }) {
         p_email: signup.email,
       });
       if (rpcError) throw rpcError;
+      await supabase.from('users').update({ region: normalizeRegion(region) }).ilike('email', signup.email);
 
       if (signup.session) {
         const resolved = await finalizeSignupSession(signup);
@@ -259,6 +263,7 @@ export default function CustomerSignUp({ onLogin }) {
             type="email"
             required
           />
+          <RegionSelect value={region} onChange={setRegion} disabled={loading} />
           <PasswordInput
             placeholder="Password (min 6 characters)"
             value={password}

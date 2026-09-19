@@ -9,6 +9,7 @@ export function buildProfileSavePatch({
   allergen_avoid,
   doordash_linked,
   ubereats_linked,
+  region,
 }) {
   return {
     name,
@@ -16,6 +17,7 @@ export function buildProfileSavePatch({
     allergen_avoid,
     doordash_linked,
     ubereats_linked,
+    ...(region ? { region } : {}),
   };
 }
 

@@ -29,11 +29,12 @@ import WomanOwnedBadge from './WomanOwnedBadge';
 import { VERTICAL, blogUrl, verticalFeature } from '../lib/vertical';
 import { FOOTER_HAIKU, pickWhimsy } from '../lib/whimsyMessages';
 import UpdateSplash from './UpdateSplash';
-import CookieNotice from './CookieNotice';
+import CookieConsentBar from './CookieConsentBar';
+import AnalyticsScripts from './AnalyticsScripts';
 import { APP_VERSION } from '../lib/appVersion';
 import BetaGrowthBanner from './BetaGrowthBanner';
 
-const LOGO_IMG = '/icon-192.png?v=1.15.9';
+const LOGO_IMG = '/icon-192.png?v=1.16.0';
 
 function NavLink({ to, children, onNavigate }) {
   return (
@@ -431,7 +432,8 @@ export default function Layout({ user, onLogout, children }) {
       <AccessibilityHub open={accessOpen} onClose={() => setAccessOpen(false)} />
       <EasyModePrompt />
 
-      <CookieNotice />
+      <AnalyticsScripts />
+      <CookieConsentBar regionId={user?.region || user?.locale} />
       <footer className="border-t border-ha-lavender/40 bg-white/90 backdrop-blur-sm mt-12 py-8 text-sm text-gray-500">
         <p className="max-w-7xl mx-auto px-4 md:px-8 mb-4 text-center text-xs text-[#4a1942]/50 whitespace-pre-line italic">{footerHaiku}</p>
         <div className="max-w-7xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between gap-y-3">
@@ -453,6 +455,8 @@ export default function Layout({ user, onLogout, children }) {
             <a href={blogUrl('/alluring-news')} target="_blank" rel="noopener noreferrer">Alluring News</a>
             <Link to="/agreements">{t('footer.terms')}</Link>
             <Link to="/policies-procedures#privacy">Privacy</Link>
+            <Link to="/do-not-sell">Do not sell</Link>
+            <Link to="/accessibility">Accessibility</Link>
             {user && <Link to="/billing">Billing</Link>}
             {user && <Link to="/account-settings#your-data">Your data</Link>}
             <Link to="/policies-procedures">{t('footer.policies')}</Link>

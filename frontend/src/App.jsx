@@ -28,6 +28,8 @@ const VendorProductPage = lazyWithRetry(() => import('./pages/VendorProductPage'
 const StorefrontSettings = lazyWithRetry(() => import('./pages/StorefrontSettings'));
 const AccountSettings = lazyWithRetry(() => import('./pages/AccountSettings'));
 const Billing = lazyWithRetry(() => import('./pages/Billing'));
+const Accessibility = lazyWithRetry(() => import('./pages/Accessibility'));
+const DoNotSell = lazyWithRetry(() => import('./pages/DoNotSell'));
 const OnboardingFlow = lazyWithRetry(() => import('./pages/OnboardingFlow'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
 const Sitemap = lazyWithRetry(() => import('./pages/Sitemap'));
@@ -519,6 +521,8 @@ function AppCore({ auth0 = null }) {
                 <Route path="/remedies" element={<RemediesHub />} />
                 <Route path="/remedies/:slug" element={<RemedyDetail user={user} />} />
                 <Route path="/contact" element={<Contact />} />
+                <Route path="/accessibility" element={<Accessibility />} />
+                <Route path="/do-not-sell" element={<DoNotSell user={user} />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/agreements" element={<Agreements />} />
                 <Route path="/privacy" element={<Agreements />} />

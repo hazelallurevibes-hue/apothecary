@@ -20,6 +20,8 @@ import {
 import { logVendorIntegrityAcceptance } from '../lib/vendorIntegrityApi';
 import PasswordInput from '../components/PasswordInput';
 import SignupBenefitsPanel from '../components/SignupBenefitsPanel';
+import RegionSelect from '../components/RegionSelect';
+import { normalizeRegion } from '../lib/accountRegions';
 
 export default function VendorSignUp({ onLogin }) {
   const [searchParams] = useSearchParams();
@@ -36,6 +38,7 @@ export default function VendorSignUp({ onLogin }) {
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [googleMode, setGoogleMode] = useState(false);
+  const [region, setRegion] = useState('US');
   const captcha = useAuthCaptcha();
 
   useEffect(() => {
@@ -119,6 +122,8 @@ export default function VendorSignUp({ onLogin }) {
             p_email: applicantEmail,
           });
           if (rpcError) throw rpcError;
+          await supabase.from('users').update({ region: normalizeRegion(region) }).ilike('email', applicantEmail);
+          await supabase.from('vendors').update({ country: normalizeRegion(region) }).ilike('email', applicantEmail);
           setMessage(
             `Application saved! We sent a confirmation link to ${applicantEmail} — check inbox and spam, then sign in. Use Resend on the verification page if it does not arrive. Admin will approve your practitioner status after that.`,
           );
@@ -133,6 +138,8 @@ export default function VendorSignUp({ onLogin }) {
         p_email: applicantEmail,
       });
       if (rpcError) throw rpcError;
+      await supabase.from('users').update({ region: normalizeRegion(region) }).ilike('email', applicantEmail);
+      await supabase.from('vendors').update({ country: normalizeRegion(region) }).ilike('email', applicantEmail);
 
       await logVendorIntegrityAcceptance({
         vendorEmail: applicantEmail,
@@ -239,6 +246,7 @@ export default function VendorSignUp({ onLogin }) {
                 type="email"
                 required
               />
+          <RegionSelect value={region} onChange={setRegion} disabled={loading} />
               <PasswordInput
                 placeholder="Password (min 6 characters)"
                 value={password}

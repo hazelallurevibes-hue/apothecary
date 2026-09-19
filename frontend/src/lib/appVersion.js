@@ -2,16 +2,16 @@
  * Bump APP_VERSION (and usually package.json version) on every user-facing release.
  * Splash is shown once per version until the user dismisses or updates.
  */
-export const APP_VERSION = '1.15.9';
+export const APP_VERSION = '1.16.0';
 
 export const UPDATE_SPLASH = {
-  title: 'Billing and your data',
+  title: 'Region rules and cookie choice',
   message:
-    'Pro and Atelier shops have a Billing menu with Stripe invoice history, plus download-my-data and deletion requests.',
+    'Your signup country now drives cookie consent and listing limits. Analytics (Google, Bing, Vercel, GoDaddy) wait for your OK. EU VAT is not collected yet.',
   highlights: [
-    'Billing history from Stripe receipts',
-    'Request deletion within 30 days (legal holds kept)',
-    'Essential cookie notice',
+    'EU/UK opt-in cookies; US choice + GPC',
+    'Admin queue for deletion requests',
+    'Accessibility and Do not sell pages',
   ],
 };
 

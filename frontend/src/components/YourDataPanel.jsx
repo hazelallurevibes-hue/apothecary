@@ -25,7 +25,9 @@ export default function YourDataPanel({ user }) {
       setMsg(
         requestType === 'deletion'
           ? 'Deletion request received. We process verified requests within 30 days, except records we must keep by law (tax, payments, safety, disputes).'
-          : 'Request received. We will follow up at your account email.',
+          : requestType === 'do_not_sell'
+            ? 'Logged. We do not sell personal information; analytics cookies are off unless you allow them.'
+            : 'Request received. We will follow up at your account email.',
       );
       reload();
     } catch (e) {
@@ -68,14 +70,24 @@ export default function YourDataPanel({ user }) {
         onChange={(e) => setDetails(e.target.value)}
         placeholder="Anything we should know (shop name, extra emails)…"
       />
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => submit('deletion')}
-        className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold disabled:opacity-60"
-      >
-        Request account &amp; data deletion
-      </button>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => submit('deletion')}
+          className="px-4 py-2 bg-[#4a1942] text-white rounded-2xl text-sm font-semibold disabled:opacity-60"
+        >
+          Request account &amp; data deletion
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => submit('do_not_sell')}
+          className="px-4 py-2 border rounded-2xl text-sm font-semibold disabled:opacity-60"
+        >
+          Do not sell / share my info
+        </button>
+      </div>
       {msg && <p className="text-sm text-gray-700 mt-3">{msg}</p>}
       {rows.length > 0 && (
         <ul className="mt-4 text-xs text-gray-500 space-y-1">
