@@ -40,6 +40,13 @@ export async function createProCheckout({ planType, email, vendorId, billingInte
   });
 }
 
+export async function fetchStripeInvoices(email) {
+  const json = await callEdge('list-stripe-invoices', {
+    email: email?.trim().toLowerCase(),
+  });
+  return json.invoices || [];
+}
+
 export async function openBillingPortal({ planType, email }) {
   const json = await callEdge('create-billing-portal', {
     plan_type: planType,

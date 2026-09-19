@@ -8,11 +8,13 @@ import {
   getCustomerContext,
   getVendorContext,
   isCustomerPro,
+  isEnterprisePlan,
   isProPlan,
   isVendorPro,
   planBadgeLabel,
 } from '../lib/plans';
 import { fetchMySubscriptions, openBillingPortal } from '../lib/proBillingApi';
+import YourDataPanel from '../components/YourDataPanel';
 import MyLikesDislikesQuestionnaire from '../components/MyLikesDislikesQuestionnaire';
 import { serializeAllergenIds } from '../lib/allergens';
 import { syncAllergenToAuth0, syncAllergenToLocalUser } from '../lib/auth0MetadataSync';
@@ -107,6 +109,9 @@ export default function AccountSettings({ user, onProfileUpdate }) {
     }
     if (window.location.hash === '#billing') {
       document.getElementById('billing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    if (window.location.hash === '#your-data') {
+      document.getElementById('your-data')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }, []);
 
@@ -432,15 +437,17 @@ export default function AccountSettings({ user, onProfileUpdate }) {
                 )}
               </div>
               <div className="text-sm text-gray-600 mt-1">
-                {isVendorPro(user)
-                  ? 'Unlimited listings, Teaching Sanctum, campaigns, analytics, international storefront, and full team tools.'
-                  : 'Selling, bio, profile editor, ratings, and 1 employee seat.'}
+                {isEnterprisePlan(vendorCtx.plan)
+                  ? 'Atelier house: 0% fee, 50 seats, Maker Studio Pro, Subscribe & Save, international storefronts.'
+                  : isVendorPro(user)
+                    ? 'Unlimited listings, Teaching Sanctum, campaigns, analytics, and team tools.'
+                    : 'Selling, bio, profile editor, ratings, and 1 employee seat.'}
               </div>
             </div>
             {isVendorPro(user) ? (
               <div className="flex flex-wrap gap-2">
-                <Link to="/pro-upgrade?type=vendor" className="text-sm px-4 py-2 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-2xl font-semibold hover:bg-[#fff9eb]">
-                  Your Pro hub
+                <Link to="/billing" className="text-sm px-4 py-2 border-2 border-[#c9a227]/50 bg-white text-[#4a1942] rounded-2xl font-semibold hover:bg-[#fff9eb]">
+                  Billing &amp; invoices
                 </Link>
                 <button
                   type="button"
@@ -709,6 +716,8 @@ export default function AccountSettings({ user, onProfileUpdate }) {
           </div>
         )}
       </div>
+
+      <YourDataPanel user={user} />
     </div>
   );
 }

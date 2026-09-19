@@ -27,6 +27,7 @@ const AdminPortal = lazyWithRetry(() => import('./pages/UsersManagement'));
 const VendorProductPage = lazyWithRetry(() => import('./pages/VendorProductPage'));
 const StorefrontSettings = lazyWithRetry(() => import('./pages/StorefrontSettings'));
 const AccountSettings = lazyWithRetry(() => import('./pages/AccountSettings'));
+const Billing = lazyWithRetry(() => import('./pages/Billing'));
 const OnboardingFlow = lazyWithRetry(() => import('./pages/OnboardingFlow'));
 const FAQ = lazyWithRetry(() => import('./pages/FAQ'));
 const Sitemap = lazyWithRetry(() => import('./pages/Sitemap'));
@@ -500,6 +501,11 @@ function AppCore({ auth0 = null }) {
                 <Route path="/account-settings" element={
                   <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
                     <AccountSettings user={user} onProfileUpdate={commitUserProfile} />
+                  </ProtectedRoute>
+                } />
+                <Route path="/billing" element={
+                  <ProtectedRoute allowedRoles={['customer', 'vendor', 'admin']}>
+                    <Billing user={user} />
                   </ProtectedRoute>
                 } />
                 <Route path="/pro-upgrade" element={<ProUpgrade user={user} />} />
